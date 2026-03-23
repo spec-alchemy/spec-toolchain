@@ -1,0 +1,8 @@
+stateDiagram-v2
+%% Source: design-spec/state/machines/card.machine.ts
+[*] --> card_suggested_jny2th
+state "suggested" as card_suggested_jny2th
+state "accepted" as card_accepted_1ml5fp
+state "archived" as card_archived_8qq77k
+card_suggested_jny2th --> card_accepted_1ml5fp: acceptSuggestedCard
+card_suggested_jny2th --> card_archived_8qq77k: archiveCard

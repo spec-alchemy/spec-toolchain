@@ -1,0 +1,15 @@
+{
+  "name": "knowledge-alchemy-app-v2-design-spec",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "generate:state-diagrams": "tsx design-spec/state/diagram/generate-machine-diagram.ts"
+  },
+  "dependencies": {
+    "xstate": "^5.28.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.0",
+    "tsx": "^4.21.0"
+  }
+}
