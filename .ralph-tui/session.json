@@ -3,10 +3,10 @@
   "sessionId": "ff8918e9-f548-4083-910f-d6e81e72f921",
   "status": "running",
   "startedAt": "2026-03-24T17:08:48.524Z",
-  "updatedAt": "2026-03-24T18:09:48.657Z",
-  "currentIteration": 4,
+  "updatedAt": "2026-03-24T18:13:24.091Z",
+  "currentIteration": 5,
   "maxIterations": 10,
-  "tasksCompleted": 4,
+  "tasksCompleted": 5,
   "isPaused": false,
   "agentPlugin": "codex",
   "trackerState": {
@@ -41,8 +41,8 @@
       {
         "id": "US-005",
         "title": "Cut over public scripts and documentation to zero-config",
-        "status": "open",
-        "completedInSession": false
+        "status": "completed",
+        "completedInSession": true
       },
       {
         "id": "US-006",
@@ -92,6 +92,16 @@
       "durationMs": 835034,
       "startedAt": "2026-03-24T17:46:48.189Z",
       "endedAt": "2026-03-24T18:00:43.223Z"
+    },
+    {
+      "iteration": 5,
+      "status": "completed",
+      "taskId": "US-005",
+      "taskTitle": "Cut over public scripts and documentation to zero-config",
+      "taskCompleted": true,
+      "durationMs": 544340,
+      "startedAt": "2026-03-24T18:00:44.316Z",
+      "endedAt": "2026-03-24T18:09:48.656Z"
     }
   ],
   "skippedTaskIds": [],

@@ -10,6 +10,7 @@ after each iteration and it's included in prompts for context.
 - Bootstrap commands for strict spec toolchains should emit a one-aggregate starter model and self-validate it before returning; empty directory scaffolds do not survive schema and semantic validation once zero-config `validate` becomes the default onboarding path.
 - For zero-config viewer startup, keep the shared CLI responsible for rebuilding the canonical viewer artifact and launching the existing viewer app, then inject the artifact path into the dev server as the default spec source; keep the repo-local `public/generated/` sync only for static build/preview workflows.
 - When migrating public onboarding from legacy repo-specific script names to a zero-config product path, add product-shaped root aliases first, keep legacy names as thin delegating wrappers, and update README/help/UI copy to mention only the new aliases so compatibility does not keep leaking into onboarding.
+- Zero-config CLI regression tests stay stable when they copy a canonical fixture into an isolated temp repo root, run commands through a `cwd` override, and replace long-running viewer side effects with small hooks or stubs; that gives end-to-end coverage of `init`, `validate`, `build`, and `viewer` without mutating global process state or booting the real dev server.
 
 ---
 
@@ -125,4 +126,15 @@ after each iteration and it's included in prompts for context.
 - **Learnings:**
   - If legacy npm script names must survive for compatibility, keep them as one-line wrappers and move every user-facing example to the new zero-config aliases; otherwise the old names keep reappearing in onboarding.
   - A root README is the cleanest way to move onboarding out of package-internal docs without deleting maintainers' deeper reference material.
+---
+
+## 2026-03-25 - US-006
+- Verified the current tree already satisfies the zero-config regression story: `packages/ddd-spec-cli/example-regression.test.ts` covers `ddd-spec init`, zero-config `validate`, zero-config `build`, and a minimal `ddd-spec viewer` path, while the existing core, projection, and example regression tests remain aligned to `ddd-spec/canonical/`.
+- Re-ran `npm run test:ddd-spec` and `npm run verify:design-spec`; both passed.
+- Reviewed the current story changes for High-severity defects and found none remaining.
+- Files changed:
+  - `.ralph-tui/progress.md`
+- **Learnings:**
+  - Zero-config regression coverage is strongest when tests assert the standard `.ddd-spec/` output locations directly instead of routing through repo-specific wrappers.
+  - Viewer integration tests do not need to launch the real frontend if the command exposes narrow dependency-install and launch hooks that can be asserted in-process.
 ---
