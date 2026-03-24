@@ -1,0 +1,9 @@
+configVersion = "2.1"
+maxIterations = 10
+agent = "codex"
+tracker = "json"
+autoCommit = true
+subagentTracingDetail = "off"
+
+[agentOptions]
+[trackerOptions]

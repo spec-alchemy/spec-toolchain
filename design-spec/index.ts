@@ -14,7 +14,7 @@ export {
   objects,
   processes,
   viewerDetailVocabulary
-} from "./canonical/index.js";
+} from "../ddd-spec/canonical/index.js";
 
 export type {
   AggregateSpec,
@@ -25,4 +25,4 @@ export type {
   ObjectSpec,
   ProcessSpec,
   ViewerDetailSemanticSpec
-} from "./canonical/index.js";
+} from "../ddd-spec/canonical/index.js";

@@ -30,11 +30,18 @@ interface ParsedCliArgs {
   help: boolean;
 }
 
+export interface RunCliCommandOptions {
+  cwd?: string;
+}
+
 interface LoadedSpecContext {
   spec: BusinessSpec;
 }
 
-export async function runCliCommand(argv: readonly string[]): Promise<void> {
+export async function runCliCommand(
+  argv: readonly string[],
+  options: RunCliCommandOptions = {}
+): Promise<void> {
   const parsedArgs = parseCliArgs(argv);
 
   if (parsedArgs.help || !parsedArgs.command) {
@@ -43,7 +50,8 @@ export async function runCliCommand(argv: readonly string[]): Promise<void> {
   }
 
   const config = await loadDddSpecConfig({
-    configPath: parsedArgs.configPath
+    configPath: parsedArgs.configPath,
+    cwd: options.cwd
   });
 
   switch (parsedArgs.command) {
@@ -240,7 +248,7 @@ function assertProjectionEnabled(
   }
 
   throw new Error(
-    `Projection ${projectionName} is disabled in ${config.configPath}; enable projections.${projectionName} before running this command`
+    `Projection ${projectionName} is disabled in ${config.sourceDescription}; enable projections.${projectionName} before running this command`
   );
 }
 

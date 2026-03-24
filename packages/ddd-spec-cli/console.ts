@@ -21,7 +21,11 @@ export function formatDiagnostic(diagnostic: AnalysisDiagnostic): string {
 export function buildUsageText(): string {
   return [
     "Usage:",
-    "  ddd-spec <command> [--config <path>]",
+    "  ddd-spec <command>",
+    "",
+    "Defaults:",
+    "  Reads ddd-spec/canonical/index.yaml",
+    "  Writes build outputs into .ddd-spec/",
     "",
     "Commands:",
     "  validate",

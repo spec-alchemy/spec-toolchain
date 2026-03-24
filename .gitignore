@@ -39,7 +39,8 @@ Thumbs.db
 # Project-specific excluded docs
 docs/
 
-# Design-spec generated outputs
+# DDD spec generated outputs
+.ddd-spec/
 design-spec/artifacts/
 design-spec/generated/
 examples/*/artifacts/

@@ -2,7 +2,7 @@ import { fileURLToPath } from "node:url";
 import { loadBusinessSpec, type BusinessSpec } from "./index.js";
 
 export const CANONICAL_SPEC_ENTRY_PATH = fileURLToPath(
-  new URL("../../design-spec/canonical/index.yaml", import.meta.url)
+  new URL("../../ddd-spec/canonical/index.yaml", import.meta.url)
 );
 
 export const CORE_SCHEMA_PATH = fileURLToPath(

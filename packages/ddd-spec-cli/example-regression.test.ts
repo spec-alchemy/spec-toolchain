@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { cp, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import test from "node:test";
@@ -18,6 +18,7 @@ import type {
   ViewerViewSpec
 } from "../ddd-spec-viewer-contract/index.js";
 import YAML from "yaml";
+import { buildUsageText } from "./console.js";
 import { loadDddSpecConfig } from "./config.js";
 import { runCliCommand } from "./commands.js";
 
@@ -160,12 +161,17 @@ const EXAMPLE_FIXTURES: readonly ExampleFixture[] = [
   }
 ] as const;
 
+const ZERO_CONFIG_FIXTURE = EXAMPLE_FIXTURES[0];
+const DEFAULT_SCHEMA_PATH = toAbsolutePath("../ddd-spec-core/schema/business-spec.schema.json");
+
 for (const example of EXAMPLE_FIXTURES) {
   test(`${example.id} example config resolves repo-local relative paths`, async () => {
     const config = await loadDddSpecConfig({
       configPath: example.configPath
     });
 
+    assert.equal(config.mode, "config");
+    assert.equal(config.sourceDescription, example.configPath);
     assert.equal(config.spec.entryPath, example.entryPath);
     assert.equal(config.projections.viewer, true);
     assert.equal(config.projections.typescript, true);
@@ -177,6 +183,64 @@ for (const example of EXAMPLE_FIXTURES) {
     assert.deepEqual(config.viewer.syncTargetPaths, []);
   });
 }
+
+test("zero-config mode resolves the canonical entry and standard outputs from cwd", async () => {
+  const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-zero-config-resolve-"));
+
+  try {
+    await copyExampleCanonicalToZeroConfigRoot(tempDir, ZERO_CONFIG_FIXTURE.id);
+
+    const config = await loadDddSpecConfig({
+      cwd: tempDir
+    });
+
+    assert.equal(config.mode, "zero-config");
+    assert.equal(config.configPath, undefined);
+    assert.equal(config.sourceDescription, "zero-config defaults");
+    assert.equal(config.spec.entryPath, join(tempDir, "ddd-spec", "canonical", "index.yaml"));
+    assert.equal(config.schema.path, DEFAULT_SCHEMA_PATH);
+    assert.equal(config.outputs.rootDirPath, join(tempDir, ".ddd-spec", "artifacts"));
+    assert.equal(config.outputs.bundlePath, join(tempDir, ".ddd-spec", "artifacts", "business-spec.json"));
+    assert.equal(
+      config.outputs.analysisPath,
+      join(tempDir, ".ddd-spec", "artifacts", "business-spec.analysis.json")
+    );
+    assert.equal(config.outputs.viewerPath, join(tempDir, ".ddd-spec", "artifacts", "viewer-spec.json"));
+    assert.equal(
+      config.outputs.typescriptPath,
+      join(tempDir, ".ddd-spec", "generated", "business-spec.generated.ts")
+    );
+    assert.equal(config.projections.viewer, true);
+    assert.equal(config.projections.typescript, true);
+    assert.deepEqual(config.viewer.syncTargetPaths, []);
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
+
+test("zero-config validate shows an init hint when the canonical entry is missing", async () => {
+  const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-zero-config-missing-"));
+
+  try {
+    await assert.rejects(
+      runCliCommand(["validate"], { cwd: tempDir }),
+      (error: unknown) =>
+        error instanceof Error &&
+        error.message.includes("Run `ddd-spec init`") &&
+        error.message.includes(join(tempDir, "ddd-spec", "canonical", "index.yaml"))
+    );
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
+
+test("CLI help keeps --config hidden and documents zero-config defaults", () => {
+  const usageText = buildUsageText();
+
+  assert.doesNotMatch(usageText, /--config/);
+  assert.match(usageText, /ddd-spec\/canonical\/index\.yaml/);
+  assert.match(usageText, /\.ddd-spec\//);
+});
 
 for (const example of EXAMPLE_FIXTURES) {
   test(`CLI build succeeds for the ${example.id} example with isolated outputs`, async () => {
@@ -233,6 +297,49 @@ for (const example of EXAMPLE_FIXTURES) {
     }
   });
 }
+
+test("CLI validate and build succeed in zero-config mode with standard outputs", async () => {
+  const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-zero-config-build-"));
+
+  try {
+    await copyExampleCanonicalToZeroConfigRoot(tempDir, ZERO_CONFIG_FIXTURE.id);
+
+    await runCliCommand(["validate"], { cwd: tempDir });
+
+    await assert.rejects(
+      readFile(join(tempDir, ".ddd-spec", "artifacts", "business-spec.json"), "utf8"),
+      /ENOENT/
+    );
+
+    await runCliCommand(["build"], { cwd: tempDir });
+
+    const bundle = JSON.parse(
+      await readFile(join(tempDir, ".ddd-spec", "artifacts", "business-spec.json"), "utf8")
+    ) as BusinessSpec;
+    const analysis = JSON.parse(
+      await readFile(
+        join(tempDir, ".ddd-spec", "artifacts", "business-spec.analysis.json"),
+        "utf8"
+      )
+    ) as BusinessSpecAnalysis;
+    const viewer = JSON.parse(
+      await readFile(join(tempDir, ".ddd-spec", "artifacts", "viewer-spec.json"), "utf8")
+    ) as BusinessViewerSpec;
+    const typescriptSource = await readFile(
+      join(tempDir, ".ddd-spec", "generated", "business-spec.generated.ts"),
+      "utf8"
+    );
+
+    assertExampleBundle(bundle, ZERO_CONFIG_FIXTURE);
+    assertExampleAnalysis(analysis, ZERO_CONFIG_FIXTURE);
+    assertExampleViewer(viewer, ZERO_CONFIG_FIXTURE);
+    assert.ok(typescriptSource.includes(`"id": "${ZERO_CONFIG_FIXTURE.id}"`));
+    assert.ok(typescriptSource.includes(`"${ZERO_CONFIG_FIXTURE.processId}"`));
+    assert.match(typescriptSource, /export const businessSpec =/);
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
 
 function assertExampleBundle(bundle: BusinessSpec, example: ExampleFixture): void {
   assert.equal(bundle.id, example.id);
@@ -420,4 +527,15 @@ function mustFind<Value>(
   }
 
   return value;
+}
+
+async function copyExampleCanonicalToZeroConfigRoot(
+  targetRootPath: string,
+  exampleId: ExampleFixture["id"]
+): Promise<void> {
+  await cp(
+    toAbsolutePath(`../../examples/${exampleId}/canonical`),
+    join(targetRootPath, "ddd-spec", "canonical"),
+    { recursive: true }
+  );
 }

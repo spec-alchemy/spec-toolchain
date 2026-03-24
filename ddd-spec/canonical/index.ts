@@ -1,4 +1,4 @@
-import { businessSpec as generatedBusinessSpec } from "../generated/business-spec.generated.js";
+import { businessSpec as generatedBusinessSpec } from "../../.ddd-spec/generated/business-spec.generated.js";
 import { createBusinessSpecAccessors } from "../../packages/ddd-spec-core/compiled-spec.js";
 import type {
   AggregateSpec,

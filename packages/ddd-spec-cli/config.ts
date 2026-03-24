@@ -1,12 +1,15 @@
-import { readFile } from "node:fs/promises";
+import { access, readFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import YAML from "yaml";
 
-const DEFAULT_CONFIG_FILE = "ddd-spec.config.yaml";
 const DEFAULT_SCHEMA_PATH = fileURLToPath(
   new URL("../ddd-spec-core/schema/business-spec.schema.json", import.meta.url)
 );
+const ZERO_CONFIG_ENTRY_PATH = "ddd-spec/canonical/index.yaml";
+const ZERO_CONFIG_ARTIFACTS_DIR = ".ddd-spec/artifacts";
+const ZERO_CONFIG_GENERATED_DIR = ".ddd-spec/generated";
+const ZERO_CONFIG_SOURCE_DESCRIPTION = "zero-config defaults";
 
 interface RawDddSpecConfig {
   version?: unknown;
@@ -34,6 +37,7 @@ interface RawDddSpecConfig {
 
 export interface LoadDddSpecConfigOptions {
   configPath?: string;
+  cwd?: string;
 }
 
 export interface DddSpecConfig {
@@ -62,7 +66,9 @@ export interface DddSpecConfig {
 
 export interface ResolvedDddSpecConfig {
   version: 1;
-  configPath: string;
+  mode: "config" | "zero-config";
+  configPath?: string;
+  sourceDescription: string;
   rootDir: string;
   spec: {
     entryPath: string;
@@ -89,7 +95,13 @@ export interface ResolvedDddSpecConfig {
 export async function loadDddSpecConfig(
   options: LoadDddSpecConfigOptions = {}
 ): Promise<ResolvedDddSpecConfig> {
-  const configPath = resolve(process.cwd(), options.configPath ?? DEFAULT_CONFIG_FILE);
+  const cwd = resolve(options.cwd ?? process.cwd());
+
+  if (!options.configPath) {
+    return loadZeroConfig(cwd);
+  }
+
+  const configPath = resolve(cwd, options.configPath);
   const configDir = dirname(configPath);
   const source = await readFile(configPath, "utf8");
   const rawConfig = YAML.parse(source) as RawDddSpecConfig | null;
@@ -119,7 +131,9 @@ export async function loadDddSpecConfig(
 
   return {
     version,
+    mode: "config",
     configPath,
+    sourceDescription: configPath,
     rootDir: configDir,
     spec: {
       entryPath: resolvePath(
@@ -179,7 +193,47 @@ export async function loadDddSpecConfig(
             configDir,
             requireOptionalString(outputsConfig, "typescript", configPath)
           )
-        )
+      )
+    }
+  };
+}
+
+async function loadZeroConfig(cwd: string): Promise<ResolvedDddSpecConfig> {
+  const entryPath = resolve(cwd, ZERO_CONFIG_ENTRY_PATH);
+  const canonicalExists = await pathExists(entryPath);
+
+  if (!canonicalExists) {
+    throw new Error(
+      `No canonical spec found at ${entryPath}. Run \`ddd-spec init\` to create ${ZERO_CONFIG_ENTRY_PATH} before running this command.`
+    );
+  }
+
+  const artifactsDirPath = resolve(cwd, ZERO_CONFIG_ARTIFACTS_DIR);
+
+  return {
+    version: 1,
+    mode: "zero-config",
+    sourceDescription: ZERO_CONFIG_SOURCE_DESCRIPTION,
+    rootDir: cwd,
+    spec: {
+      entryPath
+    },
+    schema: {
+      path: DEFAULT_SCHEMA_PATH
+    },
+    outputs: {
+      rootDirPath: artifactsDirPath,
+      bundlePath: resolve(artifactsDirPath, "business-spec.json"),
+      analysisPath: resolve(artifactsDirPath, "business-spec.analysis.json"),
+      viewerPath: resolve(artifactsDirPath, "viewer-spec.json"),
+      typescriptPath: resolve(cwd, ZERO_CONFIG_GENERATED_DIR, "business-spec.generated.ts")
+    },
+    viewer: {
+      syncTargetPaths: []
+    },
+    projections: {
+      viewer: true,
+      typescript: true
     }
   };
 }
@@ -288,4 +342,13 @@ function requireStringArray(
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+async function pathExists(path: string): Promise<boolean> {
+  try {
+    await access(path);
+    return true;
+  } catch {
+    return false;
+  }
 }

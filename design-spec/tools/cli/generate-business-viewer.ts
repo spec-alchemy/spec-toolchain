@@ -1,4 +1,4 @@
 import { runCliCommand } from "../../../packages/ddd-spec-cli/index.js";
-import { designSpecConfigPath } from "../config.js";
+import { repoRootPath } from "../config.js";
 
-await runCliCommand(["generate", "viewer", "--config", designSpecConfigPath]);
+await runCliCommand(["generate", "viewer"], { cwd: repoRootPath });
