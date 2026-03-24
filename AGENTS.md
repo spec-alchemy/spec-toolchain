@@ -1,28 +1,32 @@
-# Repository Guidelines
+# Agent Instructions
 
-## Project Structure & Module Organization
-This repository currently stores product-design documentation rather than application source code. Use [docs/README.md](./docs/README.md) as the top-level index. Keep prototype materials in [docs/prototype](./docs/prototype) and UML/domain modeling materials in [docs/uml-diagrams](./docs/uml-diagrams). The root-level `design.pen` file is the editable design artifact; update it only when the accompanying docs change with it.
+## Package Manager
+- Use `npm`
+- Root install: `npm install`
+- Preferred viewer entry: `npm run dev:design-spec-viewer`
 
-## Build, Test, and Development Commands
-No application build, package manager, or automated test suite is checked in here. Day-to-day work is document review:
+## Commands
+| Task | Command |
+|------|---------|
+| Build canonical outputs | `npm run build:design-spec` |
+| Verify spec pipeline | `npm run verify:design-spec` |
+| Start React viewer from root | `npm run dev:design-spec-viewer` |
+| Start viewer inside app | `npm --prefix apps/design-spec-viewer run dev` |
+| Build viewer inside app | `npm --prefix apps/design-spec-viewer run build` |
 
-- `rg --files docs` lists all documentation files.
-- `sed -n '1,120p' docs/prototype/README.md` previews the prototype entrypoint.
-- `sed -n '1,120p' docs/uml-diagrams/README.md` previews the UML index.
+## Commit Attribution
+- AI commits MUST include `Co-Authored-By: Codex <codex@openai.com>`
 
-Before submitting changes, use your editor's Markdown preview to verify heading structure, Mermaid rendering, and relative links.
+## Structure
+- `design-spec/canonical/`: single source of truth
+- `design-spec/tools/`: validation, analysis, bundling, diagram, and viewer generation
+- `design-spec/artifacts/`: generated outputs; do not hand edit
+- `design-spec/generated/`: generated TypeScript outputs; do not hand edit
+- `design-spec/state/`: TypeScript/XState projection only, not source of truth
+- `apps/design-spec-viewer/`: React viewer consuming generated `public/generated/viewer-spec.json`
 
-## Coding Style & Naming Conventions
-Write concise Markdown with clear heading depth and short task-oriented paragraphs. Follow the existing filename pattern: lowercase kebab-case, such as `prototype-page-spec.md` or `use-case-diagram.md`. Preserve the current writing style used in the repo: Chinese explanatory text, English product terms in backticks, and relative links between related docs. Add diagrams or fenced blocks only when they clarify behavior or structure.
-
-## Markdown Links
-Use relative Markdown links in repository files, including every `AGENTS.md`. Do not use absolute filesystem paths such as `/Users/...` in Markdown links.
-
-## Testing Guidelines
-Testing in this repository is documentation QA. Check that new files are linked from the nearest README, cross-references resolve, and any Mermaid blocks still render cleanly. When modifying roadmap, page-spec, or UML content, confirm the terminology stays consistent across neighboring documents.
-
-## Commit & Pull Request Guidelines
-This checkout does not include `.git` metadata, so commit-message conventions could not be derived from local history. Until repository history is available, use short imperative messages with a scope, for example `docs: refine prototype flow interaction`. Pull requests should state which area changed (`prototype` or `uml-diagrams`), list affected files, and include screenshots when diagram layout or wireframe presentation changes.
-
-## AI Context Tips
-When sharing this repo with an agent, start from [docs/prototype/README.md](./docs/prototype/README.md) or [docs/uml-diagrams/README.md](./docs/uml-diagrams/README.md) instead of pasting the entire tree at once.
+## Key Conventions
+- Change business rules in `design-spec/canonical/` first
+- Do not hand edit generated files under `design-spec/artifacts/`, `design-spec/generated/`, or `apps/design-spec-viewer/public/generated/`
+- Use relative Markdown links
+- `design-spec/AGENTS.md` overrides this file for work inside `design-spec/`
