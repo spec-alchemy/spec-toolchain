@@ -1,0 +1,20 @@
+version: 1
+spec:
+  entry: ./design-spec/canonical/index.yaml
+schema:
+  path: ./design-spec/schema/business-spec.schema.json
+outputs:
+  rootDir: ./design-spec/artifacts
+  bundle: ./design-spec/artifacts/business-spec.json
+  analysis: ./design-spec/artifacts/business-spec.analysis.json
+  viewer: ./design-spec/artifacts/business-viewer/viewer-spec.json
+  diagramsDir: ./design-spec/artifacts/business-diagrams
+  typescript: ./design-spec/generated/business-spec.generated.ts
+viewer:
+  syncTargets:
+    - ./apps/design-spec-viewer/public/generated/viewer-spec.json
+projections:
+  viewer: true
+  typescript: true
+  diagrams: true
+  xstate: false

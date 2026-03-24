@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build:design-spec": "tsx design-spec/tools/cli/validate-spec.ts && tsx design-spec/tools/cli/bundle-spec.ts && tsx design-spec/tools/cli/analyze-spec.ts && tsx design-spec/tools/cli/generate-typescript-spec.ts && tsx design-spec/tools/cli/generate-business-diagrams.ts && tsx design-spec/tools/cli/generate-business-viewer.ts",
+    "build:design-spec": "tsx packages/ddd-spec-cli/cli.ts build --config ./ddd-spec.config.yaml",
     "verify:design-spec": "npm run build:design-spec && npx -y -p typescript tsc --noEmit",
     "dev:design-spec-viewer": "npm run build:design-spec && npm --prefix apps/design-spec-viewer install --no-fund --no-audit && npm --prefix apps/design-spec-viewer run dev --"
   },

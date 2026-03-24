@@ -1,0 +1,5 @@
+{
+  "name": "@knowledge-alchemy/ddd-spec-cli",
+  "private": true,
+  "type": "module"
+}

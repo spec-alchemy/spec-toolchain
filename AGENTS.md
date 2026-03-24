@@ -18,9 +18,11 @@
 - AI commits MUST include `Co-Authored-By: Codex <codex@openai.com>`
 
 ## Structure
+- `ddd-spec.config.yaml`: repo-local DDD spec CLI config for canonical entry, outputs, and viewer sync targets
 - `design-spec/canonical/`: single source of truth
 - `packages/ddd-spec-core/`: shared DDD spec core implementation
-- `design-spec/tools/`: repo-local wrappers and CLI entrypoints around the shared core
+- `packages/ddd-spec-cli/`: config-driven DDD spec CLI entrypoints
+- `design-spec/tools/`: repo-local wrappers around the shared core and config-driven CLI
 - `design-spec/artifacts/`: generated outputs; do not hand edit
 - `design-spec/generated/`: generated TypeScript outputs; do not hand edit
 - `design-spec/state/`: TypeScript/XState projection only, not source of truth

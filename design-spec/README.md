@@ -7,7 +7,9 @@
 - `canonical/`：唯一真相。使用 YAML 表达 DDD 业务语义。
 - `canonical/vocabulary/`：canonical 持有的展示语义词表，例如 viewer inspector 的字段解释。
 - `../packages/ddd-spec-core/`：通用 DDD spec core，承载建模、校验、分析和 projection 的核心实现。
-- `tools/`：当前 example domain 的 repo-local wrapper 和 CLI 入口，负责把当前仓库中的 canonical/spec/schema 路径接到 core。
+- `../packages/ddd-spec-cli/`：通用 DDD spec CLI，负责读取配置、定位输入输出路径并执行 validate/analyze/build/generate。
+- `../ddd-spec.config.yaml`：当前仓库的 repo-local wiring，声明 canonical 入口、schema、产物输出路径和 viewer sync 目标。
+- `tools/`：当前 example domain 的 repo-local wrapper，负责把当前仓库配置和旧入口桥接到共享 core/CLI。
 - `schema/`：对 bundled spec 做 JSON Schema 校验。
 - `artifacts/`：对外分发的稳定产物。由脚本生成，不纳入 git。
 - `generated/`：给 TypeScript 使用的 generated spec。由脚本生成，不纳入 git。
@@ -42,6 +44,9 @@
 npm run build:design-spec
 npm run verify:design-spec
 npm run dev:design-spec-viewer
+tsx packages/ddd-spec-cli/cli.ts validate --config ./ddd-spec.config.yaml
+tsx packages/ddd-spec-cli/cli.ts analyze --config ./ddd-spec.config.yaml
+tsx packages/ddd-spec-cli/cli.ts build --config ./ddd-spec.config.yaml
 ```
 
 `npm run dev:design-spec-viewer` 会在仓库根目录先生成最新的 canonical artifacts，再确保 `apps/design-spec-viewer/` 的依赖已安装，最后直接启动独立 React viewer。

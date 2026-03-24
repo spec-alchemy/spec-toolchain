@@ -1,15 +1,4 @@
-import { writeTextArtifact } from "../artifact-io.js";
-import { loadBusinessSpec } from "../spec.js";
+import { runCliCommand } from "../../../packages/ddd-spec-cli/index.js";
+import { designSpecConfigPath } from "../config.js";
 
-const businessSpec = await loadBusinessSpec();
-const outputPath = await writeTextArtifact(
-  "generated/business-spec.generated.ts",
-  [
-    "// This file is auto-generated. Do not edit by hand.",
-    "",
-    `export const businessSpec = ${JSON.stringify(businessSpec, null, 2)} as const;`,
-    ""
-  ].join("\n")
-);
-
-console.log(`Generated TypeScript spec -> ${outputPath}`);
+await runCliCommand(["generate", "typescript", "--config", designSpecConfigPath]);

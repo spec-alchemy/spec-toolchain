@@ -1,8 +1,4 @@
-import { validateBusinessSpecSchema } from "../schema-validation.js";
-import { loadBusinessSpec } from "../spec.js";
+import { runCliCommand } from "../../../packages/ddd-spec-cli/index.js";
+import { designSpecConfigPath } from "../config.js";
 
-const businessSpec = await loadBusinessSpec();
-
-await validateBusinessSpecSchema(businessSpec);
-
-console.log("Business spec validation passed");
+await runCliCommand(["validate", "--config", designSpecConfigPath]);

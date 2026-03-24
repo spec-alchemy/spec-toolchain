@@ -126,10 +126,14 @@ export interface LoadBusinessSpecOptions {
   validateSemantics?: boolean;
 }
 
+export async function loadCanonicalIndexSpec(entryPath: string): Promise<CanonicalIndexSpec> {
+  return loadYamlFile<CanonicalIndexSpec>(entryPath);
+}
+
 export async function loadBusinessSpec(
   options: LoadBusinessSpecOptions
 ): Promise<BusinessSpec> {
-  const index = await loadYamlFile<CanonicalIndexSpec>(options.entryPath);
+  const index = await loadCanonicalIndexSpec(options.entryPath);
   const baseDir = dirname(options.entryPath);
 
   const businessSpec: BusinessSpec = {

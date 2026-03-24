@@ -20,11 +20,13 @@
 ## Structure
 - [canonical/](./canonical/): single source of truth
 - [schema/](./schema/): bundled JSON Schema validation
-- [tools/](./tools/): current example domain wrappers and CLI entrypoints around the shared core
+- [tools/](./tools/): current example domain wrappers around the shared core and repo config
 - [artifacts/](./artifacts/): generated JSON and Mermaid outputs; do not hand edit
 - [generated/](./generated/): generated TypeScript outputs; do not hand edit
 - [state/](./state/): TypeScript/XState projection only, not source of truth
 - [../packages/ddd-spec-core/](../packages/ddd-spec-core/): shared DDD spec core implementation
+- [../packages/ddd-spec-cli/](../packages/ddd-spec-cli/): config-driven CLI for validate/analyze/build/generate
+- [../ddd-spec.config.yaml](../ddd-spec.config.yaml): repo-local config wiring this example domain into the generic CLI
 - [../examples/connection-card-review/](../examples/connection-card-review/): example-specific helper layer for the current domain
 - [../apps/design-spec-viewer/](../apps/design-spec-viewer/): React viewer consuming generated `viewer-spec.json`
 
