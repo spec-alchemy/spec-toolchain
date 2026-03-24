@@ -35,6 +35,7 @@ Thumbs.db
 # Local agent config
 .agents/
 .claude/
+.ralph-tui/
 
 # Project-specific excluded docs
 docs/
