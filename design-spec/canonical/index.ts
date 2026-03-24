@@ -10,7 +10,7 @@ import type {
   ViewerDetailSemanticSpec
 } from "../tools/spec.js";
 
-export const businessSpec = generatedBusinessSpec;
+export const businessSpec: BusinessSpec = generatedBusinessSpec;
 
 export type {
   AggregateSpec,
@@ -23,7 +23,8 @@ export type {
   ViewerDetailSemanticSpec
 } from "../tools/spec.js";
 
-export const viewerDetailVocabulary = businessSpec.vocabulary.viewerDetails;
+export const viewerDetailVocabulary: BusinessVocabularySpec["viewerDetails"] =
+  businessSpec.vocabulary.viewerDetails;
 export const objects = businessSpec.domain.objects;
 export const commands = businessSpec.domain.commands;
 export const events = businessSpec.domain.events;
