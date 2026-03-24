@@ -7,7 +7,11 @@ import {
   validateBusinessSpecSchema,
   validateBusinessSpecSemantics
 } from "../ddd-spec-core/index.js";
-import { writeJsonArtifact, writeTextArtifact } from "./artifact-io.js";
+import {
+  removeOutputPath,
+  writeJsonArtifact,
+  writeTextArtifact
+} from "./artifact-io.js";
 import { buildUsageText, formatDiagnostic, logArtifact, logInfo, logWarningDiagnostic } from "./console.js";
 import { loadDddSpecConfig } from "./config.js";
 
@@ -118,16 +122,22 @@ async function runBuildCommand(
 
   if (config.projections.typescript) {
     await generateTypescriptSpec(config, loadedSpec.spec);
+  } else {
+    await cleanupTypescriptOutputs(config);
   }
 
   if (config.projections.viewer) {
     await generateViewerSpec(config, loadedSpec.spec, analysis);
+  } else {
+    await cleanupViewerOutputs(config);
   }
 }
 
 async function runGenerateViewerCommand(
   config: Awaited<ReturnType<typeof loadDddSpecConfig>>
 ): Promise<void> {
+  assertProjectionEnabled(config, "viewer");
+
   const loadedSpec = await runValidateCommand(config);
   const analysis = analyzeBusinessSpec(loadedSpec.spec);
 
@@ -139,6 +149,8 @@ async function runGenerateViewerCommand(
 async function runGenerateTypescriptCommand(
   config: Awaited<ReturnType<typeof loadDddSpecConfig>>
 ): Promise<void> {
+  assertProjectionEnabled(config, "typescript");
+
   const { spec } = await runValidateCommand(config);
   await generateTypescriptSpec(config, spec);
 }
@@ -195,6 +207,45 @@ async function generateViewerSpec(
     await writeJsonArtifact(syncTargetPath, viewerSpec);
     logArtifact("synced viewer spec", syncTargetPath);
   }
+}
+
+async function cleanupTypescriptOutputs(
+  config: Awaited<ReturnType<typeof loadDddSpecConfig>>
+): Promise<void> {
+  await cleanupOutputPaths([config.outputs.typescriptPath], "removed stale TypeScript spec");
+}
+
+async function cleanupViewerOutputs(
+  config: Awaited<ReturnType<typeof loadDddSpecConfig>>
+): Promise<void> {
+  await cleanupOutputPaths(
+    [config.outputs.viewerPath, ...config.viewer.syncTargetPaths],
+    "removed stale viewer output"
+  );
+}
+
+async function cleanupOutputPaths(
+  outputPaths: readonly (string | undefined)[],
+  label: string
+): Promise<void> {
+  for (const outputPath of uniqueDefined(outputPaths)) {
+    if (await removeOutputPath(outputPath)) {
+      logArtifact(label, outputPath);
+    }
+  }
+}
+
+function assertProjectionEnabled(
+  config: Awaited<ReturnType<typeof loadDddSpecConfig>>,
+  projectionName: keyof Awaited<ReturnType<typeof loadDddSpecConfig>>["projections"]
+): void {
+  if (config.projections[projectionName]) {
+    return;
+  }
+
+  throw new Error(
+    `Projection ${projectionName} is disabled in ${config.configPath}; enable projections.${projectionName} before running this command`
+  );
 }
 
 function parseCliArgs(argv: readonly string[]): ParsedCliArgs {
@@ -302,4 +353,8 @@ function requireOutputPath(outputPath: string | undefined, configKey: string): s
   }
 
   return outputPath;
+}
+
+function uniqueDefined(values: readonly (string | undefined)[]): string[] {
+  return [...new Set(values.filter((value): value is string => Boolean(value)))];
 }

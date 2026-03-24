@@ -49,6 +49,7 @@ tsx packages/ddd-spec-cli/cli.ts build --config ./ddd-spec.config.yaml
 
 `npm run dev:design-spec-viewer` 会在仓库根目录先生成最新的 canonical artifacts，再确保 `apps/design-spec-viewer/` 的依赖已安装，最后直接启动独立 React viewer。
 如果需要给 Vite 透传参数，可使用 `npm run dev:design-spec-viewer -- --host 0.0.0.0` 这样的形式。
+`ddd-spec.config.yaml` 里的 `projections.*` 开关会同时约束 `build` 和显式 `generate ...` 命令；当某个 projection 被关闭时，`build` 会清理对应旧产物，避免残留文件继续伪装成当前输出。
 
 ## Modeling Boundary
 
