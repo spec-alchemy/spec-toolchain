@@ -7,6 +7,7 @@ after each iteration and it's included in prompts for context.
 
 - Zero-config CLI migrations work best when config loading is split into two explicit branches: convention-based defaults when no `--config` is provided, and hidden compatibility loading when a config path is supplied. Add a `cwd` override to command/config helpers so integration tests can exercise the zero-config path without mutating global process state.
 - When the repository itself migrates to zero-config conventions, switch root automation to the zero-config CLI path too; keep repo-specific follow-up work like syncing viewer assets into app-local `public/` folders in a thin repo-local post-build script instead of pushing that behavior down into the shared CLI.
+- Bootstrap commands for strict spec toolchains should emit a one-aggregate starter model and self-validate it before returning; empty directory scaffolds do not survive schema and semantic validation once zero-config `validate` becomes the default onboarding path.
 
 ---
 
@@ -57,4 +58,22 @@ after each iteration and it's included in prompts for context.
   - Once zero-config defaults exist, leaving root scripts on `--config` is effectively a production-path fork; treat that as a migration blocker, not a documentation cleanup.
   - Repo-specific sync targets such as `apps/design-spec-viewer/public/generated/viewer-spec.json` are better handled in a small repo-local script than by teaching the shared CLI about app-specific conventions.
   - Moving the generated TypeScript output to `./.ddd-spec/generated/` requires updating any repo-local convenience modules that import the compiled spec, not just the canonical YAML location.
+---
+
+## 2026-03-25 - US-003
+- Implemented `ddd-spec init` in `packages/ddd-spec-cli/` so a new repo can scaffold `ddd-spec/canonical/index.yaml`, the required canonical subdirectories, a minimal starter model, and a `.gitignore` entry for `.ddd-spec/`.
+- Made init refuse to overwrite an existing canonical entry or starter scaffold file, and clean up generated scaffold files if initialization fails before completion so the command can be retried safely.
+- Added regression coverage for init success, `.gitignore` creation and update behavior, duplicate ignore handling, help text exposure, and refusal to overwrite an existing canonical entry.
+- Files changed:
+  - `.ralph-tui/progress.md`
+  - `packages/ddd-spec-cli/commands.ts`
+  - `packages/ddd-spec-cli/config.ts`
+  - `packages/ddd-spec-cli/console.ts`
+  - `packages/ddd-spec-cli/example-regression.test.ts`
+  - `packages/ddd-spec-cli/index.ts`
+  - `packages/ddd-spec-cli/init.ts`
+- **Learnings:**
+  - The current business spec schema requires at least one object, command, event, aggregate, process, and viewer vocabulary entry, so `init` has to generate a tiny but valid model rather than empty lists or placeholder comments.
+  - Self-validating the generated scaffold inside `init` keeps the bootstrap output aligned with the same zero-config `validate` path that new users will run next.
+  - If initialization can fail after writing starter files, cleaning those files back up avoids trapping users in a partially scaffolded state that blocks a second `ddd-spec init`.
 ---

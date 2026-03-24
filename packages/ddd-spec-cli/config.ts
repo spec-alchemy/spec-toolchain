@@ -3,13 +3,13 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import YAML from "yaml";
 
-const DEFAULT_SCHEMA_PATH = fileURLToPath(
+export const DEFAULT_SCHEMA_PATH = fileURLToPath(
   new URL("../ddd-spec-core/schema/business-spec.schema.json", import.meta.url)
 );
-const ZERO_CONFIG_ENTRY_PATH = "ddd-spec/canonical/index.yaml";
-const ZERO_CONFIG_ARTIFACTS_DIR = ".ddd-spec/artifacts";
-const ZERO_CONFIG_GENERATED_DIR = ".ddd-spec/generated";
-const ZERO_CONFIG_SOURCE_DESCRIPTION = "zero-config defaults";
+export const ZERO_CONFIG_ENTRY_PATH = "ddd-spec/canonical/index.yaml";
+export const ZERO_CONFIG_ARTIFACTS_DIR = ".ddd-spec/artifacts";
+export const ZERO_CONFIG_GENERATED_DIR = ".ddd-spec/generated";
+export const ZERO_CONFIG_SOURCE_DESCRIPTION = "zero-config defaults";
 
 interface RawDddSpecConfig {
   version?: unknown;

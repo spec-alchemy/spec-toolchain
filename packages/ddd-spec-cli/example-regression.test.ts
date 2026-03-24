@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { cp, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { access, cp, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import test from "node:test";
@@ -9,6 +9,10 @@ import type {
   BusinessSpecAnalysis,
   ObjectSpec,
   ProcessSpec
+} from "../ddd-spec-core/index.js";
+import {
+  loadBusinessSpec,
+  validateBusinessSpecSchema
 } from "../ddd-spec-core/index.js";
 import type {
   BusinessViewerSpec,
@@ -238,8 +242,96 @@ test("CLI help keeps --config hidden and documents zero-config defaults", () => 
   const usageText = buildUsageText();
 
   assert.doesNotMatch(usageText, /--config/);
+  assert.match(usageText, /\n  init\n/);
   assert.match(usageText, /ddd-spec\/canonical\/index\.yaml/);
   assert.match(usageText, /\.ddd-spec\//);
+});
+
+test("CLI init creates a minimal zero-config skeleton that validate accepts", async () => {
+  const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-init-"));
+
+  try {
+    await runCliCommand(["init"], { cwd: tempDir });
+
+    await assertGeneratedInitSkeleton(tempDir);
+
+    const spec = await loadBusinessSpec({
+      entryPath: join(tempDir, "ddd-spec", "canonical", "index.yaml"),
+      validateSemantics: false
+    });
+
+    await validateBusinessSpecSchema(spec, {
+      schemaPath: DEFAULT_SCHEMA_PATH
+    });
+    await runCliCommand(["validate"], { cwd: tempDir });
+
+    const gitignoreSource = await readFile(join(tempDir, ".gitignore"), "utf8");
+
+    assert.match(gitignoreSource, /^\.ddd-spec\/$/m);
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
+
+test("CLI init appends .ddd-spec/ to an existing .gitignore", async () => {
+  const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-init-gitignore-update-"));
+  const gitignorePath = join(tempDir, ".gitignore");
+
+  try {
+    await writeFile(gitignorePath, "node_modules/", "utf8");
+
+    await runCliCommand(["init"], { cwd: tempDir });
+
+    const gitignoreSource = await readFile(gitignorePath, "utf8");
+
+    assert.equal(gitignoreSource, "node_modules/\n.ddd-spec/\n");
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
+
+test("CLI init does not duplicate an existing .ddd-spec ignore entry", async () => {
+  const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-init-gitignore-"));
+  const gitignorePath = join(tempDir, ".gitignore");
+
+  try {
+    await writeFile(gitignorePath, "node_modules/\n.ddd-spec/\n", "utf8");
+
+    await runCliCommand(["init"], { cwd: tempDir });
+
+    const gitignoreSource = await readFile(gitignorePath, "utf8");
+    const gitignoreEntries = gitignoreSource
+      .split(/\r?\n/)
+      .filter((line) => line.trim() === ".ddd-spec/");
+
+    assert.equal(gitignoreEntries.length, 1);
+    assert.match(gitignoreSource, /^node_modules\/$/m);
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
+
+test("CLI init refuses to overwrite an existing canonical index", async () => {
+  const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-init-existing-"));
+  const entryPath = join(tempDir, "ddd-spec", "canonical", "index.yaml");
+  const existingSource = "version: 1\n";
+
+  try {
+    await mkdir(join(tempDir, "ddd-spec", "canonical"), { recursive: true });
+    await writeFile(entryPath, existingSource, "utf8");
+
+    await assert.rejects(
+      runCliCommand(["init"], { cwd: tempDir }),
+      (error: unknown) =>
+        error instanceof Error &&
+        error.message.includes("Refusing to overwrite existing canonical entry") &&
+        error.message.includes(entryPath)
+    );
+
+    assert.equal(await readFile(entryPath, "utf8"), existingSource);
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
 });
 
 for (const example of EXAMPLE_FIXTURES) {
@@ -538,4 +630,26 @@ async function copyExampleCanonicalToZeroConfigRoot(
     join(targetRootPath, "ddd-spec", "canonical"),
     { recursive: true }
   );
+}
+
+async function assertGeneratedInitSkeleton(rootPath: string): Promise<void> {
+  const requiredPaths = [
+    join(rootPath, "ddd-spec", "canonical", "index.yaml"),
+    join(rootPath, "ddd-spec", "canonical", "objects"),
+    join(rootPath, "ddd-spec", "canonical", "commands"),
+    join(rootPath, "ddd-spec", "canonical", "events"),
+    join(rootPath, "ddd-spec", "canonical", "aggregates"),
+    join(rootPath, "ddd-spec", "canonical", "processes"),
+    join(rootPath, "ddd-spec", "canonical", "vocabulary"),
+    join(rootPath, "ddd-spec", "canonical", "objects", "work-item.object.yaml"),
+    join(rootPath, "ddd-spec", "canonical", "commands", "create-work-item.command.yaml"),
+    join(rootPath, "ddd-spec", "canonical", "events", "work-item-created.event.yaml"),
+    join(rootPath, "ddd-spec", "canonical", "aggregates", "work-item.aggregate.yaml"),
+    join(rootPath, "ddd-spec", "canonical", "processes", "work-item-lifecycle.process.yaml"),
+    join(rootPath, "ddd-spec", "canonical", "vocabulary", "viewer-detail-semantics.yaml")
+  ];
+
+  for (const path of requiredPaths) {
+    await access(path);
+  }
 }

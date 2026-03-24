@@ -28,6 +28,7 @@ export function buildUsageText(): string {
     "  Writes build outputs into .ddd-spec/",
     "",
     "Commands:",
+    "  init",
     "  validate",
     "  bundle",
     "  analyze",

@@ -15,8 +15,10 @@ import {
 } from "./artifact-io.js";
 import { buildUsageText, formatDiagnostic, logArtifact, logInfo, logWarningDiagnostic } from "./console.js";
 import { loadDddSpecConfig } from "./config.js";
+import { initDddSpec } from "./init.js";
 
 type CliCommand =
+  | "init"
   | "validate"
   | "bundle"
   | "analyze"
@@ -46,6 +48,17 @@ export async function runCliCommand(
 
   if (parsedArgs.help || !parsedArgs.command) {
     console.log(buildUsageText());
+    return;
+  }
+
+  if (parsedArgs.command === "init") {
+    if (parsedArgs.configPath) {
+      throw new Error("The init command does not accept --config");
+    }
+
+    await initDddSpec({
+      cwd: options.cwd
+    });
     return;
   }
 
@@ -294,6 +307,10 @@ function parseCliArgs(argv: readonly string[]): ParsedCliArgs {
 function parseCommand(positionals: readonly string[]): CliCommand | undefined {
   if (positionals.length === 0) {
     return undefined;
+  }
+
+  if (positionals[0] === "init" && positionals.length === 1) {
+    return "init";
   }
 
   if (positionals[0] === "validate" && positionals.length === 1) {
