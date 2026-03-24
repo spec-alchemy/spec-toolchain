@@ -1,0 +1,29 @@
+kind: object
+id: Connection
+title: Connection
+lifecycleField: status
+lifecycle:
+  - suggested
+  - confirmed
+  - archived
+fields:
+  - id: connectionId
+    type: uuid
+    required: true
+    description: 连接唯一标识。
+  - id: sourceId
+    type: uuid
+    required: true
+    description: 源节点 ID。
+  - id: targetId
+    type: uuid
+    required: true
+    description: 目标节点 ID。
+  - id: insight
+    type: text
+    required: true
+    description: 连接的核心洞察。
+  - id: status
+    type: ConnectionStatus
+    required: true
+    description: 连接生命周期字段。

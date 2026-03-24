@@ -1,16 +1,15 @@
 import { setup } from "xstate";
-import type { AggregateMachineSpec } from "../../types.js";
 import {
   cardAggregate,
   cardAggregateAccepts,
-  cardAggregateEmits,
-  type CardCommand,
-} from "../../domain/index.js";
-import { projectAggregateMachineStates } from "./shared.js";
+  cardAggregateEmits
+} from "../../canonical/index.js";
+import type { AggregateMachineSpec } from "../../types.js";
+import { projectAggregateMachineStates, type CanonicalMessageEnvelope } from "./shared.js";
 
 const cardMachineLogic = setup({
   types: {
-    events: {} as CardCommand
+    events: {} as CanonicalMessageEnvelope
   }
 }).createMachine({
   /** @xstate-layout N4IgpgJg5mDOIC5gF8A0IB2B7CdGgGMBDAJwnxAActYBLAF1qwwoA9EBGAJnQE9OuyIciA */
@@ -25,8 +24,8 @@ export const cardMachine = {
   accepts: cardAggregateAccepts,
   emits: cardAggregateEmits
 } as const satisfies AggregateMachineSpec<
-  typeof cardAggregate.objectId,
+  string,
   typeof cardMachineLogic,
-  CardCommand["type"],
-  "CardAccepted" | "CardArchived"
+  string,
+  string
 >;

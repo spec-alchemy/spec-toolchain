@@ -1,0 +1,25 @@
+version: 1
+id: connection-card-review
+title: 建议 Connection -> 建议 Card 审核闭环
+summary: 最小审核闭环：先审核建议连接，再审核其衍生建议卡片，形成一条正常完成路径和两条提前结束路径。
+vocabulary:
+  viewerDetails: ./vocabulary/viewer-detail-semantics.yaml
+domain:
+  objects:
+    - ./objects/connection.object.yaml
+    - ./objects/card.object.yaml
+  commands:
+    - ./commands/confirm-connection.command.yaml
+    - ./commands/archive-connection.command.yaml
+    - ./commands/accept-suggested-card.command.yaml
+    - ./commands/archive-card.command.yaml
+  events:
+    - ./events/connection-confirmed.event.yaml
+    - ./events/connection-archived.event.yaml
+    - ./events/card-accepted.event.yaml
+    - ./events/card-archived.event.yaml
+  aggregates:
+    - ./aggregates/connection.aggregate.yaml
+    - ./aggregates/card.aggregate.yaml
+  processes:
+    - ./processes/connection-card-review.process.yaml

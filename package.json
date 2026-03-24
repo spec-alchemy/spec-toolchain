@@ -3,13 +3,17 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "generate:state-diagrams": "tsx design-spec/state/diagram/generate-machine-diagram.ts"
+    "build:design-spec": "tsx design-spec/tools/cli/validate-spec.ts && tsx design-spec/tools/cli/bundle-spec.ts && tsx design-spec/tools/cli/analyze-spec.ts && tsx design-spec/tools/cli/generate-typescript-spec.ts && tsx design-spec/tools/cli/generate-business-diagrams.ts && tsx design-spec/tools/cli/generate-business-viewer.ts",
+    "verify:design-spec": "npm run build:design-spec && npx -y -p typescript tsc --noEmit",
+    "dev:design-spec-viewer": "npm run build:design-spec && npm --prefix apps/design-spec-viewer install --no-fund --no-audit && npm --prefix apps/design-spec-viewer run dev --"
   },
   "dependencies": {
     "xstate": "^5.28.0"
   },
   "devDependencies": {
     "@types/node": "^25.5.0",
-    "tsx": "^4.21.0"
+    "ajv": "^8.18.0",
+    "tsx": "^4.21.0",
+    "yaml": "^2.8.3"
   }
 }

@@ -1,0 +1,21 @@
+kind: aggregate
+objectId: Connection
+initial: suggested
+states:
+  suggested:
+    on:
+      confirmConnection:
+        target: confirmed
+        emit:
+          type: ConnectionConfirmed
+          payloadFrom:
+            connectionId: $command.connectionId
+      archiveConnection:
+        target: archived
+        emit:
+          type: ConnectionArchived
+          payloadFrom:
+            connectionId: $command.connectionId
+            reason: $command.reason
+  confirmed: {}
+  archived: {}

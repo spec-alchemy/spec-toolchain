@@ -1,8 +1,0 @@
-stateDiagram-v2
-%% Source: design-spec/state/machines/connection.machine.ts
-[*] --> connection_suggested_5an6s3
-state "suggested" as connection_suggested_5an6s3
-state "confirmed" as connection_confirmed_d82vg1
-state "archived" as connection_archived_akj0fm
-connection_suggested_5an6s3 --> connection_confirmed_d82vg1: confirmConnection
-connection_suggested_5an6s3 --> connection_archived_akj0fm: archiveConnection

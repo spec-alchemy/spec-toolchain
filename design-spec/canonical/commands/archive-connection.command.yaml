@@ -1,0 +1,13 @@
+kind: command
+type: archiveConnection
+target: Connection
+description: 归档建议连接，并在连接阶段提前结束闭环。
+payload:
+  fields:
+    - id: connectionId
+      type: uuid
+      required: true
+    - id: reason
+      type: text
+      required: true
+      description: 归档这条连接的业务原因说明。

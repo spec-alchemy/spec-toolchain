@@ -1,16 +1,15 @@
 import { setup } from "xstate";
-import type { AggregateMachineSpec } from "../../types.js";
 import {
   connectionAggregate,
   connectionAggregateAccepts,
-  connectionAggregateEmits,
-  type ConnectionCommand,
-} from "../../domain/index.js";
-import { projectAggregateMachineStates } from "./shared.js";
+  connectionAggregateEmits
+} from "../../canonical/index.js";
+import type { AggregateMachineSpec } from "../../types.js";
+import { projectAggregateMachineStates, type CanonicalMessageEnvelope } from "./shared.js";
 
 const connectionMachineLogic = setup({
   types: {
-    events: {} as ConnectionCommand
+    events: {} as CanonicalMessageEnvelope
   }
 }).createMachine({
   /** @xstate-layout N4IgpgJg5mDOIC5gF8A0IB2B7CdGgGMsMMwCAXAS2PxAActZKqakQAPRARgCZ0BPbj2QjkQA */
@@ -25,8 +24,8 @@ export const connectionMachine = {
   accepts: connectionAggregateAccepts,
   emits: connectionAggregateEmits
 } as const satisfies AggregateMachineSpec<
-  typeof connectionAggregate.objectId,
+  string,
   typeof connectionMachineLogic,
-  ConnectionCommand["type"],
-  "ConnectionConfirmed" | "ConnectionArchived"
+  string,
+  string
 >;

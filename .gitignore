@@ -38,3 +38,10 @@ Thumbs.db
 
 # Project-specific excluded docs
 docs/
+
+# Design-spec generated outputs
+design-spec/artifacts/
+design-spec/generated/
+
+# Viewer app generated data
+apps/design-spec-viewer/public/generated/viewer-spec.json

@@ -1,13 +1,15 @@
-import type { DesignSpec } from "./types.js";
-import { aggregates, commands, events, objects, processes } from "./domain/index.js";
 import {
-  cardMachine,
-  connectionMachine,
-  connectionCardReviewSystem
-} from "./state/index.js";
+  aggregates,
+  businessSpec,
+  commands,
+  events,
+  objects,
+  processes
+} from "./canonical/index.js";
 
 export {
   aggregates,
+  businessSpec,
   cardAggregate,
   commands,
   connectionAggregate,
@@ -16,30 +18,26 @@ export {
   objectIds,
   processes,
   connectionCardReviewProcess
-} from "./domain/index.js";
+} from "./canonical/index.js";
 export type {
+  AcceptSuggestedCard,
+  ArchiveCard,
+  ArchiveConnection,
+  CardAccepted,
+  CardArchived,
   CardCommand,
+  CardDomainEvent,
+  CardLifecycle,
+  ConfirmConnection,
+  ConnectionArchived,
   ConnectionCardReviewCommand,
   ConnectionCardReviewDomainEvent,
   ConnectionCardReviewOutcome,
   ConnectionCardReviewStage,
   ConnectionCommand,
-} from "./domain/index.js";
-export { cardMachine, connectionMachine, connectionCardReviewSystem } from "./state/index.js";
-export type { DesignSpec } from "./types.js";
-
-export const connectionCardReviewSpec = {
-  title: "建议 Connection -> 建议 Card 审核闭环",
-  summary: "最小审核闭环：先审核建议连接，再审核其衍生建议卡片，形成一条正常完成路径和两条提前结束路径。",
-  domain: {
-    objects,
-    commands,
-    events,
-    aggregates,
-    processes
-  },
-  state: {
-    machines: [connectionMachine, cardMachine],
-    system: connectionCardReviewSystem
-  }
-} as const satisfies DesignSpec;
+  ConnectionConfirmed,
+  ConnectionDomainEvent,
+  ConnectionLifecycle,
+  ObjectId
+} from "./derived-types.js";
+export type { BusinessSpec } from "./canonical/index.js";
