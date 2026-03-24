@@ -20,14 +20,18 @@
 ## Structure
 - [canonical/](./canonical/): single source of truth
 - [schema/](./schema/): bundled JSON Schema validation
-- [tools/](./tools/): YAML loading, semantic validation, graph analysis, artifact generation
+- [tools/](./tools/): current example domain wrappers and CLI entrypoints around the shared core
 - [artifacts/](./artifacts/): generated JSON and Mermaid outputs; do not hand edit
 - [generated/](./generated/): generated TypeScript outputs; do not hand edit
 - [state/](./state/): TypeScript/XState projection only, not source of truth
+- [../packages/ddd-spec-core/](../packages/ddd-spec-core/): shared DDD spec core implementation
+- [../examples/connection-card-review/](../examples/connection-card-review/): example-specific helper layer for the current domain
 - [../apps/design-spec-viewer/](../apps/design-spec-viewer/): React viewer consuming generated `viewer-spec.json`
 
 ## Key Conventions
 - Change business truth in [canonical/](./canonical/) first
+- Put reusable modeling logic in [../packages/ddd-spec-core/](../packages/ddd-spec-core/), not in example-specific wrappers
+- Keep `Connection/Card` style helpers under [../examples/connection-card-review/](../examples/connection-card-review/), not in the shared core
 - Keep `state/` aligned to canonical; do not invent rules there
 - Keep `derived-types.ts` as a convenience layer only
 - Do not hand edit [artifacts/](./artifacts/) or [generated/](./generated/)

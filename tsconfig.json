@@ -11,6 +11,8 @@
     "esModuleInterop": true
   },
   "include": [
-    "design-spec/**/*.ts"
+    "design-spec/**/*.ts",
+    "examples/**/*.ts",
+    "packages/**/*.ts"
   ]
 }

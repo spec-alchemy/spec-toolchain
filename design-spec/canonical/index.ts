@@ -1,4 +1,5 @@
 import { businessSpec as generatedBusinessSpec } from "../generated/business-spec.generated.js";
+import { createBusinessSpecAccessors } from "../../packages/ddd-spec-core/compiled-spec.js";
 import type {
   AggregateSpec,
   BusinessSpec,
@@ -8,9 +9,10 @@ import type {
   ObjectSpec,
   ProcessSpec,
   ViewerDetailSemanticSpec
-} from "../tools/spec.js";
+} from "../../packages/ddd-spec-core/spec.js";
 
 export const businessSpec: BusinessSpec = generatedBusinessSpec;
+const accessors = createBusinessSpecAccessors(businessSpec);
 
 export type {
   AggregateSpec,
@@ -21,102 +23,20 @@ export type {
   ObjectSpec,
   ProcessSpec,
   ViewerDetailSemanticSpec
-} from "../tools/spec.js";
+} from "../../packages/ddd-spec-core/spec.js";
 
 export const viewerDetailVocabulary: BusinessVocabularySpec["viewerDetails"] =
-  businessSpec.vocabulary.viewerDetails;
-export const objects = businessSpec.domain.objects;
-export const commands = businessSpec.domain.commands;
-export const events = businessSpec.domain.events;
-export const aggregates = businessSpec.domain.aggregates;
-export const processes = businessSpec.domain.processes;
-
-export const connectionObject = getObject("Connection");
-export const cardObject = getObject("Card");
-
-export const objectIds = {
-  connection: connectionObject.id,
-  card: cardObject.id
-} as const;
-
-export const connectionAggregate = getAggregateByObjectId(objectIds.connection);
-export const cardAggregate = getAggregateByObjectId(objectIds.card);
-
-export const connectionAggregateAccepts = collectAggregateAcceptedCommands(connectionAggregate);
-export const connectionAggregateEmits = collectAggregateEmittedEvents(connectionAggregate);
-export const cardAggregateAccepts = collectAggregateAcceptedCommands(cardAggregate);
-export const cardAggregateEmits = collectAggregateEmittedEvents(cardAggregate);
-
-export const connectionCardReviewProcess = getProcessById("connectionCardReviewProcess");
-
-export function getObject(objectId: string): ObjectSpec {
-  return mustFind(objects, (candidate) => candidate.id === objectId, `object ${objectId}`);
-}
-
-export function getCommandByType(commandType: string): CommandSpec {
-  return mustFind(commands, (candidate) => candidate.type === commandType, `command ${commandType}`);
-}
-
-export function getEventByType(eventType: string): EventSpec {
-  return mustFind(events, (candidate) => candidate.type === eventType, `event ${eventType}`);
-}
-
-export function getAggregateByObjectId(objectId: string): AggregateSpec {
-  return mustFind(
-    aggregates,
-    (candidate) => candidate.objectId === objectId,
-    `aggregate ${objectId}`
-  );
-}
-
-export function getProcessById(processId: string): ProcessSpec {
-  return mustFind(processes, (candidate) => candidate.id === processId, `process ${processId}`);
-}
-
-export function getViewerDetailSemantic(semanticKey: string): ViewerDetailSemanticSpec {
-  return mustGetDetailSemantic(semanticKey);
-}
-
-export function collectAggregateAcceptedCommands(aggregate: AggregateSpec): readonly string[] {
-  return unique(
-    Object.values(aggregate.states).flatMap((state) => {
-      return Object.keys(state.on ?? {});
-    })
-  );
-}
-
-export function collectAggregateEmittedEvents(aggregate: AggregateSpec): readonly string[] {
-  return unique(
-    Object.values(aggregate.states).flatMap((state) => {
-      return Object.values(state.on ?? {}).map((transition) => transition.emit.type);
-    })
-  );
-}
-
-function mustFind<Value>(
-  values: readonly Value[],
-  predicate: (value: Value) => boolean,
-  label: string
-): Value {
-  const value = values.find(predicate);
-
-  if (!value) {
-    throw new Error(`Unknown ${label}`);
-  }
-
-  return value;
-}
-
-function unique<Value>(values: readonly Value[]): readonly Value[] {
-  return [...new Set(values)];
-}
-
-function mustGetDetailSemantic(semanticKey: string): ViewerDetailSemanticSpec {
-  const semantic = viewerDetailVocabulary[semanticKey];
-
-  if (!semantic) {
-    throw new Error(`Unknown viewer detail semantic ${semanticKey}`);
-  }
-
-  return semantic;
-}
+  accessors.viewerDetailVocabulary;
+export const objects: readonly ObjectSpec[] = accessors.objects;
+export const commands: readonly CommandSpec[] = accessors.commands;
+export const events: readonly EventSpec[] = accessors.events;
+export const aggregates: readonly AggregateSpec[] = accessors.aggregates;
+export const processes: readonly ProcessSpec[] = accessors.processes;
+export const getObject = accessors.getObject;
+export const getCommandByType = accessors.getCommandByType;
+export const getEventByType = accessors.getEventByType;
+export const getAggregateByObjectId = accessors.getAggregateByObjectId;
+export const getProcessById = accessors.getProcessById;
+export const getViewerDetailSemantic = accessors.getViewerDetailSemantic;
+export const collectAggregateAcceptedCommands = accessors.collectAggregateAcceptedCommands;
+export const collectAggregateEmittedEvents = accessors.collectAggregateEmittedEvents;

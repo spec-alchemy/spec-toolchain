@@ -3,7 +3,7 @@ import {
   commands,
   connectionCardReviewProcess,
   getAggregateByObjectId
-} from "../../canonical/index.js";
+} from "../../../examples/connection-card-review/index.js";
 import type { SystemSpec } from "../../types.js";
 import { cardMachine } from "../machines/card.machine.js";
 import { connectionMachine } from "../machines/connection.machine.js";

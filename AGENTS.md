@@ -19,14 +19,18 @@
 
 ## Structure
 - `design-spec/canonical/`: single source of truth
-- `design-spec/tools/`: validation, analysis, bundling, diagram, and viewer generation
+- `packages/ddd-spec-core/`: shared DDD spec core implementation
+- `design-spec/tools/`: repo-local wrappers and CLI entrypoints around the shared core
 - `design-spec/artifacts/`: generated outputs; do not hand edit
 - `design-spec/generated/`: generated TypeScript outputs; do not hand edit
 - `design-spec/state/`: TypeScript/XState projection only, not source of truth
+- `examples/connection-card-review/`: example-specific helper layer for the current domain
 - `apps/design-spec-viewer/`: React viewer consuming generated `public/generated/viewer-spec.json`
 
 ## Key Conventions
 - Change business rules in `design-spec/canonical/` first
+- Put reusable modeling logic in `packages/ddd-spec-core/`, not in `design-spec/tools/`
+- Keep example-specific helpers in `examples/connection-card-review/`
 - Do not hand edit generated files under `design-spec/artifacts/`, `design-spec/generated/`, or `apps/design-spec-viewer/public/generated/`
 - Use relative Markdown links
 - `design-spec/AGENTS.md` overrides this file for work inside `design-spec/`

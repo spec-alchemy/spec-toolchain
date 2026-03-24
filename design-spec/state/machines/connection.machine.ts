@@ -3,7 +3,7 @@ import {
   connectionAggregate,
   connectionAggregateAccepts,
   connectionAggregateEmits
-} from "../../canonical/index.js";
+} from "../../../examples/connection-card-review/index.js";
 import type { AggregateMachineSpec } from "../../types.js";
 import { projectAggregateMachineStates, type CanonicalMessageEnvelope } from "./shared.js";
 
