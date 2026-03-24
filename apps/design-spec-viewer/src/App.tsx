@@ -119,7 +119,7 @@ export default function App() {
               lines={[
                 errorMessage,
                 specSource.isDefault
-                  ? "Run `npm run build:design-spec` in the repository root to regenerate `.ddd-spec/artifacts/viewer-spec.json` and sync the viewer input."
+                  ? "Run `ddd-spec viewer` or `npm run build:design-spec` in the repository root to regenerate `.ddd-spec/artifacts/viewer-spec.json`."
                   : `Check the external spec source: ${specSource.label}`
               ]}
             />

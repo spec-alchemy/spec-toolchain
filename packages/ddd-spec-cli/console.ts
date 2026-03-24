@@ -33,6 +33,7 @@ export function buildUsageText(): string {
     "  bundle",
     "  analyze",
     "  build",
+    "  viewer [-- <viewer-args...>]",
     "  generate viewer",
     "  generate typescript"
   ].join("\n");

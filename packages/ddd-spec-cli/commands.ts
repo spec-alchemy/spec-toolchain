@@ -16,6 +16,7 @@ import {
 import { buildUsageText, formatDiagnostic, logArtifact, logInfo, logWarningDiagnostic } from "./console.js";
 import { loadDddSpecConfig } from "./config.js";
 import { initDddSpec } from "./init.js";
+import { startDddSpecViewer, type ViewerCommandHooks } from "./viewer.js";
 
 type CliCommand =
   | "init"
@@ -23,6 +24,7 @@ type CliCommand =
   | "bundle"
   | "analyze"
   | "build"
+  | "viewer"
   | "generate-viewer"
   | "generate-typescript";
 
@@ -30,10 +32,12 @@ interface ParsedCliArgs {
   command?: CliCommand;
   configPath?: string;
   help: boolean;
+  passthroughArgs: readonly string[];
 }
 
 export interface RunCliCommandOptions {
   cwd?: string;
+  viewerCommandHooks?: ViewerCommandHooks;
 }
 
 interface LoadedSpecContext {
@@ -79,6 +83,9 @@ export async function runCliCommand(
       return;
     case "build":
       await runBuildCommand(config);
+      return;
+    case "viewer":
+      await runViewerCommand(config, parsedArgs.passthroughArgs, options);
       return;
     case "generate-viewer":
       await runGenerateViewerCommand(config);
@@ -177,6 +184,20 @@ async function runGenerateTypescriptCommand(
   await generateTypescriptSpec(config, spec);
 }
 
+async function runViewerCommand(
+  config: Awaited<ReturnType<typeof loadDddSpecConfig>>,
+  passthroughArgs: readonly string[],
+  options: RunCliCommandOptions
+): Promise<void> {
+  assertProjectionEnabled(config, "viewer");
+  await runBuildCommand(config);
+  await startDddSpecViewer(config, {
+    args: passthroughArgs,
+    cwd: options.cwd,
+    hooks: options.viewerCommandHooks
+  });
+}
+
 async function loadValidatedSpec(
   config: Awaited<ReturnType<typeof loadDddSpecConfig>>
 ): Promise<LoadedSpecContext> {
@@ -269,9 +290,15 @@ function parseCliArgs(argv: readonly string[]): ParsedCliArgs {
   const positionals: string[] = [];
   let configPath: string | undefined;
   let help = false;
+  let passthroughArgs: readonly string[] = [];
 
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
+
+    if (arg === "--") {
+      passthroughArgs = argv.slice(index + 1);
+      break;
+    }
 
     if (arg === "--config") {
       const nextArg = argv[index + 1];
@@ -300,7 +327,8 @@ function parseCliArgs(argv: readonly string[]): ParsedCliArgs {
   return {
     command: parseCommand(positionals),
     configPath,
-    help
+    help,
+    passthroughArgs
   };
 }
 
@@ -327,6 +355,10 @@ function parseCommand(positionals: readonly string[]): CliCommand | undefined {
 
   if (positionals[0] === "build" && positionals.length === 1) {
     return "build";
+  }
+
+  if (positionals[0] === "viewer" && positionals.length === 1) {
+    return "viewer";
   }
 
   if (positionals[0] !== "generate" || positionals.length !== 2) {

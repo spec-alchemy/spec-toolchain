@@ -47,12 +47,14 @@ npm run build:design-spec
 npm run test:ddd-spec
 npm run verify:design-spec
 npm run dev:design-spec-viewer
+node --import tsx packages/ddd-spec-cli/cli.ts viewer
 node --import tsx packages/ddd-spec-cli/cli.ts validate
 node --import tsx packages/ddd-spec-cli/cli.ts analyze
 node --import tsx packages/ddd-spec-cli/cli.ts build
 ```
 
-`npm run dev:design-spec-viewer` 会在仓库根目录先生成最新的 canonical artifacts，再把 viewer spec 同步到 `apps/design-spec-viewer/public/generated/viewer-spec.json`，确保 `apps/design-spec-viewer/` 的依赖已安装，最后直接启动独立 React viewer。
+`ddd-spec viewer` 会先通过零配置 CLI 生成最新的 canonical artifacts，确保 `./.ddd-spec/artifacts/viewer-spec.json` 已更新，然后启动现有的 `apps/design-spec-viewer/` Vite app，并把默认 spec source 指向这份标准 viewer artifact。
+`npm run dev:design-spec-viewer` 现在只是这个 CLI 命令的仓库根目录别名。
 如果需要给 Vite 透传参数，可使用 `npm run dev:design-spec-viewer -- --host 0.0.0.0` 这样的形式。
 零配置模式默认读取 `ddd-spec/canonical/index.yaml`，默认把 bundle、analysis、viewer 和 TypeScript 输出写到 `./.ddd-spec/`。
 `npm run test:ddd-spec` 会运行 core 层的 schema / semantic validation tests，并把 bundled spec、analysis、viewer、generated TypeScript 输出与仓库内受 git 管控的 golden snapshots 对比，而不是对比刚刚生成出的 artifacts。

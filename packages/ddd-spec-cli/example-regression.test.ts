@@ -25,6 +25,10 @@ import YAML from "yaml";
 import { buildUsageText } from "./console.js";
 import { loadDddSpecConfig } from "./config.js";
 import { runCliCommand } from "./commands.js";
+import type {
+  EnsureViewerDependenciesOptions,
+  LaunchViewerOptions
+} from "./viewer.js";
 
 interface ExampleFieldRequirement {
   objectId: string;
@@ -243,6 +247,7 @@ test("CLI help keeps --config hidden and documents zero-config defaults", () => 
 
   assert.doesNotMatch(usageText, /--config/);
   assert.match(usageText, /\n  init\n/);
+  assert.match(usageText, /\n  viewer \[-- <viewer-args\.\.\.>\]\n/);
   assert.match(usageText, /ddd-spec\/canonical\/index\.yaml/);
   assert.match(usageText, /\.ddd-spec\//);
 });
@@ -428,6 +433,55 @@ test("CLI validate and build succeed in zero-config mode with standard outputs",
     assert.ok(typescriptSource.includes(`"id": "${ZERO_CONFIG_FIXTURE.id}"`));
     assert.ok(typescriptSource.includes(`"${ZERO_CONFIG_FIXTURE.processId}"`));
     assert.match(typescriptSource, /export const businessSpec =/);
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
+
+test("CLI viewer rebuilds the zero-config viewer artifact and launches the existing viewer app", async () => {
+  const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-zero-config-viewer-"));
+  let ensuredDependenciesFor: EnsureViewerDependenciesOptions | undefined;
+  let launchOptions: LaunchViewerOptions | undefined;
+
+  try {
+    await copyExampleCanonicalToZeroConfigRoot(tempDir, ZERO_CONFIG_FIXTURE.id);
+    await writeViewerAppStub(tempDir);
+
+    await runCliCommand(["viewer", "--", "--host", "0.0.0.0"], {
+      cwd: tempDir,
+      viewerCommandHooks: {
+        ensureViewerDependencies: async (options) => {
+          ensuredDependenciesFor = options;
+        },
+        launchViewer: async (options) => {
+          launchOptions = options;
+        }
+      }
+    });
+
+    assert.deepEqual(ensuredDependenciesFor, {
+      appDirPath: join(tempDir, "apps", "design-spec-viewer")
+    });
+    assert.ok(launchOptions);
+    assert.equal(
+      launchOptions.defaultSpecPath,
+      join(tempDir, ".ddd-spec", "artifacts", "viewer-spec.json")
+    );
+    assert.equal(
+      launchOptions.defaultSpecLabel,
+      "./.ddd-spec/artifacts/viewer-spec.json"
+    );
+    assert.equal(
+      launchOptions.defaultSpecUrlPath,
+      toViteFsUrlPath(join(tempDir, ".ddd-spec", "artifacts", "viewer-spec.json"))
+    );
+    assert.deepEqual(launchOptions.args, ["--host", "0.0.0.0"]);
+
+    const viewer = JSON.parse(
+      await readFile(join(tempDir, ".ddd-spec", "artifacts", "viewer-spec.json"), "utf8")
+    ) as BusinessViewerSpec;
+
+    assertExampleViewer(viewer, ZERO_CONFIG_FIXTURE);
   } finally {
     await rm(tempDir, { recursive: true, force: true });
   }
@@ -630,6 +684,31 @@ async function copyExampleCanonicalToZeroConfigRoot(
     join(targetRootPath, "ddd-spec", "canonical"),
     { recursive: true }
   );
+}
+
+async function writeViewerAppStub(rootPath: string): Promise<void> {
+  const appDirPath = join(rootPath, "apps", "design-spec-viewer");
+
+  await mkdir(appDirPath, { recursive: true });
+  await writeFile(
+    join(appDirPath, "package.json"),
+    JSON.stringify(
+      {
+        name: "design-spec-viewer-test-stub",
+        private: true
+      },
+      null,
+      2
+    ),
+    "utf8"
+  );
+}
+
+function toViteFsUrlPath(path: string): string {
+  const normalizedPath = path.replaceAll("\\", "/");
+  const rootedPath = normalizedPath.startsWith("/") ? normalizedPath : `/${normalizedPath}`;
+
+  return `/@fs${encodeURI(rootedPath)}`;
 }
 
 async function assertGeneratedInitSkeleton(rootPath: string): Promise<void> {

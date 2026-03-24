@@ -8,6 +8,7 @@ after each iteration and it's included in prompts for context.
 - Zero-config CLI migrations work best when config loading is split into two explicit branches: convention-based defaults when no `--config` is provided, and hidden compatibility loading when a config path is supplied. Add a `cwd` override to command/config helpers so integration tests can exercise the zero-config path without mutating global process state.
 - When the repository itself migrates to zero-config conventions, switch root automation to the zero-config CLI path too; keep repo-specific follow-up work like syncing viewer assets into app-local `public/` folders in a thin repo-local post-build script instead of pushing that behavior down into the shared CLI.
 - Bootstrap commands for strict spec toolchains should emit a one-aggregate starter model and self-validate it before returning; empty directory scaffolds do not survive schema and semantic validation once zero-config `validate` becomes the default onboarding path.
+- For zero-config viewer startup, keep the shared CLI responsible for rebuilding the canonical viewer artifact and launching the existing viewer app, then inject the artifact path into the dev server as the default spec source; keep the repo-local `public/generated/` sync only for static build/preview workflows.
 
 ---
 
@@ -76,4 +77,28 @@ after each iteration and it's included in prompts for context.
   - The current business spec schema requires at least one object, command, event, aggregate, process, and viewer vocabulary entry, so `init` has to generate a tiny but valid model rather than empty lists or placeholder comments.
   - Self-validating the generated scaffold inside `init` keeps the bootstrap output aligned with the same zero-config `validate` path that new users will run next.
   - If initialization can fail after writing starter files, cleaning those files back up avoids trapping users in a partially scaffolded state that blocks a second `ddd-spec init`.
+---
+
+## 2026-03-25 - US-004
+- Implemented `ddd-spec viewer` in `packages/ddd-spec-cli/` so the command rebuilds the current spec outputs, verifies the shared viewer app exists, installs app dependencies on demand, and launches the existing `apps/design-spec-viewer` dev server with the generated viewer artifact injected as the default spec source.
+- Updated the React viewer to accept an injected default spec URL/label while preserving the existing `public/generated/viewer-spec.json` fallback for static builds and app-local dev, and switched the root `npm run dev:design-spec-viewer` automation to the new CLI path.
+- Added regression coverage for the new CLI command, viewer argument passthrough, help text exposure, and zero-config artifact wiring; reran `npm run test:ddd-spec` and `npm run verify:design-spec` successfully.
+- Files changed:
+  - `.ralph-tui/progress.md`
+  - `apps/design-spec-viewer/README.md`
+  - `apps/design-spec-viewer/src/App.tsx`
+  - `apps/design-spec-viewer/src/lib/load-viewer-spec.ts`
+  - `apps/design-spec-viewer/src/vite-env.d.ts`
+  - `apps/design-spec-viewer/vite.config.ts`
+  - `design-spec/README.md`
+  - `package.json`
+  - `packages/ddd-spec-cli/commands.ts`
+  - `packages/ddd-spec-cli/console.ts`
+  - `packages/ddd-spec-cli/example-regression.test.ts`
+  - `packages/ddd-spec-cli/index.ts`
+  - `packages/ddd-spec-cli/viewer.ts`
+- **Learnings:**
+  - Injecting the viewer artifact path into Vite startup lets the shared CLI own the zero-config viewer default without forcing the shared package to manage repo-local `public/generated/` sync semantics.
+  - A small launch hook seam is enough to regression-test long-running CLI commands like `viewer` without booting the real frontend process in test runs.
+  - Root repo automation should delegate to the new CLI command once it exists; otherwise the zero-config viewer path splits between script glue and CLI behavior.
 ---
