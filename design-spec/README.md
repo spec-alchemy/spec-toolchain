@@ -18,6 +18,8 @@
 - `generated/`：给 TypeScript 使用的 generated spec。由脚本生成，不纳入 git。
 - `derived-types.ts`：从 generated spec 派生出的 TypeScript 便利类型，不是第一真相。
 - `../examples/connection-card-review/`：当前示例域的 example-specific helper 和派生类型入口。
+- `../examples/order-payment/`：第二个 canonical example domain，用于回归测试抽象边界。
+- `../examples/content-moderation/`：第三个 canonical example domain，用于继续压测跨领域泛化稳定性。
 
 当前还提供一层 canonical 外部分析：
 

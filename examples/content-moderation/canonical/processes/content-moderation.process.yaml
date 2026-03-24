@@ -1,0 +1,36 @@
+kind: process
+id: contentModerationProcess
+title: 内容审核到发布闭环
+uses:
+  aggregates:
+    moderation: ModerationCase
+    publication: Publication
+initialStage: awaitingReviewAssignment
+stages:
+  awaitingReviewAssignment:
+    title: 等待分配审核员
+    aggregate: moderation
+    state: queued
+    advancesOn:
+      ModerationReviewStarted: awaitingModerationDecision
+  awaitingModerationDecision:
+    title: 等待审核结论
+    aggregate: moderation
+    state: reviewing
+    advancesOn:
+      ContentApproved: awaitingPublication
+      ContentRejected: closedRejected
+  awaitingPublication:
+    title: 等待内容发布
+    aggregate: publication
+    state: pending
+    advancesOn:
+      ContentPublished: closedPublished
+  closedRejected:
+    title: 内容审核拒绝关闭
+    final: true
+    outcome: contentRejected
+  closedPublished:
+    title: 内容已发布关闭
+    final: true
+    outcome: contentPublished

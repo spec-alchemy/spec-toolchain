@@ -1,0 +1,15 @@
+kind: command
+type: startReview
+target: ModerationCase
+description: 将审核工单从排队状态分配给审核员并进入处理中。
+payload:
+  fields:
+    - id: caseId
+      type: uuid
+      required: true
+    - id: contentId
+      type: uuid
+      required: true
+    - id: reviewerId
+      type: uuid
+      required: true

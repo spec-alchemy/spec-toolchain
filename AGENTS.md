@@ -31,6 +31,7 @@
 - `design-spec/generated/`: generated TypeScript outputs; do not hand edit
 - `examples/connection-card-review/`: example-specific helper layer for the current domain
 - `examples/order-payment/`: second canonical example domain for regression pressure testing
+- `examples/content-moderation/`: third canonical example domain for additional cross-domain pressure testing
 - `apps/design-spec-viewer/`: React viewer consuming generated `public/generated/viewer-spec.json`
 
 ## Key Conventions

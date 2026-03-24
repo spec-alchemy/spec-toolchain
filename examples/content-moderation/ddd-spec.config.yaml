@@ -1,0 +1,9 @@
+version: 1
+spec:
+  entry: ./canonical/index.yaml
+outputs:
+  rootDir: ./artifacts
+  typescript: ./generated/content-moderation.generated.ts
+projections:
+  viewer: true
+  typescript: true

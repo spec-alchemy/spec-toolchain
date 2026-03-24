@@ -1,0 +1,15 @@
+kind: aggregate
+objectId: Publication
+initial: pending
+states:
+  pending:
+    on:
+      publishApprovedContent:
+        target: published
+        emit:
+          type: ContentPublished
+          payloadFrom:
+            publicationId: $command.publicationId
+            contentId: $command.contentId
+            channel: $command.channel
+  published: {}

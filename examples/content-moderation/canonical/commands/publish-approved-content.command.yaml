@@ -1,0 +1,15 @@
+kind: command
+type: publishApprovedContent
+target: Publication
+description: 将已通过审核的内容发布到指定渠道。
+payload:
+  fields:
+    - id: publicationId
+      type: uuid
+      required: true
+    - id: contentId
+      type: uuid
+      required: true
+    - id: channel
+      type: text
+      required: true

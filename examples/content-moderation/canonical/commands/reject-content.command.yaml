@@ -1,0 +1,16 @@
+kind: command
+type: rejectContent
+target: ModerationCase
+description: 拒绝当前内容并给出业务原因，流程在审核阶段结束。
+payload:
+  fields:
+    - id: caseId
+      type: uuid
+      required: true
+    - id: contentId
+      type: uuid
+      required: true
+    - id: reason
+      type: text
+      required: true
+      description: 内容被拒绝的业务原因说明。

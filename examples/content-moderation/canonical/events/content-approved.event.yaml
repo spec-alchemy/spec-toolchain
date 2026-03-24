@@ -1,0 +1,12 @@
+kind: event
+type: ContentApproved
+source: ModerationCase
+description: 内容审核已通过，允许进入发布阶段。
+payload:
+  fields:
+    - id: caseId
+      type: uuid
+      required: true
+    - id: contentId
+      type: uuid
+      required: true

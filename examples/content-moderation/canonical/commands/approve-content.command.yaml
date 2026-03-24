@@ -1,0 +1,12 @@
+kind: command
+type: approveContent
+target: ModerationCase
+description: 通过内容审核，准备进入发布阶段。
+payload:
+  fields:
+    - id: caseId
+      type: uuid
+      required: true
+    - id: contentId
+      type: uuid
+      required: true

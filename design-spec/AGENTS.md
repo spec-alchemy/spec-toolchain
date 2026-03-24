@@ -32,6 +32,7 @@
 - [../ddd-spec.config.yaml](../ddd-spec.config.yaml): repo-local config wiring this example domain into the generic CLI
 - [../examples/connection-card-review/](../examples/connection-card-review/): example-specific helper layer for the current domain
 - [../examples/order-payment/](../examples/order-payment/): second canonical example domain for regression pressure testing
+- [../examples/content-moderation/](../examples/content-moderation/): third canonical example domain for additional cross-domain pressure testing
 - [../apps/design-spec-viewer/](../apps/design-spec-viewer/): React viewer consuming generated `viewer-spec.json`
 
 ## Key Conventions

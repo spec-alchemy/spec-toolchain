@@ -42,6 +42,8 @@ docs/
 # Design-spec generated outputs
 design-spec/artifacts/
 design-spec/generated/
+examples/*/artifacts/
+examples/*/generated/
 
 # Viewer app generated data
 apps/design-spec-viewer/public/generated/viewer-spec.json

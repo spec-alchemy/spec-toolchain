@@ -1,0 +1,26 @@
+kind: object
+id: ModerationCase
+title: ModerationCase
+lifecycleField: moderationStatus
+lifecycle:
+  - queued
+  - reviewing
+  - approved
+  - rejected
+fields:
+  - id: caseId
+    type: uuid
+    required: true
+    description: 审核工单的唯一标识。
+  - id: contentId
+    type: uuid
+    required: true
+    description: 待审核内容的唯一标识。
+  - id: reviewerId
+    type: uuid
+    required: false
+    description: 当前负责审核该内容的审核员标识。
+  - id: moderationStatus
+    type: ModerationStatus
+    required: true
+    description: 审核工单当前所处的生命周期状态。
