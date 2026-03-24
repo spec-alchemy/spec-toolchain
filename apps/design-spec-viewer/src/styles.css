@@ -11,12 +11,75 @@
   --muted: #75695a;
   --process-border: #d7bb74;
   --aggregate-border: #8aac91;
+  --relation-border: #9b8c72;
+  --binding-border: #9a8e7a;
   --stage-border: #7d9fc4;
   --final-stage-border: #cf8d76;
   --state-border: #6f9f79;
   --command-border: #c6a24b;
+  --emits-border: #d08a4a;
   --event-border: #6f88b8;
   --shadow: 0 18px 40px rgba(79, 62, 38, 0.12);
+  --card-surface: rgba(255, 255, 255, 0.9);
+  --card-surface-muted: rgba(255, 255, 255, 0.48);
+  --card-surface-strong: rgba(255, 255, 255, 0.78);
+  --card-shadow: 0 10px 22px rgba(79, 62, 38, 0.08);
+  --card-shadow-soft: 0 8px 18px rgba(79, 62, 38, 0.08);
+  --card-divider: rgba(214, 200, 175, 0.68);
+  --card-ghost-gradient: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.12),
+    rgba(255, 255, 255, 0.02)
+  );
+  --relation-surface: rgba(255, 253, 248, 0.95);
+  --kind-pill-surface: rgba(255, 255, 255, 0.64);
+  --viewer-chrome-surface: rgba(255, 255, 255, 0.88);
+  --viewer-chrome-muted-surface: rgba(255, 255, 255, 0.8);
+  --process-surface: linear-gradient(
+    180deg,
+    rgba(255, 246, 216, 0.96),
+    rgba(255, 251, 243, 0.92)
+  );
+  --aggregate-surface: linear-gradient(
+    180deg,
+    rgba(238, 246, 238, 0.96),
+    rgba(250, 255, 250, 0.9)
+  );
+  --relation-surface-gradient: linear-gradient(
+    180deg,
+    rgba(250, 245, 236, 0.96),
+    rgba(255, 255, 255, 0.92)
+  );
+  --stage-surface: linear-gradient(
+    180deg,
+    rgba(243, 248, 255, 0.98),
+    rgba(255, 255, 255, 0.94)
+  );
+  --final-stage-surface: linear-gradient(
+    180deg,
+    rgba(255, 240, 234, 0.98),
+    rgba(255, 250, 247, 0.94)
+  );
+  --state-surface: linear-gradient(
+    180deg,
+    rgba(238, 248, 240, 0.98),
+    rgba(255, 255, 255, 0.94)
+  );
+  --command-surface: linear-gradient(
+    180deg,
+    rgba(255, 246, 220, 0.98),
+    rgba(255, 255, 255, 0.94)
+  );
+  --event-surface: linear-gradient(
+    180deg,
+    rgba(237, 243, 255, 0.98),
+    rgba(255, 255, 255, 0.94)
+  );
+  --emits-surface: linear-gradient(
+    180deg,
+    rgba(255, 238, 225, 0.98),
+    rgba(255, 255, 255, 0.94)
+  );
 }
 
 * {

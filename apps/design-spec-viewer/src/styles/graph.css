@@ -4,15 +4,15 @@
   height: 100%;
   border-radius: 18px;
   border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 10px 22px rgba(79, 62, 38, 0.08);
+  background: var(--card-surface);
+  box-shadow: var(--card-shadow);
   overflow: hidden;
 }
 
 .group-card {
   display: flex;
   flex-direction: column;
-  background: rgba(255, 255, 255, 0.48);
+  background: var(--card-surface-muted);
   box-shadow: none;
 }
 
@@ -23,15 +23,15 @@
   gap: 4px;
   min-height: var(--group-header-height);
   padding: 14px 16px 12px;
-  background: rgba(255, 255, 255, 0.78);
-  border-bottom: 1px solid rgba(214, 200, 175, 0.68);
+  background: var(--card-surface-strong);
+  border-bottom: 1px solid var(--card-divider);
   box-sizing: border-box;
 }
 
 .group-card__body {
   flex: 1 1 auto;
   min-height: 0;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.02));
+  background: var(--card-ghost-gradient);
 }
 
 .relation-card {
@@ -43,8 +43,8 @@
   padding: 0 10px;
   border: 1px dashed var(--line);
   border-radius: 14px;
-  background: rgba(255, 253, 248, 0.95);
-  box-shadow: 0 8px 18px rgba(79, 62, 38, 0.08);
+  background: var(--relation-surface);
+  box-shadow: var(--card-shadow-soft);
   transform: skewX(-18deg);
 }
 
@@ -81,27 +81,27 @@
 
 .relation-kind-advance {
   border-color: var(--event-border);
-  background: linear-gradient(180deg, rgba(237, 243, 255, 0.98), rgba(255, 255, 255, 0.94));
+  background: var(--event-surface);
 }
 
 .relation-kind-binding {
-  border-color: #9a8e7a;
-  background: linear-gradient(180deg, rgba(248, 245, 239, 0.98), rgba(255, 255, 255, 0.94));
+  border-color: var(--binding-border);
+  background: var(--relation-surface-gradient);
 }
 
 .relation-kind-transition {
   border-color: var(--state-border);
-  background: linear-gradient(180deg, rgba(238, 248, 240, 0.98), rgba(255, 255, 255, 0.94));
+  background: var(--state-surface);
 }
 
 .relation-kind-accepts {
   border-color: var(--command-border);
-  background: linear-gradient(180deg, rgba(255, 246, 220, 0.98), rgba(255, 255, 255, 0.94));
+  background: var(--command-surface);
 }
 
 .relation-kind-emits {
-  border-color: #d08a4a;
-  background: linear-gradient(180deg, rgba(255, 238, 225, 0.98), rgba(255, 255, 255, 0.94));
+  border-color: var(--emits-border);
+  background: var(--emits-surface);
 }
 
 .node-card__body {
@@ -138,51 +138,51 @@
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  background: rgba(255, 255, 255, 0.64);
+  background: var(--kind-pill-surface);
 }
 
 .kind-process-group {
   border-color: var(--process-border);
-  background: linear-gradient(180deg, rgba(255, 246, 216, 0.96), rgba(255, 251, 243, 0.92));
+  background: var(--process-surface);
 }
 
 .kind-aggregate-group {
   border-color: var(--aggregate-border);
-  background: linear-gradient(180deg, rgba(238, 246, 238, 0.96), rgba(250, 255, 250, 0.9));
+  background: var(--aggregate-surface);
 }
 
 .kind-relation {
-  border-color: #9b8c72;
-  background: linear-gradient(180deg, rgba(250, 245, 236, 0.96), rgba(255, 255, 255, 0.92));
+  border-color: var(--relation-border);
+  background: var(--relation-surface-gradient);
 }
 
 .kind-stage {
   border-color: var(--stage-border);
-  background: linear-gradient(180deg, rgba(243, 248, 255, 0.98), rgba(255, 255, 255, 0.94));
+  background: var(--stage-surface);
 }
 
 .kind-final-stage {
   border-color: var(--final-stage-border);
-  background: linear-gradient(180deg, rgba(255, 240, 234, 0.98), rgba(255, 250, 247, 0.94));
+  background: var(--final-stage-surface);
 }
 
 .kind-aggregate-state {
   border-color: var(--state-border);
-  background: linear-gradient(180deg, rgba(238, 248, 240, 0.98), rgba(255, 255, 255, 0.94));
+  background: var(--state-surface);
 }
 
 .kind-command {
   border-color: var(--command-border);
-  background: linear-gradient(180deg, rgba(255, 246, 220, 0.98), rgba(255, 255, 255, 0.94));
+  background: var(--command-surface);
 }
 
 .kind-event {
   border-color: var(--event-border);
-  background: linear-gradient(180deg, rgba(237, 243, 255, 0.98), rgba(255, 255, 255, 0.94));
+  background: var(--event-surface);
 }
 
 .react-flow__attribution {
-  background: rgba(255, 255, 255, 0.8);
+  background: var(--viewer-chrome-muted-surface);
   border-radius: 8px 0 0 0;
 }
 
@@ -191,5 +191,5 @@
   border: 1px solid var(--line);
   border-radius: 16px;
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.88);
+  background: var(--viewer-chrome-surface);
 }

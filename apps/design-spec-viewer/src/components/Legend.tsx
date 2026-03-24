@@ -1,15 +1,39 @@
 import { Separator } from "@/components/ui/separator";
+import {
+  VIEWER_NODE_COLOR_BY_KIND,
+  VIEWER_RELATION_COLOR
+} from "@/lib/viewer-colors";
 
 export function Legend() {
   const items = [
-    { label: "Process Group", className: "kind-process-group", borderColor: "#d7bb74" },
-    { label: "Aggregate Group", className: "kind-aggregate-group", borderColor: "#8aac91" },
-    { label: "Relation", className: "kind-relation", borderColor: "#9b8c72" },
-    { label: "Stage", className: "kind-stage", borderColor: "#7d9fc4" },
-    { label: "Final Stage", className: "kind-final-stage", borderColor: "#cf8d76" },
-    { label: "Aggregate State", className: "kind-aggregate-state", borderColor: "#6f9f79" },
-    { label: "Command", className: "kind-command", borderColor: "#c6a24b" },
-    { label: "Event", className: "kind-event", borderColor: "#6f88b8" }
+    {
+      label: "Process Group",
+      className: "kind-process-group",
+      borderColor: VIEWER_NODE_COLOR_BY_KIND["process-group"]
+    },
+    {
+      label: "Aggregate Group",
+      className: "kind-aggregate-group",
+      borderColor: VIEWER_NODE_COLOR_BY_KIND["aggregate-group"]
+    },
+    { label: "Relation", className: "kind-relation", borderColor: VIEWER_RELATION_COLOR },
+    { label: "Stage", className: "kind-stage", borderColor: VIEWER_NODE_COLOR_BY_KIND.stage },
+    {
+      label: "Final Stage",
+      className: "kind-final-stage",
+      borderColor: VIEWER_NODE_COLOR_BY_KIND["final-stage"]
+    },
+    {
+      label: "Aggregate State",
+      className: "kind-aggregate-state",
+      borderColor: VIEWER_NODE_COLOR_BY_KIND["aggregate-state"]
+    },
+    {
+      label: "Command",
+      className: "kind-command",
+      borderColor: VIEWER_NODE_COLOR_BY_KIND.command
+    },
+    { label: "Event", className: "kind-event", borderColor: VIEWER_NODE_COLOR_BY_KIND.event }
   ] as const;
 
   return (

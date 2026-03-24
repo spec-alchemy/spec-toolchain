@@ -1,4 +1,10 @@
 declare module "elkjs/lib/elk-api.js" {
+  export interface ELKConstructorArguments {
+    defaultLayoutOptions?: LayoutOptions;
+    algorithms?: string[];
+    workerUrl?: string;
+  }
+
   export interface LayoutOptions {
     [key: string]: string;
   }
@@ -58,16 +64,16 @@ declare module "elkjs/lib/elk-api.js" {
       args?: ElkLayoutArguments
     ): Promise<Omit<T, "children"> & { children?: (T["children"][number] & ElkNode)[] }>;
   }
+
+  const ElkConstructor: {
+    new (args?: ELKConstructorArguments): ELK;
+  };
+
+  export default ElkConstructor;
 }
 
 declare module "elkjs/lib/elk.bundled.js" {
-  import type { ELK, LayoutOptions } from "elkjs/lib/elk-api.js";
-
-  export interface ELKConstructorArguments {
-    defaultLayoutOptions?: LayoutOptions;
-    algorithms?: string[];
-    workerUrl?: string;
-  }
+  import type { ELK, ELKConstructorArguments } from "elkjs/lib/elk-api.js";
 
   const ElkConstructor: {
     new (args?: ELKConstructorArguments): ELK;

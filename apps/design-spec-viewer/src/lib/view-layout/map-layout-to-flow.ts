@@ -7,8 +7,8 @@ import type {
   FlowNode,
   FlowPathPoint
 } from "../../types";
+import { VIEWER_EDGE_COLOR_BY_KIND } from "../viewer-colors";
 import {
-  edgeColorByKind,
   mustGet,
   type LayoutNodeSpec,
   type LayoutedView,
@@ -42,10 +42,10 @@ export function mapLayoutedGraphToFlow(
             ? undefined
             : {
                 type: MarkerType.ArrowClosed,
-                color: edgeColorByKind[edge.kind]
+                color: VIEWER_EDGE_COLOR_BY_KIND[edge.kind]
               },
         style: {
-          stroke: edgeColorByKind[edge.kind],
+          stroke: VIEWER_EDGE_COLOR_BY_KIND[edge.kind],
           strokeDasharray: edge.kind === "binding" ? "6 5" : undefined,
           strokeWidth: edge.kind === "binding" ? 1.6 : 2.2
         },
@@ -101,6 +101,8 @@ function walkLayoutedChildren(
       extent: parentId ? "parent" : undefined,
       draggable: false,
       selectable: true,
+      width: child.width ?? source.width,
+      height: child.height ?? source.height,
       style: {
         width: child.width ?? source.width,
         height: child.height ?? source.height,

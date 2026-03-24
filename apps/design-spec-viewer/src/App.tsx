@@ -1,47 +1,23 @@
 import {
-  Background,
-  Controls,
-  MiniMap,
-  ReactFlow,
-  ReactFlowProvider,
-  type ReactFlowInstance
-} from "@xyflow/react";
-import {
   useDeferredValue,
   useEffect,
-  useRef,
   useState
 } from "react";
 import { Card } from "@/components/ui/card";
+import { FlowCanvas } from "@/components/FlowCanvas";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { GroupNode } from "@/components/GroupNode";
 import { InspectorPanel } from "@/components/InspectorPanel";
-import { ItemNode } from "@/components/ItemNode";
 import { Legend } from "@/components/Legend";
-import { RelationNode } from "@/components/RelationNode";
-import { ViewerEdge } from "@/components/ViewerEdge";
 import { ViewerEmptyState } from "@/components/shell/ViewerEmptyState";
 import { ViewerHeader } from "@/components/shell/ViewerHeader";
-import { layoutViewerView, selectionFromNodeData, type LayoutedView } from "@/lib/layout";
+import { layoutViewerView, type LayoutedView } from "@/lib/layout";
 import { loadViewerSpec } from "@/lib/load-viewer-spec";
 import type {
   BusinessViewerSpec,
-  FlowEdge,
-  FlowNode,
   InspectorSelection,
   ViewerViewSpec
 } from "@/types";
-
-const nodeTypes = {
-  groupNode: GroupNode,
-  itemNode: ItemNode,
-  relationNode: RelationNode
-} as const;
-
-const edgeTypes = {
-  viewerEdge: ViewerEdge
-} as const;
 
 const EMPTY_SEMANTIC_DETAIL_HELP: Readonly<Record<string, string>> = {};
 
@@ -53,9 +29,6 @@ export default function App() {
   const [selection, setSelection] = useState<InspectorSelection | null>(null);
   const [loadingMessage, setLoadingMessage] = useState("Loading viewer spec...");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const reactFlowRef = useRef<ReactFlowInstance<FlowNode, FlowEdge> | null>(
-    null
-  );
 
   useEffect(() => {
     void refreshViewerSpec();
@@ -98,17 +71,6 @@ export default function App() {
       cancelled = true;
     };
   }, [viewerSpec, deferredViewId]);
-
-  useEffect(() => {
-    if (!layoutedView || !reactFlowRef.current) {
-      return;
-    }
-
-    requestAnimationFrame(() => {
-      reactFlowRef.current?.fitView({ padding: 0.18, duration: 350 });
-      setLoadingMessage("");
-    });
-  }, [layoutedView]);
 
   const currentView = viewerSpec?.views.find((view) => view.id === deferredViewId) ?? viewerSpec?.views[0] ?? null;
 
@@ -153,79 +115,10 @@ export default function App() {
           ) : !layoutedView ? (
             <ViewerEmptyState title="Preparing Viewer" lines={[loadingMessage]} />
           ) : (
-            <ReactFlowProvider>
-              <ReactFlow<FlowNode, FlowEdge>
-                nodes={layoutedView.nodes}
-                edges={layoutedView.edges}
-                nodeTypes={nodeTypes}
-                edgeTypes={edgeTypes}
-                nodesDraggable={false}
-                nodesConnectable={false}
-                elementsSelectable={true}
-                fitView={true}
-                minZoom={0.2}
-                maxZoom={1.6}
-                onInit={(instance) => {
-                  reactFlowRef.current = instance;
-                }}
-                onNodeClick={(_, node) => {
-                  setSelection(selectionFromNodeData(node.data));
-                }}
-                onEdgeClick={(_, edge) => {
-                  setSelection({
-                    type: `${edge.data?.kind ?? "edge"} edge`,
-                    label: typeof edge.label === "string" ? edge.label : edge.id,
-                    summary: edge.data?.kind,
-                    details: edge.data?.details ?? []
-                  });
-                }}
-                onPaneClick={() => {
-                  setSelection(null);
-                }}
-              >
-                <Background gap={20} size={1} color="#d7ccb7" />
-                <MiniMap
-                  pannable={true}
-                  zoomable={true}
-                  nodeColor={(node) => {
-                    switch (node.data.kind) {
-                      case "process-group":
-                        return "#d7bb74";
-                      case "aggregate-group":
-                        return "#8aac91";
-                      case "relation":
-                        switch (node.data.relationKind) {
-                          case "advance":
-                            return "#6f88b8";
-                          case "binding":
-                            return "#7e766a";
-                          case "transition":
-                            return "#6f9f79";
-                          case "accepts":
-                            return "#c6a24b";
-                          case "emits":
-                            return "#c67e42";
-                          default:
-                            return "#8d5c2f";
-                        }
-                      case "stage":
-                        return "#7d9fc4";
-                      case "final-stage":
-                        return "#cf8d76";
-                      case "aggregate-state":
-                        return "#6f9f79";
-                      case "command":
-                        return "#c6a24b";
-                      case "event":
-                        return "#6f88b8";
-                      default:
-                        return "#8d5c2f";
-                    }
-                  }}
-                />
-                <Controls />
-              </ReactFlow>
-            </ReactFlowProvider>
+            <FlowCanvas
+              layoutedView={layoutedView}
+              onSelectSelection={setSelection}
+            />
           )}
         </Card>
 

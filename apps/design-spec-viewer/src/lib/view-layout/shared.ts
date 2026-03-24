@@ -40,14 +40,6 @@ export interface ProjectedViewGraph {
   edges: readonly LayoutEdgeSpec[];
 }
 
-export const edgeColorByKind: Record<ViewerEdgeKind, string> = {
-  advance: "#6f88b8",
-  binding: "#7e766a",
-  transition: "#6f9f79",
-  accepts: "#c6a24b",
-  emits: "#c67e42"
-};
-
 export function mustGet<Key, Value>(
   map: ReadonlyMap<Key, Value>,
   key: Key,
