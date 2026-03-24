@@ -9,6 +9,25 @@
 - 以多种 projection 服务前端、后端、QA 和文档场景
 - 让当前 `connection/card` 领域退回为 example domain，而不是工具本体
 
+## Status
+
+截至 `2026-03-24`，这份蓝图的主线任务已经完成：
+
+- Phase 1 到 Phase 4 的主线交付已落地
+- 项目已达到“最小可泛用 DDD spec compiler”的目标形态
+- 当前后续工作应视为 `Phase 4b` 压测或产品增强，而不是主线阻塞项
+
+当前已完成的主线结果包括：
+
+- core / cli / viewer contract / projection package 边界拆分完成
+- `ddd-spec.config.yaml` 驱动的配置化 CLI 已落地
+- viewer 已成为“默认加载 repo-local generated spec，同时支持外置 spec source”的最小通用加载器
+- `connection-card-review` 与 `order-payment` 已共同验证主线抽象
+- schema / diagnostic / viewer contract 已明确最小版本边界
+- bundled spec / analysis / schema / semantic / projection 回归测试已补齐
+
+`content-moderation` 已接入，说明抽象稳定性继续增强，但它属于主线完成后的进一步压测成果，而不是主线成立的前置条件。
+
 ## North Star
 
 未来目标形态应当是：
@@ -387,6 +406,11 @@ viewer 要从“当前仓库 demo”升级成“通用消费端”。
 
 建议分四个阶段推进。
 
+状态更新：
+
+- 截至 `2026-03-24`，Phase 1 到 Phase 4 已完成。
+- 如果继续推进，应按 `Phase 4b` 或独立增强项理解，而不是把下面阶段描述继续当作未完成主线。
+
 ### Phase 1: Boundary Cleanup
 
 目标：
@@ -475,11 +499,11 @@ Phase 4 完成后，如果还要继续压测泛用性，再进入 Phase 4b：
 - `ddd-spec doctor`
 - 更完整的 viewer 产品功能集
 
-## Immediate Refactor Checklist
+## Mainline Checklist
 
-前面的结构拆分、CLI 配置化、projection split 已基本完成。
+以下主线检查项均已完成。
 
-当前最值得做的具体改动是：
+已完成项：
 
 1. 给 bundled spec JSON 和 analysis JSON 建 golden tests。
 2. 补 schema validation 和 semantic validation 的独立测试。
@@ -543,12 +567,11 @@ viewer 很容易一路滑向 editor。
 
 ## Recommended Next Step
 
-当前最合理的下一步不是继续扩展 viewer 功能，而是完成最小硬化闭环：
+主线已经完成，当前更合理的下一步不是回头重复主线任务，而是在以下方向中择一推进：
 
-1. 补 `examples/order-payment`
-2. 给 bundled spec JSON 和 analysis JSON 建 golden tests
-3. 给 schema validation 和 semantic validation 建独立测试
-4. 把 viewer 升级为“可外置输入源”的最小通用加载器
-5. 明确 schema / diagnostic / viewer contract 的最小版本边界
+1. 增加 `ddd-spec doctor`，补齐配置 / schema / projection / 输出目录的预检体验。
+2. 编写更完整的 migration / versioning 文档，把 v1 contract 演进策略写清楚。
+3. 继续用更多 example domain 压测抽象，但不要因此回退到通用图工具方向。
+4. 只在明确有产品价值时，继续为 viewer 增加远程 URL、本地上传、多 spec、deep link、过滤、高亮链路等增强能力。
 
-这些完成后，项目就会从“结构上已拆干净的工具雏形”进入“经过第二示例域和最小 contract hardening 验证的泛用工具”阶段。
+当前项目已经处于“经过多示例域和最小 contract hardening 验证的泛用工具”阶段。
