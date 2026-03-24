@@ -4,5 +4,3 @@ export * from "./graph-analysis.js";
 export * from "./schema-validation.js";
 export * from "./semantic-validation.js";
 export * from "./spec.js";
-export * from "./viewer-semantic-help.js";
-export * from "./viewer-spec.js";

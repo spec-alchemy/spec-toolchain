@@ -6,8 +6,11 @@
 
 - `canonical/`：唯一真相。使用 YAML 表达 DDD 业务语义。
 - `canonical/vocabulary/`：canonical 持有的展示语义词表，例如 viewer inspector 的字段解释。
-- `../packages/ddd-spec-core/`：通用 DDD spec core，承载建模、校验、分析和 projection 的核心实现。
+- `../packages/ddd-spec-core/`：通用 DDD spec core，承载建模、校验、分析和 graph IR。
 - `../packages/ddd-spec-cli/`：通用 DDD spec CLI，负责读取配置、定位输入输出路径并执行 validate/analyze/build/generate。
+- `../packages/ddd-spec-viewer-contract/`：viewer JSON 的共享 contract，供 projection 和 React app 共同消费。
+- `../packages/ddd-spec-projection-viewer/`：基于 graph IR 生成 viewer spec 的 projection。
+- `../packages/ddd-spec-projection-typescript/`：把 canonical spec 投影为 TypeScript 模块的 projection。
 - `../ddd-spec.config.yaml`：当前仓库的 repo-local wiring，声明 canonical 入口、schema、产物输出路径和 viewer sync 目标。
 - `tools/`：当前 example domain 的 repo-local wrapper，负责把当前仓库配置和旧入口桥接到共享 core/CLI。
 - `schema/`：对 bundled spec 做 JSON Schema 校验。
@@ -40,6 +43,7 @@
 
 ```bash
 npm run build:design-spec
+npm run test:ddd-spec
 npm run verify:design-spec
 npm run dev:design-spec-viewer
 tsx packages/ddd-spec-cli/cli.ts validate --config ./ddd-spec.config.yaml

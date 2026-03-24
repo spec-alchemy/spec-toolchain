@@ -5,81 +5,24 @@ import type {
   EventSpec,
   ObjectSpec,
   ProcessSpec
-} from "./spec.js";
+} from "../ddd-spec-core/spec.js";
 import type {
   AggregateGraph,
   BusinessGraph,
   ProcessGraph
-} from "./graph-analysis.js";
-import { resolveFieldDescription } from "./field-explanation.js";
+} from "../ddd-spec-core/graph-analysis.js";
+import { resolveFieldDescription } from "../ddd-spec-core/field-explanation.js";
+import type {
+  BusinessViewerSpec,
+  ViewerDetailItem,
+  ViewerEdgeSpec,
+  ViewerNodeSpec,
+  ViewerViewSpec
+} from "../ddd-spec-viewer-contract/index.js";
 import {
   buildSemanticDetailHelp,
   getViewerDetailSemantic
 } from "./viewer-semantic-help.js";
-
-export type ViewerNodeKind =
-  | "process-group"
-  | "aggregate-group"
-  | "stage"
-  | "final-stage"
-  | "aggregate-state"
-  | "command"
-  | "event";
-
-export type ViewerEdgeKind =
-  | "advance"
-  | "binding"
-  | "transition"
-  | "accepts"
-  | "emits";
-
-export interface ViewerDetailItem {
-  semanticKey: string;
-  label: string;
-  value: string;
-}
-
-export interface ViewerNodeSpec {
-  id: string;
-  kind: ViewerNodeKind;
-  label: string;
-  subtitle?: string;
-  summary?: string;
-  parentId?: string;
-  headerHeight?: number;
-  width: number;
-  height: number;
-  details: readonly ViewerDetailItem[];
-}
-
-export interface ViewerEdgeSpec {
-  id: string;
-  kind: ViewerEdgeKind;
-  source: string;
-  target: string;
-  label: string;
-  details: readonly ViewerDetailItem[];
-}
-
-export interface ViewerViewSpec {
-  id: string;
-  title: string;
-  description: string;
-  nodes: readonly ViewerNodeSpec[];
-  edges: readonly ViewerEdgeSpec[];
-}
-
-export interface ViewerDetailHelpSpec {
-  semantic: Readonly<Record<string, string>>;
-}
-
-export interface BusinessViewerSpec {
-  specId: string;
-  title: string;
-  summary: string;
-  detailHelp: ViewerDetailHelpSpec;
-  views: readonly ViewerViewSpec[];
-}
 
 const DIMENSIONS = {
   processGroup: { width: 320, minHeight: 220, charsPerLine: 28, minHeaderHeight: 112 },

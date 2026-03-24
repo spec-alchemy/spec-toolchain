@@ -1,12 +1,13 @@
 import {
   analyzeBusinessSpec,
-  buildBusinessViewerSpec,
   loadBusinessSpec,
   type BusinessSpec,
   type BusinessSpecAnalysis,
   validateBusinessSpecSchema,
   validateBusinessSpecSemantics
 } from "../ddd-spec-core/index.js";
+import { buildBusinessViewerSpec } from "../ddd-spec-projection-viewer/index.js";
+import { buildBusinessSpecTypescriptSource } from "../ddd-spec-projection-typescript/index.js";
 import {
   removeOutputPath,
   writeJsonArtifact,
@@ -182,12 +183,7 @@ async function generateTypescriptSpec(
 
   await writeTextArtifact(
     typescriptPath,
-    [
-      "// This file is auto-generated. Do not edit by hand.",
-      "",
-      `export const businessSpec = ${JSON.stringify(spec, null, 2)} as const;`,
-      ""
-    ].join("\n")
+    buildBusinessSpecTypescriptSource(spec)
   );
   logArtifact("generated TypeScript spec", typescriptPath);
 }

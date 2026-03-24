@@ -1,7 +1,7 @@
 import type {
   BusinessSpec,
   ViewerDetailSemanticSpec
-} from "./spec.js";
+} from "../ddd-spec-core/spec.js";
 
 export function buildSemanticDetailHelp(
   spec: BusinessSpec

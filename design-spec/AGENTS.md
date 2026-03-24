@@ -10,6 +10,7 @@
 | Task | Command |
 |------|---------|
 | Build spec outputs | `npm run build:design-spec` |
+| Test projection outputs | `npm run test:ddd-spec` |
 | Verify spec and TypeScript projection | `npm run verify:design-spec` |
 | Start React viewer from root | `npm run dev:design-spec-viewer` |
 | Read viewer app locally | `npm --prefix apps/design-spec-viewer run dev` |
@@ -25,6 +26,9 @@
 - [generated/](./generated/): generated TypeScript outputs; do not hand edit
 - [../packages/ddd-spec-core/](../packages/ddd-spec-core/): shared DDD spec core implementation
 - [../packages/ddd-spec-cli/](../packages/ddd-spec-cli/): config-driven CLI for validate/analyze/build/generate
+- [../packages/ddd-spec-viewer-contract/](../packages/ddd-spec-viewer-contract/): shared viewer JSON contract for projection and app
+- [../packages/ddd-spec-projection-viewer/](../packages/ddd-spec-projection-viewer/): viewer projection generator
+- [../packages/ddd-spec-projection-typescript/](../packages/ddd-spec-projection-typescript/): TypeScript projection generator
 - [../ddd-spec.config.yaml](../ddd-spec.config.yaml): repo-local config wiring this example domain into the generic CLI
 - [../examples/connection-card-review/](../examples/connection-card-review/): example-specific helper layer for the current domain
 - [../apps/design-spec-viewer/](../apps/design-spec-viewer/): React viewer consuming generated `viewer-spec.json`
