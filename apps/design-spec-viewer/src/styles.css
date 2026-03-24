@@ -1,0 +1,40 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+  --bg: #f5f1e8;
+  --panel: rgba(255, 251, 242, 0.94);
+  --line: #d6c8af;
+  --text: #2e2a25;
+  --muted: #75695a;
+  --process-border: #d7bb74;
+  --aggregate-border: #8aac91;
+  --stage-border: #7d9fc4;
+  --final-stage-border: #cf8d76;
+  --state-border: #6f9f79;
+  --command-border: #c6a24b;
+  --event-border: #6f88b8;
+  --shadow: 0 18px 40px rgba(79, 62, 38, 0.12);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+  color: var(--text);
+  background:
+    radial-gradient(circle at top left, rgba(205, 178, 117, 0.22), transparent 28%),
+    radial-gradient(circle at bottom right, rgba(117, 153, 133, 0.18), transparent 24%),
+    var(--bg);
+}

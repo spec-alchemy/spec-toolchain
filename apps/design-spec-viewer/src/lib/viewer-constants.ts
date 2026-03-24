@@ -1,0 +1,5 @@
+export const GROUP_HEADER_HEIGHT = 112;
+export const GROUP_CHILD_TOP_GAP = 24;
+export const RELATION_NODE_CHARS_PER_LINE = 18;
+export const RELATION_NODE_MAX_WIDTH = 156;
+export const RELATION_NODE_MIN_WIDTH = 74;

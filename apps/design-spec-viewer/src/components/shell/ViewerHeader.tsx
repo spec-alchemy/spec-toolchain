@@ -1,0 +1,70 @@
+import { startTransition } from "react";
+import type { BusinessViewerSpec } from "@/types";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select";
+
+interface ViewerHeaderProps {
+  viewerSpec: BusinessViewerSpec | null;
+  selectedViewId: string;
+  onSelectView: (nextViewId: string) => void;
+  onReload: () => void;
+}
+
+export function ViewerHeader({
+  viewerSpec,
+  selectedViewId,
+  onSelectView,
+  onReload
+}: ViewerHeaderProps) {
+  return (
+    <header className="col-span-full rounded-[20px] border border-border bg-card/90 px-4 py-3 shadow-viewer backdrop-blur">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div className="min-w-0 space-y-1">
+          <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-muted-foreground">
+            React Flow + ELK
+          </p>
+          <h1 className="text-xl font-semibold tracking-[-0.02em] text-foreground">
+            {viewerSpec?.title ?? "Design Spec Viewer"}
+          </h1>
+          <p className="max-w-3xl text-[13px] leading-6 text-muted-foreground">
+            {viewerSpec?.summary ??
+              "Load the generated viewer spec to inspect process composition, aggregate lifecycle, and business traces."}
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2 max-sm:w-full max-sm:flex-wrap">
+          <Select
+            value={selectedViewId}
+            disabled={!viewerSpec}
+            onValueChange={(nextViewId) => {
+              startTransition(() => {
+                onSelectView(nextViewId);
+              });
+            }}
+          >
+            <SelectTrigger className="w-[220px] bg-white/90 max-sm:w-full">
+              <SelectValue placeholder="Select a view" />
+            </SelectTrigger>
+            <SelectContent>
+              {(viewerSpec?.views ?? []).map((view) => (
+                <SelectItem key={view.id} value={view.id}>
+                  {view.title}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Button type="button" variant="outline" onClick={onReload}>
+            Reload Spec
+          </Button>
+        </div>
+      </div>
+    </header>
+  );
+}
