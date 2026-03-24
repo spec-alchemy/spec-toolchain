@@ -11,6 +11,7 @@ import {
 
 interface ViewerHeaderProps {
   viewerSpec: BusinessViewerSpec | null;
+  specSourceLabel: string;
   selectedViewId: string;
   onSelectView: (nextViewId: string) => void;
   onReload: () => void;
@@ -18,6 +19,7 @@ interface ViewerHeaderProps {
 
 export function ViewerHeader({
   viewerSpec,
+  specSourceLabel,
   selectedViewId,
   onSelectView,
   onReload
@@ -35,6 +37,9 @@ export function ViewerHeader({
           <p className="max-w-3xl text-[13px] leading-6 text-muted-foreground">
             {viewerSpec?.summary ??
               "Load the generated viewer spec to inspect process composition, aggregate lifecycle, and business traces."}
+          </p>
+          <p className="max-w-3xl break-all text-[12px] leading-5 text-muted-foreground">
+            Source: {specSourceLabel}
           </p>
         </div>
 

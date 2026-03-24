@@ -1,4 +1,5 @@
 {
+  "viewerVersion": 1,
   "specId": "connection-card-review",
   "title": "建议 Connection -> 建议 Card 审核闭环",
   "summary": "最小审核闭环：先审核建议连接，再审核其衍生建议卡片，形成一条正常完成路径和两条提前结束路径。",

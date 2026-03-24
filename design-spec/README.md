@@ -57,6 +57,13 @@ tsx packages/ddd-spec-cli/cli.ts build --config ./ddd-spec.config.yaml
 `npm run test:ddd-spec` 会运行 core 层的 schema / semantic validation tests，并把 bundled spec、analysis、viewer、generated TypeScript 输出与仓库内受 git 管控的 golden snapshots 对比，而不是对比刚刚生成出的 artifacts。
 `npm run verify:design-spec` 还会安装并构建 `apps/design-spec-viewer/`，确保共享 viewer contract 的消费端没有被破坏。
 
+## Contract Versions
+
+- canonical schema 当前以 `BusinessSpec.version = 1` 作为 v1 边界。
+- analysis / diagnostic contract 当前以 `BusinessSpecAnalysis.analysisVersion = 1` 作为 v1 边界。
+- viewer contract 当前以 `BusinessViewerSpec.viewerVersion = 1` 作为 v1 边界。
+- 当前 v1 默认允许向后兼容的增量扩展；删除字段、改变既有字段语义、或改变既有 diagnostic code 含义时应升级版本。
+
 ## Modeling Boundary
 
 - `canonical/` 只表达业务真相，不表达运行时实现或 viewer 布局细节。

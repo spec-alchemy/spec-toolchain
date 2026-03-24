@@ -1,0 +1,24 @@
+kind: object
+id: Payment
+title: Payment
+lifecycleField: paymentStatus
+lifecycle:
+  - pending
+  - confirmed
+fields:
+  - id: paymentId
+    type: uuid
+    required: true
+    description: 支付记录唯一标识。
+  - id: orderId
+    type: uuid
+    required: true
+    description: 关联订单的唯一标识。
+  - id: paidAmount
+    type: decimal
+    required: true
+    description: 实际支付金额。
+  - id: paymentStatus
+    type: PaymentStatus
+    required: true
+    description: 支付生命周期字段。

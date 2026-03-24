@@ -21,11 +21,12 @@ test("schema validation accepts the canonical fixture", async () => {
 });
 
 test("schema validation rejects malformed spec structure", async () => {
-  const spec = cloneBusinessSpec(await loadCanonicalFixture()) as Record<string, unknown>;
-  delete spec.summary;
+  const spec = cloneBusinessSpec(await loadCanonicalFixture());
+  const invalidSpec = spec as unknown as Record<string, unknown>;
+  delete invalidSpec.summary;
 
   await assert.rejects(
-    validateBusinessSpecSchema(spec as never, {
+    validateBusinessSpecSchema(invalidSpec as never, {
       schemaPath: CORE_SCHEMA_PATH
     }),
     /Business spec schema validation failed:/

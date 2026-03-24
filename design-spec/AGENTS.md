@@ -10,7 +10,7 @@
 | Task | Command |
 |------|---------|
 | Build spec outputs | `npm run build:design-spec` |
-| Test projection outputs | `npm run test:ddd-spec` |
+| Run spec regression tests | `npm run test:ddd-spec` |
 | Verify spec and TypeScript projection | `npm run verify:design-spec` |
 | Start React viewer from root | `npm run dev:design-spec-viewer` |
 | Read viewer app locally | `npm --prefix apps/design-spec-viewer run dev` |
@@ -31,12 +31,14 @@
 - [../packages/ddd-spec-projection-typescript/](../packages/ddd-spec-projection-typescript/): TypeScript projection generator
 - [../ddd-spec.config.yaml](../ddd-spec.config.yaml): repo-local config wiring this example domain into the generic CLI
 - [../examples/connection-card-review/](../examples/connection-card-review/): example-specific helper layer for the current domain
+- [../examples/order-payment/](../examples/order-payment/): second canonical example domain for regression pressure testing
 - [../apps/design-spec-viewer/](../apps/design-spec-viewer/): React viewer consuming generated `viewer-spec.json`
 
 ## Key Conventions
 - Change business truth in [canonical/](./canonical/) first
 - Put reusable modeling logic in [../packages/ddd-spec-core/](../packages/ddd-spec-core/), not in example-specific wrappers
 - Keep `Connection/Card` style helpers under [../examples/connection-card-review/](../examples/connection-card-review/), not in the shared core
+- Keep additional example domains under [../examples/](../examples/), not in the shared core
 - Keep `derived-types.ts` as a convenience layer only
 - Do not hand edit [artifacts/](./artifacts/) or [generated/](./generated/)
 - Use relative Markdown links

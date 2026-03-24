@@ -1,0 +1,15 @@
+kind: command
+type: submitOrder
+target: Order
+description: 提交订单并进入待支付状态。
+payload:
+  fields:
+    - id: orderId
+      type: uuid
+      required: true
+    - id: customerId
+      type: uuid
+      required: true
+    - id: totalAmount
+      type: decimal
+      required: true

@@ -1,0 +1,15 @@
+kind: command
+type: confirmPayment
+target: Payment
+description: 确认支付成功并结束支付阶段。
+payload:
+  fields:
+    - id: paymentId
+      type: uuid
+      required: true
+    - id: orderId
+      type: uuid
+      required: true
+    - id: paidAmount
+      type: decimal
+      required: true

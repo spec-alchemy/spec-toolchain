@@ -1,10 +1,40 @@
 import type { BusinessViewerSpec } from "../types";
 
-export async function loadViewerSpec(): Promise<BusinessViewerSpec> {
-  const specUrl = new URL(
-    "generated/viewer-spec.json",
-    window.location.origin + import.meta.env.BASE_URL
-  );
+const DEFAULT_VIEWER_SPEC_PATH = "generated/viewer-spec.json";
+const SPEC_QUERY_PARAM = "spec";
+
+export interface ViewerSpecSource {
+  url: URL;
+  label: string;
+  isDefault: boolean;
+}
+
+export function resolveViewerSpecSource(): ViewerSpecSource {
+  const locationUrl = new URL(window.location.href);
+  const rawSpecSource = locationUrl.searchParams.get(SPEC_QUERY_PARAM)?.trim();
+
+  if (!rawSpecSource) {
+    return {
+      url: new URL(
+        DEFAULT_VIEWER_SPEC_PATH,
+        window.location.origin + import.meta.env.BASE_URL
+      ),
+      label: DEFAULT_VIEWER_SPEC_PATH,
+      isDefault: true
+    };
+  }
+
+  return {
+    url: new URL(rawSpecSource, locationUrl.href),
+    label: rawSpecSource,
+    isDefault: false
+  };
+}
+
+export async function loadViewerSpec(
+  source: ViewerSpecSource = resolveViewerSpecSource()
+): Promise<BusinessViewerSpec> {
+  const specUrl = source.url;
 
   const response = await fetch(specUrl, {
     cache: "no-store"
@@ -12,7 +42,7 @@ export async function loadViewerSpec(): Promise<BusinessViewerSpec> {
 
   if (!response.ok) {
     throw new Error(
-      `Failed to load ${specUrl.pathname} (${response.status} ${response.statusText})`
+      `Failed to load ${specUrl.href} (${response.status} ${response.statusText})`
     );
   }
 

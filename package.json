@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "build:design-spec": "tsx packages/ddd-spec-cli/cli.ts build --config ./ddd-spec.config.yaml",
-    "test:ddd-spec": "node --import tsx --test packages/ddd-spec-core/output.test.ts packages/ddd-spec-core/validation.test.ts packages/ddd-spec-projection-viewer/index.test.ts packages/ddd-spec-projection-typescript/index.test.ts",
+    "test:ddd-spec": "node --import tsx --test packages/ddd-spec-core/output.test.ts packages/ddd-spec-core/validation.test.ts packages/ddd-spec-cli/example-regression.test.ts packages/ddd-spec-projection-viewer/index.test.ts packages/ddd-spec-projection-typescript/index.test.ts",
     "verify:design-spec": "npm run build:design-spec && npm run test:ddd-spec && npx -y -p typescript tsc --noEmit && npm --prefix apps/design-spec-viewer install --no-fund --no-audit && npm --prefix apps/design-spec-viewer run build",
     "dev:design-spec-viewer": "npm run build:design-spec && npm --prefix apps/design-spec-viewer install --no-fund --no-audit && npm --prefix apps/design-spec-viewer run dev --"
   },

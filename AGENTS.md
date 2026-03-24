@@ -9,7 +9,7 @@
 | Task | Command |
 |------|---------|
 | Build canonical outputs | `npm run build:design-spec` |
-| Test projection outputs | `npm run test:ddd-spec` |
+| Run spec regression tests | `npm run test:ddd-spec` |
 | Verify spec pipeline | `npm run verify:design-spec` |
 | Start React viewer from root | `npm run dev:design-spec-viewer` |
 | Start viewer inside app | `npm --prefix apps/design-spec-viewer run dev` |
@@ -30,12 +30,14 @@
 - `design-spec/artifacts/`: generated outputs; do not hand edit
 - `design-spec/generated/`: generated TypeScript outputs; do not hand edit
 - `examples/connection-card-review/`: example-specific helper layer for the current domain
+- `examples/order-payment/`: second canonical example domain for regression pressure testing
 - `apps/design-spec-viewer/`: React viewer consuming generated `public/generated/viewer-spec.json`
 
 ## Key Conventions
 - Change business rules in `design-spec/canonical/` first
 - Put reusable modeling logic in `packages/ddd-spec-core/`, not in `design-spec/tools/`
 - Keep example-specific helpers in `examples/connection-card-review/`
+- Keep additional example domains under `examples/`, not in shared core packages
 - Do not hand edit generated files under `design-spec/artifacts/`, `design-spec/generated/`, or `apps/design-spec-viewer/public/generated/`
 - Use relative Markdown links
 - `design-spec/AGENTS.md` overrides this file for work inside `design-spec/`

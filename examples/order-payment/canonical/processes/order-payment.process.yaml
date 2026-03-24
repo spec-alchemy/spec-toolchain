@@ -1,0 +1,25 @@
+kind: process
+id: orderPaymentProcess
+title: 订单提交与支付确认闭环
+uses:
+  aggregates:
+    order: Order
+    payment: Payment
+initialStage: awaitingOrderSubmission
+stages:
+  awaitingOrderSubmission:
+    title: 等待订单提交
+    aggregate: order
+    state: draft
+    advancesOn:
+      OrderSubmitted: awaitingPaymentConfirmation
+  awaitingPaymentConfirmation:
+    title: 等待支付确认
+    aggregate: payment
+    state: pending
+    advancesOn:
+      PaymentConfirmed: closedOrderPaid
+  closedOrderPaid:
+    title: 订单支付完成
+    final: true
+    outcome: orderPaid

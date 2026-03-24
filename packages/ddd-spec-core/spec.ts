@@ -3,6 +3,8 @@ import { dirname, resolve } from "node:path";
 import YAML from "yaml";
 import { validateBusinessSpecSemantics } from "./semantic-validation.js";
 
+export const BUSINESS_SPEC_SCHEMA_VERSION = 1 as const;
+
 export interface FieldSpec {
   id: string;
   type: string;
@@ -90,7 +92,7 @@ export interface BusinessVocabularySpec {
 }
 
 export interface BusinessSpec {
-  version: number;
+  version: typeof BUSINESS_SPEC_SCHEMA_VERSION;
   id: string;
   title: string;
   summary: string;
@@ -105,7 +107,7 @@ export interface BusinessSpec {
 }
 
 export interface CanonicalIndexSpec {
-  version: number;
+  version: typeof BUSINESS_SPEC_SCHEMA_VERSION;
   id: string;
   title: string;
   summary: string;

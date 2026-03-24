@@ -1,0 +1,24 @@
+kind: object
+id: Order
+title: Order
+lifecycleField: status
+lifecycle:
+  - draft
+  - submitted
+fields:
+  - id: orderId
+    type: uuid
+    required: true
+    description: 订单唯一标识。
+  - id: customerId
+    type: uuid
+    required: true
+    description: 下单用户的唯一标识。
+  - id: totalAmount
+    type: decimal
+    required: true
+    description: 订单总金额。
+  - id: status
+    type: OrderStatus
+    required: true
+    description: 订单生命周期字段。

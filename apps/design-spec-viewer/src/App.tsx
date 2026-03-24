@@ -12,7 +12,11 @@ import { Legend } from "@/components/Legend";
 import { ViewerEmptyState } from "@/components/shell/ViewerEmptyState";
 import { ViewerHeader } from "@/components/shell/ViewerHeader";
 import { layoutViewerView, type LayoutedView } from "@/lib/layout";
-import { loadViewerSpec } from "@/lib/load-viewer-spec";
+import {
+  loadViewerSpec,
+  resolveViewerSpecSource,
+  type ViewerSpecSource
+} from "@/lib/load-viewer-spec";
 import type {
   BusinessViewerSpec,
   InspectorSelection,
@@ -23,6 +27,7 @@ const EMPTY_SEMANTIC_DETAIL_HELP: Readonly<Record<string, string>> = {};
 
 export default function App() {
   const [viewerSpec, setViewerSpec] = useState<BusinessViewerSpec | null>(null);
+  const [specSource, setSpecSource] = useState<ViewerSpecSource>(() => resolveViewerSpecSource());
   const [selectedViewId, setSelectedViewId] = useState("");
   const deferredViewId = useDeferredValue(selectedViewId);
   const [layoutedView, setLayoutedView] = useState<LayoutedView | null>(null);
@@ -76,8 +81,11 @@ export default function App() {
 
   async function refreshViewerSpec(): Promise<void> {
     try {
-      setLoadingMessage("Loading viewer spec...");
-      const nextSpec = await loadViewerSpec();
+      const nextSource = resolveViewerSpecSource();
+
+      setSpecSource(nextSource);
+      setLoadingMessage(`Loading viewer spec from ${nextSource.label}...`);
+      const nextSpec = await loadViewerSpec(nextSource);
 
       setViewerSpec(nextSpec);
       setSelectedViewId((current) =>
@@ -96,6 +104,7 @@ export default function App() {
       <div className="grid h-full grid-cols-[minmax(0,1fr)_320px] grid-rows-[auto_minmax(0,1fr)] gap-3 p-3 max-[1080px]:grid-cols-1 max-[1080px]:grid-rows-[auto_minmax(420px,1fr)_auto]">
         <ViewerHeader
           viewerSpec={viewerSpec}
+          specSourceLabel={specSource.label}
           selectedViewId={selectedViewId}
           onSelectView={setSelectedViewId}
           onReload={() => {
@@ -109,7 +118,9 @@ export default function App() {
               title="Viewer Load Failed"
               lines={[
                 errorMessage,
-                "Run `npm run build:design-spec` in the repository root to regenerate `viewer-spec.json`."
+                specSource.isDefault
+                  ? "Run `npm run build:design-spec` in the repository root to regenerate `viewer-spec.json`."
+                  : `Check the external spec source: ${specSource.label}`
               ]}
             />
           ) : !layoutedView ? (

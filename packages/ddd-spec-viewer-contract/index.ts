@@ -1,3 +1,5 @@
+export const BUSINESS_VIEWER_SPEC_VERSION = 1 as const;
+
 export type ViewerNodeKind =
   | "process-group"
   | "aggregate-group"
@@ -55,6 +57,7 @@ export interface ViewerDetailHelpSpec {
 }
 
 export interface BusinessViewerSpec {
+  viewerVersion: typeof BUSINESS_VIEWER_SPEC_VERSION;
   specId: string;
   title: string;
   summary: string;

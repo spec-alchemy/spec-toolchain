@@ -19,6 +19,7 @@ import type {
   ViewerNodeSpec,
   ViewerViewSpec
 } from "../ddd-spec-viewer-contract/index.js";
+import { BUSINESS_VIEWER_SPEC_VERSION } from "../ddd-spec-viewer-contract/index.js";
 import {
   buildSemanticDetailHelp,
   getViewerDetailSemantic
@@ -58,6 +59,7 @@ export function buildBusinessViewerSpec(
   ];
 
   return {
+    viewerVersion: BUSINESS_VIEWER_SPEC_VERSION,
     specId: spec.id,
     title: spec.title,
     summary: spec.summary,

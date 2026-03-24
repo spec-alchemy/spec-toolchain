@@ -1,0 +1,15 @@
+kind: event
+type: OrderSubmitted
+source: Order
+description: 订单聚合已从 draft 进入 submitted。
+payload:
+  fields:
+    - id: orderId
+      type: uuid
+      required: true
+    - id: customerId
+      type: uuid
+      required: true
+    - id: totalAmount
+      type: decimal
+      required: true

@@ -13,20 +13,25 @@ import {
 
 export type AnalysisSeverity = "error" | "warning";
 
-export type AnalysisCode =
-  | "unreachable-aggregate-state"
-  | "unreachable-process-stage"
-  | "dead-end-process-stage"
-  | "process-stage-cannot-reach-final"
-  | "initial-stage-cannot-reach-final"
-  | "orphan-command-definition"
-  | "unaccepted-process-command"
-  | "orphan-event-definition"
-  | "unobserved-emitted-event"
-  | "orphan-aggregate-transition"
-  | "missing-object-field-explanation"
-  | "missing-command-payload-field-explanation"
-  | "missing-event-payload-field-explanation";
+export const BUSINESS_SPEC_ANALYSIS_VERSION = 1 as const;
+
+export const ANALYSIS_CODES = [
+  "unreachable-aggregate-state",
+  "unreachable-process-stage",
+  "dead-end-process-stage",
+  "process-stage-cannot-reach-final",
+  "initial-stage-cannot-reach-final",
+  "orphan-command-definition",
+  "unaccepted-process-command",
+  "orphan-event-definition",
+  "unobserved-emitted-event",
+  "orphan-aggregate-transition",
+  "missing-object-field-explanation",
+  "missing-command-payload-field-explanation",
+  "missing-event-payload-field-explanation"
+] as const;
+
+export type AnalysisCode = (typeof ANALYSIS_CODES)[number];
 
 export interface AnalysisDiagnostic {
   severity: AnalysisSeverity;
@@ -111,6 +116,7 @@ export interface BusinessGraph {
 }
 
 export interface BusinessSpecAnalysis {
+  analysisVersion: typeof BUSINESS_SPEC_ANALYSIS_VERSION;
   specId: string;
   graph: BusinessGraph;
   diagnostics: readonly AnalysisDiagnostic[];
@@ -253,6 +259,7 @@ export function analyzeBusinessSpec(spec: BusinessSpec): BusinessSpecAnalysis {
   const warningCount = diagnostics.length - errorCount;
 
   return {
+    analysisVersion: BUSINESS_SPEC_ANALYSIS_VERSION,
     specId: spec.id,
     graph,
     diagnostics,

@@ -1,0 +1,15 @@
+kind: aggregate
+objectId: Payment
+initial: pending
+states:
+  pending:
+    on:
+      confirmPayment:
+        target: confirmed
+        emit:
+          type: PaymentConfirmed
+          payloadFrom:
+            paymentId: $command.paymentId
+            orderId: $command.orderId
+            paidAmount: $command.paidAmount
+  confirmed: {}
