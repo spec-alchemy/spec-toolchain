@@ -8,16 +8,16 @@ import { buildBusinessSpecTypescriptSource } from "./index.js";
 const SPEC_ENTRY_PATH = fileURLToPath(
   new URL("../../design-spec/canonical/index.yaml", import.meta.url)
 );
-const GENERATED_SPEC_PATH = fileURLToPath(
-  new URL("../../design-spec/generated/business-spec.generated.ts", import.meta.url)
+const GENERATED_SPEC_GOLDEN_PATH = fileURLToPath(
+  new URL("./goldens/connection-card-review.generated.ts", import.meta.url)
 );
 
-test("typescript projection matches the checked-in generated module", async () => {
+test("typescript projection matches the checked-in golden snapshot", async () => {
   const spec = await loadBusinessSpec({
     entryPath: SPEC_ENTRY_PATH
   });
   const actualSource = buildBusinessSpecTypescriptSource(spec);
-  const expectedSource = await readFile(GENERATED_SPEC_PATH, "utf8");
+  const expectedSource = await readFile(GENERATED_SPEC_GOLDEN_PATH, "utf8");
 
   assert.strictEqual(actualSource, expectedSource);
 });

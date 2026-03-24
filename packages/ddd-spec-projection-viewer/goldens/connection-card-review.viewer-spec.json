@@ -1,0 +1,1816 @@
+{
+  "specId": "connection-card-review",
+  "title": "建议 Connection -> 建议 Card 审核闭环",
+  "summary": "最小审核闭环：先审核建议连接，再审核其衍生建议卡片，形成一条正常完成路径和两条提前结束路径。",
+  "detailHelp": {
+    "semantic": {
+      "process.id": "当前业务流程的标识或名称，用来区分不同的流程编排。",
+      "process.initial_stage": "流程启动时首先进入的阶段。",
+      "process.final_stages": "流程可以合法结束的阶段集合。",
+      "process.used_aggregates": "这个流程在运行中会引用或驱动的聚合列表。",
+      "stage.id": "当前阶段在流程定义中的标识。",
+      "stage.final": "标记该阶段是否为流程终局阶段。",
+      "aggregate.id": "当前节点或关系所属的聚合对象。",
+      "aggregate.state.id": "当前聚合所处的生命周期状态。",
+      "behavior.accepted_commands": "当前阶段或状态允许接收并处理的命令集合。",
+      "behavior.observed_events": "当前阶段会监听，并可能触发推进的事件集合。",
+      "stage.outcome": "当流程走到终局阶段时，对业务结果的简短说明。",
+      "aggregate.lifecycle_field": "对象上承载生命周期状态的字段名。",
+      "aggregate.lifecycle": "该聚合定义的全部生命周期状态集合。",
+      "aggregate.referenced_by_stages": "哪些流程阶段会绑定或引用当前聚合或状态。",
+      "aggregate.state.emitted_events": "在当前状态完成某次转移后会发出的事件集合。",
+      "aggregate.state.bound_by_stages": "哪些流程阶段明确绑定到了当前聚合状态。",
+      "event.type": "系统中发生的业务事实，通常由命令处理后发出。",
+      "relation.from": "转移或关系的起点状态或起始阶段。",
+      "relation.to": "转移或关系的目标状态或目标阶段。",
+      "relation.label": "当前关系节点或边代表的业务关系语义。",
+      "relation.kind": "关系的类别，例如 binding、transition、advance。",
+      "aggregate.initial_state": "聚合生命周期开始时的默认状态。",
+      "aggregate.state.reachable": "表示该状态是否能从初始状态通过合法转移到达。",
+      "aggregate.state.outgoing_commands": "从当前状态出发可触发的命令集合。",
+      "command.type": "驱动状态变化的业务意图或动作。",
+      "transition.payload_mapping": "命令输入如何映射到发出事件的 payload 字段。",
+      "command.target_aggregate": "命令最终会作用到的聚合对象。",
+      "command.payload_fields": "这个命令要求的 payload 字段，以及每个字段的语义说明。",
+      "entity.description": "对当前命令或事件语义的简短自然语言说明。",
+      "transition.from_state": "命令生效前，聚合所处的来源状态。",
+      "transition.to_state": "命令完成后，聚合会进入的目标状态。",
+      "event.source_aggregate": "该事件由哪个聚合发出。",
+      "event.payload_fields": "这个事件 payload 中包含的字段，以及每个字段的语义说明。",
+      "event.observed_by_stage": "当前流程阶段是否显式监听这个事件。",
+      "event.advances_to": "这个事件一旦被流程观察到，会推进到的下一个阶段。",
+      "event.target_stage": "事件推进后到达的目标阶段。"
+    }
+  },
+  "views": [
+    {
+      "id": "composition",
+      "title": "Composition",
+      "description": "Shows process stages, aggregate reuse, and which aggregate state each non-final stage binds to.",
+      "nodes": [
+        {
+          "id": "composition:process:connectionCardReviewProcess",
+          "kind": "process-group",
+          "label": "建议 Connection -> 建议 Card 审核闭环",
+          "subtitle": "connectionCardReviewProcess",
+          "summary": "initial: awaitingConnectionReview",
+          "width": 320,
+          "height": 220,
+          "headerHeight": 142,
+          "details": [
+            {
+              "semanticKey": "process.id",
+              "label": "Process",
+              "value": "connectionCardReviewProcess"
+            },
+            {
+              "semanticKey": "process.initial_stage",
+              "label": "Initial stage",
+              "value": "awaitingConnectionReview"
+            },
+            {
+              "semanticKey": "process.used_aggregates",
+              "label": "Used aggregates",
+              "value": "Connection, Card"
+            },
+            {
+              "semanticKey": "process.final_stages",
+              "label": "Final stages",
+              "value": "closedConnectionArchived, closedCardArchived, closedCardAccepted"
+            }
+          ]
+        },
+        {
+          "id": "composition:process:connectionCardReviewProcess:stage:awaitingConnectionReview",
+          "kind": "stage",
+          "label": "等待连接审核",
+          "subtitle": "Connection.suggested",
+          "summary": "2 command(s)",
+          "parentId": "composition:process:connectionCardReviewProcess",
+          "width": 220,
+          "height": 123,
+          "details": [
+            {
+              "semanticKey": "stage.id",
+              "label": "Stage",
+              "value": "awaitingConnectionReview"
+            },
+            {
+              "semanticKey": "stage.final",
+              "label": "Final",
+              "value": "no"
+            },
+            {
+              "semanticKey": "aggregate.id",
+              "label": "Aggregate",
+              "value": "Connection"
+            },
+            {
+              "semanticKey": "aggregate.state.id",
+              "label": "State",
+              "value": "suggested"
+            },
+            {
+              "semanticKey": "behavior.accepted_commands",
+              "label": "Accepted commands",
+              "value": "confirmConnection, archiveConnection"
+            },
+            {
+              "semanticKey": "behavior.observed_events",
+              "label": "Observed events",
+              "value": "ConnectionConfirmed, ConnectionArchived"
+            }
+          ]
+        },
+        {
+          "id": "composition:aggregate:Connection",
+          "kind": "aggregate-group",
+          "label": "Connection",
+          "subtitle": "aggregate Connection",
+          "summary": "3 lifecycle state(s)",
+          "width": 280,
+          "height": 184,
+          "headerHeight": 112,
+          "details": [
+            {
+              "semanticKey": "aggregate.id",
+              "label": "Aggregate",
+              "value": "Connection"
+            },
+            {
+              "semanticKey": "aggregate.lifecycle_field",
+              "label": "Lifecycle field",
+              "value": "status"
+            },
+            {
+              "semanticKey": "aggregate.lifecycle",
+              "label": "Lifecycle",
+              "value": "suggested, confirmed, archived"
+            },
+            {
+              "semanticKey": "aggregate.referenced_by_stages",
+              "label": "Referenced by stages",
+              "value": "connectionCardReviewProcess.awaitingConnectionReview (等待连接审核)"
+            }
+          ]
+        },
+        {
+          "id": "composition:aggregate:Connection:state:suggested",
+          "kind": "aggregate-state",
+          "label": "suggested",
+          "subtitle": "Connection",
+          "summary": "2 transition(s)",
+          "parentId": "composition:aggregate:Connection",
+          "width": 180,
+          "height": 123,
+          "details": [
+            {
+              "semanticKey": "aggregate.id",
+              "label": "Aggregate",
+              "value": "Connection"
+            },
+            {
+              "semanticKey": "aggregate.state.id",
+              "label": "State",
+              "value": "suggested"
+            },
+            {
+              "semanticKey": "behavior.accepted_commands",
+              "label": "Accepted commands",
+              "value": "confirmConnection, archiveConnection"
+            },
+            {
+              "semanticKey": "aggregate.state.emitted_events",
+              "label": "Emitted events",
+              "value": "ConnectionConfirmed, ConnectionArchived"
+            },
+            {
+              "semanticKey": "aggregate.state.bound_by_stages",
+              "label": "Bound by stages",
+              "value": "connectionCardReviewProcess.awaitingConnectionReview (等待连接审核)"
+            }
+          ]
+        },
+        {
+          "id": "composition:process:connectionCardReviewProcess:stage:awaitingCardReview",
+          "kind": "stage",
+          "label": "等待卡片审核",
+          "subtitle": "Card.suggested",
+          "summary": "2 command(s)",
+          "parentId": "composition:process:connectionCardReviewProcess",
+          "width": 220,
+          "height": 123,
+          "details": [
+            {
+              "semanticKey": "stage.id",
+              "label": "Stage",
+              "value": "awaitingCardReview"
+            },
+            {
+              "semanticKey": "stage.final",
+              "label": "Final",
+              "value": "no"
+            },
+            {
+              "semanticKey": "aggregate.id",
+              "label": "Aggregate",
+              "value": "Card"
+            },
+            {
+              "semanticKey": "aggregate.state.id",
+              "label": "State",
+              "value": "suggested"
+            },
+            {
+              "semanticKey": "behavior.accepted_commands",
+              "label": "Accepted commands",
+              "value": "acceptSuggestedCard, archiveCard"
+            },
+            {
+              "semanticKey": "behavior.observed_events",
+              "label": "Observed events",
+              "value": "CardAccepted, CardArchived"
+            }
+          ]
+        },
+        {
+          "id": "composition:aggregate:Card",
+          "kind": "aggregate-group",
+          "label": "Card",
+          "subtitle": "aggregate Card",
+          "summary": "3 lifecycle state(s)",
+          "width": 280,
+          "height": 184,
+          "headerHeight": 112,
+          "details": [
+            {
+              "semanticKey": "aggregate.id",
+              "label": "Aggregate",
+              "value": "Card"
+            },
+            {
+              "semanticKey": "aggregate.lifecycle_field",
+              "label": "Lifecycle field",
+              "value": "status"
+            },
+            {
+              "semanticKey": "aggregate.lifecycle",
+              "label": "Lifecycle",
+              "value": "suggested, accepted, archived"
+            },
+            {
+              "semanticKey": "aggregate.referenced_by_stages",
+              "label": "Referenced by stages",
+              "value": "connectionCardReviewProcess.awaitingCardReview (等待卡片审核)"
+            }
+          ]
+        },
+        {
+          "id": "composition:aggregate:Card:state:suggested",
+          "kind": "aggregate-state",
+          "label": "suggested",
+          "subtitle": "Card",
+          "summary": "2 transition(s)",
+          "parentId": "composition:aggregate:Card",
+          "width": 180,
+          "height": 123,
+          "details": [
+            {
+              "semanticKey": "aggregate.id",
+              "label": "Aggregate",
+              "value": "Card"
+            },
+            {
+              "semanticKey": "aggregate.state.id",
+              "label": "State",
+              "value": "suggested"
+            },
+            {
+              "semanticKey": "behavior.accepted_commands",
+              "label": "Accepted commands",
+              "value": "acceptSuggestedCard, archiveCard"
+            },
+            {
+              "semanticKey": "aggregate.state.emitted_events",
+              "label": "Emitted events",
+              "value": "CardAccepted, CardArchived"
+            },
+            {
+              "semanticKey": "aggregate.state.bound_by_stages",
+              "label": "Bound by stages",
+              "value": "connectionCardReviewProcess.awaitingCardReview (等待卡片审核)"
+            }
+          ]
+        },
+        {
+          "id": "composition:process:connectionCardReviewProcess:stage:closedConnectionArchived",
+          "kind": "final-stage",
+          "label": "连接阶段已归档关闭",
+          "subtitle": "closedConnectionArchived",
+          "summary": "connectionArchived",
+          "parentId": "composition:process:connectionCardReviewProcess",
+          "width": 220,
+          "height": 139,
+          "details": [
+            {
+              "semanticKey": "stage.id",
+              "label": "Stage",
+              "value": "closedConnectionArchived"
+            },
+            {
+              "semanticKey": "stage.final",
+              "label": "Final",
+              "value": "yes"
+            },
+            {
+              "semanticKey": "behavior.accepted_commands",
+              "label": "Accepted commands",
+              "value": "none"
+            },
+            {
+              "semanticKey": "behavior.observed_events",
+              "label": "Observed events",
+              "value": "none"
+            },
+            {
+              "semanticKey": "stage.outcome",
+              "label": "Outcome",
+              "value": "connectionArchived"
+            }
+          ]
+        },
+        {
+          "id": "composition:process:connectionCardReviewProcess:stage:closedCardArchived",
+          "kind": "final-stage",
+          "label": "卡片阶段已归档关闭",
+          "subtitle": "closedCardArchived",
+          "summary": "cardArchived",
+          "parentId": "composition:process:connectionCardReviewProcess",
+          "width": 220,
+          "height": 123,
+          "details": [
+            {
+              "semanticKey": "stage.id",
+              "label": "Stage",
+              "value": "closedCardArchived"
+            },
+            {
+              "semanticKey": "stage.final",
+              "label": "Final",
+              "value": "yes"
+            },
+            {
+              "semanticKey": "behavior.accepted_commands",
+              "label": "Accepted commands",
+              "value": "none"
+            },
+            {
+              "semanticKey": "behavior.observed_events",
+              "label": "Observed events",
+              "value": "none"
+            },
+            {
+              "semanticKey": "stage.outcome",
+              "label": "Outcome",
+              "value": "cardArchived"
+            }
+          ]
+        },
+        {
+          "id": "composition:process:connectionCardReviewProcess:stage:closedCardAccepted",
+          "kind": "final-stage",
+          "label": "卡片阶段已接受关闭",
+          "subtitle": "closedCardAccepted",
+          "summary": "cardAccepted",
+          "parentId": "composition:process:connectionCardReviewProcess",
+          "width": 220,
+          "height": 123,
+          "details": [
+            {
+              "semanticKey": "stage.id",
+              "label": "Stage",
+              "value": "closedCardAccepted"
+            },
+            {
+              "semanticKey": "stage.final",
+              "label": "Final",
+              "value": "yes"
+            },
+            {
+              "semanticKey": "behavior.accepted_commands",
+              "label": "Accepted commands",
+              "value": "none"
+            },
+            {
+              "semanticKey": "behavior.observed_events",
+              "label": "Observed events",
+              "value": "none"
+            },
+            {
+              "semanticKey": "stage.outcome",
+              "label": "Outcome",
+              "value": "cardAccepted"
+            }
+          ]
+        }
+      ],
+      "edges": [
+        {
+          "id": "composition-binding:connectionCardReviewProcess:awaitingConnectionReview:Connection:suggested",
+          "kind": "binding",
+          "source": "composition:process:connectionCardReviewProcess:stage:awaitingConnectionReview",
+          "target": "composition:aggregate:Connection:state:suggested",
+          "label": "binds",
+          "details": [
+            {
+              "semanticKey": "process.id",
+              "label": "Process",
+              "value": "connectionCardReviewProcess"
+            },
+            {
+              "semanticKey": "stage.id",
+              "label": "Stage",
+              "value": "awaitingConnectionReview"
+            },
+            {
+              "semanticKey": "aggregate.id",
+              "label": "Aggregate",
+              "value": "Connection"
+            },
+            {
+              "semanticKey": "aggregate.state.id",
+              "label": "State",
+              "value": "suggested"
+            }
+          ]
+        },
+        {
+          "id": "composition-binding:connectionCardReviewProcess:awaitingCardReview:Card:suggested",
+          "kind": "binding",
+          "source": "composition:process:connectionCardReviewProcess:stage:awaitingCardReview",
+          "target": "composition:aggregate:Card:state:suggested",
+          "label": "binds",
+          "details": [
+            {
+              "semanticKey": "process.id",
+              "label": "Process",
+              "value": "connectionCardReviewProcess"
+            },
+            {
+              "semanticKey": "stage.id",
+              "label": "Stage",
+              "value": "awaitingCardReview"
+            },
+            {
+              "semanticKey": "aggregate.id",
+              "label": "Aggregate",
+              "value": "Card"
+            },
+            {
+              "semanticKey": "aggregate.state.id",
+              "label": "State",
+              "value": "suggested"
+            }
+          ]
+        },
+        {
+          "id": "composition-advance:connectionCardReviewProcess:awaitingConnectionReview:ConnectionConfirmed",
+          "kind": "advance",
+          "source": "composition:process:connectionCardReviewProcess:stage:awaitingConnectionReview",
+          "target": "composition:process:connectionCardReviewProcess:stage:awaitingCardReview",
+          "label": "ConnectionConfirmed",
+          "details": [
+            {
+              "semanticKey": "process.id",
+              "label": "Process",
+              "value": "connectionCardReviewProcess"
+            },
+            {
+              "semanticKey": "event.type",
+              "label": "Event",
+              "value": "ConnectionConfirmed"
+            },
+            {
+              "semanticKey": "relation.from",
+              "label": "From",
+              "value": "awaitingConnectionReview"
+            },
+            {
+              "semanticKey": "relation.to",
+              "label": "To",
+              "value": "awaitingCardReview"
+            }
+          ]
+        },
+        {
+          "id": "composition-advance:connectionCardReviewProcess:awaitingConnectionReview:ConnectionArchived",
+          "kind": "advance",
+          "source": "composition:process:connectionCardReviewProcess:stage:awaitingConnectionReview",
+          "target": "composition:process:connectionCardReviewProcess:stage:closedConnectionArchived",
+          "label": "ConnectionArchived",
+          "details": [
+            {
+              "semanticKey": "process.id",
+              "label": "Process",
+              "value": "connectionCardReviewProcess"
+            },
+            {
+              "semanticKey": "event.type",
+              "label": "Event",
+              "value": "ConnectionArchived"
+            },
+            {
+              "semanticKey": "relation.from",
+              "label": "From",
+              "value": "awaitingConnectionReview"
+            },
+            {
+              "semanticKey": "relation.to",
+              "label": "To",
+              "value": "closedConnectionArchived"
+            }
+          ]
+        },
+        {
+          "id": "composition-advance:connectionCardReviewProcess:awaitingCardReview:CardAccepted",
+          "kind": "advance",
+          "source": "composition:process:connectionCardReviewProcess:stage:awaitingCardReview",
+          "target": "composition:process:connectionCardReviewProcess:stage:closedCardAccepted",
+          "label": "CardAccepted",
+          "details": [
+            {
+              "semanticKey": "process.id",
+              "label": "Process",
+              "value": "connectionCardReviewProcess"
+            },
+            {
+              "semanticKey": "event.type",
+              "label": "Event",
+              "value": "CardAccepted"
+            },
+            {
+              "semanticKey": "relation.from",
+              "label": "From",
+              "value": "awaitingCardReview"
+            },
+            {
+              "semanticKey": "relation.to",
+              "label": "To",
+              "value": "closedCardAccepted"
+            }
+          ]
+        },
+        {
+          "id": "composition-advance:connectionCardReviewProcess:awaitingCardReview:CardArchived",
+          "kind": "advance",
+          "source": "composition:process:connectionCardReviewProcess:stage:awaitingCardReview",
+          "target": "composition:process:connectionCardReviewProcess:stage:closedCardArchived",
+          "label": "CardArchived",
+          "details": [
+            {
+              "semanticKey": "process.id",
+              "label": "Process",
+              "value": "connectionCardReviewProcess"
+            },
+            {
+              "semanticKey": "event.type",
+              "label": "Event",
+              "value": "CardArchived"
+            },
+            {
+              "semanticKey": "relation.from",
+              "label": "From",
+              "value": "awaitingCardReview"
+            },
+            {
+              "semanticKey": "relation.to",
+              "label": "To",
+              "value": "closedCardArchived"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lifecycle",
+      "title": "Lifecycle",
+      "description": "Shows aggregate lifecycle states and transitions, independent of process orchestration.",
+      "nodes": [
+        {
+          "id": "lifecycle:aggregate:Connection",
+          "kind": "aggregate-group",
+          "label": "Connection",
+          "subtitle": "Connection",
+          "summary": "initial: suggested",
+          "width": 280,
+          "height": 184,
+          "headerHeight": 112,
+          "details": [
+            {
+              "semanticKey": "aggregate.id",
+              "label": "Aggregate",
+              "value": "Connection"
+            },
+            {
+              "semanticKey": "aggregate.initial_state",
+              "label": "Initial state",
+              "value": "suggested"
+            },
+            {
+              "semanticKey": "aggregate.lifecycle",
+              "label": "Lifecycle",
+              "value": "suggested, confirmed, archived"
+            },
+            {
+              "semanticKey": "behavior.accepted_commands",
+              "label": "Accepted commands",
+              "value": "confirmConnection, archiveConnection"
+            }
+          ]
+        },
+        {
+          "id": "lifecycle:aggregate:Connection:state:suggested",
+          "kind": "aggregate-state",
+          "label": "suggested",
+          "subtitle": "used by 1 stage(s)",
+          "summary": "2 command(s)",
+          "parentId": "lifecycle:aggregate:Connection",
+          "width": 180,
+          "height": 139,
+          "details": [
+            {
+              "semanticKey": "aggregate.id",
+              "label": "Aggregate",
+              "value": "Connection"
+            },
+            {
+              "semanticKey": "aggregate.state.id",
+              "label": "State",
+              "value": "suggested"
+            },
+            {
+              "semanticKey": "aggregate.state.reachable",
+              "label": "Reachable",
+              "value": "yes"
+            },
+            {
+              "semanticKey": "aggregate.state.outgoing_commands",
+              "label": "Outgoing commands",
+              "value": "confirmConnection, archiveConnection"
+            },
+            {
+              "semanticKey": "aggregate.referenced_by_stages",
+              "label": "Referenced by stages",
+              "value": "connectionCardReviewProcess.awaitingConnectionReview (等待连接审核)"
+            }
+          ]
+        },
+        {
+          "id": "lifecycle:aggregate:Connection:state:confirmed",
+          "kind": "aggregate-state",
+          "label": "confirmed",
+          "subtitle": "unbound",
+          "summary": "terminal",
+          "parentId": "lifecycle:aggregate:Connection",
+          "width": 180,
+          "height": 123,
+          "details": [
+            {
+              "semanticKey": "aggregate.id",
+              "label": "Aggregate",
+              "value": "Connection"
+            },
+            {
+              "semanticKey": "aggregate.state.id",
+              "label": "State",
+              "value": "confirmed"
+            },
+            {
+              "semanticKey": "aggregate.state.reachable",
+              "label": "Reachable",
+              "value": "yes"
+            },
+            {
+              "semanticKey": "aggregate.state.outgoing_commands",
+              "label": "Outgoing commands",
+              "value": "none"
+            },
+            {
+              "semanticKey": "aggregate.referenced_by_stages",
+              "label": "Referenced by stages",
+              "value": "none"
+            }
+          ]
+        },
+        {
+          "id": "lifecycle:aggregate:Connection:state:archived",
+          "kind": "aggregate-state",
+          "label": "archived",
+          "subtitle": "unbound",
+          "summary": "terminal",
+          "parentId": "lifecycle:aggregate:Connection",
+          "width": 180,
+          "height": 123,
+          "details": [
+            {
+              "semanticKey": "aggregate.id",
+              "label": "Aggregate",
+              "value": "Connection"
+            },
+            {
+              "semanticKey": "aggregate.state.id",
+              "label": "State",
+              "value": "archived"
+            },
+            {
+              "semanticKey": "aggregate.state.reachable",
+              "label": "Reachable",
+              "value": "yes"
+            },
+            {
+              "semanticKey": "aggregate.state.outgoing_commands",
+              "label": "Outgoing commands",
+              "value": "none"
+            },
+            {
+              "semanticKey": "aggregate.referenced_by_stages",
+              "label": "Referenced by stages",
+              "value": "none"
+            }
+          ]
+        },
+        {
+          "id": "lifecycle:aggregate:Card",
+          "kind": "aggregate-group",
+          "label": "Card",
+          "subtitle": "Card",
+          "summary": "initial: suggested",
+          "width": 280,
+          "height": 184,
+          "headerHeight": 112,
+          "details": [
+            {
+              "semanticKey": "aggregate.id",
+              "label": "Aggregate",
+              "value": "Card"
+            },
+            {
+              "semanticKey": "aggregate.initial_state",
+              "label": "Initial state",
+              "value": "suggested"
+            },
+            {
+              "semanticKey": "aggregate.lifecycle",
+              "label": "Lifecycle",
+              "value": "suggested, accepted, archived"
+            },
+            {
+              "semanticKey": "behavior.accepted_commands",
+              "label": "Accepted commands",
+              "value": "acceptSuggestedCard, archiveCard"
+            }
+          ]
+        },
+        {
+          "id": "lifecycle:aggregate:Card:state:suggested",
+          "kind": "aggregate-state",
+          "label": "suggested",
+          "subtitle": "used by 1 stage(s)",
+          "summary": "2 command(s)",
+          "parentId": "lifecycle:aggregate:Card",
+          "width": 180,
+          "height": 139,
+          "details": [
+            {
+              "semanticKey": "aggregate.id",
+              "label": "Aggregate",
+              "value": "Card"
+            },
+            {
+              "semanticKey": "aggregate.state.id",
+              "label": "State",
+              "value": "suggested"
+            },
+            {
+              "semanticKey": "aggregate.state.reachable",
+              "label": "Reachable",
+              "value": "yes"
+            },
+            {
+              "semanticKey": "aggregate.state.outgoing_commands",
+              "label": "Outgoing commands",
+              "value": "acceptSuggestedCard, archiveCard"
+            },
+            {
+              "semanticKey": "aggregate.referenced_by_stages",
+              "label": "Referenced by stages",
+              "value": "connectionCardReviewProcess.awaitingCardReview (等待卡片审核)"
+            }
+          ]
+        },
+        {
+          "id": "lifecycle:aggregate:Card:state:accepted",
+          "kind": "aggregate-state",
+          "label": "accepted",
+          "subtitle": "unbound",
+          "summary": "terminal",
+          "parentId": "lifecycle:aggregate:Card",
+          "width": 180,
+          "height": 123,
+          "details": [
+            {
+              "semanticKey": "aggregate.id",
+              "label": "Aggregate",
+              "value": "Card"
+            },
+            {
+              "semanticKey": "aggregate.state.id",
+              "label": "State",
+              "value": "accepted"
+            },
+            {
+              "semanticKey": "aggregate.state.reachable",
+              "label": "Reachable",
+              "value": "yes"
+            },
+            {
+              "semanticKey": "aggregate.state.outgoing_commands",
+              "label": "Outgoing commands",
+              "value": "none"
+            },
+            {
+              "semanticKey": "aggregate.referenced_by_stages",
+              "label": "Referenced by stages",
+              "value": "none"
+            }
+          ]
+        },
+        {
+          "id": "lifecycle:aggregate:Card:state:archived",
+          "kind": "aggregate-state",
+          "label": "archived",
+          "subtitle": "unbound",
+          "summary": "terminal",
+          "parentId": "lifecycle:aggregate:Card",
+          "width": 180,
+          "height": 123,
+          "details": [
+            {
+              "semanticKey": "aggregate.id",
+              "label": "Aggregate",
+              "value": "Card"
+            },
+            {
+              "semanticKey": "aggregate.state.id",
+              "label": "State",
+              "value": "archived"
+            },
+            {
+              "semanticKey": "aggregate.state.reachable",
+              "label": "Reachable",
+              "value": "yes"
+            },
+            {
+              "semanticKey": "aggregate.state.outgoing_commands",
+              "label": "Outgoing commands",
+              "value": "none"
+            },
+            {
+              "semanticKey": "aggregate.referenced_by_stages",
+              "label": "Referenced by stages",
+              "value": "none"
+            }
+          ]
+        }
+      ],
+      "edges": [
+        {
+          "id": "lifecycle-transition:Connection:suggested:confirmConnection",
+          "kind": "transition",
+          "source": "lifecycle:aggregate:Connection:state:suggested",
+          "target": "lifecycle:aggregate:Connection:state:confirmed",
+          "label": "confirmConnection / ConnectionConfirmed",
+          "details": [
+            {
+              "semanticKey": "aggregate.id",
+              "label": "Aggregate",
+              "value": "Connection"
+            },
+            {
+              "semanticKey": "command.type",
+              "label": "Command",
+              "value": "confirmConnection"
+            },
+            {
+              "semanticKey": "event.type",
+              "label": "Event",
+              "value": "ConnectionConfirmed"
+            },
+            {
+              "semanticKey": "relation.from",
+              "label": "From",
+              "value": "suggested"
+            },
+            {
+              "semanticKey": "relation.to",
+              "label": "To",
+              "value": "confirmed"
+            },
+            {
+              "semanticKey": "transition.payload_mapping",
+              "label": "Payload mapping",
+              "value": "connectionId <- $command.connectionId"
+            }
+          ]
+        },
+        {
+          "id": "lifecycle-transition:Connection:suggested:archiveConnection",
+          "kind": "transition",
+          "source": "lifecycle:aggregate:Connection:state:suggested",
+          "target": "lifecycle:aggregate:Connection:state:archived",
+          "label": "archiveConnection / ConnectionArchived",
+          "details": [
+            {
+              "semanticKey": "aggregate.id",
+              "label": "Aggregate",
+              "value": "Connection"
+            },
+            {
+              "semanticKey": "command.type",
+              "label": "Command",
+              "value": "archiveConnection"
+            },
+            {
+              "semanticKey": "event.type",
+              "label": "Event",
+              "value": "ConnectionArchived"
+            },
+            {
+              "semanticKey": "relation.from",
+              "label": "From",
+              "value": "suggested"
+            },
+            {
+              "semanticKey": "relation.to",
+              "label": "To",
+              "value": "archived"
+            },
+            {
+              "semanticKey": "transition.payload_mapping",
+              "label": "Payload mapping",
+              "value": "connectionId <- $command.connectionId, reason <- $command.reason"
+            }
+          ]
+        },
+        {
+          "id": "lifecycle-transition:Card:suggested:acceptSuggestedCard",
+          "kind": "transition",
+          "source": "lifecycle:aggregate:Card:state:suggested",
+          "target": "lifecycle:aggregate:Card:state:accepted",
+          "label": "acceptSuggestedCard / CardAccepted",
+          "details": [
+            {
+              "semanticKey": "aggregate.id",
+              "label": "Aggregate",
+              "value": "Card"
+            },
+            {
+              "semanticKey": "command.type",
+              "label": "Command",
+              "value": "acceptSuggestedCard"
+            },
+            {
+              "semanticKey": "event.type",
+              "label": "Event",
+              "value": "CardAccepted"
+            },
+            {
+              "semanticKey": "relation.from",
+              "label": "From",
+              "value": "suggested"
+            },
+            {
+              "semanticKey": "relation.to",
+              "label": "To",
+              "value": "accepted"
+            },
+            {
+              "semanticKey": "transition.payload_mapping",
+              "label": "Payload mapping",
+              "value": "cardId <- $command.cardId"
+            }
+          ]
+        },
+        {
+          "id": "lifecycle-transition:Card:suggested:archiveCard",
+          "kind": "transition",
+          "source": "lifecycle:aggregate:Card:state:suggested",
+          "target": "lifecycle:aggregate:Card:state:archived",
+          "label": "archiveCard / CardArchived",
+          "details": [
+            {
+              "semanticKey": "aggregate.id",
+              "label": "Aggregate",
+              "value": "Card"
+            },
+            {
+              "semanticKey": "command.type",
+              "label": "Command",
+              "value": "archiveCard"
+            },
+            {
+              "semanticKey": "event.type",
+              "label": "Event",
+              "value": "CardArchived"
+            },
+            {
+              "semanticKey": "relation.from",
+              "label": "From",
+              "value": "suggested"
+            },
+            {
+              "semanticKey": "relation.to",
+              "label": "To",
+              "value": "archived"
+            },
+            {
+              "semanticKey": "transition.payload_mapping",
+              "label": "Payload mapping",
+              "value": "cardId <- $command.cardId, reason <- $command.reason"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "trace",
+      "title": "Trace",
+      "description": "Shows how each stage accepts commands, which events those commands emit, and how events advance the process.",
+      "nodes": [
+        {
+          "id": "trace:process:connectionCardReviewProcess",
+          "kind": "process-group",
+          "label": "建议 Connection -> 建议 Card 审核闭环",
+          "subtitle": "connectionCardReviewProcess",
+          "summary": "stage -> command -> event -> next stage",
+          "width": 320,
+          "height": 220,
+          "headerHeight": 142,
+          "details": [
+            {
+              "semanticKey": "process.id",
+              "label": "Process",
+              "value": "connectionCardReviewProcess"
+            },
+            {
+              "semanticKey": "process.initial_stage",
+              "label": "Initial stage",
+              "value": "awaitingConnectionReview"
+            },
+            {
+              "semanticKey": "process.final_stages",
+              "label": "Final stages",
+              "value": "closedConnectionArchived, closedCardArchived, closedCardAccepted"
+            }
+          ]
+        },
+        {
+          "id": "trace:process:connectionCardReviewProcess:stage:awaitingConnectionReview",
+          "kind": "stage",
+          "label": "等待连接审核",
+          "subtitle": "awaitingConnectionReview",
+          "summary": "2 command(s)",
+          "parentId": "trace:process:connectionCardReviewProcess",
+          "width": 220,
+          "height": 139,
+          "details": [
+            {
+              "semanticKey": "stage.id",
+              "label": "Stage",
+              "value": "awaitingConnectionReview"
+            },
+            {
+              "semanticKey": "aggregate.id",
+              "label": "Aggregate",
+              "value": "Connection"
+            },
+            {
+              "semanticKey": "aggregate.state.id",
+              "label": "State",
+              "value": "suggested"
+            },
+            {
+              "semanticKey": "behavior.accepted_commands",
+              "label": "Accepted commands",
+              "value": "confirmConnection, archiveConnection"
+            },
+            {
+              "semanticKey": "behavior.observed_events",
+              "label": "Observed events",
+              "value": "ConnectionConfirmed, ConnectionArchived"
+            }
+          ]
+        },
+        {
+          "id": "trace:process:connectionCardReviewProcess:stage:awaitingConnectionReview:command:confirmConnection",
+          "kind": "command",
+          "label": "confirmConnection",
+          "subtitle": "Connection.suggested -> confirmed",
+          "summary": "将建议连接确认成正式连接。",
+          "parentId": "trace:process:connectionCardReviewProcess",
+          "width": 196,
+          "height": 139,
+          "details": [
+            {
+              "semanticKey": "command.type",
+              "label": "Command",
+              "value": "confirmConnection"
+            },
+            {
+              "semanticKey": "command.target_aggregate",
+              "label": "Target aggregate",
+              "value": "Connection"
+            },
+            {
+              "semanticKey": "command.payload_fields",
+              "label": "Payload fields",
+              "value": "connectionId [uuid, required]: 连接唯一标识。"
+            },
+            {
+              "semanticKey": "entity.description",
+              "label": "Description",
+              "value": "将建议连接确认成正式连接。"
+            },
+            {
+              "semanticKey": "transition.from_state",
+              "label": "From state",
+              "value": "Connection.suggested"
+            },
+            {
+              "semanticKey": "transition.to_state",
+              "label": "To state",
+              "value": "Connection.confirmed"
+            }
+          ]
+        },
+        {
+          "id": "trace:process:connectionCardReviewProcess:stage:awaitingConnectionReview:event:ConnectionConfirmed",
+          "kind": "event",
+          "label": "ConnectionConfirmed",
+          "subtitle": "Connection",
+          "summary": "advances to awaitingCardReview",
+          "parentId": "trace:process:connectionCardReviewProcess",
+          "width": 184,
+          "height": 158,
+          "details": [
+            {
+              "semanticKey": "event.type",
+              "label": "Event",
+              "value": "ConnectionConfirmed"
+            },
+            {
+              "semanticKey": "event.source_aggregate",
+              "label": "Source aggregate",
+              "value": "Connection"
+            },
+            {
+              "semanticKey": "event.payload_fields",
+              "label": "Payload fields",
+              "value": "connectionId [uuid, required]: 连接唯一标识。"
+            },
+            {
+              "semanticKey": "entity.description",
+              "label": "Description",
+              "value": "连接聚合已从 suggested 进入 confirmed。"
+            },
+            {
+              "semanticKey": "event.observed_by_stage",
+              "label": "Observed by stage",
+              "value": "yes"
+            },
+            {
+              "semanticKey": "event.advances_to",
+              "label": "Advances to",
+              "value": "awaitingCardReview"
+            }
+          ]
+        },
+        {
+          "id": "trace:process:connectionCardReviewProcess:stage:awaitingConnectionReview:command:archiveConnection",
+          "kind": "command",
+          "label": "archiveConnection",
+          "subtitle": "Connection.suggested -> archived",
+          "summary": "归档建议连接，并在连接阶段提前结束闭环。",
+          "parentId": "trace:process:connectionCardReviewProcess",
+          "width": 196,
+          "height": 155,
+          "details": [
+            {
+              "semanticKey": "command.type",
+              "label": "Command",
+              "value": "archiveConnection"
+            },
+            {
+              "semanticKey": "command.target_aggregate",
+              "label": "Target aggregate",
+              "value": "Connection"
+            },
+            {
+              "semanticKey": "command.payload_fields",
+              "label": "Payload fields",
+              "value": "connectionId [uuid, required]: 连接唯一标识。\nreason [text, required]: 归档这条连接的业务原因说明。"
+            },
+            {
+              "semanticKey": "entity.description",
+              "label": "Description",
+              "value": "归档建议连接，并在连接阶段提前结束闭环。"
+            },
+            {
+              "semanticKey": "transition.from_state",
+              "label": "From state",
+              "value": "Connection.suggested"
+            },
+            {
+              "semanticKey": "transition.to_state",
+              "label": "To state",
+              "value": "Connection.archived"
+            }
+          ]
+        },
+        {
+          "id": "trace:process:connectionCardReviewProcess:stage:awaitingConnectionReview:event:ConnectionArchived",
+          "kind": "event",
+          "label": "ConnectionArchived",
+          "subtitle": "Connection",
+          "summary": "advances to closedConnectionArchived",
+          "parentId": "trace:process:connectionCardReviewProcess",
+          "width": 184,
+          "height": 174,
+          "details": [
+            {
+              "semanticKey": "event.type",
+              "label": "Event",
+              "value": "ConnectionArchived"
+            },
+            {
+              "semanticKey": "event.source_aggregate",
+              "label": "Source aggregate",
+              "value": "Connection"
+            },
+            {
+              "semanticKey": "event.payload_fields",
+              "label": "Payload fields",
+              "value": "connectionId [uuid, required]: 连接唯一标识。\nreason [text, required]: 触发连接归档的业务原因说明。"
+            },
+            {
+              "semanticKey": "entity.description",
+              "label": "Description",
+              "value": "连接聚合已从 suggested 进入 archived。"
+            },
+            {
+              "semanticKey": "event.observed_by_stage",
+              "label": "Observed by stage",
+              "value": "yes"
+            },
+            {
+              "semanticKey": "event.advances_to",
+              "label": "Advances to",
+              "value": "closedConnectionArchived"
+            }
+          ]
+        },
+        {
+          "id": "trace:process:connectionCardReviewProcess:stage:awaitingCardReview",
+          "kind": "stage",
+          "label": "等待卡片审核",
+          "subtitle": "awaitingCardReview",
+          "summary": "2 command(s)",
+          "parentId": "trace:process:connectionCardReviewProcess",
+          "width": 220,
+          "height": 123,
+          "details": [
+            {
+              "semanticKey": "stage.id",
+              "label": "Stage",
+              "value": "awaitingCardReview"
+            },
+            {
+              "semanticKey": "aggregate.id",
+              "label": "Aggregate",
+              "value": "Card"
+            },
+            {
+              "semanticKey": "aggregate.state.id",
+              "label": "State",
+              "value": "suggested"
+            },
+            {
+              "semanticKey": "behavior.accepted_commands",
+              "label": "Accepted commands",
+              "value": "acceptSuggestedCard, archiveCard"
+            },
+            {
+              "semanticKey": "behavior.observed_events",
+              "label": "Observed events",
+              "value": "CardAccepted, CardArchived"
+            }
+          ]
+        },
+        {
+          "id": "trace:process:connectionCardReviewProcess:stage:awaitingCardReview:command:acceptSuggestedCard",
+          "kind": "command",
+          "label": "acceptSuggestedCard",
+          "subtitle": "Card.suggested -> accepted",
+          "summary": "接受建议卡片，使闭环正常完成。",
+          "parentId": "trace:process:connectionCardReviewProcess",
+          "width": 196,
+          "height": 158,
+          "details": [
+            {
+              "semanticKey": "command.type",
+              "label": "Command",
+              "value": "acceptSuggestedCard"
+            },
+            {
+              "semanticKey": "command.target_aggregate",
+              "label": "Target aggregate",
+              "value": "Card"
+            },
+            {
+              "semanticKey": "command.payload_fields",
+              "label": "Payload fields",
+              "value": "cardId [uuid, required]: 卡片唯一标识。"
+            },
+            {
+              "semanticKey": "entity.description",
+              "label": "Description",
+              "value": "接受建议卡片，使闭环正常完成。"
+            },
+            {
+              "semanticKey": "transition.from_state",
+              "label": "From state",
+              "value": "Card.suggested"
+            },
+            {
+              "semanticKey": "transition.to_state",
+              "label": "To state",
+              "value": "Card.accepted"
+            }
+          ]
+        },
+        {
+          "id": "trace:process:connectionCardReviewProcess:stage:awaitingCardReview:event:CardAccepted",
+          "kind": "event",
+          "label": "CardAccepted",
+          "subtitle": "Card",
+          "summary": "advances to closedCardAccepted",
+          "parentId": "trace:process:connectionCardReviewProcess",
+          "width": 184,
+          "height": 139,
+          "details": [
+            {
+              "semanticKey": "event.type",
+              "label": "Event",
+              "value": "CardAccepted"
+            },
+            {
+              "semanticKey": "event.source_aggregate",
+              "label": "Source aggregate",
+              "value": "Card"
+            },
+            {
+              "semanticKey": "event.payload_fields",
+              "label": "Payload fields",
+              "value": "cardId [uuid, required]: 卡片唯一标识。"
+            },
+            {
+              "semanticKey": "entity.description",
+              "label": "Description",
+              "value": "卡片聚合已从 suggested 进入 accepted。"
+            },
+            {
+              "semanticKey": "event.observed_by_stage",
+              "label": "Observed by stage",
+              "value": "yes"
+            },
+            {
+              "semanticKey": "event.advances_to",
+              "label": "Advances to",
+              "value": "closedCardAccepted"
+            }
+          ]
+        },
+        {
+          "id": "trace:process:connectionCardReviewProcess:stage:awaitingCardReview:command:archiveCard",
+          "kind": "command",
+          "label": "archiveCard",
+          "subtitle": "Card.suggested -> archived",
+          "summary": "归档建议卡片，并在卡片阶段提前结束闭环。",
+          "parentId": "trace:process:connectionCardReviewProcess",
+          "width": 196,
+          "height": 155,
+          "details": [
+            {
+              "semanticKey": "command.type",
+              "label": "Command",
+              "value": "archiveCard"
+            },
+            {
+              "semanticKey": "command.target_aggregate",
+              "label": "Target aggregate",
+              "value": "Card"
+            },
+            {
+              "semanticKey": "command.payload_fields",
+              "label": "Payload fields",
+              "value": "cardId [uuid, required]: 卡片唯一标识。\nreason [text, required]: 归档这张卡片的业务原因说明。"
+            },
+            {
+              "semanticKey": "entity.description",
+              "label": "Description",
+              "value": "归档建议卡片，并在卡片阶段提前结束闭环。"
+            },
+            {
+              "semanticKey": "transition.from_state",
+              "label": "From state",
+              "value": "Card.suggested"
+            },
+            {
+              "semanticKey": "transition.to_state",
+              "label": "To state",
+              "value": "Card.archived"
+            }
+          ]
+        },
+        {
+          "id": "trace:process:connectionCardReviewProcess:stage:awaitingCardReview:event:CardArchived",
+          "kind": "event",
+          "label": "CardArchived",
+          "subtitle": "Card",
+          "summary": "advances to closedCardArchived",
+          "parentId": "trace:process:connectionCardReviewProcess",
+          "width": 184,
+          "height": 139,
+          "details": [
+            {
+              "semanticKey": "event.type",
+              "label": "Event",
+              "value": "CardArchived"
+            },
+            {
+              "semanticKey": "event.source_aggregate",
+              "label": "Source aggregate",
+              "value": "Card"
+            },
+            {
+              "semanticKey": "event.payload_fields",
+              "label": "Payload fields",
+              "value": "cardId [uuid, required]: 卡片唯一标识。\nreason [text, required]: 触发卡片归档的业务原因说明。"
+            },
+            {
+              "semanticKey": "entity.description",
+              "label": "Description",
+              "value": "卡片聚合已从 suggested 进入 archived。"
+            },
+            {
+              "semanticKey": "event.observed_by_stage",
+              "label": "Observed by stage",
+              "value": "yes"
+            },
+            {
+              "semanticKey": "event.advances_to",
+              "label": "Advances to",
+              "value": "closedCardArchived"
+            }
+          ]
+        },
+        {
+          "id": "trace:process:connectionCardReviewProcess:stage:closedConnectionArchived",
+          "kind": "final-stage",
+          "label": "连接阶段已归档关闭",
+          "subtitle": "closedConnectionArchived",
+          "summary": "connectionArchived",
+          "parentId": "trace:process:connectionCardReviewProcess",
+          "width": 220,
+          "height": 139,
+          "details": [
+            {
+              "semanticKey": "stage.id",
+              "label": "Stage",
+              "value": "closedConnectionArchived"
+            },
+            {
+              "semanticKey": "behavior.accepted_commands",
+              "label": "Accepted commands",
+              "value": "none"
+            },
+            {
+              "semanticKey": "behavior.observed_events",
+              "label": "Observed events",
+              "value": "none"
+            },
+            {
+              "semanticKey": "stage.outcome",
+              "label": "Outcome",
+              "value": "connectionArchived"
+            }
+          ]
+        },
+        {
+          "id": "trace:process:connectionCardReviewProcess:stage:closedCardArchived",
+          "kind": "final-stage",
+          "label": "卡片阶段已归档关闭",
+          "subtitle": "closedCardArchived",
+          "summary": "cardArchived",
+          "parentId": "trace:process:connectionCardReviewProcess",
+          "width": 220,
+          "height": 123,
+          "details": [
+            {
+              "semanticKey": "stage.id",
+              "label": "Stage",
+              "value": "closedCardArchived"
+            },
+            {
+              "semanticKey": "behavior.accepted_commands",
+              "label": "Accepted commands",
+              "value": "none"
+            },
+            {
+              "semanticKey": "behavior.observed_events",
+              "label": "Observed events",
+              "value": "none"
+            },
+            {
+              "semanticKey": "stage.outcome",
+              "label": "Outcome",
+              "value": "cardArchived"
+            }
+          ]
+        },
+        {
+          "id": "trace:process:connectionCardReviewProcess:stage:closedCardAccepted",
+          "kind": "final-stage",
+          "label": "卡片阶段已接受关闭",
+          "subtitle": "closedCardAccepted",
+          "summary": "cardAccepted",
+          "parentId": "trace:process:connectionCardReviewProcess",
+          "width": 220,
+          "height": 123,
+          "details": [
+            {
+              "semanticKey": "stage.id",
+              "label": "Stage",
+              "value": "closedCardAccepted"
+            },
+            {
+              "semanticKey": "behavior.accepted_commands",
+              "label": "Accepted commands",
+              "value": "none"
+            },
+            {
+              "semanticKey": "behavior.observed_events",
+              "label": "Observed events",
+              "value": "none"
+            },
+            {
+              "semanticKey": "stage.outcome",
+              "label": "Outcome",
+              "value": "cardAccepted"
+            }
+          ]
+        }
+      ],
+      "edges": [
+        {
+          "id": "trace-accepts:connectionCardReviewProcess:awaitingConnectionReview:confirmConnection",
+          "kind": "accepts",
+          "source": "trace:process:connectionCardReviewProcess:stage:awaitingConnectionReview",
+          "target": "trace:process:connectionCardReviewProcess:stage:awaitingConnectionReview:command:confirmConnection",
+          "label": "accepts",
+          "details": [
+            {
+              "semanticKey": "stage.id",
+              "label": "Stage",
+              "value": "awaitingConnectionReview"
+            },
+            {
+              "semanticKey": "command.type",
+              "label": "Command",
+              "value": "confirmConnection"
+            }
+          ]
+        },
+        {
+          "id": "trace-emits:connectionCardReviewProcess:awaitingConnectionReview:confirmConnection",
+          "kind": "emits",
+          "source": "trace:process:connectionCardReviewProcess:stage:awaitingConnectionReview:command:confirmConnection",
+          "target": "trace:process:connectionCardReviewProcess:stage:awaitingConnectionReview:event:ConnectionConfirmed",
+          "label": "emits",
+          "details": [
+            {
+              "semanticKey": "command.type",
+              "label": "Command",
+              "value": "confirmConnection"
+            },
+            {
+              "semanticKey": "event.type",
+              "label": "Event",
+              "value": "ConnectionConfirmed"
+            }
+          ]
+        },
+        {
+          "id": "trace-advance:connectionCardReviewProcess:awaitingConnectionReview:ConnectionConfirmed",
+          "kind": "advance",
+          "source": "trace:process:connectionCardReviewProcess:stage:awaitingConnectionReview:event:ConnectionConfirmed",
+          "target": "trace:process:connectionCardReviewProcess:stage:awaitingCardReview",
+          "label": "advances",
+          "details": [
+            {
+              "semanticKey": "event.type",
+              "label": "Event",
+              "value": "ConnectionConfirmed"
+            },
+            {
+              "semanticKey": "event.target_stage",
+              "label": "Target stage",
+              "value": "awaitingCardReview"
+            }
+          ]
+        },
+        {
+          "id": "trace-accepts:connectionCardReviewProcess:awaitingConnectionReview:archiveConnection",
+          "kind": "accepts",
+          "source": "trace:process:connectionCardReviewProcess:stage:awaitingConnectionReview",
+          "target": "trace:process:connectionCardReviewProcess:stage:awaitingConnectionReview:command:archiveConnection",
+          "label": "accepts",
+          "details": [
+            {
+              "semanticKey": "stage.id",
+              "label": "Stage",
+              "value": "awaitingConnectionReview"
+            },
+            {
+              "semanticKey": "command.type",
+              "label": "Command",
+              "value": "archiveConnection"
+            }
+          ]
+        },
+        {
+          "id": "trace-emits:connectionCardReviewProcess:awaitingConnectionReview:archiveConnection",
+          "kind": "emits",
+          "source": "trace:process:connectionCardReviewProcess:stage:awaitingConnectionReview:command:archiveConnection",
+          "target": "trace:process:connectionCardReviewProcess:stage:awaitingConnectionReview:event:ConnectionArchived",
+          "label": "emits",
+          "details": [
+            {
+              "semanticKey": "command.type",
+              "label": "Command",
+              "value": "archiveConnection"
+            },
+            {
+              "semanticKey": "event.type",
+              "label": "Event",
+              "value": "ConnectionArchived"
+            }
+          ]
+        },
+        {
+          "id": "trace-advance:connectionCardReviewProcess:awaitingConnectionReview:ConnectionArchived",
+          "kind": "advance",
+          "source": "trace:process:connectionCardReviewProcess:stage:awaitingConnectionReview:event:ConnectionArchived",
+          "target": "trace:process:connectionCardReviewProcess:stage:closedConnectionArchived",
+          "label": "advances",
+          "details": [
+            {
+              "semanticKey": "event.type",
+              "label": "Event",
+              "value": "ConnectionArchived"
+            },
+            {
+              "semanticKey": "event.target_stage",
+              "label": "Target stage",
+              "value": "closedConnectionArchived"
+            }
+          ]
+        },
+        {
+          "id": "trace-accepts:connectionCardReviewProcess:awaitingCardReview:acceptSuggestedCard",
+          "kind": "accepts",
+          "source": "trace:process:connectionCardReviewProcess:stage:awaitingCardReview",
+          "target": "trace:process:connectionCardReviewProcess:stage:awaitingCardReview:command:acceptSuggestedCard",
+          "label": "accepts",
+          "details": [
+            {
+              "semanticKey": "stage.id",
+              "label": "Stage",
+              "value": "awaitingCardReview"
+            },
+            {
+              "semanticKey": "command.type",
+              "label": "Command",
+              "value": "acceptSuggestedCard"
+            }
+          ]
+        },
+        {
+          "id": "trace-emits:connectionCardReviewProcess:awaitingCardReview:acceptSuggestedCard",
+          "kind": "emits",
+          "source": "trace:process:connectionCardReviewProcess:stage:awaitingCardReview:command:acceptSuggestedCard",
+          "target": "trace:process:connectionCardReviewProcess:stage:awaitingCardReview:event:CardAccepted",
+          "label": "emits",
+          "details": [
+            {
+              "semanticKey": "command.type",
+              "label": "Command",
+              "value": "acceptSuggestedCard"
+            },
+            {
+              "semanticKey": "event.type",
+              "label": "Event",
+              "value": "CardAccepted"
+            }
+          ]
+        },
+        {
+          "id": "trace-advance:connectionCardReviewProcess:awaitingCardReview:CardAccepted",
+          "kind": "advance",
+          "source": "trace:process:connectionCardReviewProcess:stage:awaitingCardReview:event:CardAccepted",
+          "target": "trace:process:connectionCardReviewProcess:stage:closedCardAccepted",
+          "label": "advances",
+          "details": [
+            {
+              "semanticKey": "event.type",
+              "label": "Event",
+              "value": "CardAccepted"
+            },
+            {
+              "semanticKey": "event.target_stage",
+              "label": "Target stage",
+              "value": "closedCardAccepted"
+            }
+          ]
+        },
+        {
+          "id": "trace-accepts:connectionCardReviewProcess:awaitingCardReview:archiveCard",
+          "kind": "accepts",
+          "source": "trace:process:connectionCardReviewProcess:stage:awaitingCardReview",
+          "target": "trace:process:connectionCardReviewProcess:stage:awaitingCardReview:command:archiveCard",
+          "label": "accepts",
+          "details": [
+            {
+              "semanticKey": "stage.id",
+              "label": "Stage",
+              "value": "awaitingCardReview"
+            },
+            {
+              "semanticKey": "command.type",
+              "label": "Command",
+              "value": "archiveCard"
+            }
+          ]
+        },
+        {
+          "id": "trace-emits:connectionCardReviewProcess:awaitingCardReview:archiveCard",
+          "kind": "emits",
+          "source": "trace:process:connectionCardReviewProcess:stage:awaitingCardReview:command:archiveCard",
+          "target": "trace:process:connectionCardReviewProcess:stage:awaitingCardReview:event:CardArchived",
+          "label": "emits",
+          "details": [
+            {
+              "semanticKey": "command.type",
+              "label": "Command",
+              "value": "archiveCard"
+            },
+            {
+              "semanticKey": "event.type",
+              "label": "Event",
+              "value": "CardArchived"
+            }
+          ]
+        },
+        {
+          "id": "trace-advance:connectionCardReviewProcess:awaitingCardReview:CardArchived",
+          "kind": "advance",
+          "source": "trace:process:connectionCardReviewProcess:stage:awaitingCardReview:event:CardArchived",
+          "target": "trace:process:connectionCardReviewProcess:stage:closedCardArchived",
+          "label": "advances",
+          "details": [
+            {
+              "semanticKey": "event.type",
+              "label": "Event",
+              "value": "CardArchived"
+            },
+            {
+              "semanticKey": "event.target_stage",
+              "label": "Target stage",
+              "value": "closedCardArchived"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

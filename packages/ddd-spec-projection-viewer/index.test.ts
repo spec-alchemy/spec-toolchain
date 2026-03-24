@@ -11,17 +11,19 @@ import { buildBusinessViewerSpec } from "./index.js";
 const SPEC_ENTRY_PATH = fileURLToPath(
   new URL("../../design-spec/canonical/index.yaml", import.meta.url)
 );
-const VIEWER_SPEC_PATH = fileURLToPath(
-  new URL("../../design-spec/artifacts/business-viewer/viewer-spec.json", import.meta.url)
+const VIEWER_SPEC_GOLDEN_PATH = fileURLToPath(
+  new URL("./goldens/connection-card-review.viewer-spec.json", import.meta.url)
 );
 
-test("viewer projection matches the checked-in viewer artifact", async () => {
+test("viewer projection matches the checked-in golden snapshot", async () => {
   const spec = await loadBusinessSpec({
     entryPath: SPEC_ENTRY_PATH
   });
   const analysis = analyzeBusinessSpec(spec);
   const actualViewerSpec = buildBusinessViewerSpec(spec, analysis.graph);
-  const expectedViewerSpec = JSON.parse(await readFile(VIEWER_SPEC_PATH, "utf8"));
+  const expectedViewerSpec = JSON.parse(
+    await readFile(VIEWER_SPEC_GOLDEN_PATH, "utf8")
+  );
 
   assert.deepStrictEqual(actualViewerSpec, expectedViewerSpec);
 });
