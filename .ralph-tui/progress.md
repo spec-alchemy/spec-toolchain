@@ -9,6 +9,7 @@ after each iteration and it's included in prompts for context.
 - When the repository itself migrates to zero-config conventions, switch root automation to the zero-config CLI path too; keep repo-specific follow-up work like syncing viewer assets into app-local `public/` folders in a thin repo-local post-build script instead of pushing that behavior down into the shared CLI.
 - Bootstrap commands for strict spec toolchains should emit a one-aggregate starter model and self-validate it before returning; empty directory scaffolds do not survive schema and semantic validation once zero-config `validate` becomes the default onboarding path.
 - For zero-config viewer startup, keep the shared CLI responsible for rebuilding the canonical viewer artifact and launching the existing viewer app, then inject the artifact path into the dev server as the default spec source; keep the repo-local `public/generated/` sync only for static build/preview workflows.
+- When migrating public onboarding from legacy repo-specific script names to a zero-config product path, add product-shaped root aliases first, keep legacy names as thin delegating wrappers, and update README/help/UI copy to mention only the new aliases so compatibility does not keep leaking into onboarding.
 
 ---
 
@@ -101,4 +102,27 @@ after each iteration and it's included in prompts for context.
   - Injecting the viewer artifact path into Vite startup lets the shared CLI own the zero-config viewer default without forcing the shared package to manage repo-local `public/generated/` sync semantics.
   - A small launch hook seam is enough to regression-test long-running CLI commands like `viewer` without booting the real frontend process in test runs.
   - Root repo automation should delegate to the new CLI command once it exists; otherwise the zero-config viewer path splits between script glue and CLI behavior.
+---
+
+## 2026-03-25 - US-005
+- Added a root [`README.md`](../README.md) and rewrote the primary repo docs to present the standard path as `init -> edit canonical -> validate -> build -> viewer`, with `ddd-spec/canonical/` as the user-owned source of truth.
+- Added root `ddd-spec:*` npm scripts for `init`, `validate`, `build`, `viewer`, `test`, and `verify`, while keeping `build:design-spec`, `verify:design-spec`, and `dev:design-spec-viewer` as thin compatibility aliases.
+- Updated maintainer docs, viewer docs, CLI help text, and the viewer load-failure hint to reference the new zero-config entrypoints instead of the legacy `design-spec` script names.
+- Added regression coverage for the new CLI help narrative and the root package script aliases, then reran `npm run test:ddd-spec` and `npm run verify:design-spec` successfully.
+- Reviewed the current story diff and found no remaining High-severity issues after the cutover.
+- Files changed:
+  - `.ralph-tui/progress.md`
+  - `README.md`
+  - `package.json`
+  - `AGENTS.md`
+  - `design-spec/AGENTS.md`
+  - `apps/design-spec-viewer/AGENTS.md`
+  - `design-spec/README.md`
+  - `apps/design-spec-viewer/README.md`
+  - `apps/design-spec-viewer/src/App.tsx`
+  - `packages/ddd-spec-cli/console.ts`
+  - `packages/ddd-spec-cli/example-regression.test.ts`
+- **Learnings:**
+  - If legacy npm script names must survive for compatibility, keep them as one-line wrappers and move every user-facing example to the new zero-config aliases; otherwise the old names keep reappearing in onboarding.
+  - A root README is the cleanest way to move onboarding out of package-internal docs without deleting maintainers' deeper reference material.
 ---

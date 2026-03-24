@@ -246,10 +246,29 @@ test("CLI help keeps --config hidden and documents zero-config defaults", () => 
   const usageText = buildUsageText();
 
   assert.doesNotMatch(usageText, /--config/);
+  assert.match(usageText, /Standard workflow:/);
   assert.match(usageText, /\n  init\n/);
+  assert.match(usageText, /\n  ddd-spec init\n/);
+  assert.match(usageText, /edit ddd-spec\/canonical\//);
   assert.match(usageText, /\n  viewer \[-- <viewer-args\.\.\.>\]\n/);
   assert.match(usageText, /ddd-spec\/canonical\/index\.yaml/);
   assert.match(usageText, /\.ddd-spec\//);
+});
+
+test("root package scripts expose zero-config entrypoints while legacy names delegate", async () => {
+  const packageSource = await readFile(toAbsolutePath("../../package.json"), "utf8");
+  const packageJson = JSON.parse(packageSource) as {
+    scripts: Record<string, string>;
+  };
+
+  assert.equal(packageJson.scripts["ddd-spec:init"], "node --import tsx packages/ddd-spec-cli/cli.ts init");
+  assert.equal(
+    packageJson.scripts["ddd-spec:validate"],
+    "node --import tsx packages/ddd-spec-cli/cli.ts validate"
+  );
+  assert.equal(packageJson.scripts["build:design-spec"], "npm run ddd-spec:build");
+  assert.equal(packageJson.scripts["verify:design-spec"], "npm run ddd-spec:verify");
+  assert.equal(packageJson.scripts["dev:design-spec-viewer"], "npm run ddd-spec:viewer");
 });
 
 test("CLI init creates a minimal zero-config skeleton that validate accepts", async () => {

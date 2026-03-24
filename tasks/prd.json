@@ -111,14 +111,15 @@
         "Create a commit for the current story changes."
       ],
       "priority": 5,
-      "passes": false,
+      "passes": true,
       "notes": "",
       "dependsOn": [
         "US-001",
         "US-002",
         "US-003",
         "US-004"
-      ]
+      ],
+      "completionNotes": "Completed by agent"
     },
     {
       "id": "US-006",
@@ -149,6 +150,6 @@
     }
   ],
   "metadata": {
-    "updatedAt": "2026-03-24T18:00:43.223Z"
+    "updatedAt": "2026-03-24T18:09:48.657Z"
   }
 }

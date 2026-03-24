@@ -3,10 +3,10 @@
   "sessionId": "ff8918e9-f548-4083-910f-d6e81e72f921",
   "status": "running",
   "startedAt": "2026-03-24T17:08:48.524Z",
-  "updatedAt": "2026-03-24T18:00:43.224Z",
-  "currentIteration": 3,
+  "updatedAt": "2026-03-24T18:09:48.657Z",
+  "currentIteration": 4,
   "maxIterations": 10,
-  "tasksCompleted": 3,
+  "tasksCompleted": 4,
   "isPaused": false,
   "agentPlugin": "codex",
   "trackerState": {
@@ -35,8 +35,8 @@
       {
         "id": "US-004",
         "title": "Add zero-config ddd-spec viewer command",
-        "status": "open",
-        "completedInSession": false
+        "status": "completed",
+        "completedInSession": true
       },
       {
         "id": "US-005",
@@ -82,6 +82,16 @@
       "durationMs": 636391,
       "startedAt": "2026-03-24T17:36:10.719Z",
       "endedAt": "2026-03-24T17:46:47.110Z"
+    },
+    {
+      "iteration": 4,
+      "status": "completed",
+      "taskId": "US-004",
+      "taskTitle": "Add zero-config ddd-spec viewer command",
+      "taskCompleted": true,
+      "durationMs": 835034,
+      "startedAt": "2026-03-24T17:46:48.189Z",
+      "endedAt": "2026-03-24T18:00:43.223Z"
     }
   ],
   "skippedTaskIds": [],

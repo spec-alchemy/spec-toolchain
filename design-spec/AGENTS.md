@@ -2,17 +2,19 @@
 
 ## Package Manager
 - Use `npm`
-- Build canonical outputs: `npm run build:design-spec`
-- Verify canonical pipeline: `npm run verify:design-spec`
-- Start viewer from repo root: `npm run dev:design-spec-viewer`
+- Build canonical outputs: `npm run ddd-spec:build`
+- Verify canonical pipeline: `npm run ddd-spec:verify`
+- Start viewer from repo root: `npm run ddd-spec:viewer`
 
 ## Commands
 | Task | Command |
 |------|---------|
-| Build spec outputs | `npm run build:design-spec` |
-| Run spec regression tests | `npm run test:ddd-spec` |
-| Verify spec and TypeScript projection | `npm run verify:design-spec` |
-| Start React viewer from root | `npm run dev:design-spec-viewer` |
+| Initialize zero-config canonical scaffold | `npm run ddd-spec:init` |
+| Validate current canonical model | `npm run ddd-spec:validate` |
+| Build spec outputs | `npm run ddd-spec:build` |
+| Run spec regression tests | `npm run ddd-spec:test` |
+| Verify spec and TypeScript projection | `npm run ddd-spec:verify` |
+| Start React viewer from root | `npm run ddd-spec:viewer` |
 | Read viewer app locally | `npm --prefix apps/design-spec-viewer run dev` |
 
 ## Commit Attribution
@@ -21,11 +23,11 @@
 ## Structure
 - [../ddd-spec/canonical/](../ddd-spec/canonical/): repo-owned single source of truth
 - [schema/](./schema/): bundled JSON Schema validation
-- [tools/](./tools/): repo-local wrappers and helper scripts around the shared core and zero-config CLI
+- [tools/](./tools/): repo-local wrappers and helper scripts around the shared core and zero-config root scripts
 - [../.ddd-spec/artifacts/](../.ddd-spec/artifacts/): generated JSON outputs; do not hand edit
 - [../.ddd-spec/generated/](../.ddd-spec/generated/): generated TypeScript outputs; do not hand edit
 - [../packages/ddd-spec-core/](../packages/ddd-spec-core/): shared DDD spec core implementation
-- [../packages/ddd-spec-cli/](../packages/ddd-spec-cli/): config-driven CLI for validate/analyze/build/generate
+- [../packages/ddd-spec-cli/](../packages/ddd-spec-cli/): shared CLI for zero-config validate/analyze/build/generate
 - [../packages/ddd-spec-viewer-contract/](../packages/ddd-spec-viewer-contract/): shared viewer JSON contract for projection and app
 - [../packages/ddd-spec-projection-viewer/](../packages/ddd-spec-projection-viewer/): viewer projection generator
 - [../packages/ddd-spec-projection-typescript/](../packages/ddd-spec-projection-typescript/): TypeScript projection generator

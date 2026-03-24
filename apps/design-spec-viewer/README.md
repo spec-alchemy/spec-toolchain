@@ -7,7 +7,7 @@
 推荐直接在仓库根目录运行：
 
 ```bash
-npm run dev:design-spec-viewer
+npm run ddd-spec:viewer
 ```
 
 这条命令会：
@@ -25,12 +25,12 @@ npm run dev
 如果需要从仓库根目录向 Vite 透传参数，可使用：
 
 ```bash
-npm run dev:design-spec-viewer -- --host 0.0.0.0
+npm run ddd-spec:viewer -- --host 0.0.0.0
 ```
 
 当前 app 会从 `public/generated/viewer-spec.json` 读取数据。
-当通过仓库根目录的 `ddd-spec viewer` 或 `npm run dev:design-spec-viewer` 启动时，CLI 会把默认 source 指向 `./.ddd-spec/artifacts/viewer-spec.json`。
-这份 artifact 仍然会在 `npm run build:design-spec` 时同步到 `public/generated/viewer-spec.json`，供生产构建和静态读取使用。
+当通过仓库根目录的 `npm run ddd-spec:viewer` 启动时，CLI 会把默认 source 指向 `./.ddd-spec/artifacts/viewer-spec.json`。
+这份 artifact 仍然会在 `npm run ddd-spec:build` 时同步到 `public/generated/viewer-spec.json`，供生产构建和静态读取使用。
 其中 inspector 的业务语义 tooltip 来自 canonical vocabulary 生成出的 spec；只有 `How To Read` 这类纯 UI 引导文案保留在 app 本地。
 
 如果不传额外参数，app 默认读取启动时提供的标准 source；在直接运行 `npm run dev` 这类 app-local 场景下，默认回退到 `public/generated/viewer-spec.json`。
