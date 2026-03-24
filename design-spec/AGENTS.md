@@ -21,9 +21,8 @@
 - [canonical/](./canonical/): single source of truth
 - [schema/](./schema/): bundled JSON Schema validation
 - [tools/](./tools/): current example domain wrappers around the shared core and repo config
-- [artifacts/](./artifacts/): generated JSON and Mermaid outputs; do not hand edit
+- [artifacts/](./artifacts/): generated JSON outputs; do not hand edit
 - [generated/](./generated/): generated TypeScript outputs; do not hand edit
-- [state/](./state/): TypeScript/XState projection only, not source of truth
 - [../packages/ddd-spec-core/](../packages/ddd-spec-core/): shared DDD spec core implementation
 - [../packages/ddd-spec-cli/](../packages/ddd-spec-cli/): config-driven CLI for validate/analyze/build/generate
 - [../ddd-spec.config.yaml](../ddd-spec.config.yaml): repo-local config wiring this example domain into the generic CLI
@@ -34,7 +33,6 @@
 - Change business truth in [canonical/](./canonical/) first
 - Put reusable modeling logic in [../packages/ddd-spec-core/](../packages/ddd-spec-core/), not in example-specific wrappers
 - Keep `Connection/Card` style helpers under [../examples/connection-card-review/](../examples/connection-card-review/), not in the shared core
-- Keep `state/` aligned to canonical; do not invent rules there
 - Keep `derived-types.ts` as a convenience layer only
 - Do not hand edit [artifacts/](./artifacts/) or [generated/](./generated/)
 - Use relative Markdown links

@@ -24,8 +24,6 @@ DDD canonical spec
        -> JSON bundle
        -> TypeScript
        -> Viewer JSON
-       -> Diagrams
-       -> XState
        -> Other downstreams
 ```
 
@@ -70,7 +68,7 @@ DDD canonical spec
 
 ### 4. Projection Is Downstream
 
-Viewer、TypeScript、XState、Diagram 都是 projection，不应反向污染 canonical。
+Viewer、TypeScript 和其他下游 projection 都是 projection，不应反向污染 canonical。
 
 ### 5. Configurable Paths, Stable Contracts
 
@@ -132,8 +130,6 @@ packages/
   ddd-spec-viewer-contract/
   ddd-spec-projection-typescript/
   ddd-spec-projection-viewer/
-  ddd-spec-projection-diagram/
-  ddd-spec-projection-xstate/
 apps/
   ddd-spec-viewer/
 examples/
@@ -161,7 +157,7 @@ examples/
 - 当前具体业务域导出
 - React viewer 代码
 - 特定仓库路径假设
-- TypeScript/XState/Mermaid 专属产物逻辑
+- projection 专属产物逻辑
 
 ### `packages/ddd-spec-cli`
 
@@ -197,8 +193,6 @@ examples/
 
 - `projection-typescript`
 - `projection-viewer`
-- `projection-diagram`
-- `projection-xstate`
 
 拆分后可以避免 projection 之间互相污染，也更利于将来按需发布和组合。
 
@@ -273,8 +267,6 @@ viewer:
 projections:
   viewer: true
   typescript: true
-  diagrams: true
-  xstate: false
 ```
 
 配置化的收益：
@@ -364,7 +356,6 @@ viewer 要从“当前仓库 demo”升级成“通用消费端”。
 - analysis JSON
 - viewer JSON
 - generated TypeScript
-- diagram outputs
 
 ### 4. Multi-Example Regression Tests
 
@@ -426,8 +417,6 @@ viewer 要从“当前仓库 demo”升级成“通用消费端”。
 
 - 拆出 viewer projection
 - 拆出 TypeScript projection
-- 拆出 diagram projection
-- 可选拆出 XState projection
 
 交付物：
 

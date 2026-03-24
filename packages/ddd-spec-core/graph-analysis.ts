@@ -102,7 +102,7 @@ export interface GraphUsageSummary {
  *
  * It intentionally keeps only business topology:
  * aggregate lifecycle states, process stages, and the transitions between them.
- * No XState runtime details are included here.
+ * No runtime or viewer-specific details are included here.
  */
 export interface BusinessGraph {
   aggregates: readonly AggregateGraph[];

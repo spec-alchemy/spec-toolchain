@@ -8,7 +8,6 @@ outputs:
   bundle: ./design-spec/artifacts/business-spec.json
   analysis: ./design-spec/artifacts/business-spec.analysis.json
   viewer: ./design-spec/artifacts/business-viewer/viewer-spec.json
-  diagramsDir: ./design-spec/artifacts/business-diagrams
   typescript: ./design-spec/generated/business-spec.generated.ts
 viewer:
   syncTargets:
@@ -16,5 +15,3 @@ viewer:
 projections:
   viewer: true
   typescript: true
-  diagrams: true
-  xstate: false

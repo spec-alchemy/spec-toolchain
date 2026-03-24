@@ -29,7 +29,6 @@ export function buildUsageText(): string {
     "  analyze",
     "  build",
     "  generate viewer",
-    "  generate typescript",
-    "  generate diagrams"
+    "  generate typescript"
   ].join("\n");
 }

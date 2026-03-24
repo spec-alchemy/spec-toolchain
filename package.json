@@ -7,9 +7,6 @@
     "verify:design-spec": "npm run build:design-spec && npx -y -p typescript tsc --noEmit",
     "dev:design-spec-viewer": "npm run build:design-spec && npm --prefix apps/design-spec-viewer install --no-fund --no-audit && npm --prefix apps/design-spec-viewer run dev --"
   },
-  "dependencies": {
-    "xstate": "^5.28.0"
-  },
   "devDependencies": {
     "@types/node": "^25.5.0",
     "ajv": "^8.18.0",

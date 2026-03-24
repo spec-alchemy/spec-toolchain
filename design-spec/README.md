@@ -14,13 +14,11 @@
 - `artifacts/`：对外分发的稳定产物。由脚本生成，不纳入 git。
 - `generated/`：给 TypeScript 使用的 generated spec。由脚本生成，不纳入 git。
 - `derived-types.ts`：从 generated spec 派生出的 TypeScript 便利类型，不是第一真相。
-- `state/`：当前保留的 TypeScript/XState 示例投影，帮助验证这份规格可以投影成运行时状态编排。
 - `../examples/connection-card-review/`：当前示例域的 example-specific helper 和派生类型入口。
 
 当前还提供一层 canonical 外部分析：
 
 - `artifacts/business-spec.analysis.json`：基于 canonical graph IR 生成的诊断结果，不纳入 git。
-- `artifacts/business-diagrams/`：基于 canonical graph IR 生成的 Mermaid `.mmd` 图产物，不纳入 git。
 - `artifacts/business-viewer/`：基于 canonical graph IR 生成的 raw viewer spec，不纳入 git。
 
 ## Machine Entry
@@ -54,18 +52,17 @@ tsx packages/ddd-spec-cli/cli.ts build --config ./ddd-spec.config.yaml
 
 ## Modeling Boundary
 
-- `canonical/` 只表达业务真相，不表达 XState 运行时细节。
+- `canonical/` 只表达业务真相，不表达运行时实现或 viewer 布局细节。
 - `../packages/ddd-spec-core/` 承载通用建模能力；不要把当前示例域的业务 helper 再塞回 core。
 - `../examples/connection-card-review/` 承载当前示例域特有的便利层；不要把 `Connection/Card` 这类对象名重新暴露为 core API。
 - `derived-types.ts` 不是第一真相，只是给 TypeScript 使用方提供的派生类型便利层。
-- `state/` 不是第一真相，只是当前保留的 XState 示例投影；如需使用，应显式从 `state/` 目录导入。
 - `artifacts/business-spec.analysis.json` 是基于 canonical 生成的外部分析结果，不属于第一真相。
-- `artifacts/business-diagrams/` 是基于 canonical graph IR 生成的展示产物，不属于第一真相。
 - `artifacts/business-viewer/` 是基于 canonical graph IR 生成的 viewer 输入产物，不属于第一真相。
+- 当前唯一维护的可视化入口是 `viewer-spec.json -> React Flow + ELK viewer`。
 - viewer inspector 的业务语义解释由 `design-spec` 生成到 `viewer-spec.json`；仅与界面交互有关的提示文案留在 React viewer 本地。
 - `artifacts/`、`generated/` 都属于 generated outputs，应通过脚本重建，而不是手工编辑或提交。
 - 如果要在 fresh clone 上做完整校验，优先运行 `npm run verify:design-spec`，不要假设 generated files 已存在。
-- 如果未来继续演进，应优先扩展 `../packages/ddd-spec-core/` 和 canonical schema，而不是在 `derived-types.ts`、`state/` 或 repo-local wrapper 里继续发明规则。
+- 如果未来继续演进，应优先扩展 `../packages/ddd-spec-core/` 和 canonical schema，而不是在 `derived-types.ts` 或 repo-local wrapper 里继续发明规则。
 
 相关边界说明可参考：
 

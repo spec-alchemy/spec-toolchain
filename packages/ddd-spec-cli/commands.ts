@@ -1,19 +1,13 @@
-import { basename, resolve } from "node:path";
 import {
   analyzeBusinessSpec,
   buildBusinessViewerSpec,
   loadBusinessSpec,
-  loadCanonicalIndexSpec,
-  processCompositionGraphToMermaid,
-  processGraphToMermaid,
   type BusinessSpec,
   type BusinessSpecAnalysis,
-  type CanonicalIndexSpec,
   validateBusinessSpecSchema,
-  validateBusinessSpecSemantics,
-  aggregateGraphToMermaid
+  validateBusinessSpecSemantics
 } from "../ddd-spec-core/index.js";
-import { resetOutputDirectory, writeJsonArtifact, writeTextArtifact } from "./artifact-io.js";
+import { writeJsonArtifact, writeTextArtifact } from "./artifact-io.js";
 import { buildUsageText, formatDiagnostic, logArtifact, logInfo, logWarningDiagnostic } from "./console.js";
 import { loadDddSpecConfig } from "./config.js";
 
@@ -23,8 +17,7 @@ type CliCommand =
   | "analyze"
   | "build"
   | "generate-viewer"
-  | "generate-typescript"
-  | "generate-diagrams";
+  | "generate-typescript";
 
 interface ParsedCliArgs {
   command?: CliCommand;
@@ -33,7 +26,6 @@ interface ParsedCliArgs {
 }
 
 interface LoadedSpecContext {
-  index: CanonicalIndexSpec;
   spec: BusinessSpec;
 }
 
@@ -67,9 +59,6 @@ export async function runCliCommand(argv: readonly string[]): Promise<void> {
       return;
     case "generate-typescript":
       await runGenerateTypescriptCommand(config);
-      return;
-    case "generate-diagrams":
-      await runGenerateDiagramsCommand(config);
       return;
   }
 }
@@ -131,10 +120,6 @@ async function runBuildCommand(
     await generateTypescriptSpec(config, loadedSpec.spec);
   }
 
-  if (config.projections.diagrams) {
-    await generateDiagrams(config, loadedSpec, analysis);
-  }
-
   if (config.projections.viewer) {
     await generateViewerSpec(config, loadedSpec.spec, analysis);
   }
@@ -158,21 +143,9 @@ async function runGenerateTypescriptCommand(
   await generateTypescriptSpec(config, spec);
 }
 
-async function runGenerateDiagramsCommand(
-  config: Awaited<ReturnType<typeof loadDddSpecConfig>>
-): Promise<void> {
-  const loadedSpec = await runValidateCommand(config);
-  const analysis = analyzeBusinessSpec(loadedSpec.spec);
-
-  emitAnalysisDiagnostics(analysis);
-  assertNoAnalysisErrors(analysis);
-  await generateDiagrams(config, loadedSpec, analysis);
-}
-
 async function loadValidatedSpec(
   config: Awaited<ReturnType<typeof loadDddSpecConfig>>
 ): Promise<LoadedSpecContext> {
-  const index = await loadCanonicalIndexSpec(config.spec.entryPath);
   const spec = await loadBusinessSpec({
     entryPath: config.spec.entryPath,
     validateSemantics: false
@@ -182,7 +155,6 @@ async function loadValidatedSpec(
   validateBusinessSpecSemantics(spec);
 
   return {
-    index,
     spec
   };
 }
@@ -222,84 +194,6 @@ async function generateViewerSpec(
   for (const syncTargetPath of config.viewer.syncTargetPaths) {
     await writeJsonArtifact(syncTargetPath, viewerSpec);
     logArtifact("synced viewer spec", syncTargetPath);
-  }
-}
-
-async function generateDiagrams(
-  config: Awaited<ReturnType<typeof loadDddSpecConfig>>,
-  loadedSpec: LoadedSpecContext,
-  analysis: BusinessSpecAnalysis
-): Promise<void> {
-  const diagramsDirPath = requireOutputPath(
-    config.outputs.diagramsDirPath,
-    "outputs.diagramsDir"
-  );
-  const aggregateSourcePathByObjectId = new Map(
-    loadedSpec.spec.domain.aggregates.map((aggregate, index) => [
-      aggregate.objectId,
-      loadedSpec.index.domain.aggregates[index]
-    ])
-  );
-  const processSourcePathByProcessId = new Map(
-    loadedSpec.spec.domain.processes.map((process, index) => [
-      process.id,
-      loadedSpec.index.domain.processes[index]
-    ])
-  );
-
-  await resetOutputDirectory(diagramsDirPath);
-
-  for (const aggregateGraph of analysis.graph.aggregates) {
-    const sourcePath = mustGet(
-      aggregateSourcePathByObjectId,
-      aggregateGraph.objectId,
-      `aggregate source path for ${aggregateGraph.objectId}`
-    );
-    const outputPath = resolve(
-      diagramsDirPath,
-      `${toSourceBaseName(sourcePath)}.mmd`
-    );
-
-    await writeTextArtifact(
-      outputPath,
-      aggregateGraphToMermaid(aggregateGraph, {
-        sourcePath
-      })
-    );
-    logArtifact(`generated ${aggregateGraph.objectId} aggregate diagram`, outputPath);
-  }
-
-  for (const processGraph of analysis.graph.processes) {
-    const sourcePath = mustGet(
-      processSourcePathByProcessId,
-      processGraph.processId,
-      `process source path for ${processGraph.processId}`
-    );
-    const outputBaseName = toSourceBaseName(sourcePath);
-    const processDiagramPath = resolve(diagramsDirPath, `${outputBaseName}.mmd`);
-    const compositionDiagramPath = resolve(
-      diagramsDirPath,
-      `${outputBaseName}.composition.mmd`
-    );
-
-    await writeTextArtifact(
-      processDiagramPath,
-      processGraphToMermaid(processGraph, {
-        sourcePath
-      })
-    );
-    logArtifact(`generated ${processGraph.processId} process diagram`, processDiagramPath);
-
-    await writeTextArtifact(
-      compositionDiagramPath,
-      processCompositionGraphToMermaid(processGraph, {
-        sourcePath
-      })
-    );
-    logArtifact(
-      `generated ${processGraph.processId} composition diagram`,
-      compositionDiagramPath
-    );
   }
 }
 
@@ -372,8 +266,6 @@ function parseCommand(positionals: readonly string[]): CliCommand | undefined {
       return "generate-viewer";
     case "typescript":
       return "generate-typescript";
-    case "diagrams":
-      return "generate-diagrams";
     default:
       throw new Error(`Unknown generate target: ${positionals[1]}`);
   }
@@ -410,22 +302,4 @@ function requireOutputPath(outputPath: string | undefined, configKey: string): s
   }
 
   return outputPath;
-}
-
-function toSourceBaseName(sourcePath: string): string {
-  return basename(sourcePath).replace(/\.(yaml|yml)$/i, "");
-}
-
-function mustGet<Key, Value>(
-  map: ReadonlyMap<Key, Value>,
-  key: Key,
-  description: string
-): Value {
-  const value = map.get(key);
-
-  if (value === undefined) {
-    throw new Error(`Missing ${description}`);
-  }
-
-  return value;
 }

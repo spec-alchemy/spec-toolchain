@@ -1,12 +1,5 @@
-import { mkdir, rm, writeFile } from "node:fs/promises";
+import { mkdir, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
-
-export async function resetOutputDirectory(directoryPath: string): Promise<void> {
-  await rm(directoryPath, {
-    force: true,
-    recursive: true
-  });
-}
 
 export async function writeJsonArtifact(
   outputPath: string,

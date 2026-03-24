@@ -25,7 +25,6 @@
 - `design-spec/tools/`: repo-local wrappers around the shared core and config-driven CLI
 - `design-spec/artifacts/`: generated outputs; do not hand edit
 - `design-spec/generated/`: generated TypeScript outputs; do not hand edit
-- `design-spec/state/`: TypeScript/XState projection only, not source of truth
 - `examples/connection-card-review/`: example-specific helper layer for the current domain
 - `apps/design-spec-viewer/`: React viewer consuming generated `public/generated/viewer-spec.json`
 

@@ -21,7 +21,6 @@ interface RawDddSpecConfig {
     bundle?: unknown;
     analysis?: unknown;
     viewer?: unknown;
-    diagramsDir?: unknown;
     typescript?: unknown;
   };
   viewer?: {
@@ -30,8 +29,6 @@ interface RawDddSpecConfig {
   projections?: {
     viewer?: unknown;
     typescript?: unknown;
-    diagrams?: unknown;
-    xstate?: unknown;
   };
 }
 
@@ -52,7 +49,6 @@ export interface DddSpecConfig {
     bundle?: string;
     analysis?: string;
     viewer?: string;
-    diagramsDir?: string;
     typescript?: string;
   };
   viewer?: {
@@ -61,8 +57,6 @@ export interface DddSpecConfig {
   projections?: {
     viewer?: boolean;
     typescript?: boolean;
-    diagrams?: boolean;
-    xstate?: boolean;
   };
 }
 
@@ -81,7 +75,6 @@ export interface ResolvedDddSpecConfig {
     bundlePath?: string;
     analysisPath?: string;
     viewerPath?: string;
-    diagramsDirPath?: string;
     typescriptPath?: string;
   };
   viewer: {
@@ -90,8 +83,6 @@ export interface ResolvedDddSpecConfig {
   projections: {
     viewer: boolean;
     typescript: boolean;
-    diagrams: boolean;
-    xstate: boolean;
   };
 }
 
@@ -160,11 +151,6 @@ export async function loadDddSpecConfig(
           requireOptionalString(outputsConfig, "viewer", configPath)
         ) ??
         (rootDirPath ? resolve(rootDirPath, "business-viewer/viewer-spec.json") : undefined),
-      diagramsDirPath:
-        resolveOptionalPath(
-          configDir,
-          requireOptionalString(outputsConfig, "diagramsDir", configPath)
-        ) ?? (rootDirPath ? resolve(rootDirPath, "business-diagrams") : undefined),
       typescriptPath: resolveOptionalPath(
         configDir,
         requireOptionalString(outputsConfig, "typescript", configPath)
@@ -193,16 +179,7 @@ export async function loadDddSpecConfig(
             configDir,
             requireOptionalString(outputsConfig, "typescript", configPath)
           )
-        ),
-      diagrams:
-        requireOptionalBoolean(projectionsConfig, "diagrams", configPath) ??
-        Boolean(
-          resolveOptionalPath(
-            configDir,
-            requireOptionalString(outputsConfig, "diagramsDir", configPath)
-          ) ?? rootDirPath
-        ),
-      xstate: requireOptionalBoolean(projectionsConfig, "xstate", configPath) ?? false
+        )
     }
   };
 }
