@@ -1,6 +1,90 @@
 # DDD Spec Workflow Monorepo
 
-This repository is the private maintainer monorepo for the DDD spec toolchain. The repo root hosts the npm workspace graph, maintainer scripts, release docs, and repo-local dogfood inputs; consumer install and usage guidance belongs to the published package README.
+`@knowledge-alchemy/ddd-spec` is an installable CLI for DDD-style business modeling. In a consumer workspace, you write YAML under `ddd-spec/canonical/`, validate the model, build generated outputs into `.ddd-spec/`, and open a local viewer to inspect the result.
+
+This repository is also the private maintainer monorepo for that toolchain. The repo root hosts the npm workspace graph, maintainer scripts, release docs, and repo-local dogfood inputs; the installed-package workflow below is the path ordinary users should follow in their own projects.
+
+## Consumer Quick Start
+
+Start here if you want to use `@knowledge-alchemy/ddd-spec` inside your own project. The package requires Node `>=18`.
+
+Install the package into your workspace:
+
+```sh
+npm install --save-dev @knowledge-alchemy/ddd-spec
+```
+
+Initialize a starter domain:
+
+```sh
+npm exec ddd-spec init
+```
+
+That creates a minimal modeling tree:
+
+```text
+ddd-spec/canonical/
+  index.yaml
+  objects/
+  commands/
+  events/
+  aggregates/
+  processes/
+  vocabulary/
+```
+
+The standard day-to-day workflow is:
+
+```sh
+# edit ddd-spec/canonical/
+npm exec ddd-spec validate
+npm exec ddd-spec build
+npm exec ddd-spec viewer -- --open
+```
+
+## What You Edit
+
+The model lives in `ddd-spec/canonical/`:
+
+- `index.yaml`: the canonical entry point that wires the domain together
+- `objects/`: business entities and their fields
+- `commands/`: business intents or actions
+- `events/`: domain facts emitted by behavior
+- `aggregates/`: state transitions, accepted commands, and emitted events
+- `processes/`: cross-aggregate flow orchestration
+- `vocabulary/`: viewer-facing labels and semantic descriptions
+
+If you want concrete examples before starting from scratch, inspect:
+
+- [`examples/order-payment/canonical/index.yaml`](./examples/order-payment/canonical/index.yaml)
+- [`examples/content-moderation/canonical/index.yaml`](./examples/content-moderation/canonical/index.yaml)
+
+## What You Get
+
+`npm exec ddd-spec build` writes the default generated outputs into `.ddd-spec/`:
+
+- `.ddd-spec/artifacts/business-spec.json`: bundled canonical spec
+- `.ddd-spec/artifacts/business-spec.analysis.json`: analysis output and diagnostics
+- `.ddd-spec/artifacts/viewer-spec.json`: viewer projection consumed by the packaged viewer
+- `.ddd-spec/generated/business-spec.generated.ts`: generated TypeScript source
+
+`npm exec ddd-spec viewer` rebuilds the workspace viewer artifact if needed and then serves the packaged viewer at `http://localhost:4173/` by default.
+
+## Advanced Config
+
+Zero-config is the default product path. Reach for `--config <path>` only when your workspace needs custom entry paths, output locations, or viewer sync targets.
+
+```sh
+npm exec ddd-spec validate --config ./ddd-spec.config.yaml
+npm exec ddd-spec build --config ./ddd-spec.config.yaml
+npm exec ddd-spec viewer --config ./ddd-spec.config.yaml -- --host 0.0.0.0
+```
+
+The published package README at [`packages/ddd-spec-cli/README.md`](./packages/ddd-spec-cli/README.md) documents the consumer command surface in more detail.
+
+## About This Repo
+
+The repo root stays `private: true` and should be read as maintainer infrastructure, not as the example of a normal consumer workspace.
 
 ## Package Boundary
 
