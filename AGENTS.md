@@ -1,47 +1,34 @@
 # Agent Instructions
 
 ## Package Manager
-- Use `npm`
-- Root install: `npm install`
-- Preferred viewer entry: `npm run ddd-spec:viewer`
+- Use `npm`: `npm install`
+- Preferred maintainer viewer entry: `npm run ddd-spec:viewer`
 
-## Commands
+## Maintainer Commands
 | Task | Command |
 |------|---------|
-| Validate repo-local viewer fixture config | `npm run ddd-spec:validate` |
-| Build repo-local viewer fixture outputs | `npm run ddd-spec:build` |
-| Run spec regression tests | `npm run ddd-spec:test` |
-| Verify spec pipeline and viewer build | `npm run ddd-spec:verify` |
-| Start packaged viewer from root | `npm run ddd-spec:viewer` |
-| Start viewer workspace dev server from root | `npm run dev --workspace=apps/ddd-spec-viewer` |
-| Build viewer workspace from root | `npm run build --workspace=apps/ddd-spec-viewer` |
+| Validate repo fixture flow | `npm run ddd-spec:validate` |
+| Build repo fixture outputs | `npm run ddd-spec:build` |
+| Run package regressions | `npm run ddd-spec:test` |
+| Verify packaged CLI + viewer workspace | `npm run ddd-spec:verify` |
+| Launch packaged viewer dogfood flow | `npm run ddd-spec:viewer` |
+| Run viewer Vite dev server | `npm run dev:ddd-spec-viewer` |
+| Build viewer workspace | `npm run build:ddd-spec-viewer` |
+
+## Targeted Commands
+| Task | Command |
+|------|---------|
+| Build the public package only | `npm run build --workspace=packages/ddd-spec-cli` |
+| Run the CLI regression file | `node --import tsx --test packages/ddd-spec-cli/example-regression.test.ts` |
+| Build the viewer workspace directly | `npm run build --workspace=apps/ddd-spec-viewer` |
 
 ## Commit Attribution
 - AI commits MUST include `Co-Authored-By: Codex <codex@openai.com>`
 
-## Structure
-- `apps/ddd-spec-viewer/ddd-spec.config.yaml`: repo-local config used by root maintainer scripts
-- `test/fixtures/connection-card-review/`: shared canonical fixture for regression tests and viewer dogfood
-- `packages/ddd-spec-core/`: shared DDD spec core implementation
-- `packages/ddd-spec-cli/`: the single external package boundary, published under the working name `@knowledge-alchemy/ddd-spec`
-- `packages/ddd-spec-viewer-contract/`: shared viewer JSON contract used by projection and app
-- `packages/ddd-spec-projection-viewer/`: viewer projection generator from canonical graph IR
-- `packages/ddd-spec-projection-typescript/`: TypeScript projection generator
-- `.ddd-spec/artifacts/`: generated outputs; do not hand edit
-- `.ddd-spec/generated/`: generated TypeScript outputs; do not hand edit
-- `examples/order-payment/`: second canonical example domain for regression pressure testing
-- `examples/content-moderation/`: third canonical example domain for additional cross-domain pressure testing
-- `apps/ddd-spec-viewer/`: React viewer consuming generated `public/generated/viewer-spec.json`
-- `docs/ddd-spec/`: repo internals, boundaries, and roadmap notes
-
 ## Key Conventions
-- Keep the repo root private; it is the maintainer workspace root, not the public npm package boundary
-- Do not add a repo-level `ddd-spec/canonical/`; this repo is the tooling monorepo, not a consumer workspace
-- Put reusable modeling logic in `packages/ddd-spec-core/`, not in repo-local wrappers
-- Treat `packages/ddd-spec-cli/` as the only external v1 package surface; keep the other packages private implementation units
-- Keep shared regression domains under `test/fixtures/`
-- Keep self-contained example domains under `examples/`
+- Root package is a private maintainer workspace; the only public npm boundary is [`packages/ddd-spec-cli/`](./packages/ddd-spec-cli/)
+- Root `ddd-spec:*` scripts always dogfood [`apps/ddd-spec-viewer/ddd-spec.config.yaml`](./apps/ddd-spec-viewer/ddd-spec.config.yaml); do not add repo-root `ddd-spec/canonical/`
+- [`apps/ddd-spec-viewer/`](./apps/ddd-spec-viewer/) is private source; the shipped viewer is the built bundle under `packages/ddd-spec-cli/dist/ddd-spec-cli/static/viewer/`
+- [`examples/`](./examples/), [`test/fixtures/`](./test/fixtures/), and [`docs/ddd-spec/`](./docs/ddd-spec/) are repo-only inputs/docs and are not published in the product tarball
+- Put reusable modeling logic in [`packages/ddd-spec-core/`](./packages/ddd-spec-core/); keep the rest of `packages/*` private unless the package boundary intentionally changes
 - Do not hand edit generated files under `.ddd-spec/artifacts/`, `.ddd-spec/generated/`, or `apps/ddd-spec-viewer/public/generated/`
-- Root `ddd-spec:*` scripts intentionally run against `apps/ddd-spec-viewer/ddd-spec.config.yaml`
-- If you need to exercise zero-config consumer behavior, use CLI tests or a scratch directory instead of scaffolding this repo root
-- Use relative Markdown links

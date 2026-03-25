@@ -7,6 +7,7 @@
   ],
   "type": "module",
   "scripts": {
+    "build:ddd-spec-viewer": "npm run build --workspace=apps/ddd-spec-viewer",
     "changeset": "changeset",
     "changeset:status": "changeset status --verbose",
     "changeset:version": "changeset version",
@@ -14,7 +15,7 @@
     "ddd-spec:build": "npm run build --workspace=packages/ddd-spec-cli && npm run repo:cli --workspace=packages/ddd-spec-cli -- build --config apps/ddd-spec-viewer/ddd-spec.config.yaml",
     "ddd-spec:viewer": "npm run build --workspace=packages/ddd-spec-cli && npm run repo:cli --workspace=packages/ddd-spec-cli -- viewer --config apps/ddd-spec-viewer/ddd-spec.config.yaml --",
     "ddd-spec:test": "npm run test --workspace=packages/ddd-spec-cli",
-    "ddd-spec:verify": "npm run ddd-spec:build && npm run ddd-spec:test && npm run build --workspace=apps/ddd-spec-viewer",
+    "ddd-spec:verify": "npm run ddd-spec:build && npm run ddd-spec:test && npm run build:ddd-spec-viewer",
     "ddd-spec:release:dry-run": "npm run ddd-spec:verify && npm run changeset:status && npm run changeset:version && npm publish --dry-run --workspace=packages/ddd-spec-cli",
     "test:ddd-spec": "npm run ddd-spec:test",
     "dev:ddd-spec-viewer": "npm run dev --workspace=apps/ddd-spec-viewer"

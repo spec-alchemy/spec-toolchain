@@ -206,12 +206,14 @@ const RELEASE_DRY_RUN_WORKFLOW_PATH = toAbsolutePath(
   "../../.github/workflows/release-dry-run.yml"
 );
 const RELEASE_GUIDE_PATH = toAbsolutePath("../../RELEASING.md");
+const REPO_ROOT_AGENTS_PATH = toAbsolutePath("../../AGENTS.md");
 const REPO_ROOT_README_PATH = toAbsolutePath("../../README.md");
 const REPO_ROOT_PATH = toAbsolutePath("../../");
 const REPO_ROOT_NODE_MODULES_PATH = toAbsolutePath("../../node_modules");
 const REPO_VIEWER_CONFIG_PATH = toAbsolutePath(
   "../../apps/ddd-spec-viewer/ddd-spec.config.yaml"
 );
+const VIEWER_APP_README_PATH = toAbsolutePath("../../apps/ddd-spec-viewer/README.md");
 
 for (const example of EXAMPLE_FIXTURES) {
   test(`${example.id} example config resolves repo-local relative paths`, async () => {
@@ -343,6 +345,10 @@ test("root package scripts target the repo viewer config", async () => {
     scripts: Record<string, string>;
   };
 
+  assert.equal(
+    packageJson.scripts["build:ddd-spec-viewer"],
+    "npm run build --workspace=apps/ddd-spec-viewer"
+  );
   assert.equal(packageJson.scripts.changeset, "changeset");
   assert.equal(packageJson.scripts["changeset:status"], "changeset status --verbose");
   assert.equal(packageJson.scripts["changeset:version"], "changeset version");
@@ -361,6 +367,10 @@ test("root package scripts target the repo viewer config", async () => {
   assert.equal(
     packageJson.scripts["ddd-spec:test"],
     "npm run test --workspace=packages/ddd-spec-cli"
+  );
+  assert.equal(
+    packageJson.scripts["ddd-spec:verify"],
+    "npm run ddd-spec:build && npm run ddd-spec:test && npm run build:ddd-spec-viewer"
   );
   assert.equal(
     packageJson.scripts["ddd-spec:release:dry-run"],
@@ -423,6 +433,30 @@ test("maintainer docs explain the release dry-run and publish handoff", async ()
   assert.match(releaseGuideSource, /private workspace packages unversioned/);
   assert.match(releaseGuideSource, /workflow_dispatch/);
   assert.match(releaseGuideSource, /npm publish --workspace=packages\/ddd-spec-cli/);
+});
+
+test("maintainer docs describe the package boundary, viewer delivery, and repo-only content", async () => {
+  const [rootReadmeSource, agentsSource, viewerReadmeSource] = await Promise.all([
+    readFile(REPO_ROOT_README_PATH, "utf8"),
+    readFile(REPO_ROOT_AGENTS_PATH, "utf8"),
+    readFile(VIEWER_APP_README_PATH, "utf8")
+  ]);
+
+  assert.match(rootReadmeSource, /maintainer workflows for dogfooding and regression/);
+  assert.match(rootReadmeSource, /repo-only dogfood, regression, and maintainer materials/);
+  assert.match(
+    rootReadmeSource,
+    /remains private source\. The shipped viewer is the static bundle emitted into `packages\/ddd-spec-cli\/dist\/ddd-spec-cli\/static\/viewer\/`/
+  );
+  assert.match(agentsSource, /Root package is a private maintainer workspace/);
+  assert.match(agentsSource, /repo-only inputs\/docs and are not published in the product tarball/);
+  assert.match(agentsSource, /the shipped viewer is the built bundle/);
+  assert.match(viewerReadmeSource, /不是对外 npm package 边界/);
+  assert.match(
+    viewerReadmeSource,
+    /真正随 `@knowledge-alchemy\/ddd-spec` 发布的是构建出的静态 bundle/
+  );
+  assert.match(viewerReadmeSource, /消费者安装和零配置说明请查看/);
 });
 
 test("CLI package metadata publishes a dist-backed installable command surface", async () => {
