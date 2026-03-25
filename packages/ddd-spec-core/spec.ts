@@ -5,7 +5,9 @@ import { validateBusinessSpecSemantics } from "./semantic-validation.js";
 
 export const BUSINESS_SPEC_SCHEMA_VERSION = 2 as const;
 
-export type FieldStructure = "scalar" | "enum" | "reference";
+export const FIELD_STRUCTURES = ["scalar", "enum", "reference"] as const;
+
+export type FieldStructure = (typeof FIELD_STRUCTURES)[number];
 
 export interface FieldSpec {
   id: string;
@@ -20,15 +22,23 @@ export interface PayloadSpec {
   fields: readonly FieldSpec[];
 }
 
-export type ObjectRole = "aggregate" | "enum";
+export const OBJECT_ROLES = ["aggregate", "enum"] as const;
 
-export type RelationKind = "association" | "composition" | "reference";
+export type ObjectRole = (typeof OBJECT_ROLES)[number];
+
+export const RELATION_KINDS = ["association", "composition", "reference"] as const;
+
+export type RelationKind = (typeof RELATION_KINDS)[number];
+export const RELATION_CARDINALITIES = ["1", "0..1", "0..n", "1..n"] as const;
+
+export type RelationCardinality = (typeof RELATION_CARDINALITIES)[number];
 
 export interface RelationSpec {
   id: string;
   kind: RelationKind;
   target: string;
   field?: string;
+  cardinality?: RelationCardinality;
   description?: string;
 }
 

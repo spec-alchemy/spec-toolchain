@@ -180,6 +180,9 @@
           "type": "string",
           "minLength": 1
         },
+        "cardinality": {
+          "enum": ["1", "0..1", "0..n", "1..n"]
+        },
         "description": {
           "type": "string"
         }

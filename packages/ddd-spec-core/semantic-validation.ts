@@ -3,12 +3,20 @@ import type {
   AggregateSpec,
   BusinessSpec,
   FieldSpec,
+  FieldStructure,
   ObjectSpec,
+  ObjectRole,
+  RelationCardinality,
+  RelationKind,
   RelationSpec
 } from "./spec.js";
 import {
+  FIELD_STRUCTURES,
   isAggregateObjectSpec,
-  isEnumObjectSpec
+  isEnumObjectSpec,
+  OBJECT_ROLES,
+  RELATION_CARDINALITIES,
+  RELATION_KINDS
 } from "./spec.js";
 
 export function validateBusinessSpecSemantics(spec: BusinessSpec): void {
@@ -19,22 +27,42 @@ export function validateBusinessSpecSemantics(spec: BusinessSpec): void {
   asMap(spec.domain.processes, "id", "process");
 
   for (const object of spec.domain.objects) {
-    assertUniqueRelations(object.relations ?? [], `object ${object.id}`);
-    validateRelations(object, objectMap);
+    const objectLabel = describeObject(object);
+    const relations = getRelations(object);
+    const role = getObjectRole(object);
 
-    if (isAggregateObjectSpec(object)) {
-      assertUniqueFields(object.fields, `object ${object.id}`);
-      assertUniqueStrings(object.lifecycle, `object ${object.id} lifecycle`);
-      validateFieldTargets(object.fields, objectMap, `Object ${object.id}`);
+    assertUniqueRelations(relations, `object ${object.id}`);
+    validateRelations(object, objectMap, relations);
+
+    if (role === "aggregate") {
+      assertPropertyAbsent(object, "values", `${objectLabel} role aggregate cannot declare values`);
+      const fields = getObjectFields(object);
+      const lifecycle = getLifecycle(object);
+      const lifecycleField = getLifecycleField(object);
+
+      assertUniqueFields(fields, `object ${object.id}`);
+      assertUniqueStrings(lifecycle, `object ${object.id} lifecycle`);
+      validateFieldTargets(fields, objectMap, objectLabel);
       assertIncludes(
-        object.fields.map((field) => field.id),
-        object.lifecycleField,
-        `Object ${object.id} lifecycleField must exist in fields`
+        fields.map((field) => field.id),
+        lifecycleField,
+        `${objectLabel} lifecycleField must exist in fields`
       );
       continue;
     }
 
-    assertUniqueStrings(object.values, `enum ${object.id} values`);
+    assertPropertyAbsent(object, "fields", `${objectLabel} role enum cannot declare fields`);
+    assertPropertyAbsent(
+      object,
+      "lifecycle",
+      `${objectLabel} role enum cannot declare lifecycle`
+    );
+    assertPropertyAbsent(
+      object,
+      "lifecycleField",
+      `${objectLabel} role enum cannot declare lifecycleField`
+    );
+    assertUniqueStrings(getEnumValues(object), `enum ${object.id} values`);
   }
 
   for (const command of spec.domain.commands) {
@@ -345,37 +373,48 @@ function validateFieldTargets(
   label: string
 ): void {
   for (const field of fields) {
-    if (!field.structure) {
-      if (field.target) {
-        throw new Error(`${label} field ${field.id} target requires structure`);
+    const fieldLabel = `${label} field ${field.id}`;
+    const structure = getFieldStructure(field, fieldLabel);
+    const target = getOptionalNonEmptyString(
+      (field as { target?: unknown }).target,
+      `${fieldLabel} target`
+    );
+
+    if (!structure) {
+      if (target) {
+        throw new Error(`${fieldLabel} target requires structure`);
       }
 
       continue;
     }
 
-    if (field.structure === "scalar") {
-      if (field.target) {
-        throw new Error(`${label} field ${field.id} cannot declare target for scalar structure`);
+    if (structure === "scalar") {
+      if (target) {
+        throw new Error(`${fieldLabel} cannot declare target for scalar structure`);
       }
 
       continue;
     }
 
-    if (!field.target) {
-      throw new Error(`${label} field ${field.id} must declare target for ${field.structure}`);
+    if (!target) {
+      throw new Error(`${fieldLabel} must declare target for ${structure}`);
     }
 
-    const targetObject = mustGet(objectMap, field.target, "object");
+    const targetObject = objectMap.get(target);
 
-    if (field.structure === "enum" && !isEnumObjectSpec(targetObject)) {
+    if (!targetObject) {
+      throw new Error(`${fieldLabel} ${structure} target ${target} must reference existing object`);
+    }
+
+    if (structure === "enum" && !isEnumObjectSpec(targetObject)) {
       throw new Error(
-        `${label} field ${field.id} enum target ${field.target} must reference enum object`
+        `${fieldLabel} enum target ${target} must reference enum object`
       );
     }
 
-    if (field.structure === "reference" && isEnumObjectSpec(targetObject)) {
+    if (structure === "reference" && isEnumObjectSpec(targetObject)) {
       throw new Error(
-        `${label} field ${field.id} reference target ${field.target} cannot reference enum object`
+        `${fieldLabel} reference target ${target} cannot reference enum object`
       );
     }
   }
@@ -383,29 +422,43 @@ function validateFieldTargets(
 
 function validateRelations(
   object: ObjectSpec,
-  objectMap: ReadonlyMap<string, ObjectSpec>
+  objectMap: ReadonlyMap<string, ObjectSpec>,
+  relations: readonly RelationSpec[]
 ): void {
-  const fieldIds = isAggregateObjectSpec(object)
-    ? new Set(object.fields.map((field) => field.id))
-    : undefined;
+  const fieldIds =
+    getObjectRole(object) === "aggregate"
+      ? new Set(getObjectFields(object).map((field) => field.id))
+      : undefined;
 
-  for (const relation of object.relations ?? []) {
-    mustGet(objectMap, relation.target, "object");
+  for (const relation of relations) {
+    const relationLabel = `${describeObject(object)} relation ${relation.id}`;
+    const target = getRequiredNonEmptyString(
+      (relation as { target?: unknown }).target,
+      `${relationLabel} target`
+    );
 
-    if (!relation.field) {
+    getRelationKind(relation, relationLabel);
+    getRelationCardinality(relation, relationLabel);
+
+    if (!objectMap.has(target)) {
+      throw new Error(`${relationLabel} target ${target} must reference existing object`);
+    }
+
+    const field = getOptionalNonEmptyString(
+      (relation as { field?: unknown }).field,
+      `${relationLabel} field`
+    );
+
+    if (!field) {
       continue;
     }
 
     if (!fieldIds) {
-      throw new Error(
-        `Object ${object.id} relation ${relation.id} cannot bind field ${relation.field}`
-      );
+      throw new Error(`${relationLabel} cannot bind field ${field}`);
     }
 
-    if (!fieldIds.has(relation.field)) {
-      throw new Error(
-        `Object ${object.id} relation ${relation.id} field ${relation.field} must exist in fields`
-      );
+    if (!fieldIds.has(field)) {
+      throw new Error(`${relationLabel} field ${field} must exist in fields`);
     }
   }
 }
@@ -437,11 +490,166 @@ function mustGetAggregateObjectSpec(
   objectMap: ReadonlyMap<string, ObjectSpec>,
   objectId: string
 ): AggregateObjectSpec {
-  const object = mustGet(objectMap, objectId, "object");
+  const object = objectMap.get(objectId);
+
+  if (!object) {
+    throw new Error(`Aggregate ${objectId} objectId must reference existing object`);
+  }
 
   if (!isAggregateObjectSpec(object)) {
     throw new Error(`Aggregate ${objectId} must bind to object role aggregate`);
   }
 
   return object;
+}
+
+function describeObject(object: ObjectSpec): string {
+  return `Object ${String((object as { id?: unknown }).id ?? "<unknown>")}`;
+}
+
+function getObjectRole(object: ObjectSpec): ObjectRole {
+  return getAllowedValue(
+    (object as { role?: unknown }).role,
+    OBJECT_ROLES,
+    `${describeObject(object)} role`
+  );
+}
+
+function getObjectFields(object: ObjectSpec): readonly FieldSpec[] {
+  return getNonEmptyArray(
+    (object as { fields?: unknown }).fields,
+    `${describeObject(object)} fields`
+  ) as readonly FieldSpec[];
+}
+
+function getLifecycle(object: ObjectSpec): readonly string[] {
+  return getNonEmptyStringArray(
+    (object as { lifecycle?: unknown }).lifecycle,
+    `${describeObject(object)} lifecycle`
+  );
+}
+
+function getLifecycleField(object: ObjectSpec): string {
+  return getRequiredNonEmptyString(
+    (object as { lifecycleField?: unknown }).lifecycleField,
+    `${describeObject(object)} lifecycleField`
+  );
+}
+
+function getEnumValues(object: ObjectSpec): readonly string[] {
+  return getNonEmptyStringArray(
+    (object as { values?: unknown }).values,
+    `${describeObject(object)} role enum values`
+  );
+}
+
+function getRelations(object: ObjectSpec): readonly RelationSpec[] {
+  const relations = (object as { relations?: unknown }).relations;
+
+  if (relations === undefined) {
+    return [];
+  }
+
+  if (!Array.isArray(relations)) {
+    throw new Error(`${describeObject(object)} relations must be an array`);
+  }
+
+  return relations as readonly RelationSpec[];
+}
+
+function getFieldStructure(field: FieldSpec, label: string): FieldStructure | undefined {
+  const structure = (field as { structure?: unknown }).structure;
+
+  if (structure === undefined) {
+    return undefined;
+  }
+
+  return getAllowedValue(structure, FIELD_STRUCTURES, `${label} structure`);
+}
+
+function getRelationKind(relation: RelationSpec, label: string): RelationKind {
+  return getAllowedValue((relation as { kind?: unknown }).kind, RELATION_KINDS, `${label} kind`);
+}
+
+function getRelationCardinality(
+  relation: RelationSpec,
+  label: string
+): RelationCardinality | undefined {
+  const cardinality = (relation as { cardinality?: unknown }).cardinality;
+
+  if (cardinality === undefined) {
+    return undefined;
+  }
+
+  return getAllowedValue(
+    cardinality,
+    RELATION_CARDINALITIES,
+    `${label} cardinality`
+  );
+}
+
+function getRequiredNonEmptyString(value: unknown, label: string): string {
+  if (typeof value !== "string" || value.length === 0) {
+    throw new Error(`${label} must be a non-empty string`);
+  }
+
+  return value;
+}
+
+function getOptionalNonEmptyString(value: unknown, label: string): string | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  return getRequiredNonEmptyString(value, label);
+}
+
+function getNonEmptyArray(value: unknown, label: string): readonly unknown[] {
+  if (!Array.isArray(value) || value.length === 0) {
+    throw new Error(`${label} must be a non-empty array`);
+  }
+
+  return value;
+}
+
+function getNonEmptyStringArray(value: unknown, label: string): readonly string[] {
+  const values = getNonEmptyArray(value, label);
+
+  for (const [index, item] of values.entries()) {
+    if (typeof item !== "string" || item.length === 0) {
+      throw new Error(`${label}[${index}] must be a non-empty string`);
+    }
+  }
+
+  return values as readonly string[];
+}
+
+function getAllowedValue<Value extends string>(
+  value: unknown,
+  allowed: readonly Value[],
+  label: string
+): Value {
+  if (typeof value !== "string" || !allowed.some((candidate) => candidate === value)) {
+    throw new Error(`${label} ${formatValue(value)} must be one of ${allowed.join(", ")}`);
+  }
+
+  return value as Value;
+}
+
+function assertPropertyAbsent(
+  value: object,
+  propertyName: string,
+  message: string
+): void {
+  if (Object.prototype.hasOwnProperty.call(value, propertyName)) {
+    throw new Error(message);
+  }
+}
+
+function formatValue(value: unknown): string {
+  if (typeof value === "string") {
+    return value;
+  }
+
+  return JSON.stringify(value) ?? String(value);
 }
