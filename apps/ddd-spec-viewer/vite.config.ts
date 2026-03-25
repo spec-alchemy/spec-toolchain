@@ -36,7 +36,11 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      "@": resolve(__dirname, "./src")
+      "@": resolve(__dirname, "./src"),
+      "@knowledge-alchemy/ddd-spec-viewer-contract": resolve(
+        __dirname,
+        "../../packages/ddd-spec-viewer-contract/index.ts"
+      )
     }
   }
 });

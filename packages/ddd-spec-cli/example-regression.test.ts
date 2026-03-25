@@ -1,6 +1,16 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
-import { access, cp, mkdir, mkdtemp, readFile, rm, stat, writeFile } from "node:fs/promises";
+import {
+  access,
+  cp,
+  mkdir,
+  mkdtemp,
+  readFile,
+  readdir,
+  rm,
+  stat,
+  writeFile
+} from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { tmpdir } from "node:os";
 import test from "node:test";
@@ -180,6 +190,13 @@ const CLI_PACKAGE_README_PATH = toAbsolutePath("./README.md");
 const CLI_DIST_ENTRY_PATH = toAbsolutePath("./dist/ddd-spec-cli/cli.js");
 const CLI_DIST_INDEX_PATH = toAbsolutePath("./dist/ddd-spec-cli/index.js");
 const CLI_DIST_SCHEMA_PATH = toAbsolutePath("./dist/ddd-spec-core/schema/business-spec.schema.json");
+const CLI_DIST_VIEWER_DIR_PATH = toAbsolutePath("./dist/ddd-spec-cli/static/viewer");
+const CLI_DIST_VIEWER_INDEX_PATH = toAbsolutePath(
+  "./dist/ddd-spec-cli/static/viewer/index.html"
+);
+const CLI_DIST_VIEWER_GENERATED_SPEC_PATH = toAbsolutePath(
+  "./dist/ddd-spec-cli/static/viewer/generated/viewer-spec.json"
+);
 const REPO_ROOT_PATH = toAbsolutePath("../../");
 const REPO_ROOT_NODE_MODULES_PATH = toAbsolutePath("../../node_modules");
 const REPO_VIEWER_CONFIG_PATH = toAbsolutePath(
@@ -393,6 +410,10 @@ test("product README documents supported npx and installed command usage", async
     readmeSource,
     /The `viewer` command is a repo-local maintainer workflow\./
   );
+  assert.match(
+    readmeSource,
+    /bundles the internal viewer static app under `dist\/ddd-spec-cli\/static\/viewer\/`/
+  );
 });
 
 test("CLI package build emits executable dist output and runtime schema assets", async () => {
@@ -405,6 +426,18 @@ test("CLI package build emits executable dist output and runtime schema assets",
 
   assert.match(entrySource, /^#!\/usr\/bin\/env node\n/);
   assert.ok((entryStats.mode & 0o111) !== 0);
+});
+
+test("CLI package build emits packaged viewer static assets", async () => {
+  await access(CLI_DIST_VIEWER_INDEX_PATH);
+  await access(CLI_DIST_VIEWER_GENERATED_SPEC_PATH);
+
+  const indexSource = await readFile(CLI_DIST_VIEWER_INDEX_PATH, "utf8");
+  const builtAssetNames = await readdir(join(CLI_DIST_VIEWER_DIR_PATH, "assets"));
+
+  assert.match(indexSource, /\.\/assets\//);
+  assert.ok(builtAssetNames.some((fileName) => fileName.endsWith(".js")));
+  assert.ok(builtAssetNames.some((fileName) => fileName.endsWith(".css")));
 });
 
 test("CLI dist entry runs without tsx or repo source entrypoints", async () => {
@@ -454,6 +487,17 @@ test("npm pack dry-run keeps the published CLI package on dist output only", asy
     assert.ok(packedPaths.includes("dist/ddd-spec-cli/cli.js"));
     assert.ok(packedPaths.includes("dist/ddd-spec-cli/index.js"));
     assert.ok(packedPaths.includes("dist/ddd-spec-core/schema/business-spec.schema.json"));
+    assert.ok(packedPaths.includes("dist/ddd-spec-cli/static/viewer/index.html"));
+    assert.ok(
+      packedPaths.includes("dist/ddd-spec-cli/static/viewer/generated/viewer-spec.json")
+    );
+    assert.ok(
+      packedPaths.some(
+        (path) =>
+          path.startsWith("dist/ddd-spec-cli/static/viewer/assets/") &&
+          path.endsWith(".js")
+      )
+    );
     assert.ok(packedPaths.includes("README.md"));
     assert.ok(packedPaths.includes("package.json"));
     assert.ok(!packedPaths.includes("cli.ts"));

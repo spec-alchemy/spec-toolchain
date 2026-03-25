@@ -1,6 +1,6 @@
 # DDD Spec Viewer
 
-独立的 React viewer 子项目。
+内部维护用的 React viewer source 子项目。它继续负责 repo-local 开发与 dogfood，但其生产静态产物现在会在 `packages/ddd-spec-cli` 构建时一起打进主包的 `dist/ddd-spec-cli/static/viewer/`。
 
 ## Usage
 

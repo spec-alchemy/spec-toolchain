@@ -3,7 +3,7 @@ import type {
   ViewerDetailItem,
   ViewerEdgeKind,
   ViewerNodeKind
-} from "../../../packages/ddd-spec-viewer-contract/index.js";
+} from "@knowledge-alchemy/ddd-spec-viewer-contract";
 
 export type {
   BusinessViewerSpec,
@@ -14,7 +14,7 @@ export type {
   ViewerNodeKind,
   ViewerNodeSpec,
   ViewerViewSpec
-} from "../../../packages/ddd-spec-viewer-contract/index.js";
+} from "@knowledge-alchemy/ddd-spec-viewer-contract";
 
 export type FlowNodeKind = ViewerNodeKind | "relation";
 

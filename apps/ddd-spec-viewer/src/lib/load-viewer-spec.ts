@@ -16,12 +16,10 @@ export function resolveViewerSpecSource(): ViewerSpecSource {
   const rawSpecSource = locationUrl.searchParams.get(SPEC_QUERY_PARAM)?.trim();
 
   if (!rawSpecSource) {
+    const baseUrl = new URL(import.meta.env.BASE_URL, locationUrl);
     const defaultSpecUrl = ENV_DEFAULT_SPEC_URL
       ? new URL(ENV_DEFAULT_SPEC_URL, locationUrl.origin)
-      : new URL(
-          DEFAULT_VIEWER_SPEC_PATH,
-          window.location.origin + import.meta.env.BASE_URL
-        );
+      : new URL(DEFAULT_VIEWER_SPEC_PATH, baseUrl);
 
     return {
       url: defaultSpecUrl,

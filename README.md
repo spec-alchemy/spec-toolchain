@@ -23,6 +23,7 @@ The root `ddd-spec:*` scripts target [`apps/ddd-spec-viewer/ddd-spec.config.yaml
 
 - [`packages/ddd-spec-core/`](./packages/ddd-spec-core/): canonical loading, schema validation, semantic validation, graph IR, and analysis
 - [`packages/ddd-spec-cli/`](./packages/ddd-spec-cli/): the single external package boundary for `@knowledge-alchemy/ddd-spec`, including CLI commands, config loading, build orchestration, and viewer launch helpers
+- `packages/ddd-spec-cli/dist/ddd-spec-cli/static/viewer/`: packaged static viewer assets built from [`apps/ddd-spec-viewer/`](./apps/ddd-spec-viewer/) and shipped inside the main package output
 - [`packages/ddd-spec-projection-viewer/`](./packages/ddd-spec-projection-viewer/): private viewer JSON projection implementation
 - [`packages/ddd-spec-projection-typescript/`](./packages/ddd-spec-projection-typescript/): private TypeScript projection implementation
 - [`packages/ddd-spec-viewer-contract/`](./packages/ddd-spec-viewer-contract/): private shared viewer contract types

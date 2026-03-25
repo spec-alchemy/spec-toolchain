@@ -15,6 +15,7 @@ The published package supports these commands against either zero-config `ddd-sp
 - `generate-typescript`
 
 The `viewer` command is a repo-local maintainer workflow. It expects a sibling `apps/ddd-spec-viewer/` app and is not part of the supported published-package `npx` or installed-command flow.
+The package build also bundles the internal viewer static app under `dist/ddd-spec-cli/static/viewer/` so maintainer and packaging flows can ship viewer assets without depending on the repo-local Vite dev app at runtime.
 
 ## `npx` Usage
 
