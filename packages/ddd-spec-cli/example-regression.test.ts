@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import {
   access,
+  chmod,
   cp,
   mkdir,
   mkdtemp,
@@ -11,7 +12,7 @@ import {
   stat,
   writeFile
 } from "node:fs/promises";
-import { dirname, join } from "node:path";
+import { delimiter, dirname, join } from "node:path";
 import { tmpdir } from "node:os";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
@@ -287,10 +288,27 @@ test("zero-config validate shows an init hint when the canonical entry is missin
   }
 });
 
+test("zero-config dev shows an init hint when the canonical entry is missing", async () => {
+  const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-zero-config-missing-dev-"));
+
+  try {
+    await assert.rejects(
+      runCliCommand(["dev"], { cwd: tempDir }),
+      (error: unknown) =>
+        error instanceof Error &&
+        error.message.includes("Run `ddd-spec init`") &&
+        error.message.includes(join(tempDir, "ddd-spec", "canonical", "index.yaml"))
+    );
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
+
 test("CLI help documents zero-config defaults plus advanced template and config paths", () => {
   const usageText = buildUsageText();
 
   assert.match(usageText, /Default workflow:/);
+  assert.match(usageText, /One-shot commands:/);
   assert.match(usageText, /Advanced init templates:/);
   assert.match(usageText, /Advanced config:/);
   assert.match(usageText, /Most first-time users should stick with plain ddd-spec init/);
@@ -300,6 +318,7 @@ test("CLI help documents zero-config defaults plus advanced template and config 
   assert.match(usageText, /\n  init \[--template <name>\]\n/);
   assert.match(usageText, /\n  validate \[--config <path>\]\n/);
   assert.match(usageText, /\n  build \[--config <path>\]\n/);
+  assert.match(usageText, /\n  dev \[--config <path>\] \[-- <viewer-args\.\.\.>\]\n/);
   assert.match(usageText, /\n  viewer \[--config <path>\] \[-- <viewer-args\.\.\.>\]\n/);
   assert.match(usageText, /\n  generate-viewer \[--config <path>\]\n/);
   assert.match(usageText, /generate-typescript \[--config <path>\]$/);
@@ -307,6 +326,7 @@ test("CLI help documents zero-config defaults plus advanced template and config 
   assert.doesNotMatch(usageText, /\n  generate typescript\n/);
   assert.match(usageText, /\n  ddd-spec init\n/);
   assert.match(usageText, /edit ddd-spec\/canonical\//);
+  assert.match(usageText, /\n  ddd-spec dev\n/);
   assert.match(usageText, /ddd-spec\/canonical\/index\.yaml/);
   assert.match(usageText, /\.ddd-spec\//);
 });
@@ -527,12 +547,16 @@ test("product README documents zero-config defaults plus advanced template and c
     /`init` creates a teaching-oriented approval workflow under `ddd-spec\/canonical\/`/
   );
   assert.match(readmeSource, /That no-argument path remains the recommended first-time experience/);
+  assert.match(readmeSource, /The `dev` command is the recommended iteration loop/);
+  assert.match(readmeSource, /opens the browser automatically by default/);
+  assert.match(readmeSource, /keeps watching canonical inputs so edits trigger rebuilds/);
   assert.match(readmeSource, /Most users should keep using plain `ddd-spec init`/);
   assert.match(readmeSource, /Advanced users can opt into an explicit scaffold with `--template <name>`/);
   assert.match(readmeSource, /`default`: the same teaching-oriented approval workflow/);
   assert.match(readmeSource, /`minimal`: the smallest valid scaffold/);
   assert.match(readmeSource, /`order-payment`: an example-style order and payment workflow/);
   assert.match(readmeSource, /npx @knowledge-alchemy\/ddd-spec init/);
+  assert.match(readmeSource, /npx @knowledge-alchemy\/ddd-spec dev/);
   assert.match(readmeSource, /npx @knowledge-alchemy\/ddd-spec init --template default/);
   assert.match(readmeSource, /npx @knowledge-alchemy\/ddd-spec init --template minimal/);
   assert.match(readmeSource, /npx @knowledge-alchemy\/ddd-spec init --template order-payment/);
@@ -544,11 +568,16 @@ test("product README documents zero-config defaults plus advanced template and c
   );
   assert.match(
     readmeSource,
+    /npx @knowledge-alchemy\/ddd-spec dev --config \.\/ddd-spec\.config\.yaml -- --no-open/
+  );
+  assert.match(
+    readmeSource,
     /npx @knowledge-alchemy\/ddd-spec viewer --config \.\/ddd-spec\.config\.yaml -- --host 0\.0\.0\.0/
   );
   assert.match(readmeSource, /npm install -g @knowledge-alchemy\/ddd-spec/);
-  assert.match(readmeSource, /ddd-spec validate/);
+  assert.match(readmeSource, /ddd-spec dev/);
   assert.match(readmeSource, /ddd-spec viewer -- --host 0\.0\.0\.0/);
+  assert.match(readmeSource, /npm exec ddd-spec dev/);
   assert.match(readmeSource, /npm exec ddd-spec build/);
   assert.match(readmeSource, /npm exec ddd-spec build --config \.\/ddd-spec\.config\.yaml/);
   assert.match(readmeSource, /npm exec ddd-spec viewer -- --port 4173/);
@@ -867,6 +896,83 @@ test("npm pack smoke test installs the tarball and serves packaged viewer assets
 
     assert.deepEqual(viewer, builtViewer);
     assertExampleViewer(viewer, ZERO_CONFIG_FIXTURE);
+  } finally {
+    if (child) {
+      child.kill("SIGTERM");
+      await waitForChildExit(child);
+    }
+
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
+
+test("npm pack smoke test installs the tarball and keeps the packaged dev watch loop alive across failures", async () => {
+  if (process.platform === "win32") {
+    return;
+  }
+
+  const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-pack-smoke-dev-"));
+  const consumerRootPath = join(tempDir, "consumer");
+  const browserOpenLogPath = join(tempDir, "browser-open.log");
+  let child: ReturnType<typeof spawn> | undefined;
+
+  try {
+    await mkdir(consumerRootPath, { recursive: true });
+    await copyExampleCanonicalToZeroConfigRoot(consumerRootPath, ZERO_CONFIG_FIXTURE.id);
+    await writeBrowserOpenStub(tempDir);
+
+    const installedPackagePath = await installPublishedCliTarball(consumerRootPath);
+    const installedCliEntryPath = getInstalledCliEntryPath(installedPackagePath);
+    const processPath = join(
+      consumerRootPath,
+      "ddd-spec",
+      "canonical",
+      "processes",
+      "order-payment.process.yaml"
+    );
+    const originalProcessSource = await readFile(processPath, "utf8");
+
+    child = spawn(
+      process.execPath,
+      [installedCliEntryPath, "dev", "--", "--port", "0"],
+      {
+        cwd: consumerRootPath,
+        env: {
+          ...process.env,
+          DDD_SPEC_BROWSER_OPEN_LOG: browserOpenLogPath,
+          PATH: `${join(tempDir, "bin")}${delimiter}${process.env.PATH ?? ""}`
+        },
+        stdio: ["ignore", "pipe", "pipe"]
+      }
+    );
+
+    const output = collectChildOutput(child);
+    const viewerUrl = await waitForViewerServer(child);
+
+    await waitForCondition(async () => {
+      const browserOpenLog = await readOptionalTextFile(browserOpenLogPath);
+
+      return browserOpenLog.includes(viewerUrl.toString());
+    });
+
+    assert.match(output.stdout, /\[ddd-spec\] starting dev loop/);
+    assert.match(output.stdout, /\[ddd-spec\] watching canonical inputs under /);
+    assert.match(output.stdout, /\[ddd-spec\] build passed/);
+
+    const initialBuildPassCount = countMatches(output.stdout, "[ddd-spec] build passed");
+
+    await writeFile(processPath, "id: [\n", "utf8");
+
+    await waitForCondition(() => output.stdout.includes("[ddd-spec] rebuilding after canonical input changes"));
+    await waitForCondition(() =>
+      output.stderr.includes("[ddd-spec] build failed; watcher remains active")
+    );
+
+    await writeFile(processPath, originalProcessSource, "utf8");
+
+    await waitForCondition(
+      () => countMatches(output.stdout, "[ddd-spec] build passed") > initialBuildPassCount
+    );
   } finally {
     if (child) {
       child.kill("SIGTERM");
@@ -1304,6 +1410,42 @@ test("CLI viewer rebuilds the explicit-config viewer artifact and launches the p
   }
 });
 
+test("CLI dev rebuilds the zero-config viewer artifact and enables browser auto-open by default", async () => {
+  const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-zero-config-dev-"));
+  let launchOptions: LaunchViewerOptions | undefined;
+
+  try {
+    await copyExampleCanonicalToZeroConfigRoot(tempDir, ZERO_CONFIG_FIXTURE.id);
+
+    await runCliCommand(["dev", "--", "--host", "0.0.0.0"], {
+      cwd: tempDir,
+      viewerCommandHooks: {
+        launchViewer: async (options) => {
+          launchOptions = options;
+        }
+      }
+    });
+
+    assert.ok(launchOptions);
+    assert.equal(launchOptions.assetDirPath, CLI_DIST_VIEWER_DIR_PATH);
+    assert.equal(
+      launchOptions.viewerSpecPath,
+      join(tempDir, ".ddd-spec", "artifacts", "viewer-spec.json")
+    );
+    assert.equal(launchOptions.host, "0.0.0.0");
+    assert.equal(launchOptions.port, 4173);
+    assert.equal(launchOptions.openBrowser, true);
+
+    const viewer = JSON.parse(
+      await readFile(join(tempDir, ".ddd-spec", "artifacts", "viewer-spec.json"), "utf8")
+    ) as BusinessViewerSpec;
+
+    assertExampleViewer(viewer, ZERO_CONFIG_FIXTURE);
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
+
 function assertExampleBundle(bundle: BusinessSpec, example: ExampleFixture): void {
   assert.equal(bundle.id, example.id);
   assert.deepEqual(
@@ -1732,6 +1874,84 @@ async function waitForChildExit(child: ReturnType<typeof spawn>): Promise<void> 
       resolvePromise();
     });
   });
+}
+
+function collectChildOutput(child: ReturnType<typeof spawn>): {
+  stderr: string;
+  stdout: string;
+} {
+  const output = {
+    stderr: "",
+    stdout: ""
+  };
+
+  child.stdout.setEncoding("utf8");
+  child.stderr.setEncoding("utf8");
+  child.stdout.on("data", (chunk) => {
+    output.stdout += chunk;
+  });
+  child.stderr.on("data", (chunk) => {
+    output.stderr += chunk;
+  });
+
+  return output;
+}
+
+async function waitForCondition(
+  condition: (() => boolean | Promise<boolean>),
+  timeoutMs = 15_000
+): Promise<void> {
+  const startTime = Date.now();
+
+  while (Date.now() - startTime <= timeoutMs) {
+    if (await condition()) {
+      return;
+    }
+
+    await new Promise((resolvePromise) => {
+      setTimeout(resolvePromise, 50);
+    });
+  }
+
+  throw new Error(`Timed out waiting for condition after ${timeoutMs}ms`);
+}
+
+function countMatches(source: string, needle: string): number {
+  return source.split(needle).length - 1;
+}
+
+async function readOptionalTextFile(path: string): Promise<string> {
+  try {
+    return await readFile(path, "utf8");
+  } catch (error: unknown) {
+    if (
+      error &&
+      typeof error === "object" &&
+      "code" in error &&
+      (error as NodeJS.ErrnoException).code === "ENOENT"
+    ) {
+      return "";
+    }
+
+    throw error;
+  }
+}
+
+async function writeBrowserOpenStub(rootPath: string): Promise<void> {
+  const binPath = join(rootPath, "bin");
+  const stubSource = [
+    "#!/bin/sh",
+    "printf '%s\\n' \"$1\" >> \"$DDD_SPEC_BROWSER_OPEN_LOG\""
+  ].join("\n");
+
+  await mkdir(binPath, { recursive: true });
+
+  for (const commandName of ["open", "xdg-open"]) {
+    const commandPath = join(binPath, commandName);
+
+    await writeFile(commandPath, `${stubSource}\n`, "utf8");
+    await chmod(commandPath, 0o755);
+  }
 }
 
 async function assertGeneratedInitSkeleton(

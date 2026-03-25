@@ -30,6 +30,7 @@ export interface ViewerCommandHooks {
 export interface StartDddSpecViewerOptions {
   args?: readonly string[];
   hooks?: ViewerCommandHooks;
+  openBrowserByDefault?: boolean;
 }
 
 export async function startDddSpecViewer(
@@ -43,7 +44,9 @@ export async function startDddSpecViewer(
   await (hooks.launchViewer ?? launchViewerServer)({
     assetDirPath,
     viewerSpecPath,
-    ...parseViewerArgs(options.args ?? [])
+    ...parseViewerArgs(options.args ?? [], {
+      defaultOpenBrowser: options.openBrowserByDefault ?? false
+    })
   });
 }
 
@@ -269,13 +272,18 @@ async function waitForShutdown(server: ReturnType<typeof createServer>): Promise
   });
 }
 
-function parseViewerArgs(args: readonly string[]): {
+function parseViewerArgs(
+  args: readonly string[],
+  options: {
+    defaultOpenBrowser: boolean;
+  }
+): {
   host: string;
   openBrowser: boolean;
   port: number;
 } {
   let host = DEFAULT_VIEWER_HOST;
-  let openBrowser = false;
+  let openBrowser = options.defaultOpenBrowser;
   let port = DEFAULT_VIEWER_PORT;
 
   for (let index = 0; index < args.length; index += 1) {

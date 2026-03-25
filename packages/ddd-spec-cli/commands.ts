@@ -15,6 +15,7 @@ import {
 } from "./artifact-io.js";
 import { buildUsageText, formatDiagnostic, logArtifact, logInfo, logWarningDiagnostic } from "./console.js";
 import { loadDddSpecConfig } from "./config.js";
+import { startDddSpecDevSession } from "./dev.js";
 import { initDddSpec } from "./init.js";
 import { startDddSpecViewer, type ViewerCommandHooks } from "./viewer.js";
 
@@ -24,6 +25,7 @@ type CliCommand =
   | "bundle"
   | "analyze"
   | "build"
+  | "dev"
   | "viewer"
   | "generate-viewer"
   | "generate-typescript";
@@ -93,6 +95,9 @@ export async function runCliCommand(
       return;
     case "build":
       await runBuildCommand(config);
+      return;
+    case "dev":
+      await runDevCommand(config, parsedArgs.passthroughArgs, options);
       return;
     case "viewer":
       await runViewerCommand(config, parsedArgs.passthroughArgs, options);
@@ -204,6 +209,19 @@ async function runViewerCommand(
   await startDddSpecViewer(config, {
     args: passthroughArgs,
     hooks: options.viewerCommandHooks
+  });
+}
+
+async function runDevCommand(
+  config: Awaited<ReturnType<typeof loadDddSpecConfig>>,
+  passthroughArgs: readonly string[],
+  options: RunCliCommandOptions
+): Promise<void> {
+  assertProjectionEnabled(config, "viewer");
+  await startDddSpecDevSession(config, {
+    args: passthroughArgs,
+    hooks: options.viewerCommandHooks,
+    rebuild: () => runBuildCommand(config)
   });
 }
 
@@ -378,6 +396,10 @@ function parseCommand(positionals: readonly string[]): CliCommand | undefined {
 
   if (positionals[0] === "build" && positionals.length === 1) {
     return "build";
+  }
+
+  if (positionals[0] === "dev" && positionals.length === 1) {
+    return "dev";
   }
 
   if (positionals[0] === "viewer" && positionals.length === 1) {

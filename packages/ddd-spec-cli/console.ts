@@ -7,6 +7,10 @@ export function logInfo(message: string): void {
   console.log(`${PREFIX} ${message}`);
 }
 
+export function logError(message: string): void {
+  console.error(`${PREFIX} ${message}`);
+}
+
 export function logArtifact(label: string, outputPath: string): void {
   console.log(`${PREFIX} ${label} -> ${outputPath}`);
 }
@@ -29,6 +33,9 @@ export function buildUsageText(): string {
     "Default workflow:",
     "  ddd-spec init",
     "  edit ddd-spec/canonical/",
+    "  ddd-spec dev",
+    "",
+    "One-shot commands:",
     "  ddd-spec validate",
     "  ddd-spec build",
     "  ddd-spec viewer",
@@ -52,6 +59,7 @@ export function buildUsageText(): string {
     "  bundle [--config <path>]",
     "  analyze [--config <path>]",
     "  build [--config <path>]",
+    "  dev [--config <path>] [-- <viewer-args...>]",
     "  viewer [--config <path>] [-- <viewer-args...>]",
     "  generate-viewer [--config <path>]",
     "  generate-typescript [--config <path>]"

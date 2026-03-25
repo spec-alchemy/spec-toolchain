@@ -12,11 +12,14 @@ The published package supports these commands:
 - `bundle`
 - `analyze`
 - `build`
+- `dev`
 - `viewer`
 - `generate-viewer`
 - `generate-typescript`
 
 `init` creates a teaching-oriented approval workflow under `ddd-spec/canonical/` for consumer workspaces and adds `.ddd-spec/` to `.gitignore` when needed. That no-argument path remains the recommended first-time experience.
+
+The `dev` command is the recommended iteration loop. It runs the initial validation/build, starts the packaged viewer server, opens the browser automatically by default, and keeps watching canonical inputs so edits trigger rebuilds without restarting the session.
 
 The `viewer` command launches a local static server backed by packaged assets under `dist/ddd-spec-cli/static/viewer/`. It serves the current workspace viewer output at `/generated/viewer-spec.json`, so the same command works after `npm install`, `npm exec`, or `npx`.
 
@@ -27,6 +30,12 @@ Start here for a normal consumer workspace:
 ```sh
 npx @knowledge-alchemy/ddd-spec init
 # edit the generated approval workflow in ddd-spec/canonical/
+npx @knowledge-alchemy/ddd-spec dev
+```
+
+When you want the lower-level one-shot commands instead of the watch loop:
+
+```sh
 npx @knowledge-alchemy/ddd-spec validate
 npx @knowledge-alchemy/ddd-spec build
 npx @knowledge-alchemy/ddd-spec viewer -- --port 4173
@@ -56,6 +65,7 @@ Use `--config <path>` when you want an explicit config file instead of the defau
 
 ```sh
 npx @knowledge-alchemy/ddd-spec validate --config ./ddd-spec.config.yaml
+npx @knowledge-alchemy/ddd-spec dev --config ./ddd-spec.config.yaml -- --no-open
 npx @knowledge-alchemy/ddd-spec build --config ./ddd-spec.config.yaml
 npx @knowledge-alchemy/ddd-spec viewer --config ./ddd-spec.config.yaml -- --host 0.0.0.0
 ```
@@ -67,8 +77,7 @@ Install the package globally if you want a direct `ddd-spec` shell command with 
 ```sh
 npm install -g @knowledge-alchemy/ddd-spec
 ddd-spec init
-ddd-spec validate
-ddd-spec build
+ddd-spec dev
 ddd-spec viewer -- --host 0.0.0.0
 ```
 
@@ -76,6 +85,7 @@ For a project-local install, use `npm exec` or `npx --no-install` after adding t
 
 ```sh
 npm install --save-dev @knowledge-alchemy/ddd-spec
+npm exec ddd-spec dev
 npm exec ddd-spec build
 npm exec ddd-spec build --config ./ddd-spec.config.yaml
 npm exec ddd-spec viewer -- --port 4173
