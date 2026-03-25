@@ -194,6 +194,13 @@ const CLI_DIST_VIEWER_INDEX_PATH = toAbsolutePath(
 const CLI_DIST_VIEWER_GENERATED_SPEC_PATH = toAbsolutePath(
   "./dist/ddd-spec-cli/static/viewer/generated/viewer-spec.json"
 );
+const CHANGESET_CONFIG_PATH = toAbsolutePath("../../.changeset/config.json");
+const CHANGESET_README_PATH = toAbsolutePath("../../.changeset/README.md");
+const RELEASE_DRY_RUN_WORKFLOW_PATH = toAbsolutePath(
+  "../../.github/workflows/release-dry-run.yml"
+);
+const RELEASE_GUIDE_PATH = toAbsolutePath("../../RELEASING.md");
+const REPO_ROOT_README_PATH = toAbsolutePath("../../README.md");
 const REPO_ROOT_PATH = toAbsolutePath("../../");
 const REPO_ROOT_NODE_MODULES_PATH = toAbsolutePath("../../node_modules");
 const REPO_VIEWER_CONFIG_PATH = toAbsolutePath(
@@ -326,9 +333,13 @@ test("repo viewer config resolves fixture-backed outputs and sync targets", asyn
 test("root package scripts target the repo viewer config", async () => {
   const packageSource = await readFile(toAbsolutePath("../../package.json"), "utf8");
   const packageJson = JSON.parse(packageSource) as {
+    devDependencies: Record<string, string>;
     scripts: Record<string, string>;
   };
 
+  assert.equal(packageJson.scripts.changeset, "changeset");
+  assert.equal(packageJson.scripts["changeset:status"], "changeset status --verbose");
+  assert.equal(packageJson.scripts["changeset:version"], "changeset version");
   assert.equal(
     packageJson.scripts["ddd-spec:validate"],
     "npm run build --workspace=packages/ddd-spec-cli && npm run repo:cli --workspace=packages/ddd-spec-cli -- validate --config apps/ddd-spec-viewer/ddd-spec.config.yaml"
@@ -345,11 +356,67 @@ test("root package scripts target the repo viewer config", async () => {
     packageJson.scripts["ddd-spec:test"],
     "npm run test --workspace=packages/ddd-spec-cli"
   );
+  assert.equal(
+    packageJson.scripts["ddd-spec:release:dry-run"],
+    "npm run ddd-spec:verify && npm run changeset:status && npm run changeset:version && npm publish --dry-run --workspace=packages/ddd-spec-cli"
+  );
   assert.equal(packageJson.scripts["ddd-spec:init"], undefined);
   assert.equal(
     packageJson.scripts["dev:ddd-spec-viewer"],
     "npm run dev --workspace=apps/ddd-spec-viewer"
   );
+  assert.equal(packageJson.devDependencies["@changesets/cli"], "^2.30.0");
+});
+
+test("changesets config versions only the public CLI package boundary", async () => {
+  const configSource = await readFile(CHANGESET_CONFIG_PATH, "utf8");
+  const config = JSON.parse(configSource) as {
+    access: string;
+    baseBranch: string;
+    updateInternalDependencies: string;
+    privatePackages: {
+      version: boolean;
+      tag: boolean;
+    };
+  };
+  const readmeSource = await readFile(CHANGESET_README_PATH, "utf8");
+
+  assert.equal(config.access, "public");
+  assert.equal(config.baseBranch, "main");
+  assert.equal(config.updateInternalDependencies, "patch");
+  assert.deepEqual(config.privatePackages, {
+    version: false,
+    tag: false
+  });
+  assert.match(readmeSource, /@knowledge-alchemy\/ddd-spec/);
+  assert.match(readmeSource, /npm run changeset/);
+  assert.match(readmeSource, /npm run ddd-spec:release:dry-run/);
+});
+
+test("release dry-run workflow runs the reusable maintainer release preview", async () => {
+  const workflowSource = await readFile(RELEASE_DRY_RUN_WORKFLOW_PATH, "utf8");
+
+  assert.match(workflowSource, /^name: Release Dry Run/m);
+  assert.match(workflowSource, /^on:\n  workflow_dispatch:\n  workflow_call:/m);
+  assert.match(workflowSource, /fetch-depth: 0/);
+  assert.match(workflowSource, /node-version: 24/);
+  assert.match(workflowSource, /npm ci/);
+  assert.match(workflowSource, /npm run ddd-spec:release:dry-run/);
+});
+
+test("maintainer docs explain the release dry-run and publish handoff", async () => {
+  const rootReadmeSource = await readFile(REPO_ROOT_README_PATH, "utf8");
+  const releaseGuideSource = await readFile(RELEASE_GUIDE_PATH, "utf8");
+
+  assert.match(rootReadmeSource, /npm run changeset/);
+  assert.match(rootReadmeSource, /npm run changeset:status/);
+  assert.match(rootReadmeSource, /npm run ddd-spec:release:dry-run/);
+  assert.match(rootReadmeSource, /npm publish --dry-run --workspace=packages\/ddd-spec-cli/);
+  assert.match(rootReadmeSource, /commit the version and changelog files produced by `changeset version`/);
+  assert.match(releaseGuideSource, /Version management lives under \[`\.changeset\/`\]/);
+  assert.match(releaseGuideSource, /private workspace packages unversioned/);
+  assert.match(releaseGuideSource, /workflow_dispatch/);
+  assert.match(releaseGuideSource, /npm publish --workspace=packages\/ddd-spec-cli/);
 });
 
 test("CLI package metadata publishes a dist-backed installable command surface", async () => {

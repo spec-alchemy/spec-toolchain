@@ -21,6 +21,24 @@ The root `ddd-spec:*` scripts target [`apps/ddd-spec-viewer/ddd-spec.config.yaml
 `npm run ddd-spec:viewer` now launches the packaged CLI viewer server, while `npm run dev --workspace=apps/ddd-spec-viewer` remains the separate repo-local Vite development path.
 These root scripts are maintainer entrypoints for this monorepo's repo-local explicit-config fixture flow, not consumer workspace examples.
 
+## Release Dry Run
+
+Use changesets at the repo root to manage versions for the single public package boundary:
+
+1. `npm run changeset`
+2. `npm run changeset:status`
+3. `npm run ddd-spec:release:dry-run`
+
+`npm run ddd-spec:release:dry-run` is designed for a disposable checkout or the reusable
+[`release-dry-run.yml`](./.github/workflows/release-dry-run.yml) workflow. It runs the normal
+repo verification flow, applies `changeset version`, and then executes
+`npm publish --dry-run --workspace=packages/ddd-spec-cli` without publishing anything.
+
+The real publish handoff stays manual or CI-controlled on purpose: review the dry-run output,
+commit the version and changelog files produced by `changeset version`, merge that release commit,
+and then publish `packages/ddd-spec-cli` from a trusted environment with npm credentials.
+See [`RELEASING.md`](./RELEASING.md) for the full maintainer checklist and workflow details.
+
 ## Repository Layout
 
 - [`packages/ddd-spec-core/`](./packages/ddd-spec-core/): canonical loading, schema validation, semantic validation, graph IR, and analysis
@@ -42,5 +60,6 @@ Consumer usage belongs to [`packages/ddd-spec-cli/README.md`](./packages/ddd-spe
 
 ## Further Reading
 
+- [`RELEASING.md`](./RELEASING.md): maintainer release dry-run and publish handoff
 - [`docs/ddd-spec/README.md`](./docs/ddd-spec/README.md): repo internals, boundaries, and roadmap notes
 - [`apps/ddd-spec-viewer/README.md`](./apps/ddd-spec-viewer/README.md): viewer-specific behavior and app-local development notes
