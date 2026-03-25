@@ -7,6 +7,7 @@ import {
 } from "../ddd-spec-core/index.js";
 import { logArtifact, logInfo } from "./console.js";
 import { DEFAULT_SCHEMA_PATH, ZERO_CONFIG_ENTRY_PATH } from "./config.js";
+import { ensureVsCodeWorkspaceConfig } from "./editor-config.js";
 import {
   DEFAULT_INIT_TEMPLATE_ID,
   getInitScaffoldRelativePaths,
@@ -74,6 +75,8 @@ export async function initDddSpec(
   } else {
     logInfo(".gitignore already ignores .ddd-spec/");
   }
+
+  await configureVsCodeWorkspace(cwd);
 
   logInfo(
     "next: edit ddd-spec/canonical/ and run `ddd-spec dev` for the live rebuild loop plus packaged viewer"
@@ -185,5 +188,43 @@ async function pathExists(targetPath: string): Promise<boolean> {
     return true;
   } catch {
     return false;
+  }
+}
+
+async function configureVsCodeWorkspace(cwd: string): Promise<void> {
+  try {
+    const result = await ensureVsCodeWorkspaceConfig(cwd);
+
+    if (result.schemaAssetsStatus === "created") {
+      logArtifact("created VS Code YAML schema assets", result.schemaDirPath);
+    } else if (result.schemaAssetsStatus === "updated") {
+      logInfo("updated .vscode/ddd-spec/schema with YAML schema assets");
+    } else if (result.schemaAssetsStatus === "unchanged") {
+      logInfo(".vscode/ddd-spec/schema already includes YAML schema assets");
+    }
+
+    if (result.settingsStatus === "created") {
+      logArtifact("created VS Code YAML schema settings", result.settingsPath);
+    } else if (result.settingsStatus === "updated") {
+      logInfo("updated .vscode/settings.json with YAML schema mappings");
+    } else if (result.settingsStatus === "unchanged") {
+      logInfo(".vscode/settings.json already includes YAML schema mappings");
+    }
+
+    if (result.extensionsStatus === "created") {
+      logArtifact("created VS Code extension recommendations", result.extensionsPath);
+    } else if (result.extensionsStatus === "updated") {
+      logInfo("updated .vscode/extensions.json with recommended YAML tooling");
+    } else if (result.extensionsStatus === "unchanged") {
+      logInfo(".vscode/extensions.json already recommends YAML tooling");
+    }
+
+    for (const warning of result.warnings) {
+      logInfo(`warning: ${warning}`);
+    }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+
+    logInfo(`warning: could not configure VS Code YAML support automatically: ${message}`);
   }
 }

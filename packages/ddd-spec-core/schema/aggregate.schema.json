@@ -1,0 +1,5 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "./aggregate.schema.json",
+  "$ref": "./business-spec.schema.json#/$defs/aggregateSpec"
+}

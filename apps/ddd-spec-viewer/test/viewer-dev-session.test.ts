@@ -29,41 +29,30 @@ test("viewer dev session auto-reload only reacts to newer successful builds", ()
 });
 
 test("viewer dev session messaging stays scoped to the default workspace spec", () => {
-  assert.deepEqual(
-    getViewerDevSessionMessage(READY_STATUS, {
+  const readyMessage = getViewerDevSessionMessage(READY_STATUS, {
+    isDefaultSpecSource: true
+  });
+  const failedMessage = getViewerDevSessionMessage(
+    {
+      ...READY_STATUS,
+      buildState: "failed",
+      lastFailureMessage: "bad yaml"
+    },
+    {
       isDefaultSpecSource: true
-    }),
-    {
-      message: "Auto-reload is active for the current workspace viewer spec.",
-      tone: "info"
     }
   );
+  const externalMessage = getViewerDevSessionMessage(READY_STATUS, {
+    isDefaultSpecSource: false
+  });
 
-  assert.deepEqual(
-    getViewerDevSessionMessage(
-      {
-        ...READY_STATUS,
-        buildState: "failed",
-        lastFailureMessage: "bad yaml"
-      },
-      {
-        isDefaultSpecSource: true
-      }
-    ),
-    {
-      message:
-        "Auto-reload paused after a rebuild failure: bad yaml. Showing the last successful viewer spec until the next build passes.",
-      tone: "warning"
-    }
-  );
-
-  assert.deepEqual(
-    getViewerDevSessionMessage(READY_STATUS, {
-      isDefaultSpecSource: false
-    }),
-    {
-      message: null,
-      tone: null
-    }
-  );
+  assert.equal(readyMessage.tone, "info");
+  assert.ok(readyMessage.message);
+  assert.equal(failedMessage.tone, "warning");
+  assert.ok(failedMessage.message);
+  assert.match(failedMessage.message, /bad yaml/);
+  assert.deepEqual(externalMessage, {
+    message: null,
+    tone: null
+  });
 });

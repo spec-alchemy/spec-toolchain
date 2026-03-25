@@ -26,10 +26,12 @@
     "cli": "node ./dist/ddd-spec-cli/cli.js",
     "repo:cli": "node ./scripts/run-from-repo-root.mjs",
     "prepack": "npm run build",
-    "test": "npm run build && node --import tsx --test ../ddd-spec-core/output.test.ts ../ddd-spec-core/validation.test.ts ./viewer-dev-session.test.ts ./example-regression.test.ts ../ddd-spec-projection-viewer/index.test.ts ../ddd-spec-projection-typescript/index.test.ts ../../apps/ddd-spec-viewer/test/viewer-dev-session.test.ts"
+    "test": "npm run build && node --import tsx --test ../ddd-spec-core/output.test.ts ../ddd-spec-core/validation.test.ts ./viewer-dev-session.test.ts ./cli-config.test.ts ./cli-init.test.ts ./cli-packaging.test.ts ./cli-installed-smoke.test.ts ./cli-runtime.test.ts ../ddd-spec-projection-viewer/index.test.ts ../ddd-spec-projection-typescript/index.test.ts ../../apps/ddd-spec-viewer/test/viewer-dev-session.test.ts"
   },
   "dependencies": {
     "ajv": "^8.18.0",
+    "jsonc-parser": "^3.3.1",
+    "picomatch": "^4.0.4",
     "yaml": "^2.8.3"
   },
   "devDependencies": {

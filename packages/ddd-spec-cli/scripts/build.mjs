@@ -8,18 +8,16 @@ const require = createRequire(import.meta.url);
 const scriptDirPath = dirname(fileURLToPath(import.meta.url));
 const packageDirPath = dirname(scriptDirPath);
 const distDirPath = join(packageDirPath, "dist");
-const schemaSourcePath = join(
+const schemaSourceDirPath = join(
   packageDirPath,
   "..",
   "ddd-spec-core",
-  "schema",
-  "business-spec.schema.json"
+  "schema"
 );
-const schemaOutputPath = join(
+const schemaOutputDirPath = join(
   distDirPath,
   "ddd-spec-core",
-  "schema",
-  "business-spec.schema.json"
+  "schema"
 );
 const cliEntryPath = join(distDirPath, "ddd-spec-cli", "cli.js");
 const viewerAppDirPath = join(packageDirPath, "..", "..", "apps", "ddd-spec-viewer");
@@ -38,8 +36,8 @@ const viewerGeneratedGitkeepPath = join(
 await rm(distDirPath, { recursive: true, force: true });
 await runTypescriptBuild();
 await buildViewerStaticAssets();
-await mkdir(join(distDirPath, "ddd-spec-core", "schema"), { recursive: true });
-await cp(schemaSourcePath, schemaOutputPath);
+await mkdir(join(distDirPath, "ddd-spec-core"), { recursive: true });
+await cp(schemaSourceDirPath, schemaOutputDirPath, { recursive: true });
 await chmod(cliEntryPath, 0o755);
 
 async function runTypescriptBuild() {
