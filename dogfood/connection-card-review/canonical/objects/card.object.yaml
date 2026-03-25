@@ -1,0 +1,29 @@
+kind: object
+id: Card
+title: Card
+lifecycleField: status
+lifecycle:
+  - suggested
+  - accepted
+  - archived
+fields:
+  - id: cardId
+    type: uuid
+    required: true
+    description: 卡片唯一标识。
+  - id: connectionId
+    type: uuid
+    required: true
+    description: 来源连接 ID。
+  - id: front
+    type: text
+    required: true
+    description: 卡片正面内容。
+  - id: back
+    type: text
+    required: true
+    description: 卡片背面内容。
+  - id: status
+    type: CardStatus
+    required: true
+    description: 卡片生命周期字段。

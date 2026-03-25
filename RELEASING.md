@@ -13,9 +13,9 @@ Run the release preview from a disposable checkout or via
 
 1. `npm run changeset`
 2. `npm run changeset:status`
-3. `npm run ddd-spec:release:dry-run`
+3. `npm run release:dry-run`
 
-`npm run ddd-spec:release:dry-run` runs `npm run ddd-spec:verify`, applies `changeset version`,
+`npm run release:dry-run` runs `npm run verify`, applies `changeset version`,
 and then executes `npm publish --dry-run --workspace=packages/ddd-spec-cli`.
 It is safe for CI and temporary worktrees because it never publishes, but it does update versioned
 files in-place inside the checked-out tree.

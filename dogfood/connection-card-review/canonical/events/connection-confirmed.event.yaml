@@ -1,0 +1,9 @@
+kind: event
+type: ConnectionConfirmed
+source: Connection
+description: 连接聚合已从 suggested 进入 confirmed。
+payload:
+  fields:
+    - id: connectionId
+      type: uuid
+      required: true

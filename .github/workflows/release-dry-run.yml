@@ -25,4 +25,4 @@ jobs:
         run: npm ci
 
       - name: Execute release dry run
-        run: npm run ddd-spec:release:dry-run
+        run: npm run release:dry-run

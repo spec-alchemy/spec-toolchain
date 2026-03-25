@@ -10,7 +10,7 @@ Private workspaces stay unversioned, so every maintainer-authored changeset shou
 1. Run `npm run changeset` and select `@knowledge-alchemy/ddd-spec`.
 2. Commit the generated `.changeset/*.md` file with the feature or fix.
 3. Review the pending release plan with `npm run changeset:status`.
-4. Run `npm run ddd-spec:release:dry-run` from a disposable checkout or
+4. Run `npm run release:dry-run` from a disposable checkout or
    [`../.github/workflows/release-dry-run.yml`](../.github/workflows/release-dry-run.yml)
    to apply `changeset version` and execute `npm publish --dry-run` without publishing.
 

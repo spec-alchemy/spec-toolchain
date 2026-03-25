@@ -197,7 +197,7 @@ export default function App() {
               lines={[
                 errorMessage,
                 specSource.isDefault
-                  ? "Run `ddd-spec build` or `npm run ddd-spec:build` to regenerate the default viewer spec."
+                  ? "Run `ddd-spec build` or `npm run repo:build` to regenerate the default viewer spec."
                   : `Check the external spec source: ${specSource.label}`
               ]}
             />

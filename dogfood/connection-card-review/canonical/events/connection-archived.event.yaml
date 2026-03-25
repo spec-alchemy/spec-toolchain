@@ -1,0 +1,13 @@
+kind: event
+type: ConnectionArchived
+source: Connection
+description: 连接聚合已从 suggested 进入 archived。
+payload:
+  fields:
+    - id: connectionId
+      type: uuid
+      required: true
+    - id: reason
+      type: text
+      required: true
+      description: 触发连接归档的业务原因说明。

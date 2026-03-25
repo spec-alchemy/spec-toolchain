@@ -192,6 +192,9 @@ const DEFAULT_SCHEMA_PATH = toAbsolutePath("../ddd-spec-core/schema/business-spe
 const CONNECTION_CARD_REVIEW_FIXTURE_ENTRY_PATH = toAbsolutePath(
   "../../test/fixtures/connection-card-review/canonical/index.yaml"
 );
+const REPO_DOGFOOD_ENTRY_PATH = toAbsolutePath(
+  "../../dogfood/connection-card-review/canonical/index.yaml"
+);
 const CLI_PACKAGE_JSON_PATH = toAbsolutePath("./package.json");
 const CLI_PACKAGE_README_PATH = toAbsolutePath("./README.md");
 const CLI_DIST_ENTRY_PATH = toAbsolutePath("./dist/ddd-spec-cli/cli.js");
@@ -385,14 +388,14 @@ test("CLI failure output preserves an existing init hint without duplicating gui
   assert.equal(countMatches(output, "Run `ddd-spec init`"), 1);
 });
 
-test("repo viewer config resolves fixture-backed outputs and sync targets", async () => {
+test("repo viewer config resolves dogfood-backed outputs and sync targets", async () => {
   const config = await loadDddSpecConfig({
     configPath: REPO_VIEWER_CONFIG_PATH
   });
 
   assert.equal(config.mode, "config");
   assert.equal(config.sourceDescription, REPO_VIEWER_CONFIG_PATH);
-  assert.equal(config.spec.entryPath, CONNECTION_CARD_REVIEW_FIXTURE_ENTRY_PATH);
+  assert.equal(config.spec.entryPath, REPO_DOGFOOD_ENTRY_PATH);
   assert.equal(
     config.outputs.rootDirPath,
     toAbsolutePath("../../.ddd-spec/artifacts")
@@ -425,42 +428,40 @@ test("root package scripts target the repo viewer config", async () => {
     scripts: Record<string, string>;
   };
 
-  assert.equal(
-    packageJson.scripts["build:ddd-spec-viewer"],
-    "npm run build --workspace=apps/ddd-spec-viewer"
-  );
   assert.equal(packageJson.scripts.changeset, "changeset");
   assert.equal(packageJson.scripts["changeset:status"], "changeset status --verbose");
   assert.equal(packageJson.scripts["changeset:version"], "changeset version");
   assert.equal(
-    packageJson.scripts["ddd-spec:validate"],
+    packageJson.scripts["repo:validate"],
     "npm run build --workspace=packages/ddd-spec-cli && npm run repo:cli --workspace=packages/ddd-spec-cli -- validate --config apps/ddd-spec-viewer/ddd-spec.config.yaml"
   );
   assert.equal(
-    packageJson.scripts["ddd-spec:build"],
+    packageJson.scripts["repo:build"],
     "npm run build --workspace=packages/ddd-spec-cli && npm run repo:cli --workspace=packages/ddd-spec-cli -- build --config apps/ddd-spec-viewer/ddd-spec.config.yaml"
   );
   assert.equal(
-    packageJson.scripts["ddd-spec:viewer"],
+    packageJson.scripts["repo:viewer"],
     "npm run build --workspace=packages/ddd-spec-cli && npm run repo:cli --workspace=packages/ddd-spec-cli -- viewer --config apps/ddd-spec-viewer/ddd-spec.config.yaml --"
   );
+  assert.equal(packageJson.scripts["pkg:test"], "npm run test --workspace=packages/ddd-spec-cli");
   assert.equal(
-    packageJson.scripts["ddd-spec:test"],
-    "npm run test --workspace=packages/ddd-spec-cli"
+    packageJson.scripts.verify,
+    "npm run repo:build && npm run pkg:test && npm run build --workspace=apps/ddd-spec-viewer"
   );
   assert.equal(
-    packageJson.scripts["ddd-spec:verify"],
-    "npm run ddd-spec:build && npm run ddd-spec:test && npm run build:ddd-spec-viewer"
+    packageJson.scripts["release:dry-run"],
+    "npm run verify && npm run changeset:status && npm run changeset:version && npm publish --dry-run --workspace=packages/ddd-spec-cli"
   );
-  assert.equal(
-    packageJson.scripts["ddd-spec:release:dry-run"],
-    "npm run ddd-spec:verify && npm run changeset:status && npm run changeset:version && npm publish --dry-run --workspace=packages/ddd-spec-cli"
-  );
+  assert.equal(packageJson.scripts["build:ddd-spec-viewer"], undefined);
+  assert.equal(packageJson.scripts["ddd-spec:validate"], undefined);
+  assert.equal(packageJson.scripts["ddd-spec:build"], undefined);
+  assert.equal(packageJson.scripts["ddd-spec:viewer"], undefined);
+  assert.equal(packageJson.scripts["ddd-spec:test"], undefined);
+  assert.equal(packageJson.scripts["ddd-spec:verify"], undefined);
+  assert.equal(packageJson.scripts["ddd-spec:release:dry-run"], undefined);
   assert.equal(packageJson.scripts["ddd-spec:init"], undefined);
-  assert.equal(
-    packageJson.scripts["dev:ddd-spec-viewer"],
-    "npm run dev --workspace=apps/ddd-spec-viewer"
-  );
+  assert.equal(packageJson.scripts["test:ddd-spec"], undefined);
+  assert.equal(packageJson.scripts["dev:ddd-spec-viewer"], undefined);
   assert.equal(packageJson.devDependencies["@changesets/cli"], "^2.30.0");
 });
 
@@ -486,7 +487,7 @@ test("changesets config versions only the public CLI package boundary", async ()
   });
   assert.match(readmeSource, /@knowledge-alchemy\/ddd-spec/);
   assert.match(readmeSource, /npm run changeset/);
-  assert.match(readmeSource, /npm run ddd-spec:release:dry-run/);
+  assert.match(readmeSource, /npm run release:dry-run/);
 });
 
 test("release dry-run workflow runs the reusable maintainer release preview", async () => {
@@ -497,7 +498,7 @@ test("release dry-run workflow runs the reusable maintainer release preview", as
   assert.match(workflowSource, /fetch-depth: 0/);
   assert.match(workflowSource, /node-version: 24/);
   assert.match(workflowSource, /npm ci/);
-  assert.match(workflowSource, /npm run ddd-spec:release:dry-run/);
+  assert.match(workflowSource, /npm run release:dry-run/);
 });
 
 test("maintainer docs explain the release dry-run and publish handoff", async () => {
@@ -506,7 +507,7 @@ test("maintainer docs explain the release dry-run and publish handoff", async ()
 
   assert.match(rootReadmeSource, /npm run changeset/);
   assert.match(rootReadmeSource, /npm run changeset:status/);
-  assert.match(rootReadmeSource, /npm run ddd-spec:release:dry-run/);
+  assert.match(rootReadmeSource, /npm run release:dry-run/);
   assert.match(rootReadmeSource, /npm publish --dry-run --workspace=packages\/ddd-spec-cli/);
   assert.match(rootReadmeSource, /commit the version and changelog files produced by `changeset version`/);
   assert.match(releaseGuideSource, /Version management lives under \[`\.changeset\/`\]/);
@@ -522,14 +523,16 @@ test("maintainer docs describe the package boundary, viewer delivery, and repo-o
     readFile(VIEWER_APP_README_PATH, "utf8")
   ]);
 
-  assert.match(rootReadmeSource, /maintainer workflows for dogfooding and regression/);
-  assert.match(rootReadmeSource, /repo-only dogfood, regression, and maintainer materials/);
+  assert.match(rootReadmeSource, /maintainer workflows for repo-local dogfooding and regression/);
+  assert.match(rootReadmeSource, /dogfood\//);
+  assert.match(rootReadmeSource, /test\/fixtures\//);
   assert.match(
     rootReadmeSource,
     /remains private source\. The shipped viewer is the static bundle emitted into `packages\/ddd-spec-cli\/dist\/ddd-spec-cli\/static\/viewer\/`/
   );
   assert.match(agentsSource, /Root package is a private maintainer workspace/);
-  assert.match(agentsSource, /repo-only inputs\/docs and are not published in the product tarball/);
+  assert.match(agentsSource, /dogfood\//);
+  assert.match(agentsSource, /test\/fixtures\//);
   assert.match(agentsSource, /the shipped viewer is the built bundle/);
   assert.match(viewerReadmeSource, /不是对外 npm package 边界/);
   assert.match(

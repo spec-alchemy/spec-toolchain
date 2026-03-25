@@ -1,0 +1,9 @@
+kind: command
+type: acceptSuggestedCard
+target: Card
+description: 接受建议卡片，使闭环正常完成。
+payload:
+  fields:
+    - id: cardId
+      type: uuid
+      required: true

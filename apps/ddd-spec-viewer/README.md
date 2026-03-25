@@ -9,7 +9,7 @@
 维护入口推荐直接在仓库根目录运行：
 
 ```bash
-npm run ddd-spec:viewer
+npm run repo:viewer
 ```
 
 这条命令会：
@@ -23,16 +23,16 @@ npm run ddd-spec:viewer
 如果要做 app-local 开发，单独运行 workspace 的 Vite dev server：
 
 ```bash
-npm run dev:ddd-spec-viewer
+npm run dev --workspace=apps/ddd-spec-viewer
 ```
 
-这条内部开发命令默认读取 `public/generated/viewer-spec.json`。通常先运行一次 `npm run ddd-spec:build`，把最新 viewer spec 同步到该路径。
-如果只想验证 app workspace 的构建，可运行 `npm run build:ddd-spec-viewer`。
+这条内部开发命令默认读取 `public/generated/viewer-spec.json`。通常先运行一次 `npm run repo:build`，把最新 viewer spec 同步到该路径。
+如果只想验证 app workspace 的构建，可运行 `npm run build --workspace=apps/ddd-spec-viewer`。
 
 如果需要给 CLI viewer server 透传参数，可使用：
 
 ```bash
-npm run ddd-spec:viewer -- --host 0.0.0.0 --port 4173
+npm run repo:viewer -- --host 0.0.0.0 --port 4173
 ```
 
 ## Data Loading
