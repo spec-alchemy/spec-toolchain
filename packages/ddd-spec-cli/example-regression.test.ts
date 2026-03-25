@@ -270,15 +270,22 @@ test("zero-config validate shows an init hint when the canonical entry is missin
   }
 });
 
-test("CLI help keeps --config hidden and documents zero-config defaults", () => {
+test("CLI help documents zero-config defaults and advanced --config support", () => {
   const usageText = buildUsageText();
 
-  assert.doesNotMatch(usageText, /--config/);
-  assert.match(usageText, /Standard workflow:/);
+  assert.match(usageText, /Default workflow:/);
+  assert.match(usageText, /Advanced config:/);
+  assert.match(usageText, /Use --config <path> to load a version: 1 DDD spec config file/);
   assert.match(usageText, /\n  init\n/);
+  assert.match(usageText, /\n  validate \[--config <path>\]\n/);
+  assert.match(usageText, /\n  build \[--config <path>\]\n/);
+  assert.match(usageText, /\n  viewer \[--config <path>\] \[-- <viewer-args\.\.\.>\]\n/);
+  assert.match(usageText, /\n  generate-viewer \[--config <path>\]\n/);
+  assert.match(usageText, /generate-typescript \[--config <path>\]$/);
+  assert.doesNotMatch(usageText, /\n  generate viewer\n/);
+  assert.doesNotMatch(usageText, /\n  generate typescript\n/);
   assert.match(usageText, /\n  ddd-spec init\n/);
   assert.match(usageText, /edit ddd-spec\/canonical\//);
-  assert.match(usageText, /\n  viewer \[-- <viewer-args\.\.\.>\]\n/);
   assert.match(usageText, /ddd-spec\/canonical\/index\.yaml/);
   assert.match(usageText, /\.ddd-spec\//);
 });
@@ -397,16 +404,28 @@ test("CLI package metadata publishes a dist-backed installable command surface",
   assert.equal(packageJson.dependencies.yaml, "^2.8.3");
 });
 
-test("product README documents supported npx and installed command usage", async () => {
+test("product README documents zero-config defaults and advanced --config usage", async () => {
   const readmeSource = await readFile(CLI_PACKAGE_README_PATH, "utf8");
 
+  assert.match(readmeSource, /Zero-config is the default product path/);
+  assert.match(readmeSource, /Use `--config <path>` only when a workspace needs custom entry paths/);
+  assert.match(readmeSource, /`init` creates a starter `ddd-spec\/canonical\/` tree/);
   assert.match(readmeSource, /npx @knowledge-alchemy\/ddd-spec init/);
   assert.match(readmeSource, /npx @knowledge-alchemy\/ddd-spec build/);
   assert.match(readmeSource, /npx @knowledge-alchemy\/ddd-spec viewer -- --port 4173/);
+  assert.match(
+    readmeSource,
+    /npx @knowledge-alchemy\/ddd-spec validate --config \.\/ddd-spec\.config\.yaml/
+  );
+  assert.match(
+    readmeSource,
+    /npx @knowledge-alchemy\/ddd-spec viewer --config \.\/ddd-spec\.config\.yaml -- --host 0\.0\.0\.0/
+  );
   assert.match(readmeSource, /npm install -g @knowledge-alchemy\/ddd-spec/);
   assert.match(readmeSource, /ddd-spec validate/);
   assert.match(readmeSource, /ddd-spec viewer -- --host 0\.0\.0\.0/);
   assert.match(readmeSource, /npm exec ddd-spec build/);
+  assert.match(readmeSource, /npm exec ddd-spec build --config \.\/ddd-spec\.config\.yaml/);
   assert.match(readmeSource, /npm exec ddd-spec viewer -- --port 4173/);
   assert.match(readmeSource, /npx --no-install ddd-spec validate/);
   assert.match(
@@ -664,6 +683,32 @@ test("CLI build syncs viewer spec to configured sync targets", async () => {
   }
 });
 
+test("CLI validate succeeds in explicit config mode without writing outputs", async () => {
+  const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-config-validate-"));
+
+  try {
+    const configPath = await writeExampleConfig({
+      rootPath: tempDir,
+      example: ZERO_CONFIG_FIXTURE
+    });
+
+    await runCliCommand(["validate", "--config", configPath], {
+      cwd: tempDir
+    });
+
+    await assert.rejects(
+      readFile(join(tempDir, "artifacts", "business-spec.json"), "utf8"),
+      /ENOENT/
+    );
+    await assert.rejects(
+      readFile(join(tempDir, "artifacts", "business-viewer", "viewer-spec.json"), "utf8"),
+      /ENOENT/
+    );
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
+
 test("CLI init creates a minimal zero-config skeleton that validate accepts", async () => {
   const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-init-"));
 
@@ -883,6 +928,45 @@ test("CLI viewer rebuilds the zero-config viewer artifact and launches the packa
   }
 });
 
+test("CLI viewer rebuilds the explicit-config viewer artifact and launches the packaged static server", async () => {
+  const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-config-viewer-"));
+  let launchOptions: LaunchViewerOptions | undefined;
+
+  try {
+    const configPath = await writeExampleConfig({
+      rootPath: tempDir,
+      example: ZERO_CONFIG_FIXTURE
+    });
+
+    await runCliCommand(["viewer", "--config", configPath, "--", "--host", "0.0.0.0", "--port", "0"], {
+      cwd: tempDir,
+      viewerCommandHooks: {
+        launchViewer: async (options) => {
+          launchOptions = options;
+        }
+      }
+    });
+
+    assert.ok(launchOptions);
+    assert.equal(launchOptions.assetDirPath, CLI_DIST_VIEWER_DIR_PATH);
+    assert.equal(
+      launchOptions.viewerSpecPath,
+      join(tempDir, "artifacts", "business-viewer", "viewer-spec.json")
+    );
+    assert.equal(launchOptions.host, "0.0.0.0");
+    assert.equal(launchOptions.port, 0);
+    assert.equal(launchOptions.openBrowser, false);
+
+    const viewer = JSON.parse(
+      await readFile(join(tempDir, "artifacts", "business-viewer", "viewer-spec.json"), "utf8")
+    ) as BusinessViewerSpec;
+
+    assertExampleViewer(viewer, ZERO_CONFIG_FIXTURE);
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
+
 function assertExampleBundle(bundle: BusinessSpec, example: ExampleFixture): void {
   assert.equal(bundle.id, example.id);
   assert.deepEqual(
@@ -1080,6 +1164,42 @@ async function copyExampleCanonicalToZeroConfigRoot(
     join(targetRootPath, "ddd-spec", "canonical"),
     { recursive: true }
   );
+}
+
+async function writeExampleConfig(options: {
+  example: ExampleFixture;
+  rootPath: string;
+  viewerSyncTargets?: readonly string[];
+}): Promise<string> {
+  const configPath = join(options.rootPath, "ddd-spec.config.yaml");
+
+  await writeFile(
+    configPath,
+    YAML.stringify({
+      version: 1,
+      spec: {
+        entry: options.example.entryPath
+      },
+      outputs: {
+        rootDir: "./artifacts",
+        typescript: `./generated/${options.example.id}.generated.ts`
+      },
+      ...(options.viewerSyncTargets
+        ? {
+            viewer: {
+              syncTargets: [...options.viewerSyncTargets]
+            }
+          }
+        : {}),
+      projections: {
+        viewer: true,
+        typescript: true
+      }
+    }),
+    "utf8"
+  );
+
+  return configPath;
 }
 
 async function installPublishedCliPackage(consumerRootPath: string): Promise<string> {

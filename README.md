@@ -19,6 +19,7 @@ This repository is a private maintainer monorepo for the DDD spec toolchain. The
 
 The root `ddd-spec:*` scripts target [`apps/ddd-spec-viewer/ddd-spec.config.yaml`](./apps/ddd-spec-viewer/ddd-spec.config.yaml). That repo-local config builds the shared [`test/fixtures/connection-card-review/`](./test/fixtures/connection-card-review/) fixture into `./.ddd-spec/` and syncs the internal app fallback asset into [`apps/ddd-spec-viewer/public/generated/viewer-spec.json`](./apps/ddd-spec-viewer/public/generated/viewer-spec.json).
 `npm run ddd-spec:viewer` now launches the packaged CLI viewer server, while `npm run dev --workspace=apps/ddd-spec-viewer` remains the separate repo-local Vite development path.
+These root scripts are maintainer entrypoints for this monorepo's repo-local explicit-config fixture flow, not consumer workspace examples.
 
 ## Repository Layout
 
@@ -37,7 +38,7 @@ The root `ddd-spec:*` scripts target [`apps/ddd-spec-viewer/ddd-spec.config.yaml
 
 ## Consumer Note
 
-The external package still supports zero-config consumer repos with `ddd-spec/canonical/index.yaml`, `ddd-spec init`, and standard `.ddd-spec/` outputs. That workflow is now exercised in CLI regression tests rather than by maintaining a business domain at this repo root.
+Consumer usage belongs to [`packages/ddd-spec-cli/README.md`](./packages/ddd-spec-cli/README.md): start with zero-config `ddd-spec init`, `ddd-spec/canonical/index.yaml`, and standard `.ddd-spec/` outputs. Use `--config <path>` only as an advanced consumer path when a workspace needs custom layout. This repo root keeps the maintainer workflow only.
 
 ## Further Reading
 
