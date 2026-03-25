@@ -7,8 +7,7 @@
   "required": ["version", "id", "title", "summary", "vocabulary", "domain"],
   "properties": {
     "version": {
-      "type": "integer",
-      "minimum": 1
+      "const": 2
     },
     "id": {
       "type": "string",
@@ -113,6 +112,76 @@
         },
         "description": {
           "type": "string"
+        },
+        "structure": {
+          "enum": ["scalar", "enum", "reference"]
+        },
+        "target": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "required": ["target"]
+          },
+          "then": {
+            "required": ["structure"]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "structure": {
+                "enum": ["enum", "reference"]
+              }
+            },
+            "required": ["structure"]
+          },
+          "then": {
+            "required": ["target"]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "structure": {
+                "const": "scalar"
+              }
+            },
+            "required": ["structure"]
+          },
+          "then": {
+            "not": {
+              "required": ["target"]
+            }
+          }
+        }
+      ]
+    },
+    "relationSpec": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "target"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "enum": ["association", "composition", "reference"]
+        },
+        "target": {
+          "type": "string",
+          "minLength": 1
+        },
+        "field": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string"
         }
       }
     },
@@ -130,9 +199,19 @@
       }
     },
     "objectSpec": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/aggregateObjectSpec"
+        },
+        {
+          "$ref": "#/$defs/enumObjectSpec"
+        }
+      ]
+    },
+    "aggregateObjectSpec": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["kind", "id", "title", "lifecycleField", "lifecycle", "fields"],
+      "required": ["kind", "id", "title", "role", "lifecycleField", "lifecycle", "fields"],
       "properties": {
         "kind": {
           "const": "object"
@@ -144,6 +223,9 @@
         "title": {
           "type": "string",
           "minLength": 1
+        },
+        "role": {
+          "const": "aggregate"
         },
         "lifecycleField": {
           "type": "string",
@@ -162,6 +244,47 @@
           "minItems": 1,
           "items": {
             "$ref": "#/$defs/fieldSpec"
+          }
+        },
+        "relations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/relationSpec"
+          }
+        }
+      }
+    },
+    "enumObjectSpec": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "id", "title", "role", "values"],
+      "properties": {
+        "kind": {
+          "const": "object"
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "role": {
+          "const": "enum"
+        },
+        "values": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "relations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/relationSpec"
           }
         }
       }

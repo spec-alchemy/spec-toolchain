@@ -1,6 +1,7 @@
 kind: object
 id: ModerationCase
 title: ModerationCase
+role: aggregate
 lifecycleField: moderationStatus
 lifecycle:
   - queued
@@ -23,4 +24,6 @@ fields:
   - id: moderationStatus
     type: ModerationStatus
     required: true
+    structure: enum
+    target: ModerationStatus
     description: 审核工单当前所处的生命周期状态。

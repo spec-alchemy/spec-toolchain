@@ -2,6 +2,7 @@ import type {
   FieldSpec,
   ObjectSpec
 } from "./spec.js";
+import { isAggregateObjectSpec } from "./spec.js";
 
 export function hasDescription(description?: string): description is string {
   return Boolean(description && description.trim().length > 0);
@@ -15,7 +16,9 @@ export function resolveFieldDescription(
     return field.description.trim();
   }
 
-  const matchingObjectField = object?.fields.find((candidate) => candidate.id === field.id);
+  const matchingObjectField = object && isAggregateObjectSpec(object)
+    ? object.fields.find((candidate: FieldSpec) => candidate.id === field.id)
+    : undefined;
 
   if (hasDescription(matchingObjectField?.description)) {
     return matchingObjectField.description.trim();

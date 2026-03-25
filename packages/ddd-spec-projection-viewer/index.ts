@@ -6,6 +6,7 @@ import type {
   ObjectSpec,
   ProcessSpec
 } from "../ddd-spec-core/spec.js";
+import { isAggregateObjectSpec } from "../ddd-spec-core/spec.js";
 import type {
   AggregateGraph,
   BusinessGraph,
@@ -171,7 +172,7 @@ function buildCompositionView(context: ViewerContext): ViewerViewSpec {
       const aggregateStateId = toCompositionAggregateStateId(objectId, stateId);
 
       if (!aggregateGroupIds.has(aggregateGroupId)) {
-        const objectSpec = mustGet(context.objectById, objectId, "object");
+        const objectSpec = mustGetAggregateObjectSpec(context.objectById, objectId);
         const lifecycleRefs = [...context.stageRefsByAggregateStateKey.entries()]
           .filter(([key]) => key.startsWith(`${objectId}:`))
           .flatMap(([, refs]) => refs);
@@ -316,7 +317,7 @@ function buildLifecycleView(context: ViewerContext): ViewerViewSpec {
   const edges: ViewerEdgeSpec[] = [];
 
   for (const aggregateGraph of context.graph.aggregates) {
-    const objectSpec = mustGet(context.objectById, aggregateGraph.objectId, "object");
+    const objectSpec = mustGetAggregateObjectSpec(context.objectById, aggregateGraph.objectId);
     const aggregateSpec = mustGet(
       context.aggregateSpecByObjectId,
       aggregateGraph.objectId,
@@ -894,6 +895,19 @@ function mustGet<Key, Value>(map: ReadonlyMap<Key, Value>, key: Key, label: stri
   }
 
   return value;
+}
+
+function mustGetAggregateObjectSpec(
+  objectById: ReadonlyMap<string, ObjectSpec>,
+  objectId: string
+): Extract<ObjectSpec, { role: "aggregate" }> {
+  const object = mustGet(objectById, objectId, "object");
+
+  if (!isAggregateObjectSpec(object)) {
+    throw new Error(`Aggregate ${objectId} must bind to object role aggregate`);
+  }
+
+  return object;
 }
 
 function mustFind<Value>(

@@ -297,7 +297,7 @@ test("CLI init skips overlapping existing YAML schema globs", async () => {
 test("CLI init refuses to overwrite an existing canonical index", async () => {
   const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-init-existing-"));
   const entryPath = join(tempDir, "ddd-spec", "canonical", "index.yaml");
-  const existingSource = "version: 1\n";
+  const existingSource = "version: 2\n";
 
   try {
     await mkdir(join(tempDir, "ddd-spec", "canonical"), { recursive: true });

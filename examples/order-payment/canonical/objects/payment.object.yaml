@@ -1,6 +1,7 @@
 kind: object
 id: Payment
 title: Payment
+role: aggregate
 lifecycleField: paymentStatus
 lifecycle:
   - pending
@@ -13,6 +14,8 @@ fields:
   - id: orderId
     type: uuid
     required: true
+    structure: reference
+    target: Order
     description: 关联订单的唯一标识。
   - id: paidAmount
     type: decimal
@@ -21,4 +24,12 @@ fields:
   - id: paymentStatus
     type: PaymentStatus
     required: true
+    structure: enum
+    target: PaymentStatus
     description: 支付生命周期字段。
+relations:
+  - id: settlesOrder
+    kind: reference
+    target: Order
+    field: orderId
+    description: 支付记录结算对应订单。

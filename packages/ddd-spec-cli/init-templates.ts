@@ -141,7 +141,7 @@ const INIT_TEMPLATE_DEFINITIONS = [
     files: [
       {
         relativePath: ZERO_CONFIG_ENTRY_PATH,
-        source: `version: 1
+        source: `version: 2
 id: approval-workflow
 title: Approval Request Workflow
 summary: Teaching template showing how a request moves from draft to review, then closes as approved or rejected.
@@ -150,6 +150,7 @@ vocabulary:
 domain:
   objects:
     - ./objects/approval-request.object.yaml
+    - ./objects/approval-request-status.object.yaml
   commands:
     - ./commands/submit-approval-request.command.yaml
     - ./commands/approve-request.command.yaml
@@ -170,6 +171,7 @@ domain:
         source: `kind: object
 id: ApprovalRequest
 title: Approval Request
+role: aggregate
 lifecycleField: status
 lifecycle:
   - draft
@@ -200,7 +202,22 @@ fields:
   - id: status
     type: ApprovalRequestStatus
     required: true
+    structure: enum
+    target: ApprovalRequestStatus
     description: Lifecycle field mirrored by the aggregate states and the workflow stages.
+`
+      },
+      {
+        relativePath: `${ZERO_CONFIG_CANONICAL_DIR}/objects/approval-request-status.object.yaml`,
+        source: `kind: object
+id: ApprovalRequestStatus
+title: Approval Request Status
+role: enum
+values:
+  - draft
+  - submitted
+  - approved
+  - rejected
 `
       },
       {
@@ -424,7 +441,7 @@ stages:
     files: [
       {
         relativePath: ZERO_CONFIG_ENTRY_PATH,
-        source: `version: 1
+        source: `version: 2
 id: minimal-domain
 title: Minimal Domain Skeleton
 summary: Minimal template with one object, one command, one event, one aggregate, and one process.
@@ -433,6 +450,7 @@ vocabulary:
 domain:
   objects:
     - ./objects/example-record.object.yaml
+    - ./objects/example-record-status.object.yaml
   commands:
     - ./commands/activate-example-record.command.yaml
   events:
@@ -449,6 +467,7 @@ domain:
         source: `kind: object
 id: ExampleRecord
 title: Example Record
+role: aggregate
 lifecycleField: status
 lifecycle:
   - draft
@@ -461,7 +480,20 @@ fields:
   - id: status
     type: ExampleRecordStatus
     required: true
+    structure: enum
+    target: ExampleRecordStatus
     description: Lifecycle field used by the minimal aggregate and process.
+`
+      },
+      {
+        relativePath: `${ZERO_CONFIG_CANONICAL_DIR}/objects/example-record-status.object.yaml`,
+        source: `kind: object
+id: ExampleRecordStatus
+title: Example Record Status
+role: enum
+values:
+  - draft
+  - active
 `
       },
       {
@@ -538,7 +570,7 @@ stages:
     files: [
       {
         relativePath: ZERO_CONFIG_ENTRY_PATH,
-        source: `version: 1
+        source: `version: 2
 id: order-payment
 title: Order Submission and Payment Workflow
 summary: Example-style template showing an order submission handing off to payment confirmation before the workflow closes.
@@ -548,6 +580,8 @@ domain:
   objects:
     - ./objects/order.object.yaml
     - ./objects/payment.object.yaml
+    - ./objects/order-status.object.yaml
+    - ./objects/payment-status.object.yaml
   commands:
     - ./commands/submit-order.command.yaml
     - ./commands/confirm-payment.command.yaml
@@ -567,6 +601,7 @@ domain:
         source: `kind: object
 id: Order
 title: Order
+role: aggregate
 lifecycleField: status
 lifecycle:
   - draft
@@ -587,6 +622,8 @@ fields:
   - id: status
     type: OrderStatus
     required: true
+    structure: enum
+    target: OrderStatus
     description: Lifecycle field mirrored by the order aggregate states.
 `
       },
@@ -595,6 +632,7 @@ fields:
         source: `kind: object
 id: Payment
 title: Payment
+role: aggregate
 lifecycleField: paymentStatus
 lifecycle:
   - pending
@@ -607,6 +645,8 @@ fields:
   - id: orderId
     type: uuid
     required: true
+    structure: reference
+    target: Order
     description: Connects the payment back to the order it settles.
   - id: paidAmount
     type: decimal
@@ -615,7 +655,37 @@ fields:
   - id: paymentStatus
     type: PaymentStatus
     required: true
+    structure: enum
+    target: PaymentStatus
     description: Lifecycle field mirrored by the payment aggregate states.
+relations:
+  - id: settlesOrder
+    kind: reference
+    target: Order
+    field: orderId
+    description: Payment settles the order it references.
+`
+      },
+      {
+        relativePath: `${ZERO_CONFIG_CANONICAL_DIR}/objects/order-status.object.yaml`,
+        source: `kind: object
+id: OrderStatus
+title: Order Status
+role: enum
+values:
+  - draft
+  - submitted
+`
+      },
+      {
+        relativePath: `${ZERO_CONFIG_CANONICAL_DIR}/objects/payment-status.object.yaml`,
+        source: `kind: object
+id: PaymentStatus
+title: Payment Status
+role: enum
+values:
+  - pending
+  - confirmed
 `
       },
       {

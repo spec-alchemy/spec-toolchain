@@ -1,0 +1,9 @@
+kind: object
+id: ModerationStatus
+title: Moderation Status
+role: enum
+values:
+  - queued
+  - reviewing
+  - approved
+  - rejected

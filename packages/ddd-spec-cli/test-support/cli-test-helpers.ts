@@ -19,7 +19,10 @@ import type {
   ObjectSpec,
   ProcessSpec
 } from "../../ddd-spec-core/index.js";
-import { loadBusinessSpec } from "../../ddd-spec-core/index.js";
+import {
+  isAggregateObjectSpec,
+  loadBusinessSpec
+} from "../../ddd-spec-core/index.js";
 import type {
   BusinessViewerSpec,
   ViewerDetailItem,
@@ -63,6 +66,11 @@ export function assertExampleBundle(bundle: BusinessSpec, example: ExampleFixtur
       bundle.domain.objects,
       (candidate) => candidate.id === requirement.objectId
     );
+
+    if (!isAggregateObjectSpec(object)) {
+      throw new Error(`Expected aggregate object ${requirement.objectId}`);
+    }
+
     const field = mustFind(object.fields, (candidate) => candidate.id === requirement.fieldId);
 
     assert.equal(field.required, requirement.required);
@@ -467,6 +475,7 @@ export async function assertGeneratedInitSkeleton(
       join(canonicalRootPath, "processes"),
       join(canonicalRootPath, "vocabulary"),
       join(canonicalRootPath, "objects", "approval-request.object.yaml"),
+      join(canonicalRootPath, "objects", "approval-request-status.object.yaml"),
       join(canonicalRootPath, "commands", "submit-approval-request.command.yaml"),
       join(canonicalRootPath, "commands", "approve-request.command.yaml"),
       join(canonicalRootPath, "commands", "reject-request.command.yaml"),
@@ -486,6 +495,7 @@ export async function assertGeneratedInitSkeleton(
       join(canonicalRootPath, "processes"),
       join(canonicalRootPath, "vocabulary"),
       join(canonicalRootPath, "objects", "example-record.object.yaml"),
+      join(canonicalRootPath, "objects", "example-record-status.object.yaml"),
       join(canonicalRootPath, "commands", "activate-example-record.command.yaml"),
       join(canonicalRootPath, "events", "example-record-activated.event.yaml"),
       join(canonicalRootPath, "aggregates", "example-record.aggregate.yaml"),
@@ -502,6 +512,8 @@ export async function assertGeneratedInitSkeleton(
       join(canonicalRootPath, "vocabulary"),
       join(canonicalRootPath, "objects", "order.object.yaml"),
       join(canonicalRootPath, "objects", "payment.object.yaml"),
+      join(canonicalRootPath, "objects", "order-status.object.yaml"),
+      join(canonicalRootPath, "objects", "payment-status.object.yaml"),
       join(canonicalRootPath, "commands", "submit-order.command.yaml"),
       join(canonicalRootPath, "commands", "confirm-payment.command.yaml"),
       join(canonicalRootPath, "events", "order-submitted.event.yaml"),
@@ -524,11 +536,18 @@ export async function assertGeneratedInitSkeleton(
 
   switch (templateId) {
     case "default": {
-      const approvalObject = spec.domain.objects[0];
+      const approvalObject = mustFind(spec.domain.objects, (object) => object.id === "ApprovalRequest");
       const approvalProcess = spec.domain.processes[0];
+      const approvalStatus = mustFind(
+        spec.domain.objects,
+        (object) => object.id === "ApprovalRequestStatus"
+      );
 
       assert.equal(spec.id, "approval-workflow");
-      assert.deepEqual(spec.domain.objects.map((object) => object.id), ["ApprovalRequest"]);
+      assert.deepEqual(spec.domain.objects.map((object) => object.id), [
+        "ApprovalRequest",
+        "ApprovalRequestStatus"
+      ]);
       assert.deepEqual(
         spec.domain.commands.map((command) => command.type),
         ["submitApprovalRequest", "approveRequest", "rejectRequest"]
@@ -537,8 +556,21 @@ export async function assertGeneratedInitSkeleton(
         spec.domain.events.map((event) => event.type),
         ["ApprovalRequestSubmitted", "ApprovalRequestApproved", "ApprovalRequestRejected"]
       );
+      assert.ok(isAggregateObjectSpec(approvalObject));
+      assert.equal(approvalObject.role, "aggregate");
       assert.equal(approvalObject.lifecycleField, "status");
       assert.deepEqual(approvalObject.lifecycle, ["draft", "submitted", "approved", "rejected"]);
+      assert.deepEqual(approvalObject.fields.at(-1), {
+        id: "status",
+        type: "ApprovalRequestStatus",
+        required: true,
+        structure: "enum",
+        target: "ApprovalRequestStatus",
+        description: "Lifecycle field mirrored by the aggregate states and the workflow stages."
+      });
+      assert.ok(!isAggregateObjectSpec(approvalStatus));
+      assert.equal(approvalStatus.role, "enum");
+      assert.deepEqual(approvalStatus.values, ["draft", "submitted", "approved", "rejected"]);
       assert.equal(approvalProcess.id, "approvalRequestWorkflow");
       assert.equal(approvalProcess.initialStage, "draftingRequest");
       assert.deepEqual(approvalProcess.uses.aggregates, {
@@ -556,12 +588,19 @@ export async function assertGeneratedInitSkeleton(
       return;
     }
     case "minimal": {
-      const minimalObject = spec.domain.objects[0];
+      const minimalObject = mustFind(spec.domain.objects, (object) => object.id === "ExampleRecord");
       const minimalAggregate = spec.domain.aggregates[0];
       const minimalProcess = spec.domain.processes[0];
+      const minimalStatus = mustFind(
+        spec.domain.objects,
+        (object) => object.id === "ExampleRecordStatus"
+      );
 
       assert.equal(spec.id, "minimal-domain");
-      assert.deepEqual(spec.domain.objects.map((object) => object.id), ["ExampleRecord"]);
+      assert.deepEqual(spec.domain.objects.map((object) => object.id), [
+        "ExampleRecord",
+        "ExampleRecordStatus"
+      ]);
       assert.deepEqual(
         spec.domain.commands.map((command) => command.type),
         ["activateExampleRecord"]
@@ -574,8 +613,21 @@ export async function assertGeneratedInitSkeleton(
         spec.domain.processes.map((process) => process.id),
         ["exampleRecordLifecycle"]
       );
+      assert.ok(isAggregateObjectSpec(minimalObject));
+      assert.equal(minimalObject.role, "aggregate");
       assert.equal(minimalObject.lifecycleField, "status");
       assert.deepEqual(minimalObject.lifecycle, ["draft", "active"]);
+      assert.deepEqual(minimalObject.fields.at(-1), {
+        id: "status",
+        type: "ExampleRecordStatus",
+        required: true,
+        structure: "enum",
+        target: "ExampleRecordStatus",
+        description: "Lifecycle field used by the minimal aggregate and process."
+      });
+      assert.ok(!isAggregateObjectSpec(minimalStatus));
+      assert.equal(minimalStatus.role, "enum");
+      assert.deepEqual(minimalStatus.values, ["draft", "active"]);
       assert.equal(minimalAggregate.objectId, "ExampleRecord");
       assert.equal(minimalAggregate.initial, "draft");
       assert.deepEqual(minimalAggregate.states.draft?.on, {
@@ -604,9 +656,19 @@ export async function assertGeneratedInitSkeleton(
       const orderProcess = spec.domain.processes[0];
       const orderObject = mustFind(spec.domain.objects, (object) => object.id === "Order");
       const paymentObject = mustFind(spec.domain.objects, (object) => object.id === "Payment");
+      const orderStatus = mustFind(spec.domain.objects, (object) => object.id === "OrderStatus");
+      const paymentStatus = mustFind(
+        spec.domain.objects,
+        (object) => object.id === "PaymentStatus"
+      );
 
       assert.equal(spec.id, "order-payment");
-      assert.deepEqual(spec.domain.objects.map((object) => object.id), ["Order", "Payment"]);
+      assert.deepEqual(spec.domain.objects.map((object) => object.id), [
+        "Order",
+        "Payment",
+        "OrderStatus",
+        "PaymentStatus"
+      ]);
       assert.deepEqual(
         spec.domain.commands.map((command) => command.type),
         ["submitOrder", "confirmPayment"]
@@ -619,10 +681,45 @@ export async function assertGeneratedInitSkeleton(
         "Order",
         "Payment"
       ]);
+      assert.ok(isAggregateObjectSpec(orderObject));
+      assert.equal(orderObject.role, "aggregate");
       assert.equal(orderObject.lifecycleField, "status");
       assert.deepEqual(orderObject.lifecycle, ["draft", "submitted"]);
+      assert.deepEqual(orderObject.fields.at(-1), {
+        id: "status",
+        type: "OrderStatus",
+        required: true,
+        structure: "enum",
+        target: "OrderStatus",
+        description: "Lifecycle field mirrored by the order aggregate states."
+      });
+      assert.ok(isAggregateObjectSpec(paymentObject));
+      assert.equal(paymentObject.role, "aggregate");
       assert.equal(paymentObject.lifecycleField, "paymentStatus");
       assert.deepEqual(paymentObject.lifecycle, ["pending", "confirmed"]);
+      assert.deepEqual(paymentObject.fields[1], {
+        id: "orderId",
+        type: "uuid",
+        required: true,
+        structure: "reference",
+        target: "Order",
+        description: "Connects the payment back to the order it settles."
+      });
+      assert.deepEqual(paymentObject.relations, [
+        {
+          id: "settlesOrder",
+          kind: "reference",
+          target: "Order",
+          field: "orderId",
+          description: "Payment settles the order it references."
+        }
+      ]);
+      assert.ok(!isAggregateObjectSpec(orderStatus));
+      assert.equal(orderStatus.role, "enum");
+      assert.deepEqual(orderStatus.values, ["draft", "submitted"]);
+      assert.ok(!isAggregateObjectSpec(paymentStatus));
+      assert.equal(paymentStatus.role, "enum");
+      assert.deepEqual(paymentStatus.values, ["pending", "confirmed"]);
       assert.equal(orderProcess.id, "orderPaymentProcess");
       assert.deepEqual(orderProcess.uses.aggregates, {
         order: "Order",

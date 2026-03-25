@@ -3,27 +3,56 @@ import { dirname, resolve } from "node:path";
 import YAML from "yaml";
 import { validateBusinessSpecSemantics } from "./semantic-validation.js";
 
-export const BUSINESS_SPEC_SCHEMA_VERSION = 1 as const;
+export const BUSINESS_SPEC_SCHEMA_VERSION = 2 as const;
+
+export type FieldStructure = "scalar" | "enum" | "reference";
 
 export interface FieldSpec {
   id: string;
   type: string;
   required: boolean;
   description?: string;
+  structure?: FieldStructure;
+  target?: string;
 }
 
 export interface PayloadSpec {
   fields: readonly FieldSpec[];
 }
 
-export interface ObjectSpec {
+export type ObjectRole = "aggregate" | "enum";
+
+export type RelationKind = "association" | "composition" | "reference";
+
+export interface RelationSpec {
+  id: string;
+  kind: RelationKind;
+  target: string;
+  field?: string;
+  description?: string;
+}
+
+interface BaseObjectSpec {
   kind: "object";
   id: string;
   title: string;
+  role: ObjectRole;
+  relations?: readonly RelationSpec[];
+}
+
+export interface AggregateObjectSpec extends BaseObjectSpec {
+  role: "aggregate";
   lifecycleField: string;
   lifecycle: readonly string[];
   fields: readonly FieldSpec[];
 }
+
+export interface EnumObjectSpec extends BaseObjectSpec {
+  role: "enum";
+  values: readonly string[];
+}
+
+export type ObjectSpec = AggregateObjectSpec | EnumObjectSpec;
 
 export interface CommandSpec {
   kind: "command";
@@ -126,6 +155,14 @@ export interface CanonicalIndexSpec {
 export interface LoadBusinessSpecOptions {
   entryPath: string;
   validateSemantics?: boolean;
+}
+
+export function isAggregateObjectSpec(object: ObjectSpec): object is AggregateObjectSpec {
+  return object.role === "aggregate";
+}
+
+export function isEnumObjectSpec(object: ObjectSpec): object is EnumObjectSpec {
+  return object.role === "enum";
 }
 
 export async function loadCanonicalIndexSpec(entryPath: string): Promise<CanonicalIndexSpec> {

@@ -126,7 +126,7 @@ test("npm pack smoke test installs the tarball and runs explicit order-payment i
 
     assert.equal(bundle.id, "order-payment");
     assert.deepEqual(
-      bundle.domain.objects.map((object) => object.id),
+      bundle.domain.aggregates.map((aggregate) => aggregate.objectId),
       ["Order", "Payment"]
     );
     assert.equal(viewer.specId, "order-payment");

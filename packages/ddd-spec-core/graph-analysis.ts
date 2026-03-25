@@ -10,6 +10,7 @@ import {
   hasDescription,
   hasFieldExplanation
 } from "./field-explanation.js";
+import { isAggregateObjectSpec } from "./spec.js";
 
 export type AnalysisSeverity = "error" | "warning";
 
@@ -536,20 +537,22 @@ function analyzeObjectFieldExplanations(
   objects: readonly ObjectSpec[]
 ): AnalysisDiagnostic[] {
   return objects.flatMap((object) =>
-    object.fields.flatMap((field) => {
-      if (hasDescription(field.description)) {
-        return [];
-      }
+    isAggregateObjectSpec(object)
+      ? object.fields.flatMap((field) => {
+          if (hasDescription(field.description)) {
+            return [];
+          }
 
-      return [
-        {
-          severity: "warning" as const,
-          code: "missing-object-field-explanation" as const,
-          path: objectFieldPath(object.id, field.id),
-          message: `Object ${object.id} field ${field.id} is missing a semantic description`
-        }
-      ];
-    })
+          return [
+            {
+              severity: "warning" as const,
+              code: "missing-object-field-explanation" as const,
+              path: objectFieldPath(object.id, field.id),
+              message: `Object ${object.id} field ${field.id} is missing a semantic description`
+            }
+          ];
+        })
+      : []
   );
 }
 

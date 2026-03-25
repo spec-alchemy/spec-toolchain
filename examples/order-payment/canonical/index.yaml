@@ -1,4 +1,4 @@
-version: 1
+version: 2
 id: order-payment
 title: 订单提交与支付确认闭环
 summary: 最小订单支付闭环：先提交订单，再确认支付，流程最终进入已支付完成状态。
@@ -8,6 +8,8 @@ domain:
   objects:
     - ./objects/order.object.yaml
     - ./objects/payment.object.yaml
+    - ./objects/order-status.object.yaml
+    - ./objects/payment-status.object.yaml
   commands:
     - ./commands/submit-order.command.yaml
     - ./commands/confirm-payment.command.yaml

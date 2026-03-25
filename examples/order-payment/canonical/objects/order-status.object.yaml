@@ -1,0 +1,7 @@
+kind: object
+id: OrderStatus
+title: Order Status
+role: enum
+values:
+  - draft
+  - submitted

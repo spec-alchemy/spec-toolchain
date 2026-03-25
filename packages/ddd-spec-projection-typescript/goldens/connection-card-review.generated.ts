@@ -1,7 +1,7 @@
 // This file is auto-generated. Do not edit by hand.
 
 export const businessSpec = {
-  "version": 1,
+  "version": 2,
   "id": "connection-card-review",
   "title": "建议 Connection -> 建议 Card 审核闭环",
   "summary": "最小审核闭环：先审核建议连接，再审核其衍生建议卡片，形成一条正常完成路径和两条提前结束路径。",
@@ -159,6 +159,7 @@ export const businessSpec = {
         "kind": "object",
         "id": "Connection",
         "title": "Connection",
+        "role": "aggregate",
         "lifecycleField": "status",
         "lifecycle": [
           "suggested",
@@ -194,6 +195,8 @@ export const businessSpec = {
             "id": "status",
             "type": "ConnectionStatus",
             "required": true,
+            "structure": "enum",
+            "target": "ConnectionStatus",
             "description": "连接生命周期字段。"
           }
         ]
@@ -202,6 +205,7 @@ export const businessSpec = {
         "kind": "object",
         "id": "Card",
         "title": "Card",
+        "role": "aggregate",
         "lifecycleField": "status",
         "lifecycle": [
           "suggested",
@@ -219,6 +223,8 @@ export const businessSpec = {
             "id": "connectionId",
             "type": "uuid",
             "required": true,
+            "structure": "reference",
+            "target": "Connection",
             "description": "来源连接 ID。"
           },
           {
@@ -237,8 +243,41 @@ export const businessSpec = {
             "id": "status",
             "type": "CardStatus",
             "required": true,
+            "structure": "enum",
+            "target": "CardStatus",
             "description": "卡片生命周期字段。"
           }
+        ],
+        "relations": [
+          {
+            "id": "sourceConnection",
+            "kind": "reference",
+            "target": "Connection",
+            "field": "connectionId",
+            "description": "卡片由某条连接生成。"
+          }
+        ]
+      },
+      {
+        "kind": "object",
+        "id": "ConnectionStatus",
+        "title": "Connection Status",
+        "role": "enum",
+        "values": [
+          "suggested",
+          "confirmed",
+          "archived"
+        ]
+      },
+      {
+        "kind": "object",
+        "id": "CardStatus",
+        "title": "Card Status",
+        "role": "enum",
+        "values": [
+          "suggested",
+          "accepted",
+          "archived"
         ]
       }
     ],

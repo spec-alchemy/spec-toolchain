@@ -1,6 +1,7 @@
 kind: object
 id: Publication
 title: Publication
+role: aggregate
 lifecycleField: publicationStatus
 lifecycle:
   - pending
@@ -21,4 +22,6 @@ fields:
   - id: publicationStatus
     type: PublicationStatus
     required: true
+    structure: enum
+    target: PublicationStatus
     description: 发布记录当前所处的生命周期状态。

@@ -1,6 +1,7 @@
 kind: object
 id: Connection
 title: Connection
+role: aggregate
 lifecycleField: status
 lifecycle:
   - suggested
@@ -26,4 +27,6 @@ fields:
   - id: status
     type: ConnectionStatus
     required: true
+    structure: enum
+    target: ConnectionStatus
     description: 连接生命周期字段。

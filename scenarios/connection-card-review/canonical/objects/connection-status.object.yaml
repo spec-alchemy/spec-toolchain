@@ -1,0 +1,8 @@
+kind: object
+id: ConnectionStatus
+title: Connection Status
+role: enum
+values:
+  - suggested
+  - confirmed
+  - archived

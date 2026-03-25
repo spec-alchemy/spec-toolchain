@@ -1,4 +1,4 @@
-version: 1
+version: 2
 id: content-moderation
 title: 内容审核到发布闭环
 summary: 内容先进入审核排队，再由审核员处理，通过后进入发布阶段，拒绝则提前结束流程。
@@ -8,6 +8,8 @@ domain:
   objects:
     - ./objects/moderation-case.object.yaml
     - ./objects/publication.object.yaml
+    - ./objects/moderation-status.object.yaml
+    - ./objects/publication-status.object.yaml
   commands:
     - ./commands/start-review.command.yaml
     - ./commands/approve-content.command.yaml

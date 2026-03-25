@@ -1,7 +1,14 @@
 import type {
+  AggregateObjectSpec,
   AggregateSpec,
   BusinessSpec,
-  FieldSpec
+  FieldSpec,
+  ObjectSpec,
+  RelationSpec
+} from "./spec.js";
+import {
+  isAggregateObjectSpec,
+  isEnumObjectSpec
 } from "./spec.js";
 
 export function validateBusinessSpecSemantics(spec: BusinessSpec): void {
@@ -12,32 +19,58 @@ export function validateBusinessSpecSemantics(spec: BusinessSpec): void {
   asMap(spec.domain.processes, "id", "process");
 
   for (const object of spec.domain.objects) {
-    assertUniqueFields(object.fields, `object ${object.id}`);
-    assertIncludes(
-      object.fields.map((field) => field.id),
-      object.lifecycleField,
-      `Object ${object.id} lifecycleField must exist in fields`
-    );
+    assertUniqueRelations(object.relations ?? [], `object ${object.id}`);
+    validateRelations(object, objectMap);
+
+    if (isAggregateObjectSpec(object)) {
+      assertUniqueFields(object.fields, `object ${object.id}`);
+      assertUniqueStrings(object.lifecycle, `object ${object.id} lifecycle`);
+      validateFieldTargets(object.fields, objectMap, `Object ${object.id}`);
+      assertIncludes(
+        object.fields.map((field) => field.id),
+        object.lifecycleField,
+        `Object ${object.id} lifecycleField must exist in fields`
+      );
+      continue;
+    }
+
+    assertUniqueStrings(object.values, `enum ${object.id} values`);
   }
 
   for (const command of spec.domain.commands) {
     assertUniqueFields(command.payload.fields, `command ${command.type}`);
+    validateFieldTargets(command.payload.fields, objectMap, `Command ${command.type}`);
 
-    if (!objectMap.has(command.target)) {
+    const targetObject = objectMap.get(command.target);
+
+    if (!targetObject) {
       throw new Error(`Command ${command.type} targets unknown object ${command.target}`);
+    }
+
+    if (!isAggregateObjectSpec(targetObject)) {
+      throw new Error(
+        `Command ${command.type} must target aggregate object ${command.target}`
+      );
     }
   }
 
   for (const event of spec.domain.events) {
     assertUniqueFields(event.payload.fields, `event ${event.type}`);
+    validateFieldTargets(event.payload.fields, objectMap, `Event ${event.type}`);
 
-    if (!objectMap.has(event.source)) {
+    const sourceObject = objectMap.get(event.source);
+
+    if (!sourceObject) {
       throw new Error(`Event ${event.type} sources unknown object ${event.source}`);
+    }
+
+    if (!isAggregateObjectSpec(sourceObject)) {
+      throw new Error(`Event ${event.type} must source aggregate object ${event.source}`);
     }
   }
 
   for (const aggregate of spec.domain.aggregates) {
-    const object = mustGet(objectMap, aggregate.objectId, "object");
+    const object = mustGetAggregateObjectSpec(objectMap, aggregate.objectId);
     const lifecycle = new Set(object.lifecycle);
     const aggregateStates = Object.keys(aggregate.states);
 
@@ -226,7 +259,9 @@ export function validateBusinessSpecSemantics(spec: BusinessSpec): void {
   }
 
   for (const objectId of objectMap.keys()) {
-    if (!aggregateMap.has(objectId)) {
+    const object = mustGet(objectMap, objectId, "object");
+
+    if (isAggregateObjectSpec(object) && !aggregateMap.has(objectId)) {
       throw new Error(`Object ${objectId} is missing aggregate definition`);
     }
   }
@@ -252,7 +287,7 @@ function asMap<Value extends Record<Key, string>, Key extends keyof Value>(
   return entries;
 }
 
-function mustGet<Key, Value>(map: Map<Key, Value>, key: Key, label: string): Value {
+function mustGet<Key, Value>(map: ReadonlyMap<Key, Value>, key: Key, label: string): Value {
   const value = map.get(key);
 
   if (!value) {
@@ -280,6 +315,101 @@ function assertUniqueFields(fields: readonly FieldSpec[], label: string): void {
   }
 }
 
+function assertUniqueRelations(relations: readonly RelationSpec[], label: string): void {
+  const relationIds = new Set<string>();
+
+  for (const relation of relations) {
+    if (relationIds.has(relation.id)) {
+      throw new Error(`Duplicate relation ${relation.id} in ${label}`);
+    }
+
+    relationIds.add(relation.id);
+  }
+}
+
+function assertUniqueStrings(values: readonly string[], label: string): void {
+  const uniqueValues = new Set<string>();
+
+  for (const value of values) {
+    if (uniqueValues.has(value)) {
+      throw new Error(`Duplicate value ${value} in ${label}`);
+    }
+
+    uniqueValues.add(value);
+  }
+}
+
+function validateFieldTargets(
+  fields: readonly FieldSpec[],
+  objectMap: ReadonlyMap<string, ObjectSpec>,
+  label: string
+): void {
+  for (const field of fields) {
+    if (!field.structure) {
+      if (field.target) {
+        throw new Error(`${label} field ${field.id} target requires structure`);
+      }
+
+      continue;
+    }
+
+    if (field.structure === "scalar") {
+      if (field.target) {
+        throw new Error(`${label} field ${field.id} cannot declare target for scalar structure`);
+      }
+
+      continue;
+    }
+
+    if (!field.target) {
+      throw new Error(`${label} field ${field.id} must declare target for ${field.structure}`);
+    }
+
+    const targetObject = mustGet(objectMap, field.target, "object");
+
+    if (field.structure === "enum" && !isEnumObjectSpec(targetObject)) {
+      throw new Error(
+        `${label} field ${field.id} enum target ${field.target} must reference enum object`
+      );
+    }
+
+    if (field.structure === "reference" && isEnumObjectSpec(targetObject)) {
+      throw new Error(
+        `${label} field ${field.id} reference target ${field.target} cannot reference enum object`
+      );
+    }
+  }
+}
+
+function validateRelations(
+  object: ObjectSpec,
+  objectMap: ReadonlyMap<string, ObjectSpec>
+): void {
+  const fieldIds = isAggregateObjectSpec(object)
+    ? new Set(object.fields.map((field) => field.id))
+    : undefined;
+
+  for (const relation of object.relations ?? []) {
+    mustGet(objectMap, relation.target, "object");
+
+    if (!relation.field) {
+      continue;
+    }
+
+    if (!fieldIds) {
+      throw new Error(
+        `Object ${object.id} relation ${relation.id} cannot bind field ${relation.field}`
+      );
+    }
+
+    if (!fieldIds.has(relation.field)) {
+      throw new Error(
+        `Object ${object.id} relation ${relation.id} field ${relation.field} must exist in fields`
+      );
+    }
+  }
+}
+
 function getAggregateState(
   aggregate: AggregateSpec,
   stateId: string
@@ -301,4 +431,17 @@ function unwrapCommandFieldReference(reference: string): string {
   }
 
   return reference.slice(prefix.length);
+}
+
+function mustGetAggregateObjectSpec(
+  objectMap: ReadonlyMap<string, ObjectSpec>,
+  objectId: string
+): AggregateObjectSpec {
+  const object = mustGet(objectMap, objectId, "object");
+
+  if (!isAggregateObjectSpec(object)) {
+    throw new Error(`Aggregate ${objectId} must bind to object role aggregate`);
+  }
+
+  return object;
 }
