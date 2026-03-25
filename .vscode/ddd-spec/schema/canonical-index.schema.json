@@ -7,7 +7,7 @@
   "required": ["version", "id", "title", "summary", "vocabulary", "domain"],
   "properties": {
     "version": {
-      "const": 1
+      "const": 2
     },
     "id": {
       "type": "string",

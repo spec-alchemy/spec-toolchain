@@ -1,5 +1,8 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+import { dirname, join } from "node:path";
 import test from "node:test";
+import type { ErrorObject } from "ajv";
 import {
   validateBusinessSpecSchema,
   validateBusinessSpecSemantics
@@ -43,6 +46,157 @@ test("schema validation rejects v1 business spec bundles", async () => {
       schemaPath: CORE_SCHEMA_PATH
     }),
     /\/version must be equal to constant/
+  );
+});
+
+test("standalone object schema accepts v2 aggregate objects with relations", async () => {
+  const validate = await createStandaloneSchemaValidator("object.schema.json");
+  const objectSpec = {
+    kind: "object",
+    id: "Order",
+    title: "Order",
+    role: "aggregate",
+    lifecycleField: "status",
+    lifecycle: ["draft", "submitted"],
+    fields: [
+      {
+        id: "status",
+        type: "OrderStatus",
+        required: true,
+        structure: "enum",
+        target: "OrderStatus"
+      },
+      {
+        id: "customerId",
+        type: "uuid",
+        required: true,
+        structure: "reference",
+        target: "Customer"
+      }
+    ],
+    relations: [
+      {
+        id: "belongsToCustomer",
+        kind: "reference",
+        target: "Customer",
+        field: "customerId",
+        description: "Links the order to its customer."
+      }
+    ]
+  };
+
+  assertSchemaValidationPasses(validate, objectSpec);
+});
+
+test("standalone object schema accepts v2 enum objects with values", async () => {
+  const validate = await createStandaloneSchemaValidator("object.schema.json");
+  const objectSpec = {
+    kind: "object",
+    id: "OrderStatus",
+    title: "Order Status",
+    role: "enum",
+    values: ["draft", "submitted", "paid"]
+  };
+
+  assertSchemaValidationPasses(validate, objectSpec);
+});
+
+test("standalone object schema requires enum objects to declare values", async () => {
+  const validate = await createStandaloneSchemaValidator("object.schema.json");
+  const objectSpec = {
+    kind: "object",
+    id: "OrderStatus",
+    title: "Order Status",
+    role: "enum"
+  };
+
+  const errors = assertSchemaValidationFails(validate, objectSpec);
+
+  assert.ok(
+    errors.some(
+      (error) =>
+        error.keyword === "required" &&
+        typeof error.params === "object" &&
+        error.params !== null &&
+        "missingProperty" in error.params &&
+        error.params.missingProperty === "values"
+    )
+  );
+});
+
+test("standalone object schema rejects invalid field reference semantics", async () => {
+  const validate = await createStandaloneSchemaValidator("object.schema.json");
+  const missingStructure = {
+    kind: "object",
+    id: "Order",
+    title: "Order",
+    role: "aggregate",
+    lifecycleField: "status",
+    lifecycle: ["draft"],
+    fields: [
+      {
+        id: "status",
+        type: "OrderStatus",
+        required: true,
+        target: "OrderStatus"
+      }
+    ]
+  };
+  const missingTarget = {
+    kind: "object",
+    id: "Order",
+    title: "Order",
+    role: "aggregate",
+    lifecycleField: "status",
+    lifecycle: ["draft"],
+    fields: [
+      {
+        id: "status",
+        type: "OrderStatus",
+        required: true,
+        structure: "enum"
+      }
+    ]
+  };
+
+  const missingStructureErrors = assertSchemaValidationFails(validate, missingStructure);
+  const missingTargetErrors = assertSchemaValidationFails(validate, missingTarget);
+
+  assert.ok(
+    missingStructureErrors.some(
+      (error) => error.instancePath === "/fields/0" && error.keyword === "required"
+    )
+  );
+  assert.ok(
+    missingTargetErrors.some(
+      (error) => error.instancePath === "/fields/0" && error.keyword === "required"
+    )
+  );
+});
+
+test("standalone canonical index schema requires version 2", async () => {
+  const validate = await createStandaloneSchemaValidator("canonical-index.schema.json");
+  const indexSpec = {
+    version: 1,
+    id: "order-payment",
+    title: "Order Payment",
+    summary: "Tracks the order payment flow.",
+    vocabulary: {
+      viewerDetails: "canonical/vocabulary/viewer-detail-semantics.yaml"
+    },
+    domain: {
+      objects: ["canonical/objects/order.object.yaml"],
+      commands: ["canonical/commands/submit-order.command.yaml"],
+      events: ["canonical/events/order-submitted.event.yaml"],
+      aggregates: ["canonical/aggregates/order.aggregate.yaml"],
+      processes: ["canonical/processes/order-payment.process.yaml"]
+    }
+  };
+
+  const errors = assertSchemaValidationFails(validate, indexSpec);
+
+  assert.ok(
+    errors.some((error) => error.instancePath === "/version" && error.keyword === "const")
   );
 });
 
@@ -122,3 +276,53 @@ test("semantic validation rejects field targets without structure", async () => 
     /Object Card field connectionId target requires structure/
   );
 });
+
+type Ajv2020Constructor = new (options?: Record<string, unknown>) => {
+  addSchema: (schema: object, key?: string) => void;
+  compile: (schema: object) => JsonSchemaValidator;
+};
+
+type JsonSchemaValidator = {
+  (data: unknown): boolean;
+  errors?: ErrorObject[] | null;
+};
+
+async function createStandaloneSchemaValidator(
+  schemaFileName: string
+): Promise<JsonSchemaValidator> {
+  const schemaDirPath = dirname(CORE_SCHEMA_PATH);
+  const [businessSpecSchemaSource, schemaSource] = await Promise.all([
+    readFile(join(schemaDirPath, "business-spec.schema.json"), "utf8"),
+    readFile(join(schemaDirPath, schemaFileName), "utf8")
+  ]);
+  const businessSpecSchema = JSON.parse(businessSpecSchemaSource) as object;
+  const Ajv2020 = (await import("ajv/dist/2020.js")).default as unknown as Ajv2020Constructor;
+  const ajv = new Ajv2020({ allErrors: true, strict: false });
+
+  ajv.addSchema(businessSpecSchema);
+  ajv.addSchema(businessSpecSchema, "business-spec.schema.json");
+
+  return ajv.compile(JSON.parse(schemaSource) as object);
+}
+
+function assertSchemaValidationPasses(
+  validate: JsonSchemaValidator,
+  data: unknown
+): void {
+  assert.equal(validate(data), true, formatSchemaErrors(validate.errors));
+}
+
+function assertSchemaValidationFails(
+  validate: JsonSchemaValidator,
+  data: unknown
+): readonly ErrorObject[] {
+  assert.equal(validate(data), false);
+
+  return validate.errors ?? [];
+}
+
+function formatSchemaErrors(errors: readonly ErrorObject[] | null | undefined): string {
+  return (errors ?? [])
+    .map((error) => `${error.instancePath || "/"} ${error.message ?? "is invalid"}`)
+    .join("\n");
+}

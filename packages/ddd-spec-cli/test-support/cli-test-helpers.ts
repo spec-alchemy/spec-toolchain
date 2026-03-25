@@ -31,6 +31,7 @@ import type {
 import YAML from "yaml";
 import type { ViewerDevSessionStatus } from "../viewer-dev-session.js";
 import {
+  CORE_SCHEMA_DIR_PATH,
   EXAMPLE_FIXTURES,
   type ExampleAdvance,
   type ExampleFixture,
@@ -753,6 +754,8 @@ export async function assertGeneratedVsCodeWorkspaceConfig(options: {
     await access(join(schemaRootPath, schemaFileName));
   }
 
+  await assertSchemaAssetsMatchCore(schemaRootPath);
+
   assertHasExpectedYamlSchemaMappings({
     rootPath: options.rootPath,
     schemaRootPath,
@@ -764,6 +767,17 @@ export async function assertGeneratedVsCodeWorkspaceConfig(options: {
     recommendations.filter((recommendation) => recommendation === "redhat.vscode-yaml").length,
     1
   );
+}
+
+export async function assertSchemaAssetsMatchCore(schemaRootPath: string): Promise<void> {
+  for (const schemaFileName of SCHEMA_FILE_NAMES) {
+    const [actual, expected] = await Promise.all([
+      readFile(join(schemaRootPath, schemaFileName), "utf8"),
+      readFile(join(CORE_SCHEMA_DIR_PATH, schemaFileName), "utf8")
+    ]);
+
+    assert.equal(actual, expected, `${schemaFileName} drifted from the core schema asset`);
+  }
 }
 
 export function parseJsoncObject(source: string): Record<string, unknown> {

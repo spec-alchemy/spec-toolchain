@@ -153,6 +153,7 @@ export const EXAMPLE_FIXTURES: readonly ExampleFixture[] = [
 
 export const ZERO_CONFIG_FIXTURE = EXAMPLE_FIXTURES[0];
 export const DEFAULT_SCHEMA_PATH = toAbsolutePath("../../ddd-spec-core/schema/business-spec.schema.json");
+export const CORE_SCHEMA_DIR_PATH = toAbsolutePath("../../ddd-spec-core/schema");
 export const CONNECTION_CARD_REVIEW_FIXTURE_ENTRY_PATH = toAbsolutePath(
   "../../../test/fixtures/connection-card-review/canonical/index.yaml"
 );

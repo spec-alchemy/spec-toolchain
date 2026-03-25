@@ -11,9 +11,11 @@ import {
   CLI_DIST_VIEWER_DIR_PATH,
   CLI_DIST_VIEWER_GENERATED_SPEC_PATH,
   CLI_DIST_VIEWER_INDEX_PATH,
+  REPO_ROOT_PATH,
   SCHEMA_FILE_NAMES
 } from "./test-support/cli-test-fixtures.js";
 import {
+  assertSchemaAssetsMatchCore,
   assertGeneratedVsCodeWorkspaceConfig,
   packPublishedCliTarball,
   runCommand
@@ -27,6 +29,8 @@ test("CLI package build emits executable dist output and runtime schema assets",
   for (const schemaFileName of SCHEMA_FILE_NAMES) {
     await access(join(CLI_DIST_SCHEMA_DIR_PATH, schemaFileName));
   }
+
+  await assertSchemaAssetsMatchCore(CLI_DIST_SCHEMA_DIR_PATH);
 
   const entrySource = await readFile(CLI_DIST_ENTRY_PATH, "utf8");
   const entryStats = await stat(CLI_DIST_ENTRY_PATH);
@@ -69,6 +73,12 @@ test("CLI dist entry runs without tsx or repo source entrypoints", async () => {
   } finally {
     await rm(tempDir, { recursive: true, force: true });
   }
+});
+
+test("maintainer workspace VS Code schema assets stay in sync with core schema assets", async () => {
+  await assertGeneratedVsCodeWorkspaceConfig({
+    rootPath: REPO_ROOT_PATH
+  });
 });
 
 test("npm pack tarball keeps the published CLI package on runtime files only", async () => {
