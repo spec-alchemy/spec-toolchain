@@ -1,0 +1,23 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "declaration": true,
+    "rootDir": "..",
+    "outDir": "./dist"
+  },
+  "include": [
+    "./**/*.ts",
+    "../ddd-spec-core/**/*.ts",
+    "../ddd-spec-projection-typescript/**/*.ts",
+    "../ddd-spec-projection-viewer/**/*.ts",
+    "../ddd-spec-viewer-contract/**/*.ts"
+  ],
+  "exclude": [
+    "./**/*.test.ts",
+    "./dist/**/*",
+    "../**/*.test.ts",
+    "../**/goldens/**/*",
+    "../**/test-fixtures.ts"
+  ]
+}

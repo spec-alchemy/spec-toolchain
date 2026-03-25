@@ -1,5 +1,40 @@
 {
   "name": "@knowledge-alchemy/ddd-spec",
-  "version": "0.0.0",
-  "type": "module"
+  "version": "0.1.0",
+  "type": "module",
+  "bin": {
+    "ddd-spec": "./dist/ddd-spec-cli/cli.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/ddd-spec-cli/index.d.ts",
+      "default": "./dist/ddd-spec-cli/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "node ./scripts/build.mjs",
+    "cli": "node ./dist/ddd-spec-cli/cli.js",
+    "repo:cli": "node ./scripts/run-from-repo-root.mjs",
+    "prepack": "npm run build",
+    "test": "npm run build && node --import tsx --test ../ddd-spec-core/output.test.ts ../ddd-spec-core/validation.test.ts ./example-regression.test.ts ../ddd-spec-projection-viewer/index.test.ts ../ddd-spec-projection-typescript/index.test.ts"
+  },
+  "dependencies": {
+    "ajv": "^8.18.0",
+    "yaml": "^2.8.3"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.0",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  }
 }

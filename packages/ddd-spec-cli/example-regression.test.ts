@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
-import { access, cp, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { spawn } from "node:child_process";
+import { access, cp, mkdir, mkdtemp, readFile, rm, stat, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import test from "node:test";
@@ -174,6 +175,12 @@ const DEFAULT_SCHEMA_PATH = toAbsolutePath("../ddd-spec-core/schema/business-spe
 const CONNECTION_CARD_REVIEW_FIXTURE_ENTRY_PATH = toAbsolutePath(
   "../../test/fixtures/connection-card-review/canonical/index.yaml"
 );
+const CLI_PACKAGE_JSON_PATH = toAbsolutePath("./package.json");
+const CLI_PACKAGE_README_PATH = toAbsolutePath("./README.md");
+const CLI_DIST_ENTRY_PATH = toAbsolutePath("./dist/ddd-spec-cli/cli.js");
+const CLI_DIST_INDEX_PATH = toAbsolutePath("./dist/ddd-spec-cli/index.js");
+const CLI_DIST_SCHEMA_PATH = toAbsolutePath("./dist/ddd-spec-core/schema/business-spec.schema.json");
+const REPO_ROOT_PATH = toAbsolutePath("../../");
 const REPO_VIEWER_CONFIG_PATH = toAbsolutePath(
   "../../apps/ddd-spec-viewer/ddd-spec.config.yaml"
 );
@@ -302,18 +309,159 @@ test("root package scripts target the repo viewer config", async () => {
 
   assert.equal(
     packageJson.scripts["ddd-spec:validate"],
-    "node --import tsx packages/ddd-spec-cli/cli.ts validate --config apps/ddd-spec-viewer/ddd-spec.config.yaml"
+    "npm run build --workspace=packages/ddd-spec-cli && npm run repo:cli --workspace=packages/ddd-spec-cli -- validate --config apps/ddd-spec-viewer/ddd-spec.config.yaml"
   );
   assert.equal(
     packageJson.scripts["ddd-spec:build"],
-    "node --import tsx packages/ddd-spec-cli/cli.ts build --config apps/ddd-spec-viewer/ddd-spec.config.yaml"
+    "npm run build --workspace=packages/ddd-spec-cli && npm run repo:cli --workspace=packages/ddd-spec-cli -- build --config apps/ddd-spec-viewer/ddd-spec.config.yaml"
   );
   assert.equal(
     packageJson.scripts["ddd-spec:viewer"],
-    "node --import tsx packages/ddd-spec-cli/cli.ts viewer --config apps/ddd-spec-viewer/ddd-spec.config.yaml --"
+    "npm run build --workspace=packages/ddd-spec-cli && npm run repo:cli --workspace=packages/ddd-spec-cli -- viewer --config apps/ddd-spec-viewer/ddd-spec.config.yaml --"
+  );
+  assert.equal(
+    packageJson.scripts["ddd-spec:test"],
+    "npm run test --workspace=packages/ddd-spec-cli"
   );
   assert.equal(packageJson.scripts["ddd-spec:init"], undefined);
   assert.equal(packageJson.scripts["dev:ddd-spec-viewer"], "npm run ddd-spec:viewer");
+});
+
+test("CLI package metadata publishes a dist-backed installable command surface", async () => {
+  const packageSource = await readFile(CLI_PACKAGE_JSON_PATH, "utf8");
+  const packageJson = JSON.parse(packageSource) as {
+    name: string;
+    version: string;
+    type: string;
+    bin: Record<string, string>;
+    exports: {
+      ".": {
+        types: string;
+        default: string;
+      };
+      "./package.json": string;
+    };
+    files: string[];
+    engines: {
+      node: string;
+    };
+    publishConfig: {
+      access: string;
+    };
+    scripts: Record<string, string>;
+    dependencies: Record<string, string>;
+  };
+
+  assert.equal(packageJson.name, "@knowledge-alchemy/ddd-spec");
+  assert.equal(packageJson.version, "0.1.0");
+  assert.equal(packageJson.type, "module");
+  assert.deepEqual(packageJson.bin, {
+    "ddd-spec": "./dist/ddd-spec-cli/cli.js"
+  });
+  assert.deepEqual(packageJson.exports, {
+    ".": {
+      types: "./dist/ddd-spec-cli/index.d.ts",
+      default: "./dist/ddd-spec-cli/index.js"
+    },
+    "./package.json": "./package.json"
+  });
+  assert.deepEqual(packageJson.files, ["dist"]);
+  assert.deepEqual(packageJson.engines, {
+    node: ">=18"
+  });
+  assert.deepEqual(packageJson.publishConfig, {
+    access: "public"
+  });
+  assert.equal(packageJson.scripts.build, "node ./scripts/build.mjs");
+  assert.equal(packageJson.scripts.cli, "node ./dist/ddd-spec-cli/cli.js");
+  assert.equal(packageJson.scripts["repo:cli"], "node ./scripts/run-from-repo-root.mjs");
+  assert.equal(packageJson.dependencies.ajv, "^8.18.0");
+  assert.equal(packageJson.dependencies.yaml, "^2.8.3");
+});
+
+test("product README documents supported npx and installed command usage", async () => {
+  const readmeSource = await readFile(CLI_PACKAGE_README_PATH, "utf8");
+
+  assert.match(readmeSource, /npx @knowledge-alchemy\/ddd-spec init/);
+  assert.match(readmeSource, /npx @knowledge-alchemy\/ddd-spec build/);
+  assert.match(readmeSource, /npm install -g @knowledge-alchemy\/ddd-spec/);
+  assert.match(readmeSource, /ddd-spec validate/);
+  assert.match(readmeSource, /npm exec ddd-spec build/);
+  assert.match(readmeSource, /npx --no-install ddd-spec validate/);
+  assert.match(
+    readmeSource,
+    /The `viewer` command is a repo-local maintainer workflow\./
+  );
+});
+
+test("CLI package build emits executable dist output and runtime schema assets", async () => {
+  await access(CLI_DIST_ENTRY_PATH);
+  await access(CLI_DIST_INDEX_PATH);
+  await access(CLI_DIST_SCHEMA_PATH);
+
+  const entrySource = await readFile(CLI_DIST_ENTRY_PATH, "utf8");
+  const entryStats = await stat(CLI_DIST_ENTRY_PATH);
+
+  assert.match(entrySource, /^#!\/usr\/bin\/env node\n/);
+  assert.ok((entryStats.mode & 0o111) !== 0);
+});
+
+test("CLI dist entry runs without tsx or repo source entrypoints", async () => {
+  const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-dist-cli-"));
+
+  try {
+    await runCommand(
+      process.execPath,
+      [CLI_DIST_ENTRY_PATH, "init"],
+      { cwd: tempDir }
+    );
+    await runCommand(
+      process.execPath,
+      [CLI_DIST_ENTRY_PATH, "validate"],
+      { cwd: tempDir }
+    );
+
+    await access(join(tempDir, "ddd-spec", "canonical", "index.yaml"));
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
+
+test("npm pack dry-run keeps the published CLI package on dist output only", async () => {
+  const npmCacheDir = await mkdtemp(join(tmpdir(), "ddd-spec-npm-cache-"));
+
+  try {
+    const result = await runCommand(
+      getNpmCommand(),
+      ["pack", "--dry-run", "--json", "--ignore-scripts", "--workspace=packages/ddd-spec-cli"],
+      {
+        cwd: REPO_ROOT_PATH,
+        env: {
+          NPM_CONFIG_CACHE: npmCacheDir
+        }
+      }
+    );
+    const [packSummary] = JSON.parse(result.stdout.trim()) as [
+      {
+        files: Array<{
+          path: string;
+        }>;
+      }
+    ];
+    const packedPaths = packSummary.files.map((file) => file.path);
+
+    assert.ok(packedPaths.includes("dist/ddd-spec-cli/cli.js"));
+    assert.ok(packedPaths.includes("dist/ddd-spec-cli/index.js"));
+    assert.ok(packedPaths.includes("dist/ddd-spec-core/schema/business-spec.schema.json"));
+    assert.ok(packedPaths.includes("README.md"));
+    assert.ok(packedPaths.includes("package.json"));
+    assert.ok(!packedPaths.includes("cli.ts"));
+    assert.ok(!packedPaths.includes("commands.ts"));
+    assert.ok(!packedPaths.includes("config.ts"));
+    assert.ok(!packedPaths.includes("example-regression.test.ts"));
+  } finally {
+    await rm(npmCacheDir, { recursive: true, force: true });
+  }
 });
 
 test("CLI build syncs viewer spec to configured sync targets", async () => {
@@ -842,4 +990,61 @@ async function assertGeneratedInitSkeleton(rootPath: string): Promise<void> {
   for (const path of requiredPaths) {
     await access(path);
   }
+}
+
+function getNpmCommand(): string {
+  return process.platform === "win32" ? "npm.cmd" : "npm";
+}
+
+async function runCommand(
+  command: string,
+  args: readonly string[],
+  options: {
+    cwd: string;
+    env?: NodeJS.ProcessEnv;
+  }
+): Promise<{
+  stdout: string;
+  stderr: string;
+}> {
+  return new Promise((resolvePromise, rejectPromise) => {
+    const child = spawn(command, args, {
+      cwd: options.cwd,
+      env: {
+        ...process.env,
+        ...options.env
+      },
+      stdio: ["ignore", "pipe", "pipe"]
+    });
+    let stdout = "";
+    let stderr = "";
+
+    child.stdout.setEncoding("utf8");
+    child.stderr.setEncoding("utf8");
+    child.stdout.on("data", (chunk) => {
+      stdout += chunk;
+    });
+    child.stderr.on("data", (chunk) => {
+      stderr += chunk;
+    });
+
+    child.once("error", rejectPromise);
+    child.once("exit", (code, signal) => {
+      if (code === 0) {
+        resolvePromise({ stdout, stderr });
+        return;
+      }
+
+      if (signal) {
+        rejectPromise(new Error(`${command} exited from signal ${signal}\n${stderr}`));
+        return;
+      }
+
+      rejectPromise(
+        new Error(
+          `${command} ${args.join(" ")} exited with code ${code ?? "unknown"}\n${stderr}`
+        )
+      );
+    });
+  });
 }

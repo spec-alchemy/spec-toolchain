@@ -6,6 +6,7 @@ This repository is a private maintainer monorepo for the DDD spec toolchain. The
 
 - The repo root stays `private: true` and exists to host the npm workspace graph plus maintainer scripts.
 - [`packages/ddd-spec-cli/`](./packages/ddd-spec-cli/) is the single external product package boundary, with the working npm package name `@knowledge-alchemy/ddd-spec`.
+- The product README for published-package usage lives at [`packages/ddd-spec-cli/README.md`](./packages/ddd-spec-cli/README.md).
 - All other workspace packages remain private implementation units behind that external package boundary, and the viewer app remains a private dogfood app.
 
 ## Root Workflow

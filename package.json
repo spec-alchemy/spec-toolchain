@@ -7,18 +7,17 @@
   ],
   "type": "module",
   "scripts": {
-    "ddd-spec:validate": "node --import tsx packages/ddd-spec-cli/cli.ts validate --config apps/ddd-spec-viewer/ddd-spec.config.yaml",
-    "ddd-spec:build": "node --import tsx packages/ddd-spec-cli/cli.ts build --config apps/ddd-spec-viewer/ddd-spec.config.yaml",
-    "ddd-spec:viewer": "node --import tsx packages/ddd-spec-cli/cli.ts viewer --config apps/ddd-spec-viewer/ddd-spec.config.yaml --",
-    "ddd-spec:test": "node --import tsx --test packages/ddd-spec-core/output.test.ts packages/ddd-spec-core/validation.test.ts packages/ddd-spec-cli/example-regression.test.ts packages/ddd-spec-projection-viewer/index.test.ts packages/ddd-spec-projection-typescript/index.test.ts",
+    "ddd-spec:validate": "npm run build --workspace=packages/ddd-spec-cli && npm run repo:cli --workspace=packages/ddd-spec-cli -- validate --config apps/ddd-spec-viewer/ddd-spec.config.yaml",
+    "ddd-spec:build": "npm run build --workspace=packages/ddd-spec-cli && npm run repo:cli --workspace=packages/ddd-spec-cli -- build --config apps/ddd-spec-viewer/ddd-spec.config.yaml",
+    "ddd-spec:viewer": "npm run build --workspace=packages/ddd-spec-cli && npm run repo:cli --workspace=packages/ddd-spec-cli -- viewer --config apps/ddd-spec-viewer/ddd-spec.config.yaml --",
+    "ddd-spec:test": "npm run test --workspace=packages/ddd-spec-cli",
     "ddd-spec:verify": "npm run ddd-spec:build && npm run ddd-spec:test && npm run build --workspace=apps/ddd-spec-viewer",
     "test:ddd-spec": "npm run ddd-spec:test",
     "dev:ddd-spec-viewer": "npm run ddd-spec:viewer"
   },
   "devDependencies": {
     "@types/node": "^25.5.0",
-    "ajv": "^8.18.0",
     "tsx": "^4.21.0",
-    "yaml": "^2.8.3"
+    "typescript": "^5.9.3"
   }
 }
