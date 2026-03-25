@@ -33,7 +33,18 @@ export function Legend() {
       className: "kind-command",
       borderColor: VIEWER_NODE_COLOR_BY_KIND.command
     },
-    { label: "Event", className: "kind-event", borderColor: VIEWER_NODE_COLOR_BY_KIND.event }
+    { label: "Event", className: "kind-event", borderColor: VIEWER_NODE_COLOR_BY_KIND.event },
+    {
+      label: "Entity",
+      className: "kind-entity",
+      borderColor: VIEWER_NODE_COLOR_BY_KIND.entity
+    },
+    {
+      label: "Value Object",
+      className: "kind-value-object",
+      borderColor: VIEWER_NODE_COLOR_BY_KIND["value-object"]
+    },
+    { label: "Enum", className: "kind-enum", borderColor: VIEWER_NODE_COLOR_BY_KIND.enum }
   ] as const;
 
   return (

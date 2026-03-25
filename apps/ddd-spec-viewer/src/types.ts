@@ -13,6 +13,7 @@ export type {
   ViewerEdgeSpec,
   ViewerNodeKind,
   ViewerNodeSpec,
+  ViewerViewKind,
   ViewerViewSpec
 } from "@knowledge-alchemy/ddd-spec-viewer-contract";
 

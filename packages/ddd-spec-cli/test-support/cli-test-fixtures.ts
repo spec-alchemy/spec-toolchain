@@ -20,6 +20,7 @@ export interface ExampleRelationExpectation {
   target: string;
   field?: string;
   cardinality?: "1" | "0..1" | "0..n" | "1..n";
+  description?: string;
 }
 
 export interface ExampleAdvance {
@@ -114,6 +115,12 @@ export const EXAMPLE_FIXTURES: readonly ExampleFixture[] = [
         fieldId: "orderId",
         structure: "reference",
         target: "Order"
+      },
+      {
+        objectId: "Payment",
+        fieldId: "paymentStatus",
+        structure: "enum",
+        target: "PaymentStatus"
       }
     ],
     relations: [
@@ -122,7 +129,8 @@ export const EXAMPLE_FIXTURES: readonly ExampleFixture[] = [
         relationId: "settlesOrder",
         kind: "reference",
         target: "Order",
-        field: "orderId"
+        field: "orderId",
+        description: "支付记录结算对应订单。"
       }
     ]
   },
@@ -201,6 +209,12 @@ export const EXAMPLE_FIXTURES: readonly ExampleFixture[] = [
         fieldId: "moderationCaseId",
         structure: "reference",
         target: "ModerationCase"
+      },
+      {
+        objectId: "Publication",
+        fieldId: "publicationStatus",
+        structure: "enum",
+        target: "PublicationStatus"
       }
     ],
     relations: [
@@ -209,14 +223,16 @@ export const EXAMPLE_FIXTURES: readonly ExampleFixture[] = [
         relationId: "approvedPublication",
         kind: "composition",
         target: "Publication",
-        cardinality: "0..1"
+        cardinality: "0..1",
+        description: "审核工单在内容通过后会产出一条发布记录。"
       },
       {
         objectId: "Publication",
         relationId: "sourceModerationCase",
         kind: "reference",
         target: "ModerationCase",
-        field: "moderationCaseId"
+        field: "moderationCaseId",
+        description: "发布记录回指触发它的审核工单。"
       }
     ]
   }

@@ -89,7 +89,43 @@ export const businessSpec = {
       },
       "relation.kind": {
         "label": "Kind",
-        "description": "关系的类别，例如 binding、transition、advance。"
+        "description": "关系的类别，例如 binding、transition、advance、association、composition、reference。"
+      },
+      "object.id": {
+        "label": "Object",
+        "description": "领域结构视图中对象节点的标识，用于区分实体、值对象、枚举等结构元素。"
+      },
+      "object.role": {
+        "label": "Role",
+        "description": "领域结构视图里对象节点的类别，例如 entity、value-object、enum。"
+      },
+      "object.fields": {
+        "label": "Fields",
+        "description": "对象包含的字段清单，以及字段类型、约束和结构目标。"
+      },
+      "object.relations": {
+        "label": "Relations",
+        "description": "对象声明的结构关系清单。"
+      },
+      "object.referenced_by": {
+        "label": "Referenced by",
+        "description": "哪些字段或关系会指向当前对象。"
+      },
+      "enum.values": {
+        "label": "Values",
+        "description": "枚举对象允许的取值集合。"
+      },
+      "relation.cardinality": {
+        "label": "Cardinality",
+        "description": "关系允许的数量约束，例如 1、0..1、0..n、1..n。"
+      },
+      "relation.description": {
+        "label": "Description",
+        "description": "对关系业务语义的补充说明。"
+      },
+      "relation.field": {
+        "label": "Field",
+        "description": "若关系由某个字段承载，这里记录该字段标识。"
       },
       "aggregate.initial_state": {
         "label": "Initial state",

@@ -4,6 +4,7 @@ import {
   RELATION_NODE_MIN_WIDTH
 } from "../viewer-constants";
 import type {
+  ViewerViewKind,
   ViewerEdgeSpec,
   ViewerViewSpec
 } from "../../types";
@@ -117,6 +118,8 @@ function createRelationPresentation(
   view: ViewerViewSpec,
   edge: ViewerEdgeSpec
 ): { label: string; summary?: string } {
+  const viewKind = getViewerViewKind(view);
+
   switch (edge.kind) {
     case "binding":
     case "accepts":
@@ -132,9 +135,20 @@ function createRelationPresentation(
     }
     case "advance":
       return {
-        label: view.id === "trace" ? edge.label : shortenEventLabel(edge.label)
+        label: viewKind === "trace" ? edge.label : shortenEventLabel(edge.label)
+      };
+    case "association":
+    case "composition":
+    case "reference":
+      return {
+        label: edge.label,
+        summary: edge.cardinality ?? edge.description
       };
   }
+}
+
+function getViewerViewKind(view: ViewerViewSpec): ViewerViewKind | ViewerViewSpec["id"] {
+  return view.kind ?? view.id;
 }
 
 function shortenEventLabel(label: string): string {

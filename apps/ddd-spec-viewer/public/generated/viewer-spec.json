@@ -25,7 +25,16 @@
       "relation.from": "转移或关系的起点状态或起始阶段。",
       "relation.to": "转移或关系的目标状态或目标阶段。",
       "relation.label": "当前关系节点或边代表的业务关系语义。",
-      "relation.kind": "关系的类别，例如 binding、transition、advance。",
+      "relation.kind": "关系的类别，例如 binding、transition、advance、association、composition、reference。",
+      "object.id": "领域结构视图中对象节点的标识，用于区分实体、值对象、枚举等结构元素。",
+      "object.role": "领域结构视图里对象节点的类别，例如 entity、value-object、enum。",
+      "object.fields": "对象包含的字段清单，以及字段类型、约束和结构目标。",
+      "object.relations": "对象声明的结构关系清单。",
+      "object.referenced_by": "哪些字段或关系会指向当前对象。",
+      "enum.values": "枚举对象允许的取值集合。",
+      "relation.cardinality": "关系允许的数量约束，例如 1、0..1、0..n、1..n。",
+      "relation.description": "对关系业务语义的补充说明。",
+      "relation.field": "若关系由某个字段承载，这里记录该字段标识。",
       "aggregate.initial_state": "聚合生命周期开始时的默认状态。",
       "aggregate.state.reachable": "表示该状态是否能从初始状态通过合法转移到达。",
       "aggregate.state.outgoing_commands": "从当前状态出发可触发的命令集合。",
@@ -46,6 +55,7 @@
   "views": [
     {
       "id": "composition",
+      "kind": "composition",
       "title": "Composition",
       "description": "Shows process stages, aggregate reuse, and which aggregate state each non-final stage binds to.",
       "nodes": [
@@ -594,6 +604,7 @@
     },
     {
       "id": "lifecycle",
+      "kind": "lifecycle",
       "title": "Lifecycle",
       "description": "Shows aggregate lifecycle states and transitions, independent of process orchestration.",
       "nodes": [
@@ -1045,6 +1056,7 @@
     },
     {
       "id": "trace",
+      "kind": "trace",
       "title": "Trace",
       "description": "Shows how each stage accepts commands, which events those commands emit, and how events advance the process.",
       "nodes": [
@@ -1808,6 +1820,287 @@
               "semanticKey": "event.target_stage",
               "label": "Target stage",
               "value": "closedCardArchived"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "domain-structure",
+      "kind": "domain-structure",
+      "title": "Domain Structure",
+      "description": "Shows domain objects as entity, value-object, and enum nodes, plus structural composition, reference, and association edges.",
+      "nodes": [
+        {
+          "id": "domain-structure:object:Connection",
+          "kind": "entity",
+          "label": "Connection",
+          "subtitle": "lifecycle: status",
+          "summary": "5 field(s), 0 relation(s)",
+          "width": 224,
+          "height": 139,
+          "details": [
+            {
+              "semanticKey": "object.id",
+              "label": "Object",
+              "value": "Connection"
+            },
+            {
+              "semanticKey": "object.role",
+              "label": "Role",
+              "value": "entity"
+            },
+            {
+              "semanticKey": "object.fields",
+              "label": "Fields",
+              "value": "connectionId [uuid, required, scalar]: 连接唯一标识。\nsourceId [uuid, required, scalar]: 源节点 ID。\ntargetId [uuid, required, scalar]: 目标节点 ID。\ninsight [text, required, scalar]: 连接的核心洞察。\nstatus [ConnectionStatus, required, enum -> ConnectionStatus]: 连接生命周期字段。"
+            },
+            {
+              "semanticKey": "object.relations",
+              "label": "Relations",
+              "value": "none"
+            },
+            {
+              "semanticKey": "object.referenced_by",
+              "label": "Referenced by",
+              "value": "Card.sourceConnection [reference via connectionId]"
+            },
+            {
+              "semanticKey": "aggregate.lifecycle_field",
+              "label": "Lifecycle field",
+              "value": "status"
+            },
+            {
+              "semanticKey": "aggregate.lifecycle",
+              "label": "Lifecycle",
+              "value": "suggested, confirmed, archived"
+            }
+          ]
+        },
+        {
+          "id": "domain-structure:object:Card",
+          "kind": "entity",
+          "label": "Card",
+          "subtitle": "lifecycle: status",
+          "summary": "5 field(s), 1 relation(s)",
+          "width": 224,
+          "height": 139,
+          "details": [
+            {
+              "semanticKey": "object.id",
+              "label": "Object",
+              "value": "Card"
+            },
+            {
+              "semanticKey": "object.role",
+              "label": "Role",
+              "value": "entity"
+            },
+            {
+              "semanticKey": "object.fields",
+              "label": "Fields",
+              "value": "cardId [uuid, required, scalar]: 卡片唯一标识。\nconnectionId [uuid, required, reference -> Connection]: 来源连接 ID。\nfront [text, required, scalar]: 卡片正面内容。\nback [text, required, scalar]: 卡片背面内容。\nstatus [CardStatus, required, enum -> CardStatus]: 卡片生命周期字段。"
+            },
+            {
+              "semanticKey": "object.relations",
+              "label": "Relations",
+              "value": "sourceConnection [reference] -> Connection via connectionId"
+            },
+            {
+              "semanticKey": "object.referenced_by",
+              "label": "Referenced by",
+              "value": "none"
+            },
+            {
+              "semanticKey": "aggregate.lifecycle_field",
+              "label": "Lifecycle field",
+              "value": "status"
+            },
+            {
+              "semanticKey": "aggregate.lifecycle",
+              "label": "Lifecycle",
+              "value": "suggested, accepted, archived"
+            }
+          ]
+        },
+        {
+          "id": "domain-structure:object:ConnectionStatus",
+          "kind": "enum",
+          "label": "Connection Status",
+          "subtitle": "ConnectionStatus",
+          "summary": "3 value(s)",
+          "width": 196,
+          "height": 123,
+          "details": [
+            {
+              "semanticKey": "object.id",
+              "label": "Object",
+              "value": "ConnectionStatus"
+            },
+            {
+              "semanticKey": "object.role",
+              "label": "Role",
+              "value": "enum"
+            },
+            {
+              "semanticKey": "enum.values",
+              "label": "Values",
+              "value": "suggested, confirmed, archived"
+            },
+            {
+              "semanticKey": "object.referenced_by",
+              "label": "Referenced by",
+              "value": "Connection.status [association]"
+            }
+          ]
+        },
+        {
+          "id": "domain-structure:object:CardStatus",
+          "kind": "enum",
+          "label": "Card Status",
+          "subtitle": "CardStatus",
+          "summary": "3 value(s)",
+          "width": 196,
+          "height": 123,
+          "details": [
+            {
+              "semanticKey": "object.id",
+              "label": "Object",
+              "value": "CardStatus"
+            },
+            {
+              "semanticKey": "object.role",
+              "label": "Role",
+              "value": "enum"
+            },
+            {
+              "semanticKey": "enum.values",
+              "label": "Values",
+              "value": "suggested, accepted, archived"
+            },
+            {
+              "semanticKey": "object.referenced_by",
+              "label": "Referenced by",
+              "value": "Card.status [association]"
+            }
+          ]
+        }
+      ],
+      "edges": [
+        {
+          "id": "domain-structure:Connection:field:status:target:ConnectionStatus",
+          "kind": "association",
+          "source": "domain-structure:object:Connection",
+          "target": "domain-structure:object:ConnectionStatus",
+          "label": "status",
+          "cardinality": "1",
+          "description": "连接生命周期字段。",
+          "details": [
+            {
+              "semanticKey": "relation.kind",
+              "label": "Kind",
+              "value": "association"
+            },
+            {
+              "semanticKey": "relation.from",
+              "label": "From",
+              "value": "Connection"
+            },
+            {
+              "semanticKey": "relation.to",
+              "label": "To",
+              "value": "ConnectionStatus"
+            },
+            {
+              "semanticKey": "relation.field",
+              "label": "Field",
+              "value": "status"
+            },
+            {
+              "semanticKey": "relation.cardinality",
+              "label": "Cardinality",
+              "value": "1"
+            },
+            {
+              "semanticKey": "relation.description",
+              "label": "Description",
+              "value": "连接生命周期字段。"
+            }
+          ]
+        },
+        {
+          "id": "domain-structure:Card:relation:sourceConnection",
+          "kind": "reference",
+          "source": "domain-structure:object:Card",
+          "target": "domain-structure:object:Connection",
+          "label": "sourceConnection",
+          "description": "卡片由某条连接生成。",
+          "details": [
+            {
+              "semanticKey": "relation.kind",
+              "label": "Kind",
+              "value": "reference"
+            },
+            {
+              "semanticKey": "relation.from",
+              "label": "From",
+              "value": "Card"
+            },
+            {
+              "semanticKey": "relation.to",
+              "label": "To",
+              "value": "Connection"
+            },
+            {
+              "semanticKey": "relation.field",
+              "label": "Field",
+              "value": "connectionId"
+            },
+            {
+              "semanticKey": "relation.description",
+              "label": "Description",
+              "value": "卡片由某条连接生成。"
+            }
+          ]
+        },
+        {
+          "id": "domain-structure:Card:field:status:target:CardStatus",
+          "kind": "association",
+          "source": "domain-structure:object:Card",
+          "target": "domain-structure:object:CardStatus",
+          "label": "status",
+          "cardinality": "1",
+          "description": "卡片生命周期字段。",
+          "details": [
+            {
+              "semanticKey": "relation.kind",
+              "label": "Kind",
+              "value": "association"
+            },
+            {
+              "semanticKey": "relation.from",
+              "label": "From",
+              "value": "Card"
+            },
+            {
+              "semanticKey": "relation.to",
+              "label": "To",
+              "value": "CardStatus"
+            },
+            {
+              "semanticKey": "relation.field",
+              "label": "Field",
+              "value": "status"
+            },
+            {
+              "semanticKey": "relation.cardinality",
+              "label": "Cardinality",
+              "value": "1"
+            },
+            {
+              "semanticKey": "relation.description",
+              "label": "Description",
+              "value": "卡片生命周期字段。"
             }
           ]
         }

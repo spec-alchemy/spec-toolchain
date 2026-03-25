@@ -1,5 +1,12 @@
 export const BUSINESS_VIEWER_SPEC_VERSION = 1 as const;
 
+export type ViewerViewKind =
+  | "composition"
+  | "lifecycle"
+  | "trace"
+  | "domain-structure"
+  | "context-map";
+
 export type ViewerNodeKind =
   | "process-group"
   | "aggregate-group"
@@ -7,14 +14,20 @@ export type ViewerNodeKind =
   | "final-stage"
   | "aggregate-state"
   | "command"
-  | "event";
+  | "event"
+  | "entity"
+  | "value-object"
+  | "enum";
 
 export type ViewerEdgeKind =
   | "advance"
   | "binding"
   | "transition"
   | "accepts"
-  | "emits";
+  | "emits"
+  | "association"
+  | "composition"
+  | "reference";
 
 export interface ViewerDetailItem {
   semanticKey: string;
@@ -41,11 +54,14 @@ export interface ViewerEdgeSpec {
   source: string;
   target: string;
   label: string;
+  cardinality?: string;
+  description?: string;
   details: readonly ViewerDetailItem[];
 }
 
 export interface ViewerViewSpec {
   id: string;
+  kind?: ViewerViewKind;
   title: string;
   description: string;
   nodes: readonly ViewerNodeSpec[];

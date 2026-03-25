@@ -14,7 +14,10 @@ export const VIEWER_NODE_COLOR_BY_KIND = {
   "final-stage": "#cf8d76",
   "aggregate-state": "#6f9f79",
   command: "#c6a24b",
-  event: "#6f88b8"
+  event: "#6f88b8",
+  entity: "#8aac91",
+  "value-object": "#b18f73",
+  enum: "#b89449"
 } as const satisfies Record<ViewerNodeKind, string>;
 
 export const VIEWER_EDGE_COLOR_BY_KIND = {
@@ -22,7 +25,10 @@ export const VIEWER_EDGE_COLOR_BY_KIND = {
   binding: "#7e766a",
   transition: "#6f9f79",
   accepts: "#c6a24b",
-  emits: "#c67e42"
+  emits: "#c67e42",
+  association: "#9e8c63",
+  composition: "#6f9f79",
+  reference: "#6f88b8"
 } as const satisfies Record<ViewerEdgeKind, string>;
 
 export function getMiniMapNodeColor(

@@ -40,7 +40,7 @@ export function ViewerHeader({
           </h1>
           <p className="max-w-3xl text-[13px] leading-6 text-muted-foreground">
             {viewerSpec?.summary ??
-              "Load the generated viewer spec to inspect process composition, aggregate lifecycle, and business traces."}
+              "Load the generated viewer spec to inspect domain structure, process composition, aggregate lifecycle, and business traces."}
           </p>
           <p className="max-w-3xl break-all text-[12px] leading-5 text-muted-foreground">
             Source: {specSourceLabel}

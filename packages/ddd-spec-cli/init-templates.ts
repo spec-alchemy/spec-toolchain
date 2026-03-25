@@ -78,7 +78,34 @@ relation.label:
   description: The semantic label that explains why two nodes are connected.
 relation.kind:
   label: Kind
-  description: The relationship category, such as state transition, stage binding, or process advance.
+  description: The relationship category, such as state transition, stage binding, process advance, association, composition, or reference.
+object.id:
+  label: Object
+  description: The identifier of the structural object node shown in the domain structure view.
+object.role:
+  label: Role
+  description: The structural category shown for the object node, such as entity, value-object, or enum.
+object.fields:
+  label: Fields
+  description: The object fields, including their types, requirements, and structural targets.
+object.relations:
+  label: Relations
+  description: The structural relations declared directly on the object.
+object.referenced_by:
+  label: Referenced by
+  description: The fields or relations that point at the current object from elsewhere in the model.
+enum.values:
+  label: Values
+  description: The allowed values declared by an enum object.
+relation.cardinality:
+  label: Cardinality
+  description: The quantity constraint carried by the relationship, such as 1, 0..1, 0..n, or 1..n.
+relation.description:
+  label: Description
+  description: The extra business explanation attached to the relationship.
+relation.field:
+  label: Field
+  description: The field that carries the relationship when the structure is modeled through a field.
 aggregate.initial_state:
   label: Initial state
   description: The lifecycle state where the aggregate begins before any command is accepted.

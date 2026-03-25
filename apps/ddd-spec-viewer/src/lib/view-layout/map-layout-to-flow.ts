@@ -5,7 +5,8 @@ import type { ElkEdgeSection, ElkExtendedEdge, ElkNode } from "elkjs/lib/elk-api
 import type {
   FlowEdge,
   FlowNode,
-  FlowPathPoint
+  FlowPathPoint,
+  ViewerEdgeKind
 } from "../../types";
 import { VIEWER_EDGE_COLOR_BY_KIND } from "../viewer-colors";
 import {
@@ -46,7 +47,7 @@ export function mapLayoutedGraphToFlow(
               },
         style: {
           stroke: VIEWER_EDGE_COLOR_BY_KIND[edge.kind],
-          strokeDasharray: edge.kind === "binding" ? "6 5" : undefined,
+          strokeDasharray: isDashedRelationKind(edge.kind) ? "6 5" : undefined,
           strokeWidth: edge.kind === "binding" ? 1.6 : 2.2
         },
         data: {
@@ -198,4 +199,8 @@ function appendEdgePathPoint(
   }
 
   points.push(nextPoint);
+}
+
+function isDashedRelationKind(kind: ViewerEdgeKind): boolean {
+  return kind === "binding" || kind === "association" || kind === "reference";
 }

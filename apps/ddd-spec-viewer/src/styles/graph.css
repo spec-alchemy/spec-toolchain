@@ -104,6 +104,21 @@
   background: var(--emits-surface);
 }
 
+.relation-kind-association {
+  border-color: var(--aggregate-border);
+  background: var(--aggregate-surface);
+}
+
+.relation-kind-composition {
+  border-color: var(--state-border);
+  background: var(--state-surface);
+}
+
+.relation-kind-reference {
+  border-color: var(--event-border);
+  background: var(--event-surface);
+}
+
 .node-card__body {
   display: flex;
   flex-direction: column;
@@ -179,6 +194,21 @@
 .kind-event {
   border-color: var(--event-border);
   background: var(--event-surface);
+}
+
+.kind-entity {
+  border-color: var(--aggregate-border);
+  background: var(--aggregate-surface);
+}
+
+.kind-value-object {
+  border-color: var(--final-stage-border);
+  background: var(--final-stage-surface);
+}
+
+.kind-enum {
+  border-color: var(--command-border);
+  background: var(--command-surface);
 }
 
 .react-flow__attribution {

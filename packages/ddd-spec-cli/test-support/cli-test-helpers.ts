@@ -125,12 +125,25 @@ export function assertExampleViewer(viewer: BusinessViewerSpec, example: Example
   assert.equal(viewer.specId, example.id);
   assert.deepEqual(
     viewer.views.map((view) => view.id),
-    ["composition", "lifecycle", "trace"]
+    ["composition", "lifecycle", "trace", "domain-structure"]
+  );
+  assert.deepEqual(
+    viewer.views.map((view) => view.kind ?? view.id),
+    ["composition", "lifecycle", "trace", "domain-structure"]
   );
 
   const compositionView = mustFind(viewer.views, (view) => view.id === "composition");
   const lifecycleView = mustFind(viewer.views, (view) => view.id === "lifecycle");
   const traceView = mustFind(viewer.views, (view) => view.id === "trace");
+  const domainStructureView = mustFind(
+    viewer.views,
+    (view) => view.id === "domain-structure"
+  );
+  const expectedEnumIds = unique(
+    (example.fieldStructures ?? [])
+      .filter((expectation) => expectation.structure === "enum" && expectation.target)
+      .map((expectation) => expectation.target as string)
+  );
 
   assert.deepEqual(
     sortStrings(
@@ -147,6 +160,22 @@ export function assertExampleViewer(viewer: BusinessViewerSpec, example: Example
         .map((node) => getDetailValue(node.details, "aggregate.id"))
     ),
     sortStrings(example.aggregateIds)
+  );
+  assert.deepEqual(
+    sortStrings(
+      domainStructureView.nodes
+        .filter((node) => node.kind === "entity")
+        .map((node) => getDetailValue(node.details, "object.id"))
+    ),
+    sortStrings(example.aggregateIds)
+  );
+  assert.deepEqual(
+    sortStrings(
+      domainStructureView.nodes
+        .filter((node) => node.kind === "enum")
+        .map((node) => getDetailValue(node.details, "object.id"))
+    ),
+    sortStrings(expectedEnumIds)
   );
   assert.deepEqual(
     sortStrings(
@@ -187,6 +216,33 @@ export function assertExampleViewer(viewer: BusinessViewerSpec, example: Example
       )
     )
   );
+  assert.deepEqual(
+    sortStrings(
+      domainStructureView.edges
+        .filter((edge) => edge.kind === "association")
+        .map((edge) => formatStructureFieldEdge(edge))
+    ),
+    sortStrings(
+      (example.fieldStructures ?? [])
+        .filter((expectation) => expectation.structure === "enum" && expectation.target)
+        .map((expectation) => `${expectation.objectId}|${expectation.fieldId}|${expectation.target}`)
+    )
+  );
+
+  for (const relationExpectation of example.relations ?? []) {
+    const edge = mustFind(
+      domainStructureView.edges,
+      (candidate) =>
+        candidate.kind === relationExpectation.kind &&
+        candidate.label === relationExpectation.relationId &&
+        getDetailValue(candidate.details, "relation.from") === relationExpectation.objectId &&
+        getDetailValue(candidate.details, "relation.to") === relationExpectation.target
+    );
+
+    assert.equal(getOptionalDetailValue(edge.details, "relation.field"), relationExpectation.field);
+    assert.equal(edge.cardinality, relationExpectation.cardinality);
+    assert.equal(edge.description, relationExpectation.description);
+  }
 }
 
 export async function copyExampleCanonicalToZeroConfigRoot(
@@ -227,6 +283,7 @@ function assertExampleRelation(
   assert.equal(relation.target, expectation.target);
   assert.equal(relation.field, expectation.field);
   assert.equal(relation.cardinality, expectation.cardinality);
+  assert.equal(relation.description, expectation.description);
 }
 
 export async function writeExampleConfig(options: {
@@ -976,6 +1033,14 @@ function formatAdvanceFromDetails(
   ].join("|");
 }
 
+function formatStructureFieldEdge(edge: ViewerEdgeSpec): string {
+  return [
+    getDetailValue(edge.details, "relation.from"),
+    getDetailValue(edge.details, "relation.field"),
+    getDetailValue(edge.details, "relation.to")
+  ].join("|");
+}
+
 function getDetailValue(details: readonly ViewerDetailItem[], semanticKey: string): string {
   const detail = details.find((candidate) => candidate.semanticKey === semanticKey);
 
@@ -986,8 +1051,19 @@ function getDetailValue(details: readonly ViewerDetailItem[], semanticKey: strin
   return detail.value;
 }
 
+function getOptionalDetailValue(
+  details: readonly ViewerDetailItem[],
+  semanticKey: string
+): string | undefined {
+  return details.find((candidate) => candidate.semanticKey === semanticKey)?.value;
+}
+
 function sortStrings(values: readonly string[]): string[] {
   return [...values].sort();
+}
+
+function unique<Value>(values: readonly Value[]): Value[] {
+  return [...new Set(values)];
 }
 
 function mustFind<Value>(

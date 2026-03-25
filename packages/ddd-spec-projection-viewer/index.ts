@@ -3,10 +3,15 @@ import type {
   BusinessSpec,
   CommandSpec,
   EventSpec,
+  FieldSpec,
   ObjectSpec,
-  ProcessSpec
+  ProcessSpec,
+  RelationSpec
 } from "../ddd-spec-core/spec.js";
-import { isAggregateObjectSpec } from "../ddd-spec-core/spec.js";
+import {
+  isAggregateObjectSpec,
+  isEnumObjectSpec
+} from "../ddd-spec-core/spec.js";
 import type {
   AggregateGraph,
   BusinessGraph,
@@ -33,7 +38,9 @@ const DIMENSIONS = {
   finalStage: { width: 220, minHeight: 100, charsPerLine: 20 },
   aggregateState: { width: 180, minHeight: 96, charsPerLine: 16 },
   command: { width: 196, minHeight: 88, charsPerLine: 18 },
-  event: { width: 184, minHeight: 88, charsPerLine: 17 }
+  event: { width: 184, minHeight: 88, charsPerLine: 17 },
+  domainEntity: { width: 224, minHeight: 108, charsPerLine: 22 },
+  domainEnum: { width: 196, minHeight: 92, charsPerLine: 18 }
 } as const;
 
 interface ViewerContext {
@@ -46,6 +53,7 @@ interface ViewerContext {
   aggregateGraphByObjectId: ReadonlyMap<string, AggregateGraph>;
   processSpecById: ReadonlyMap<string, ProcessSpec>;
   stageRefsByAggregateStateKey: ReadonlyMap<string, readonly string[]>;
+  incomingStructureRefsByObjectId: ReadonlyMap<string, readonly string[]>;
 }
 
 export function buildBusinessViewerSpec(
@@ -56,7 +64,8 @@ export function buildBusinessViewerSpec(
   const views = [
     buildCompositionView(context),
     buildLifecycleView(context),
-    buildTraceView(context)
+    buildTraceView(context),
+    buildDomainStructureView(context)
   ];
 
   return {
@@ -81,7 +90,8 @@ function createViewerContext(spec: BusinessSpec, graph: BusinessGraph): ViewerCo
     aggregateSpecByObjectId: toMap(spec.domain.aggregates, (aggregate) => aggregate.objectId),
     aggregateGraphByObjectId: toMap(graph.aggregates, (aggregate) => aggregate.objectId),
     processSpecById: toMap(spec.domain.processes, (process) => process.id),
-    stageRefsByAggregateStateKey: collectStageRefsByAggregateState(graph, spec)
+    stageRefsByAggregateStateKey: collectStageRefsByAggregateState(graph, spec),
+    incomingStructureRefsByObjectId: collectIncomingStructureRefs(spec)
   };
 }
 
@@ -304,6 +314,7 @@ function buildCompositionView(context: ViewerContext): ViewerViewSpec {
 
   return {
     id: "composition",
+    kind: "composition",
     title: "Composition",
     description:
       "Shows process stages, aggregate reuse, and which aggregate state each non-final stage binds to.",
@@ -420,6 +431,7 @@ function buildLifecycleView(context: ViewerContext): ViewerViewSpec {
 
   return {
     id: "lifecycle",
+    kind: "lifecycle",
     title: "Lifecycle",
     description:
       "Shows aggregate lifecycle states and transitions, independent of process orchestration.",
@@ -657,12 +669,273 @@ function buildTraceView(context: ViewerContext): ViewerViewSpec {
 
   return {
     id: "trace",
+    kind: "trace",
     title: "Trace",
     description:
       "Shows how each stage accepts commands, which events those commands emit, and how events advance the process.",
     nodes,
     edges
   };
+}
+
+function buildDomainStructureView(context: ViewerContext): ViewerViewSpec {
+  const nodes: ViewerNodeSpec[] = [];
+  const edges: ViewerEdgeSpec[] = [];
+
+  for (const object of context.spec.domain.objects) {
+    if (isAggregateObjectSpec(object)) {
+      const relationCount = object.relations?.length ?? 0;
+      const summary = `${object.fields.length} field(s), ${relationCount} relation(s)`;
+      const subtitle = `lifecycle: ${object.lifecycleField}`;
+      const entityBox = measureLeafNodeBox(
+        DIMENSIONS.domainEntity,
+        object.title,
+        subtitle,
+        summary
+      );
+
+      nodes.push({
+        id: toDomainStructureObjectId(object.id),
+        kind: "entity",
+        label: object.title,
+        subtitle,
+        summary,
+        ...entityBox,
+        details: [
+          detail(context, "object.id", object.id),
+          detail(context, "object.role", "entity"),
+          detail(context, "object.fields", formatDomainFields(object.fields, object)),
+          detail(context, "object.relations", formatDomainRelations(object.relations ?? [])),
+          detail(
+            context,
+            "object.referenced_by",
+            formatList(context.incomingStructureRefsByObjectId.get(object.id) ?? [])
+          ),
+          detail(context, "aggregate.lifecycle_field", object.lifecycleField),
+          detail(context, "aggregate.lifecycle", formatList(object.lifecycle))
+        ]
+      });
+
+      continue;
+    }
+
+    if (isEnumObjectSpec(object)) {
+      const enumBox = measureLeafNodeBox(
+        DIMENSIONS.domainEnum,
+        object.title,
+        object.id,
+        `${object.values.length} value(s)`
+      );
+
+      nodes.push({
+        id: toDomainStructureObjectId(object.id),
+        kind: "enum",
+        label: object.title,
+        subtitle: object.id,
+        summary: `${object.values.length} value(s)`,
+        ...enumBox,
+        details: [
+          detail(context, "object.id", object.id),
+          detail(context, "object.role", "enum"),
+          detail(context, "enum.values", formatList(object.values)),
+          detail(
+            context,
+            "object.referenced_by",
+            formatList(context.incomingStructureRefsByObjectId.get(object.id) ?? [])
+          )
+        ]
+      });
+      continue;
+    }
+
+    throw new Error(`Unsupported domain object role ${(object as { role: string }).role}`);
+  }
+
+  for (const object of context.spec.domain.objects) {
+    const explicitFieldEdgeKeys = new Set<string>();
+
+    for (const relation of object.relations ?? []) {
+      edges.push(
+        buildExplicitDomainStructureEdge(context, object.id, relation)
+      );
+
+      if (relation.field) {
+        explicitFieldEdgeKeys.add(
+          toDomainStructureFieldEdgeKey(relation.kind, relation.field, relation.target)
+        );
+      }
+    }
+
+    if (!isAggregateObjectSpec(object)) {
+      continue;
+    }
+
+    for (const field of object.fields) {
+      const fieldEdgeKind = toDomainStructureFieldEdgeKind(field);
+
+      if (!fieldEdgeKind || !field.target) {
+        continue;
+      }
+
+      const fieldEdgeKey = toDomainStructureFieldEdgeKey(
+        fieldEdgeKind,
+        field.id,
+        field.target
+      );
+
+      if (explicitFieldEdgeKeys.has(fieldEdgeKey)) {
+        continue;
+      }
+
+      edges.push(buildFieldDomainStructureEdge(context, object.id, field, fieldEdgeKind));
+    }
+  }
+
+  return {
+    id: "domain-structure",
+    kind: "domain-structure",
+    title: "Domain Structure",
+    description:
+      "Shows domain objects as entity, value-object, and enum nodes, plus structural composition, reference, and association edges.",
+    nodes,
+    edges
+  };
+}
+
+function buildExplicitDomainStructureEdge(
+  context: ViewerContext,
+  sourceObjectId: string,
+  relation: RelationSpec
+): ViewerEdgeSpec {
+  return {
+    id: toDomainStructureRelationEdgeId(sourceObjectId, relation.id),
+    kind: relation.kind,
+    source: toDomainStructureObjectId(sourceObjectId),
+    target: toDomainStructureObjectId(relation.target),
+    label: relation.id,
+    ...(relation.cardinality ? { cardinality: relation.cardinality } : {}),
+    ...(relation.description ? { description: relation.description } : {}),
+    details: [
+      detail(context, "relation.kind", relation.kind),
+      detail(context, "relation.from", sourceObjectId),
+      detail(context, "relation.to", relation.target),
+      ...(relation.field ? [detail(context, "relation.field", relation.field)] : []),
+      ...(relation.cardinality
+        ? [detail(context, "relation.cardinality", relation.cardinality)]
+        : []),
+      ...(relation.description
+        ? [detail(context, "relation.description", relation.description)]
+        : [])
+    ]
+  };
+}
+
+function buildFieldDomainStructureEdge(
+  context: ViewerContext,
+  sourceObjectId: string,
+  field: FieldSpec,
+  kind: Extract<ViewerEdgeSpec["kind"], "association" | "reference">
+): ViewerEdgeSpec {
+  const targetObjectId = field.target as string;
+  const cardinality = field.required ? "1" : "0..1";
+  const description = resolveFieldDescription(field) ?? field.description;
+
+  return {
+    id: toDomainStructureFieldEdgeId(sourceObjectId, field.id, targetObjectId),
+    kind,
+    source: toDomainStructureObjectId(sourceObjectId),
+    target: toDomainStructureObjectId(targetObjectId),
+    label: field.id,
+    cardinality,
+    ...(description ? { description } : {}),
+    details: [
+      detail(context, "relation.kind", kind),
+      detail(context, "relation.from", sourceObjectId),
+      detail(context, "relation.to", targetObjectId),
+      detail(context, "relation.field", field.id),
+      detail(context, "relation.cardinality", cardinality),
+      ...(field.description
+        ? [detail(context, "relation.description", field.description)]
+        : [])
+    ]
+  };
+}
+
+function collectIncomingStructureRefs(
+  spec: BusinessSpec
+): ReadonlyMap<string, readonly string[]> {
+  const refs = new Map<string, string[]>();
+
+  for (const object of spec.domain.objects) {
+    const explicitFieldEdgeKeys = new Set<string>();
+
+    for (const relation of object.relations ?? []) {
+      pushIncomingStructureRef(
+        refs,
+        relation.target,
+        formatIncomingRelationRef(object.id, relation)
+      );
+
+      if (relation.field) {
+        explicitFieldEdgeKeys.add(
+          toDomainStructureFieldEdgeKey(relation.kind, relation.field, relation.target)
+        );
+      }
+    }
+
+    if (!isAggregateObjectSpec(object)) {
+      continue;
+    }
+
+    for (const field of object.fields) {
+      const kind = toDomainStructureFieldEdgeKind(field);
+
+      if (!kind || !field.target) {
+        continue;
+      }
+
+      const fieldEdgeKey = toDomainStructureFieldEdgeKey(kind, field.id, field.target);
+
+      if (explicitFieldEdgeKeys.has(fieldEdgeKey)) {
+        continue;
+      }
+
+      pushIncomingStructureRef(
+        refs,
+        field.target,
+        `${object.id}.${field.id} [${kind}]`
+      );
+    }
+  }
+
+  return refs;
+}
+
+function pushIncomingStructureRef(
+  refs: Map<string, string[]>,
+  targetObjectId: string,
+  value: string
+): void {
+  refs.set(targetObjectId, unique([...(refs.get(targetObjectId) ?? []), value]));
+}
+
+function toDomainStructureFieldEdgeKind(
+  field: FieldSpec
+): Extract<ViewerEdgeSpec["kind"], "association" | "reference"> | undefined {
+  switch (field.structure) {
+    case "enum":
+      return "association";
+    case "reference":
+      return "reference";
+    default:
+      return undefined;
+  }
+}
+
+function formatIncomingRelationRef(sourceObjectId: string, relation: RelationSpec): string {
+  const fieldSuffix = relation.field ? ` via ${relation.field}` : "";
+
+  return `${sourceObjectId}.${relation.id} [${relation.kind}${fieldSuffix}]`;
 }
 
 function getStageBinding(
@@ -775,6 +1048,30 @@ function toTraceEventId(processId: string, stageId: string, eventType: string): 
   return `trace:process:${processId}:stage:${stageId}:event:${eventType}`;
 }
 
+function toDomainStructureObjectId(objectId: string): string {
+  return `domain-structure:object:${objectId}`;
+}
+
+function toDomainStructureRelationEdgeId(sourceObjectId: string, relationId: string): string {
+  return `domain-structure:${sourceObjectId}:relation:${relationId}`;
+}
+
+function toDomainStructureFieldEdgeId(
+  sourceObjectId: string,
+  fieldId: string,
+  targetObjectId: string
+): string {
+  return `domain-structure:${sourceObjectId}:field:${fieldId}:target:${targetObjectId}`;
+}
+
+function toDomainStructureFieldEdgeKey(
+  kind: "association" | "reference" | RelationSpec["kind"],
+  fieldId: string,
+  targetObjectId: string
+): string {
+  return `${kind}:${fieldId}:${targetObjectId}`;
+}
+
 function toAggregateStateKey(objectId: string, stateId: string): string {
   return `${objectId}:${stateId}`;
 }
@@ -876,6 +1173,42 @@ function formatPayloadFields(
       const description = resolveFieldDescription(field, object) ?? "No description available.";
 
       return `${field.id} [${field.type}, ${requiredLabel}]: ${description}`;
+    })
+    .join("\n");
+}
+
+function formatDomainFields(
+  fields: readonly FieldSpec[],
+  object?: ObjectSpec
+): string {
+  if (fields.length === 0) {
+    return "none";
+  }
+
+  return fields
+    .map((field) => {
+      const requiredLabel = field.required ? "required" : "optional";
+      const structureLabel = field.structure
+        ? `${field.structure}${field.target ? ` -> ${field.target}` : ""}`
+        : "scalar";
+      const description = resolveFieldDescription(field, object) ?? "No description available.";
+
+      return `${field.id} [${field.type}, ${requiredLabel}, ${structureLabel}]: ${description}`;
+    })
+    .join("\n");
+}
+
+function formatDomainRelations(relations: readonly RelationSpec[]): string {
+  if (relations.length === 0) {
+    return "none";
+  }
+
+  return relations
+    .map((relation) => {
+      const viaField = relation.field ? ` via ${relation.field}` : "";
+      const cardinality = relation.cardinality ? ` ${relation.cardinality}` : "";
+
+      return `${relation.id} [${relation.kind}${cardinality}] -> ${relation.target}${viaField}`;
     })
     .join("\n");
 }
