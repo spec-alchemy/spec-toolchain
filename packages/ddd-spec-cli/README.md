@@ -16,7 +16,7 @@ The published package supports these commands:
 - `generate-viewer`
 - `generate-typescript`
 
-`init` creates a starter `ddd-spec/canonical/` tree for consumer workspaces and adds `.ddd-spec/` to `.gitignore` when needed.
+`init` creates a teaching-oriented approval workflow under `ddd-spec/canonical/` for consumer workspaces and adds `.ddd-spec/` to `.gitignore` when needed.
 
 The `viewer` command launches a local static server backed by packaged assets under `dist/ddd-spec-cli/static/viewer/`. It serves the current workspace viewer output at `/generated/viewer-spec.json`, so the same command works after `npm install`, `npm exec`, or `npx`.
 
@@ -26,7 +26,7 @@ Start here for a normal consumer workspace:
 
 ```sh
 npx @knowledge-alchemy/ddd-spec init
-# edit ddd-spec/canonical/
+# edit the generated approval workflow in ddd-spec/canonical/
 npx @knowledge-alchemy/ddd-spec validate
 npx @knowledge-alchemy/ddd-spec build
 npx @knowledge-alchemy/ddd-spec viewer -- --port 4173

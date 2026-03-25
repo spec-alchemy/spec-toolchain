@@ -14,13 +14,13 @@ Install the package into your workspace:
 npm install --save-dev @knowledge-alchemy/ddd-spec
 ```
 
-Initialize a starter domain:
+Initialize the teaching approval workflow:
 
 ```sh
 npm exec ddd-spec init
 ```
 
-That creates a minimal modeling tree:
+That creates a modeling tree with a teaching-oriented approval workflow:
 
 ```text
 ddd-spec/canonical/

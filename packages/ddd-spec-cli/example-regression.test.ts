@@ -516,7 +516,10 @@ test("product README documents zero-config defaults and advanced --config usage"
 
   assert.match(readmeSource, /Zero-config is the default product path/);
   assert.match(readmeSource, /Use `--config <path>` only when a workspace needs custom entry paths/);
-  assert.match(readmeSource, /`init` creates a starter `ddd-spec\/canonical\/` tree/);
+  assert.match(
+    readmeSource,
+    /`init` creates a teaching-oriented approval workflow under `ddd-spec\/canonical\/`/
+  );
   assert.match(readmeSource, /npx @knowledge-alchemy\/ddd-spec init/);
   assert.match(readmeSource, /npx @knowledge-alchemy\/ddd-spec build/);
   assert.match(readmeSource, /npx @knowledge-alchemy\/ddd-spec viewer -- --port 4173/);
@@ -888,7 +891,7 @@ test("CLI validate succeeds in explicit config mode without writing outputs", as
   }
 });
 
-test("CLI init creates a minimal zero-config skeleton that validate accepts", async () => {
+test("CLI init creates a teaching approval workflow that validate accepts", async () => {
   const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-init-"));
 
   try {
@@ -1585,17 +1588,74 @@ async function assertGeneratedInitSkeleton(rootPath: string): Promise<void> {
     join(rootPath, "ddd-spec", "canonical", "aggregates"),
     join(rootPath, "ddd-spec", "canonical", "processes"),
     join(rootPath, "ddd-spec", "canonical", "vocabulary"),
-    join(rootPath, "ddd-spec", "canonical", "objects", "work-item.object.yaml"),
-    join(rootPath, "ddd-spec", "canonical", "commands", "create-work-item.command.yaml"),
-    join(rootPath, "ddd-spec", "canonical", "events", "work-item-created.event.yaml"),
-    join(rootPath, "ddd-spec", "canonical", "aggregates", "work-item.aggregate.yaml"),
-    join(rootPath, "ddd-spec", "canonical", "processes", "work-item-lifecycle.process.yaml"),
+    join(rootPath, "ddd-spec", "canonical", "objects", "approval-request.object.yaml"),
+    join(rootPath, "ddd-spec", "canonical", "commands", "submit-approval-request.command.yaml"),
+    join(rootPath, "ddd-spec", "canonical", "commands", "approve-request.command.yaml"),
+    join(rootPath, "ddd-spec", "canonical", "commands", "reject-request.command.yaml"),
+    join(rootPath, "ddd-spec", "canonical", "events", "approval-request-submitted.event.yaml"),
+    join(rootPath, "ddd-spec", "canonical", "events", "approval-request-approved.event.yaml"),
+    join(rootPath, "ddd-spec", "canonical", "events", "approval-request-rejected.event.yaml"),
+    join(rootPath, "ddd-spec", "canonical", "aggregates", "approval-request.aggregate.yaml"),
+    join(rootPath, "ddd-spec", "canonical", "processes", "approval-request-workflow.process.yaml"),
     join(rootPath, "ddd-spec", "canonical", "vocabulary", "viewer-detail-semantics.yaml")
   ];
 
   for (const path of requiredPaths) {
     await access(path);
   }
+
+  const spec = await loadBusinessSpec({
+    entryPath: join(rootPath, "ddd-spec", "canonical", "index.yaml"),
+    validateSemantics: false
+  });
+  const approvalObject = spec.domain.objects[0];
+  const approvalProcess = spec.domain.processes[0];
+  const submitCommand = spec.domain.commands.find(
+    (command) => command.type === "submitApprovalRequest"
+  );
+  const approveCommand = spec.domain.commands.find(
+    (command) => command.type === "approveRequest"
+  );
+  const rejectCommand = spec.domain.commands.find(
+    (command) => command.type === "rejectRequest"
+  );
+
+  assert.equal(spec.id, "approval-workflow");
+  assert.equal(spec.title, "Approval Request Workflow");
+  assert.match(spec.summary, /Teaching template showing how a request moves from draft to review/);
+  assert.deepEqual(spec.domain.objects.map((object) => object.id), ["ApprovalRequest"]);
+  assert.deepEqual(
+    spec.domain.commands.map((command) => command.type),
+    ["submitApprovalRequest", "approveRequest", "rejectRequest"]
+  );
+  assert.deepEqual(
+    spec.domain.events.map((event) => event.type),
+    ["ApprovalRequestSubmitted", "ApprovalRequestApproved", "ApprovalRequestRejected"]
+  );
+  assert.equal(approvalObject.title, "Approval Request");
+  assert.equal(approvalObject.lifecycleField, "status");
+  assert.deepEqual(approvalObject.lifecycle, ["draft", "submitted", "approved", "rejected"]);
+  assert.match(
+    approvalObject.fields.find((field) => field.id === "requestId")?.description ?? "",
+    /Stable identifier/
+  );
+  assert.match(submitCommand?.description ?? "", /Move a draft approval request into review/);
+  assert.match(approveCommand?.description ?? "", /optionally capture notes/);
+  assert.match(rejectCommand?.description ?? "", /require a rationale/);
+  assert.equal(approvalProcess.id, "approvalRequestWorkflow");
+  assert.equal(approvalProcess.initialStage, "draftingRequest");
+  assert.deepEqual(approvalProcess.uses.aggregates, {
+    approval: "ApprovalRequest"
+  });
+  assert.deepEqual(approvalProcess.stages.draftingRequest.advancesOn, {
+    ApprovalRequestSubmitted: "awaitingDecision"
+  });
+  assert.deepEqual(approvalProcess.stages.awaitingDecision.advancesOn, {
+    ApprovalRequestApproved: "closedApproved",
+    ApprovalRequestRejected: "closedRejected"
+  });
+  assert.equal(approvalProcess.stages.closedApproved.outcome, "requestApproved");
+  assert.equal(approvalProcess.stages.closedRejected.outcome, "requestRejected");
 }
 
 function getNpmCommand(): string {
