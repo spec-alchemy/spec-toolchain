@@ -1,0 +1,25 @@
+{
+  "yaml.schemas": {
+    "./.vscode/ddd-spec/schema/canonical-index.schema.json": [
+      "**/canonical/index.yaml"
+    ],
+    "./.vscode/ddd-spec/schema/object.schema.json": [
+      "**/canonical/objects/*.object.yaml"
+    ],
+    "./.vscode/ddd-spec/schema/command.schema.json": [
+      "**/canonical/commands/*.command.yaml"
+    ],
+    "./.vscode/ddd-spec/schema/event.schema.json": [
+      "**/canonical/events/*.event.yaml"
+    ],
+    "./.vscode/ddd-spec/schema/aggregate.schema.json": [
+      "**/canonical/aggregates/*.aggregate.yaml"
+    ],
+    "./.vscode/ddd-spec/schema/process.schema.json": [
+      "**/canonical/processes/*.process.yaml"
+    ],
+    "./.vscode/ddd-spec/schema/viewer-detail-semantics.schema.json": [
+      "**/canonical/vocabulary/*.yaml"
+    ]
+  }
+}

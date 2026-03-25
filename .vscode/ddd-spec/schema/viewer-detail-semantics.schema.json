@@ -1,0 +1,10 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "./viewer-detail-semantics.schema.json",
+  "title": "Viewer Detail Semantics",
+  "type": "object",
+  "minProperties": 1,
+  "additionalProperties": {
+    "$ref": "./business-spec.schema.json#/$defs/viewerDetailSemanticSpec"
+  }
+}

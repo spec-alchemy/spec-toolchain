@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "./canonical-index.schema.json",
+  "title": "Canonical Index",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "id", "title", "summary", "vocabulary", "domain"],
+  "properties": {
+    "version": {
+      "const": 1
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 1
+    },
+    "vocabulary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["viewerDetails"],
+      "properties": {
+        "viewerDetails": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "domain": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["objects", "commands", "events", "aggregates", "processes"],
+      "properties": {
+        "objects": {
+          "$ref": "#/$defs/pathList"
+        },
+        "commands": {
+          "$ref": "#/$defs/pathList"
+        },
+        "events": {
+          "$ref": "#/$defs/pathList"
+        },
+        "aggregates": {
+          "$ref": "#/$defs/pathList"
+        },
+        "processes": {
+          "$ref": "#/$defs/pathList"
+        }
+      }
+    }
+  },
+  "$defs": {
+    "pathList": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  }
+}
