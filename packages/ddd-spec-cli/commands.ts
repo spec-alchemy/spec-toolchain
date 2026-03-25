@@ -193,7 +193,6 @@ async function runViewerCommand(
   await runBuildCommand(config);
   await startDddSpecViewer(config, {
     args: passthroughArgs,
-    cwd: options.cwd,
     hooks: options.viewerCommandHooks
   });
 }

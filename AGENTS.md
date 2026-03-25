@@ -12,8 +12,8 @@
 | Build repo-local viewer fixture outputs | `npm run ddd-spec:build` |
 | Run spec regression tests | `npm run ddd-spec:test` |
 | Verify spec pipeline and viewer build | `npm run ddd-spec:verify` |
-| Start React viewer from root | `npm run ddd-spec:viewer` |
-| Start viewer workspace from root | `npm run dev --workspace=apps/ddd-spec-viewer` |
+| Start packaged viewer from root | `npm run ddd-spec:viewer` |
+| Start viewer workspace dev server from root | `npm run dev --workspace=apps/ddd-spec-viewer` |
 | Build viewer workspace from root | `npm run build --workspace=apps/ddd-spec-viewer` |
 
 ## Commit Attribution

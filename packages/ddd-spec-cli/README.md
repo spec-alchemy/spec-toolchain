@@ -11,11 +11,11 @@ The published package supports these commands against either zero-config `ddd-sp
 - `bundle`
 - `analyze`
 - `build`
+- `viewer`
 - `generate-viewer`
 - `generate-typescript`
 
-The `viewer` command is a repo-local maintainer workflow. It expects a sibling `apps/ddd-spec-viewer/` app and is not part of the supported published-package `npx` or installed-command flow.
-The package build also bundles the internal viewer static app under `dist/ddd-spec-cli/static/viewer/` so maintainer and packaging flows can ship viewer assets without depending on the repo-local Vite dev app at runtime.
+The `viewer` command launches a local static server backed by packaged assets under `dist/ddd-spec-cli/static/viewer/`. It serves the current workspace viewer output at `/generated/viewer-spec.json`, so the same command works after `npm install`, `npm exec`, or `npx`.
 
 ## `npx` Usage
 
@@ -25,6 +25,7 @@ Run the package without a prior install:
 npx @knowledge-alchemy/ddd-spec init
 npx @knowledge-alchemy/ddd-spec validate
 npx @knowledge-alchemy/ddd-spec build
+npx @knowledge-alchemy/ddd-spec viewer -- --port 4173
 ```
 
 ## Installed Command Usage
@@ -36,6 +37,7 @@ npm install -g @knowledge-alchemy/ddd-spec
 ddd-spec init
 ddd-spec validate
 ddd-spec build
+ddd-spec viewer -- --host 0.0.0.0
 ```
 
 For a project-local install, use `npm exec` or `npx --no-install` after adding the package:
@@ -43,5 +45,6 @@ For a project-local install, use `npm exec` or `npx --no-install` after adding t
 ```sh
 npm install --save-dev @knowledge-alchemy/ddd-spec
 npm exec ddd-spec build
+npm exec ddd-spec viewer -- --port 4173
 npx --no-install ddd-spec validate
 ```

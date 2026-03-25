@@ -2,8 +2,6 @@ import type { BusinessViewerSpec } from "../types";
 
 const DEFAULT_VIEWER_SPEC_PATH = "generated/viewer-spec.json";
 const SPEC_QUERY_PARAM = "spec";
-const ENV_DEFAULT_SPEC_URL = import.meta.env.VITE_DDD_SPEC_DEFAULT_URL?.trim();
-const ENV_DEFAULT_SPEC_LABEL = import.meta.env.VITE_DDD_SPEC_DEFAULT_LABEL?.trim();
 
 export interface ViewerSpecSource {
   url: URL;
@@ -17,13 +15,10 @@ export function resolveViewerSpecSource(): ViewerSpecSource {
 
   if (!rawSpecSource) {
     const baseUrl = new URL(import.meta.env.BASE_URL, locationUrl);
-    const defaultSpecUrl = ENV_DEFAULT_SPEC_URL
-      ? new URL(ENV_DEFAULT_SPEC_URL, locationUrl.origin)
-      : new URL(DEFAULT_VIEWER_SPEC_PATH, baseUrl);
 
     return {
-      url: defaultSpecUrl,
-      label: ENV_DEFAULT_SPEC_LABEL || DEFAULT_VIEWER_SPEC_PATH,
+      url: new URL(DEFAULT_VIEWER_SPEC_PATH, baseUrl),
+      label: DEFAULT_VIEWER_SPEC_PATH,
       isDefault: true
     };
   }

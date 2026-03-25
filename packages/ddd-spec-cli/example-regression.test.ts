@@ -36,10 +36,7 @@ import YAML from "yaml";
 import { buildUsageText } from "./console.js";
 import { loadDddSpecConfig } from "./config.js";
 import { runCliCommand } from "./commands.js";
-import type {
-  EnsureViewerDependenciesOptions,
-  LaunchViewerOptions
-} from "./viewer.js";
+import type { LaunchViewerOptions } from "./viewer.js";
 
 interface ExampleFieldRequirement {
   objectId: string;
@@ -342,7 +339,10 @@ test("root package scripts target the repo viewer config", async () => {
     "npm run test --workspace=packages/ddd-spec-cli"
   );
   assert.equal(packageJson.scripts["ddd-spec:init"], undefined);
-  assert.equal(packageJson.scripts["dev:ddd-spec-viewer"], "npm run ddd-spec:viewer");
+  assert.equal(
+    packageJson.scripts["dev:ddd-spec-viewer"],
+    "npm run dev --workspace=apps/ddd-spec-viewer"
+  );
 });
 
 test("CLI package metadata publishes a dist-backed installable command surface", async () => {
@@ -402,17 +402,20 @@ test("product README documents supported npx and installed command usage", async
 
   assert.match(readmeSource, /npx @knowledge-alchemy\/ddd-spec init/);
   assert.match(readmeSource, /npx @knowledge-alchemy\/ddd-spec build/);
+  assert.match(readmeSource, /npx @knowledge-alchemy\/ddd-spec viewer -- --port 4173/);
   assert.match(readmeSource, /npm install -g @knowledge-alchemy\/ddd-spec/);
   assert.match(readmeSource, /ddd-spec validate/);
+  assert.match(readmeSource, /ddd-spec viewer -- --host 0\.0\.0\.0/);
   assert.match(readmeSource, /npm exec ddd-spec build/);
+  assert.match(readmeSource, /npm exec ddd-spec viewer -- --port 4173/);
   assert.match(readmeSource, /npx --no-install ddd-spec validate/);
   assert.match(
     readmeSource,
-    /The `viewer` command is a repo-local maintainer workflow\./
+    /The `viewer` command launches a local static server backed by packaged assets/
   );
   assert.match(
     readmeSource,
-    /bundles the internal viewer static app under `dist\/ddd-spec-cli\/static\/viewer\/`/
+    /It serves the current workspace viewer output at `\/generated\/viewer-spec\.json`/
   );
 });
 
@@ -551,6 +554,65 @@ test("published package build runs from an isolated installed package directory"
     assert.ok(typescriptSource.includes(`"${ZERO_CONFIG_FIXTURE.processId}"`));
     assert.match(typescriptSource, /export const businessSpec =/);
   } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
+
+test("published package viewer serves packaged assets and the current workspace viewer spec", async () => {
+  const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-install-viewer-"));
+  const consumerRootPath = join(tempDir, "consumer");
+  let child: ReturnType<typeof spawn> | undefined;
+
+  try {
+    await mkdir(consumerRootPath, { recursive: true });
+    await copyExampleCanonicalToZeroConfigRoot(consumerRootPath, ZERO_CONFIG_FIXTURE.id);
+
+    const installedPackagePath = await installPublishedCliPackage(consumerRootPath);
+
+    child = spawn(
+      process.execPath,
+      [join(installedPackagePath, "dist", "ddd-spec-cli", "cli.js"), "viewer", "--", "--port", "0"],
+      {
+        cwd: consumerRootPath,
+        env: {
+          ...process.env
+        },
+        stdio: ["ignore", "pipe", "pipe"]
+      }
+    );
+
+    const viewerUrl = await waitForViewerServer(child);
+    const indexResponse = await fetch(viewerUrl);
+
+    assert.equal(indexResponse.status, 200);
+
+    const html = await indexResponse.text();
+    const assetMatch = html.match(/\.\/(assets\/[^"]+\.js)/);
+
+    assert.match(html, /\.\/assets\//);
+    assert.ok(assetMatch);
+
+    const assetResponse = await fetch(new URL(assetMatch[1], viewerUrl));
+
+    assert.equal(assetResponse.status, 200);
+
+    const viewerResponse = await fetch(new URL("/generated/viewer-spec.json", viewerUrl));
+
+    assert.equal(viewerResponse.status, 200);
+
+    const viewer = await viewerResponse.json() as BusinessViewerSpec;
+    const builtViewer = JSON.parse(
+      await readFile(join(consumerRootPath, ".ddd-spec", "artifacts", "viewer-spec.json"), "utf8")
+    ) as BusinessViewerSpec;
+
+    assert.deepEqual(viewer, builtViewer);
+    assertExampleViewer(viewer, ZERO_CONFIG_FIXTURE);
+  } finally {
+    if (child) {
+      child.kill("SIGTERM");
+      await waitForChildExit(child);
+    }
+
     await rm(tempDir, { recursive: true, force: true });
   }
 });
@@ -788,44 +850,28 @@ test("CLI validate and build succeed in zero-config mode with standard outputs",
   }
 });
 
-test("CLI viewer rebuilds the zero-config viewer artifact and launches the existing viewer app", async () => {
+test("CLI viewer rebuilds the zero-config viewer artifact and launches the packaged static server", async () => {
   const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-zero-config-viewer-"));
-  let ensuredDependenciesFor: EnsureViewerDependenciesOptions | undefined;
   let launchOptions: LaunchViewerOptions | undefined;
 
   try {
     await copyExampleCanonicalToZeroConfigRoot(tempDir, ZERO_CONFIG_FIXTURE.id);
-    await writeViewerAppStub(tempDir);
 
     await runCliCommand(["viewer", "--", "--host", "0.0.0.0"], {
       cwd: tempDir,
       viewerCommandHooks: {
-        ensureViewerDependencies: async (options) => {
-          ensuredDependenciesFor = options;
-        },
         launchViewer: async (options) => {
           launchOptions = options;
         }
       }
     });
 
-    assert.deepEqual(ensuredDependenciesFor, {
-      appDirPath: join(tempDir, "apps", "ddd-spec-viewer")
-    });
     assert.ok(launchOptions);
-    assert.equal(
-      launchOptions.defaultSpecPath,
-      join(tempDir, ".ddd-spec", "artifacts", "viewer-spec.json")
-    );
-    assert.equal(
-      launchOptions.defaultSpecLabel,
-      "./.ddd-spec/artifacts/viewer-spec.json"
-    );
-    assert.equal(
-      launchOptions.defaultSpecUrlPath,
-      toViteFsUrlPath(join(tempDir, ".ddd-spec", "artifacts", "viewer-spec.json"))
-    );
-    assert.deepEqual(launchOptions.args, ["--host", "0.0.0.0"]);
+    assert.equal(launchOptions.assetDirPath, CLI_DIST_VIEWER_DIR_PATH);
+    assert.equal(launchOptions.viewerSpecPath, join(tempDir, ".ddd-spec", "artifacts", "viewer-spec.json"));
+    assert.equal(launchOptions.host, "0.0.0.0");
+    assert.equal(launchOptions.port, 4173);
+    assert.equal(launchOptions.openBrowser, false);
 
     const viewer = JSON.parse(
       await readFile(join(tempDir, ".ddd-spec", "artifacts", "viewer-spec.json"), "utf8")
@@ -1036,24 +1082,6 @@ async function copyExampleCanonicalToZeroConfigRoot(
   );
 }
 
-async function writeViewerAppStub(rootPath: string): Promise<void> {
-  const appDirPath = join(rootPath, "apps", "ddd-spec-viewer");
-
-  await mkdir(appDirPath, { recursive: true });
-  await writeFile(
-    join(appDirPath, "package.json"),
-    JSON.stringify(
-      {
-        name: "ddd-spec-viewer-test-stub",
-        private: true
-      },
-      null,
-      2
-    ),
-    "utf8"
-  );
-}
-
 async function installPublishedCliPackage(consumerRootPath: string): Promise<string> {
   const installedPackagePath = join(
     consumerRootPath,
@@ -1132,11 +1160,61 @@ function resolveNodeModulesPackagePath(nodeModulesPath: string, packageName: str
   return join(nodeModulesPath, ...packageName.split("/"));
 }
 
-function toViteFsUrlPath(path: string): string {
-  const normalizedPath = path.replaceAll("\\", "/");
-  const rootedPath = normalizedPath.startsWith("/") ? normalizedPath : `/${normalizedPath}`;
+async function waitForViewerServer(
+  child: ReturnType<typeof spawn>
+): Promise<URL> {
+  return new Promise((resolvePromise, rejectPromise) => {
+    let stdout = "";
+    let stderr = "";
+    const timeout = setTimeout(() => {
+      rejectPromise(
+        new Error(`Timed out waiting for viewer server\nstdout:\n${stdout}\nstderr:\n${stderr}`)
+      );
+    }, 15_000);
 
-  return `/@fs${encodeURI(rootedPath)}`;
+    child.stdout.setEncoding("utf8");
+    child.stderr.setEncoding("utf8");
+    child.stdout.on("data", (chunk) => {
+      stdout += chunk;
+
+      const match = stdout.match(/viewer available at (http:\/\/[^\s]+)/);
+
+      if (!match) {
+        return;
+      }
+
+      clearTimeout(timeout);
+      resolvePromise(new URL(match[1]));
+    });
+    child.stderr.on("data", (chunk) => {
+      stderr += chunk;
+    });
+    child.once("error", (error) => {
+      clearTimeout(timeout);
+      rejectPromise(error);
+    });
+    child.once("exit", (code, signal) => {
+      clearTimeout(timeout);
+      rejectPromise(
+        new Error(
+          `Viewer server exited before becoming ready (code: ${code ?? "unknown"}, signal: ${signal ?? "none"})\nstdout:\n${stdout}\nstderr:\n${stderr}`
+        )
+      );
+    });
+  });
+}
+
+async function waitForChildExit(child: ReturnType<typeof spawn>): Promise<void> {
+  if (child.exitCode !== null || child.signalCode !== null) {
+    return;
+  }
+
+  await new Promise<void>((resolvePromise, rejectPromise) => {
+    child.once("error", rejectPromise);
+    child.once("exit", () => {
+      resolvePromise();
+    });
+  });
 }
 
 async function assertGeneratedInitSkeleton(rootPath: string): Promise<void> {
