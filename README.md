@@ -1,34 +1,36 @@
-# DDD Spec Workflow
+# DDD Spec Workflow Monorepo
 
-This repository's standard modeling path is zero-config. Use the root `ddd-spec:*` scripts or the shared CLI defaults; do not start by writing `ddd-spec.config.yaml`.
+This repository develops the DDD spec compiler packages, the shared viewer app, and the regression fixtures that pressure-test the modeling boundary. It is not itself a zero-config consumer repo.
 
-## Standard Workflow
+## Root Workflow
 
-1. `npm run ddd-spec:init`
-2. Edit [`ddd-spec/canonical/`](./ddd-spec/canonical/)
-3. `npm run ddd-spec:validate`
-4. `npm run ddd-spec:build`
+1. `npm run ddd-spec:validate`
+2. `npm run ddd-spec:build`
+3. `npm run ddd-spec:test`
+4. `npm run ddd-spec:verify`
 5. `npm run ddd-spec:viewer`
 
-If [`ddd-spec/canonical/index.yaml`](./ddd-spec/canonical/index.yaml) already exists, skip `init` and start editing the canonical files directly.
+The root `ddd-spec:*` scripts target [`apps/design-spec-viewer/ddd-spec.config.yaml`](./apps/design-spec-viewer/ddd-spec.config.yaml). That repo-local config builds the shared [`test/fixtures/connection-card-review/`](./test/fixtures/connection-card-review/) fixture into `./.ddd-spec/` and syncs the viewer fallback asset into [`apps/design-spec-viewer/public/generated/viewer-spec.json`](./apps/design-spec-viewer/public/generated/viewer-spec.json).
 
-## Root Scripts
+## Repository Layout
 
-- `npm run ddd-spec:init`: scaffold a minimal starter model plus a `.gitignore` entry for `.ddd-spec/`
-- `npm run ddd-spec:validate`: validate the zero-config canonical entry at `ddd-spec/canonical/index.yaml`
-- `npm run ddd-spec:build`: validate the current model, generate `.ddd-spec/` outputs, and sync the static viewer input
-- `npm run ddd-spec:viewer`: rebuild the canonical viewer artifact and launch the React viewer against it
-- `npm run ddd-spec:test`: run the DDD spec regression suite
-- `npm run ddd-spec:verify`: run the full repo quality gate, including viewer typecheck and production build
-
-## Important Paths
-
-- [`ddd-spec/canonical/`](./ddd-spec/canonical/): the repository-owned source of truth
+- [`packages/ddd-spec-core/`](./packages/ddd-spec-core/): canonical loading, schema validation, semantic validation, graph IR, and analysis
+- [`packages/ddd-spec-cli/`](./packages/ddd-spec-cli/): CLI commands, config loading, build orchestration, and viewer launch helpers
+- [`packages/ddd-spec-projection-viewer/`](./packages/ddd-spec-projection-viewer/): viewer JSON projection
+- [`packages/ddd-spec-projection-typescript/`](./packages/ddd-spec-projection-typescript/): TypeScript projection
+- [`packages/ddd-spec-viewer-contract/`](./packages/ddd-spec-viewer-contract/): shared viewer contract types
+- [`apps/design-spec-viewer/`](./apps/design-spec-viewer/): React viewer app and repo-local dogfood consumer
+- [`test/fixtures/connection-card-review/`](./test/fixtures/connection-card-review/): shared canonical fixture used by package regression tests and viewer dogfood
+- [`examples/order-payment/`](./examples/order-payment/): self-contained example domain for regression pressure testing
+- [`examples/content-moderation/`](./examples/content-moderation/): second self-contained example domain for cross-domain pressure testing
 - [`./.ddd-spec/artifacts/`](./.ddd-spec/artifacts/): generated bundle, analysis, and viewer outputs
 - [`./.ddd-spec/generated/`](./.ddd-spec/generated/): generated TypeScript outputs
-- [`apps/design-spec-viewer/`](./apps/design-spec-viewer/): the viewer app used by `npm run ddd-spec:viewer`
+
+## Consumer Note
+
+The CLI still supports zero-config consumer repos with `ddd-spec/canonical/index.yaml`, `ddd-spec init`, and standard `.ddd-spec/` outputs. That workflow is now exercised in CLI regression tests rather than by maintaining a business domain at this repo root.
 
 ## Further Reading
 
-- [`design-spec/README.md`](./design-spec/README.md): repo-local internals, schema notes, and helper scripts
+- [`docs/ddd-spec/README.md`](./docs/ddd-spec/README.md): repo internals, boundaries, and roadmap notes
 - [`apps/design-spec-viewer/README.md`](./apps/design-spec-viewer/README.md): viewer-specific behavior and app-local development notes

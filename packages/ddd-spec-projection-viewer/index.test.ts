@@ -9,7 +9,7 @@ import {
 import { buildBusinessViewerSpec } from "./index.js";
 
 const SPEC_ENTRY_PATH = fileURLToPath(
-  new URL("../../ddd-spec/canonical/index.yaml", import.meta.url)
+  new URL("../../test/fixtures/connection-card-review/canonical/index.yaml", import.meta.url)
 );
 const VIEWER_SPEC_GOLDEN_PATH = fileURLToPath(
   new URL("./goldens/connection-card-review.viewer-spec.json", import.meta.url)

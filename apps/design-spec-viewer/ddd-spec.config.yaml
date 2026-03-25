@@ -1,0 +1,15 @@
+version: 1
+spec:
+  entry: ../../test/fixtures/connection-card-review/canonical/index.yaml
+outputs:
+  rootDir: ../../.ddd-spec/artifacts
+  bundle: ../../.ddd-spec/artifacts/business-spec.json
+  analysis: ../../.ddd-spec/artifacts/business-spec.analysis.json
+  viewer: ../../.ddd-spec/artifacts/viewer-spec.json
+  typescript: ../../.ddd-spec/generated/business-spec.generated.ts
+viewer:
+  syncTargets:
+    - ./public/generated/viewer-spec.json
+projections:
+  viewer: true
+  typescript: true

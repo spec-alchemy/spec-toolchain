@@ -6,7 +6,7 @@ import { loadBusinessSpec } from "../ddd-spec-core/index.js";
 import { buildBusinessSpecTypescriptSource } from "./index.js";
 
 const SPEC_ENTRY_PATH = fileURLToPath(
-  new URL("../../ddd-spec/canonical/index.yaml", import.meta.url)
+  new URL("../../test/fixtures/connection-card-review/canonical/index.yaml", import.meta.url)
 );
 const GENERATED_SPEC_GOLDEN_PATH = fileURLToPath(
   new URL("./goldens/connection-card-review.generated.ts", import.meta.url)

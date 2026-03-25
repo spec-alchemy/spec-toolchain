@@ -171,6 +171,12 @@ const EXAMPLE_FIXTURES: readonly ExampleFixture[] = [
 
 const ZERO_CONFIG_FIXTURE = EXAMPLE_FIXTURES[0];
 const DEFAULT_SCHEMA_PATH = toAbsolutePath("../ddd-spec-core/schema/business-spec.schema.json");
+const CONNECTION_CARD_REVIEW_FIXTURE_ENTRY_PATH = toAbsolutePath(
+  "../../test/fixtures/connection-card-review/canonical/index.yaml"
+);
+const REPO_VIEWER_CONFIG_PATH = toAbsolutePath(
+  "../../apps/design-spec-viewer/ddd-spec.config.yaml"
+);
 
 for (const example of EXAMPLE_FIXTURES) {
   test(`${example.id} example config resolves repo-local relative paths`, async () => {
@@ -255,20 +261,106 @@ test("CLI help keeps --config hidden and documents zero-config defaults", () => 
   assert.match(usageText, /\.ddd-spec\//);
 });
 
-test("root package scripts expose zero-config entrypoints while legacy names delegate", async () => {
+test("repo viewer config resolves fixture-backed outputs and sync targets", async () => {
+  const config = await loadDddSpecConfig({
+    configPath: REPO_VIEWER_CONFIG_PATH
+  });
+
+  assert.equal(config.mode, "config");
+  assert.equal(config.sourceDescription, REPO_VIEWER_CONFIG_PATH);
+  assert.equal(config.spec.entryPath, CONNECTION_CARD_REVIEW_FIXTURE_ENTRY_PATH);
+  assert.equal(
+    config.outputs.rootDirPath,
+    toAbsolutePath("../../.ddd-spec/artifacts")
+  );
+  assert.equal(
+    config.outputs.bundlePath,
+    toAbsolutePath("../../.ddd-spec/artifacts/business-spec.json")
+  );
+  assert.equal(
+    config.outputs.analysisPath,
+    toAbsolutePath("../../.ddd-spec/artifacts/business-spec.analysis.json")
+  );
+  assert.equal(
+    config.outputs.viewerPath,
+    toAbsolutePath("../../.ddd-spec/artifacts/viewer-spec.json")
+  );
+  assert.equal(
+    config.outputs.typescriptPath,
+    toAbsolutePath("../../.ddd-spec/generated/business-spec.generated.ts")
+  );
+  assert.deepEqual(config.viewer.syncTargetPaths, [
+    toAbsolutePath("../../apps/design-spec-viewer/public/generated/viewer-spec.json")
+  ]);
+});
+
+test("root package scripts target the repo viewer config", async () => {
   const packageSource = await readFile(toAbsolutePath("../../package.json"), "utf8");
   const packageJson = JSON.parse(packageSource) as {
     scripts: Record<string, string>;
   };
 
-  assert.equal(packageJson.scripts["ddd-spec:init"], "node --import tsx packages/ddd-spec-cli/cli.ts init");
   assert.equal(
     packageJson.scripts["ddd-spec:validate"],
-    "node --import tsx packages/ddd-spec-cli/cli.ts validate"
+    "node --import tsx packages/ddd-spec-cli/cli.ts validate --config apps/design-spec-viewer/ddd-spec.config.yaml"
   );
-  assert.equal(packageJson.scripts["build:design-spec"], "npm run ddd-spec:build");
-  assert.equal(packageJson.scripts["verify:design-spec"], "npm run ddd-spec:verify");
+  assert.equal(
+    packageJson.scripts["ddd-spec:build"],
+    "node --import tsx packages/ddd-spec-cli/cli.ts build --config apps/design-spec-viewer/ddd-spec.config.yaml"
+  );
+  assert.equal(
+    packageJson.scripts["ddd-spec:viewer"],
+    "node --import tsx packages/ddd-spec-cli/cli.ts viewer --config apps/design-spec-viewer/ddd-spec.config.yaml --"
+  );
+  assert.equal(packageJson.scripts["ddd-spec:init"], undefined);
   assert.equal(packageJson.scripts["dev:design-spec-viewer"], "npm run ddd-spec:viewer");
+});
+
+test("CLI build syncs viewer spec to configured sync targets", async () => {
+  const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-config-sync-targets-"));
+  const configPath = join(tempDir, "ddd-spec.config.yaml");
+
+  try {
+    await writeFile(
+      configPath,
+      YAML.stringify({
+        version: 1,
+        spec: {
+          entry: CONNECTION_CARD_REVIEW_FIXTURE_ENTRY_PATH
+        },
+        outputs: {
+          rootDir: "./artifacts",
+          bundle: "./artifacts/business-spec.json",
+          analysis: "./artifacts/business-spec.analysis.json",
+          viewer: "./artifacts/viewer-spec.json",
+          typescript: "./generated/business-spec.generated.ts"
+        },
+        viewer: {
+          syncTargets: ["./app/public/generated/viewer-spec.json"]
+        },
+        projections: {
+          viewer: true,
+          typescript: true
+        }
+      }),
+      "utf8"
+    );
+
+    await runCliCommand(["build", "--config", configPath], {
+      cwd: tempDir
+    });
+
+    const builtViewerSpec = JSON.parse(
+      await readFile(join(tempDir, "artifacts", "viewer-spec.json"), "utf8")
+    );
+    const syncedViewerSpec = JSON.parse(
+      await readFile(join(tempDir, "app", "public", "generated", "viewer-spec.json"), "utf8")
+    );
+
+    assert.deepEqual(syncedViewerSpec, builtViewerSpec);
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
 });
 
 test("CLI init creates a minimal zero-config skeleton that validate accepts", async () => {

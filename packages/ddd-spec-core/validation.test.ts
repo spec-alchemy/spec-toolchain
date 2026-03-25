@@ -7,11 +7,11 @@ import {
 import {
   cloneBusinessSpec,
   CORE_SCHEMA_PATH,
-  loadCanonicalFixture
+  loadConnectionCardReviewFixture
 } from "./test-fixtures.js";
 
 test("schema validation accepts the canonical fixture", async () => {
-  const spec = await loadCanonicalFixture();
+  const spec = await loadConnectionCardReviewFixture();
 
   await assert.doesNotReject(async () => {
     await validateBusinessSpecSchema(spec, {
@@ -21,7 +21,7 @@ test("schema validation accepts the canonical fixture", async () => {
 });
 
 test("schema validation rejects malformed spec structure", async () => {
-  const spec = cloneBusinessSpec(await loadCanonicalFixture());
+  const spec = cloneBusinessSpec(await loadConnectionCardReviewFixture());
   const invalidSpec = spec as unknown as Record<string, unknown>;
   delete invalidSpec.summary;
 
@@ -34,7 +34,7 @@ test("schema validation rejects malformed spec structure", async () => {
 });
 
 test("semantic validation accepts the canonical fixture", async () => {
-  const spec = await loadCanonicalFixture();
+  const spec = await loadConnectionCardReviewFixture();
 
   assert.doesNotThrow(() => {
     validateBusinessSpecSemantics(spec);
@@ -42,7 +42,7 @@ test("semantic validation accepts the canonical fixture", async () => {
 });
 
 test("semantic validation rejects broken aggregate bindings", async () => {
-  const spec = cloneBusinessSpec(await loadCanonicalFixture());
+  const spec = cloneBusinessSpec(await loadConnectionCardReviewFixture());
   const commands = spec.domain.commands as typeof spec.domain.commands extends readonly (infer Item)[]
     ? Item[]
     : never;
