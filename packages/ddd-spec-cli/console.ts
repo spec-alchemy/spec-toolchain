@@ -1,4 +1,5 @@
 import type { AnalysisDiagnostic } from "../ddd-spec-core/graph-analysis.js";
+import { getSupportedInitTemplateIds } from "./init-templates.js";
 
 const PREFIX = "[ddd-spec]";
 
@@ -19,6 +20,8 @@ export function formatDiagnostic(diagnostic: AnalysisDiagnostic): string {
 }
 
 export function buildUsageText(): string {
+  const supportedTemplateIds = getSupportedInitTemplateIds().join(", ");
+
   return [
     "Usage:",
     "  ddd-spec <command>",
@@ -34,12 +37,17 @@ export function buildUsageText(): string {
     "  Reads ddd-spec/canonical/index.yaml",
     "  Writes build outputs into .ddd-spec/",
     "",
+    "Advanced init templates:",
+    "  Most first-time users should stick with plain ddd-spec init",
+    "  Use init --template <name> only when you want a different packaged scaffold",
+    `  Supported templates: ${supportedTemplateIds}`,
+    "",
     "Advanced config:",
     "  Use --config <path> to load a version: 1 DDD spec config file",
     "  init always scaffolds ddd-spec/canonical/ in the current workspace",
     "",
     "Commands:",
-    "  init",
+    "  init [--template <name>]",
     "  validate [--config <path>]",
     "  bundle [--config <path>]",
     "  analyze [--config <path>]",

@@ -77,6 +77,8 @@ interface PackedCliTarball {
   tempDirPath: string;
 }
 
+type InitTemplateId = "default" | "minimal" | "order-payment";
+
 function toAbsolutePath(relativePath: string): string {
   return fileURLToPath(new URL(relativePath, import.meta.url));
 }
@@ -285,13 +287,17 @@ test("zero-config validate shows an init hint when the canonical entry is missin
   }
 });
 
-test("CLI help documents zero-config defaults and advanced --config support", () => {
+test("CLI help documents zero-config defaults plus advanced template and config paths", () => {
   const usageText = buildUsageText();
 
   assert.match(usageText, /Default workflow:/);
+  assert.match(usageText, /Advanced init templates:/);
   assert.match(usageText, /Advanced config:/);
+  assert.match(usageText, /Most first-time users should stick with plain ddd-spec init/);
+  assert.match(usageText, /Use init --template <name> only when you want a different packaged scaffold/);
+  assert.match(usageText, /Supported templates: default, minimal, order-payment/);
   assert.match(usageText, /Use --config <path> to load a version: 1 DDD spec config file/);
-  assert.match(usageText, /\n  init\n/);
+  assert.match(usageText, /\n  init \[--template <name>\]\n/);
   assert.match(usageText, /\n  validate \[--config <path>\]\n/);
   assert.match(usageText, /\n  build \[--config <path>\]\n/);
   assert.match(usageText, /\n  viewer \[--config <path>\] \[-- <viewer-args\.\.\.>\]\n/);
@@ -511,7 +517,7 @@ test("CLI package metadata publishes a dist-backed installable command surface",
   assert.equal(packageJson.dependencies.yaml, "^2.8.3");
 });
 
-test("product README documents zero-config defaults and advanced --config usage", async () => {
+test("product README documents zero-config defaults plus advanced template and config usage", async () => {
   const readmeSource = await readFile(CLI_PACKAGE_README_PATH, "utf8");
 
   assert.match(readmeSource, /Zero-config is the default product path/);
@@ -520,7 +526,16 @@ test("product README documents zero-config defaults and advanced --config usage"
     readmeSource,
     /`init` creates a teaching-oriented approval workflow under `ddd-spec\/canonical\/`/
   );
+  assert.match(readmeSource, /That no-argument path remains the recommended first-time experience/);
+  assert.match(readmeSource, /Most users should keep using plain `ddd-spec init`/);
+  assert.match(readmeSource, /Advanced users can opt into an explicit scaffold with `--template <name>`/);
+  assert.match(readmeSource, /`default`: the same teaching-oriented approval workflow/);
+  assert.match(readmeSource, /`minimal`: the smallest valid scaffold/);
+  assert.match(readmeSource, /`order-payment`: an example-style order and payment workflow/);
   assert.match(readmeSource, /npx @knowledge-alchemy\/ddd-spec init/);
+  assert.match(readmeSource, /npx @knowledge-alchemy\/ddd-spec init --template default/);
+  assert.match(readmeSource, /npx @knowledge-alchemy\/ddd-spec init --template minimal/);
+  assert.match(readmeSource, /npx @knowledge-alchemy\/ddd-spec init --template order-payment/);
   assert.match(readmeSource, /npx @knowledge-alchemy\/ddd-spec build/);
   assert.match(readmeSource, /npx @knowledge-alchemy\/ddd-spec viewer -- --port 4173/);
   assert.match(
@@ -700,6 +715,50 @@ test("npm pack smoke test installs the tarball and runs zero-config init plus bu
     assert.ok(typescriptSource.includes(`"id": "${ZERO_CONFIG_FIXTURE.id}"`));
     assert.ok(typescriptSource.includes(`"${ZERO_CONFIG_FIXTURE.processId}"`));
     assert.match(typescriptSource, /export const businessSpec =/);
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
+
+test("npm pack smoke test installs the tarball and runs explicit order-payment init plus build", async () => {
+  const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-pack-smoke-template-"));
+  const consumerRootPath = join(tempDir, "consumer");
+
+  try {
+    await mkdir(consumerRootPath, { recursive: true });
+    const installedPackagePath = await installPublishedCliTarball(consumerRootPath);
+    const installedCliEntryPath = getInstalledCliEntryPath(installedPackagePath);
+
+    await runCommand(
+      process.execPath,
+      [installedCliEntryPath, "init", "--template", "order-payment"],
+      { cwd: consumerRootPath }
+    );
+
+    await assertGeneratedInitSkeleton(consumerRootPath, "order-payment");
+
+    await runCommand(
+      process.execPath,
+      [installedCliEntryPath, "build"],
+      {
+        cwd: consumerRootPath
+      }
+    );
+
+    const bundle = JSON.parse(
+      await readFile(join(consumerRootPath, ".ddd-spec", "artifacts", "business-spec.json"), "utf8")
+    ) as BusinessSpec;
+    const viewer = JSON.parse(
+      await readFile(join(consumerRootPath, ".ddd-spec", "artifacts", "viewer-spec.json"), "utf8")
+    ) as BusinessViewerSpec;
+
+    assert.equal(bundle.id, "order-payment");
+    assert.deepEqual(
+      bundle.domain.objects.map((object) => object.id),
+      ["Order", "Payment"]
+    );
+    assert.equal(viewer.specId, "order-payment");
+    assert.ok(viewer.views.length > 0);
   } finally {
     await rm(tempDir, { recursive: true, force: true });
   }
@@ -912,6 +971,102 @@ test("CLI init creates a teaching approval workflow that validate accepts", asyn
     const gitignoreSource = await readFile(join(tempDir, ".gitignore"), "utf8");
 
     assert.match(gitignoreSource, /^\.ddd-spec\/$/m);
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
+
+test("CLI init supports explicitly selecting the default template", async () => {
+  const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-init-default-template-"));
+
+  try {
+    await runCliCommand(["init", "--template", "default"], { cwd: tempDir });
+
+    await assertGeneratedInitSkeleton(tempDir, "default");
+    await runCliCommand(["validate"], { cwd: tempDir });
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
+
+test("CLI init supports the minimal template and build succeeds", async () => {
+  const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-init-minimal-template-"));
+
+  try {
+    await runCliCommand(["init", "--template", "minimal"], { cwd: tempDir });
+
+    await assertGeneratedInitSkeleton(tempDir, "minimal");
+    await runCliCommand(["build"], { cwd: tempDir });
+
+    const bundle = JSON.parse(
+      await readFile(join(tempDir, ".ddd-spec", "artifacts", "business-spec.json"), "utf8")
+    ) as BusinessSpec;
+
+    assert.equal(bundle.id, "minimal-domain");
+    assert.deepEqual(
+      bundle.domain.commands.map((command) => command.type),
+      ["activateExampleRecord"]
+    );
+    assert.deepEqual(
+      bundle.domain.events.map((event) => event.type),
+      ["ExampleRecordActivated"]
+    );
+    assert.deepEqual(
+      bundle.domain.processes.map((process) => process.id),
+      ["exampleRecordLifecycle"]
+    );
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
+
+test("CLI init supports an example-style order-payment template and build succeeds", async () => {
+  const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-init-order-payment-template-"));
+
+  try {
+    await runCliCommand(["init", "--template", "order-payment"], { cwd: tempDir });
+
+    await assertGeneratedInitSkeleton(tempDir, "order-payment");
+    await runCliCommand(["build"], { cwd: tempDir });
+
+    const bundle = JSON.parse(
+      await readFile(join(tempDir, ".ddd-spec", "artifacts", "business-spec.json"), "utf8")
+    ) as BusinessSpec;
+
+    assert.equal(bundle.id, "order-payment");
+    assert.deepEqual(
+      bundle.domain.processes.map((process) => process.id),
+      ["orderPaymentProcess"]
+    );
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
+
+test("CLI init rejects unknown template names", async () => {
+  const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-init-unknown-template-"));
+
+  try {
+    await assert.rejects(
+      runCliCommand(["init", "--template", "missing-template"], { cwd: tempDir }),
+      (error: unknown) =>
+        error instanceof Error &&
+        error.message.includes("Unknown init template: missing-template") &&
+        error.message.includes("default, minimal, order-payment")
+    );
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
+
+test("CLI rejects --template outside init", async () => {
+  const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-template-non-init-"));
+
+  try {
+    await assert.rejects(
+      runCliCommand(["validate", "--template", "minimal"], { cwd: tempDir }),
+      /The --template option is only supported by the init command/
+    );
   } finally {
     await rm(tempDir, { recursive: true, force: true });
   }
@@ -1579,83 +1734,219 @@ async function waitForChildExit(child: ReturnType<typeof spawn>): Promise<void> 
   });
 }
 
-async function assertGeneratedInitSkeleton(rootPath: string): Promise<void> {
-  const requiredPaths = [
-    join(rootPath, "ddd-spec", "canonical", "index.yaml"),
-    join(rootPath, "ddd-spec", "canonical", "objects"),
-    join(rootPath, "ddd-spec", "canonical", "commands"),
-    join(rootPath, "ddd-spec", "canonical", "events"),
-    join(rootPath, "ddd-spec", "canonical", "aggregates"),
-    join(rootPath, "ddd-spec", "canonical", "processes"),
-    join(rootPath, "ddd-spec", "canonical", "vocabulary"),
-    join(rootPath, "ddd-spec", "canonical", "objects", "approval-request.object.yaml"),
-    join(rootPath, "ddd-spec", "canonical", "commands", "submit-approval-request.command.yaml"),
-    join(rootPath, "ddd-spec", "canonical", "commands", "approve-request.command.yaml"),
-    join(rootPath, "ddd-spec", "canonical", "commands", "reject-request.command.yaml"),
-    join(rootPath, "ddd-spec", "canonical", "events", "approval-request-submitted.event.yaml"),
-    join(rootPath, "ddd-spec", "canonical", "events", "approval-request-approved.event.yaml"),
-    join(rootPath, "ddd-spec", "canonical", "events", "approval-request-rejected.event.yaml"),
-    join(rootPath, "ddd-spec", "canonical", "aggregates", "approval-request.aggregate.yaml"),
-    join(rootPath, "ddd-spec", "canonical", "processes", "approval-request-workflow.process.yaml"),
-    join(rootPath, "ddd-spec", "canonical", "vocabulary", "viewer-detail-semantics.yaml")
-  ];
+async function assertGeneratedInitSkeleton(
+  rootPath: string,
+  templateId: InitTemplateId = "default"
+): Promise<void> {
+  const canonicalRootPath = join(rootPath, "ddd-spec", "canonical");
+  const requiredPathsByTemplate: Record<InitTemplateId, readonly string[]> = {
+    default: [
+      join(canonicalRootPath, "index.yaml"),
+      join(canonicalRootPath, "objects"),
+      join(canonicalRootPath, "commands"),
+      join(canonicalRootPath, "events"),
+      join(canonicalRootPath, "aggregates"),
+      join(canonicalRootPath, "processes"),
+      join(canonicalRootPath, "vocabulary"),
+      join(canonicalRootPath, "objects", "approval-request.object.yaml"),
+      join(canonicalRootPath, "commands", "submit-approval-request.command.yaml"),
+      join(canonicalRootPath, "commands", "approve-request.command.yaml"),
+      join(canonicalRootPath, "commands", "reject-request.command.yaml"),
+      join(canonicalRootPath, "events", "approval-request-submitted.event.yaml"),
+      join(canonicalRootPath, "events", "approval-request-approved.event.yaml"),
+      join(canonicalRootPath, "events", "approval-request-rejected.event.yaml"),
+      join(canonicalRootPath, "aggregates", "approval-request.aggregate.yaml"),
+      join(canonicalRootPath, "processes", "approval-request-workflow.process.yaml"),
+      join(canonicalRootPath, "vocabulary", "viewer-detail-semantics.yaml")
+    ],
+    minimal: [
+      join(canonicalRootPath, "index.yaml"),
+      join(canonicalRootPath, "objects"),
+      join(canonicalRootPath, "commands"),
+      join(canonicalRootPath, "events"),
+      join(canonicalRootPath, "aggregates"),
+      join(canonicalRootPath, "processes"),
+      join(canonicalRootPath, "vocabulary"),
+      join(canonicalRootPath, "objects", "example-record.object.yaml"),
+      join(canonicalRootPath, "commands", "activate-example-record.command.yaml"),
+      join(canonicalRootPath, "events", "example-record-activated.event.yaml"),
+      join(canonicalRootPath, "aggregates", "example-record.aggregate.yaml"),
+      join(canonicalRootPath, "processes", "example-record.process.yaml"),
+      join(canonicalRootPath, "vocabulary", "viewer-detail-semantics.yaml")
+    ],
+    "order-payment": [
+      join(canonicalRootPath, "index.yaml"),
+      join(canonicalRootPath, "objects"),
+      join(canonicalRootPath, "commands"),
+      join(canonicalRootPath, "events"),
+      join(canonicalRootPath, "aggregates"),
+      join(canonicalRootPath, "processes"),
+      join(canonicalRootPath, "vocabulary"),
+      join(canonicalRootPath, "objects", "order.object.yaml"),
+      join(canonicalRootPath, "objects", "payment.object.yaml"),
+      join(canonicalRootPath, "commands", "submit-order.command.yaml"),
+      join(canonicalRootPath, "commands", "confirm-payment.command.yaml"),
+      join(canonicalRootPath, "events", "order-submitted.event.yaml"),
+      join(canonicalRootPath, "events", "payment-confirmed.event.yaml"),
+      join(canonicalRootPath, "aggregates", "order.aggregate.yaml"),
+      join(canonicalRootPath, "aggregates", "payment.aggregate.yaml"),
+      join(canonicalRootPath, "processes", "order-payment.process.yaml"),
+      join(canonicalRootPath, "vocabulary", "viewer-detail-semantics.yaml")
+    ]
+  };
 
-  for (const path of requiredPaths) {
+  for (const path of requiredPathsByTemplate[templateId]) {
     await access(path);
   }
 
   const spec = await loadBusinessSpec({
-    entryPath: join(rootPath, "ddd-spec", "canonical", "index.yaml"),
+    entryPath: join(canonicalRootPath, "index.yaml"),
     validateSemantics: false
   });
-  const approvalObject = spec.domain.objects[0];
-  const approvalProcess = spec.domain.processes[0];
-  const submitCommand = spec.domain.commands.find(
-    (command) => command.type === "submitApprovalRequest"
-  );
-  const approveCommand = spec.domain.commands.find(
-    (command) => command.type === "approveRequest"
-  );
-  const rejectCommand = spec.domain.commands.find(
-    (command) => command.type === "rejectRequest"
-  );
 
-  assert.equal(spec.id, "approval-workflow");
-  assert.equal(spec.title, "Approval Request Workflow");
-  assert.match(spec.summary, /Teaching template showing how a request moves from draft to review/);
-  assert.deepEqual(spec.domain.objects.map((object) => object.id), ["ApprovalRequest"]);
-  assert.deepEqual(
-    spec.domain.commands.map((command) => command.type),
-    ["submitApprovalRequest", "approveRequest", "rejectRequest"]
-  );
-  assert.deepEqual(
-    spec.domain.events.map((event) => event.type),
-    ["ApprovalRequestSubmitted", "ApprovalRequestApproved", "ApprovalRequestRejected"]
-  );
-  assert.equal(approvalObject.title, "Approval Request");
-  assert.equal(approvalObject.lifecycleField, "status");
-  assert.deepEqual(approvalObject.lifecycle, ["draft", "submitted", "approved", "rejected"]);
-  assert.match(
-    approvalObject.fields.find((field) => field.id === "requestId")?.description ?? "",
-    /Stable identifier/
-  );
-  assert.match(submitCommand?.description ?? "", /Move a draft approval request into review/);
-  assert.match(approveCommand?.description ?? "", /optionally capture notes/);
-  assert.match(rejectCommand?.description ?? "", /require a rationale/);
-  assert.equal(approvalProcess.id, "approvalRequestWorkflow");
-  assert.equal(approvalProcess.initialStage, "draftingRequest");
-  assert.deepEqual(approvalProcess.uses.aggregates, {
-    approval: "ApprovalRequest"
-  });
-  assert.deepEqual(approvalProcess.stages.draftingRequest.advancesOn, {
-    ApprovalRequestSubmitted: "awaitingDecision"
-  });
-  assert.deepEqual(approvalProcess.stages.awaitingDecision.advancesOn, {
-    ApprovalRequestApproved: "closedApproved",
-    ApprovalRequestRejected: "closedRejected"
-  });
-  assert.equal(approvalProcess.stages.closedApproved.outcome, "requestApproved");
-  assert.equal(approvalProcess.stages.closedRejected.outcome, "requestRejected");
+  switch (templateId) {
+    case "default": {
+      const approvalObject = spec.domain.objects[0];
+      const approvalProcess = spec.domain.processes[0];
+      const submitCommand = spec.domain.commands.find(
+        (command) => command.type === "submitApprovalRequest"
+      );
+      const approveCommand = spec.domain.commands.find(
+        (command) => command.type === "approveRequest"
+      );
+      const rejectCommand = spec.domain.commands.find(
+        (command) => command.type === "rejectRequest"
+      );
+
+      assert.equal(spec.id, "approval-workflow");
+      assert.equal(spec.title, "Approval Request Workflow");
+      assert.match(spec.summary, /Teaching template showing how a request moves from draft to review/);
+      assert.deepEqual(spec.domain.objects.map((object) => object.id), ["ApprovalRequest"]);
+      assert.deepEqual(
+        spec.domain.commands.map((command) => command.type),
+        ["submitApprovalRequest", "approveRequest", "rejectRequest"]
+      );
+      assert.deepEqual(
+        spec.domain.events.map((event) => event.type),
+        ["ApprovalRequestSubmitted", "ApprovalRequestApproved", "ApprovalRequestRejected"]
+      );
+      assert.equal(approvalObject.title, "Approval Request");
+      assert.equal(approvalObject.lifecycleField, "status");
+      assert.deepEqual(approvalObject.lifecycle, ["draft", "submitted", "approved", "rejected"]);
+      assert.match(
+        approvalObject.fields.find((field) => field.id === "requestId")?.description ?? "",
+        /Stable identifier/
+      );
+      assert.match(submitCommand?.description ?? "", /Move a draft approval request into review/);
+      assert.match(approveCommand?.description ?? "", /optionally capture notes/);
+      assert.match(rejectCommand?.description ?? "", /require a rationale/);
+      assert.equal(approvalProcess.id, "approvalRequestWorkflow");
+      assert.equal(approvalProcess.initialStage, "draftingRequest");
+      assert.deepEqual(approvalProcess.uses.aggregates, {
+        approval: "ApprovalRequest"
+      });
+      assert.deepEqual(approvalProcess.stages.draftingRequest.advancesOn, {
+        ApprovalRequestSubmitted: "awaitingDecision"
+      });
+      assert.deepEqual(approvalProcess.stages.awaitingDecision.advancesOn, {
+        ApprovalRequestApproved: "closedApproved",
+        ApprovalRequestRejected: "closedRejected"
+      });
+      assert.equal(approvalProcess.stages.closedApproved.outcome, "requestApproved");
+      assert.equal(approvalProcess.stages.closedRejected.outcome, "requestRejected");
+      return;
+    }
+    case "minimal": {
+      const minimalObject = spec.domain.objects[0];
+      const minimalAggregate = spec.domain.aggregates[0];
+      const minimalProcess = spec.domain.processes[0];
+
+      assert.equal(spec.id, "minimal-domain");
+      assert.equal(spec.title, "Minimal Domain Skeleton");
+      assert.match(spec.summary, /Minimal template with one object, one command, one event/);
+      assert.deepEqual(spec.domain.objects.map((object) => object.id), ["ExampleRecord"]);
+      assert.deepEqual(
+        spec.domain.commands.map((command) => command.type),
+        ["activateExampleRecord"]
+      );
+      assert.deepEqual(
+        spec.domain.events.map((event) => event.type),
+        ["ExampleRecordActivated"]
+      );
+      assert.deepEqual(
+        spec.domain.processes.map((process) => process.id),
+        ["exampleRecordLifecycle"]
+      );
+      assert.equal(minimalObject.lifecycleField, "status");
+      assert.deepEqual(minimalObject.lifecycle, ["draft", "active"]);
+      assert.match(
+        minimalObject.fields.find((field) => field.id === "recordId")?.description ?? "",
+        /Stable identifier/
+      );
+      assert.equal(minimalAggregate.objectId, "ExampleRecord");
+      assert.equal(minimalAggregate.initial, "draft");
+      assert.deepEqual(minimalAggregate.states.draft?.on, {
+        activateExampleRecord: {
+          target: "active",
+          emit: {
+            type: "ExampleRecordActivated",
+            payloadFrom: {
+              recordId: "$command.recordId"
+            }
+          }
+        }
+      });
+      assert.deepEqual(minimalAggregate.states.active, {});
+      assert.equal(minimalProcess.id, "exampleRecordLifecycle");
+      assert.deepEqual(minimalProcess.uses.aggregates, {
+        record: "ExampleRecord"
+      });
+      assert.deepEqual(minimalProcess.stages.draftingRecord.advancesOn, {
+        ExampleRecordActivated: "activeRecord"
+      });
+      assert.equal(minimalProcess.stages.activeRecord.outcome, "recordActive");
+      return;
+    }
+    case "order-payment": {
+      const orderProcess = spec.domain.processes[0];
+      const orderObject = mustFind(spec.domain.objects, (object) => object.id === "Order");
+      const paymentObject = mustFind(spec.domain.objects, (object) => object.id === "Payment");
+
+      assert.equal(spec.id, "order-payment");
+      assert.equal(spec.title, "Order Submission and Payment Workflow");
+      assert.match(spec.summary, /order submission handing off to payment confirmation/);
+      assert.deepEqual(spec.domain.objects.map((object) => object.id), ["Order", "Payment"]);
+      assert.deepEqual(
+        spec.domain.commands.map((command) => command.type),
+        ["submitOrder", "confirmPayment"]
+      );
+      assert.deepEqual(
+        spec.domain.events.map((event) => event.type),
+        ["OrderSubmitted", "PaymentConfirmed"]
+      );
+      assert.deepEqual(spec.domain.aggregates.map((aggregate) => aggregate.objectId), [
+        "Order",
+        "Payment"
+      ]);
+      assert.equal(orderObject.lifecycleField, "status");
+      assert.deepEqual(orderObject.lifecycle, ["draft", "submitted"]);
+      assert.equal(paymentObject.lifecycleField, "paymentStatus");
+      assert.deepEqual(paymentObject.lifecycle, ["pending", "confirmed"]);
+      assert.equal(orderProcess.id, "orderPaymentProcess");
+      assert.deepEqual(orderProcess.uses.aggregates, {
+        order: "Order",
+        payment: "Payment"
+      });
+      assert.deepEqual(orderProcess.stages.awaitingOrderSubmission.advancesOn, {
+        OrderSubmitted: "awaitingPaymentConfirmation"
+      });
+      assert.deepEqual(orderProcess.stages.awaitingPaymentConfirmation.advancesOn, {
+        PaymentConfirmed: "closedOrderPaid"
+      });
+      assert.equal(orderProcess.stages.closedOrderPaid.outcome, "orderPaid");
+      return;
+    }
+  }
 }
 
 function getNpmCommand(): string {

@@ -32,6 +32,7 @@ interface ParsedCliArgs {
   command?: CliCommand;
   configPath?: string;
   help: boolean;
+  templateId?: string;
   passthroughArgs: readonly string[];
 }
 
@@ -51,6 +52,10 @@ export async function runCliCommand(
   const parsedArgs = parseCliArgs(argv);
 
   if (parsedArgs.help || !parsedArgs.command) {
+    if (!parsedArgs.help && parsedArgs.templateId) {
+      throw new Error("The --template option requires the init command");
+    }
+
     console.log(buildUsageText());
     return;
   }
@@ -61,9 +66,14 @@ export async function runCliCommand(
     }
 
     await initDddSpec({
-      cwd: options.cwd
+      cwd: options.cwd,
+      templateId: parsedArgs.templateId
     });
     return;
+  }
+
+  if (parsedArgs.templateId) {
+    throw new Error("The --template option is only supported by the init command");
   }
 
   const config = await loadDddSpecConfig({
@@ -289,6 +299,7 @@ function parseCliArgs(argv: readonly string[]): ParsedCliArgs {
   const positionals: string[] = [];
   let configPath: string | undefined;
   let help = false;
+  let templateId: string | undefined;
   let passthroughArgs: readonly string[] = [];
 
   for (let index = 0; index < argv.length; index += 1) {
@@ -311,6 +322,18 @@ function parseCliArgs(argv: readonly string[]): ParsedCliArgs {
       continue;
     }
 
+    if (arg === "--template") {
+      const nextArg = argv[index + 1];
+
+      if (!nextArg) {
+        throw new Error("--template requires a template name");
+      }
+
+      templateId = nextArg;
+      index += 1;
+      continue;
+    }
+
     if (arg === "--help" || arg === "-h") {
       help = true;
       continue;
@@ -327,6 +350,7 @@ function parseCliArgs(argv: readonly string[]): ParsedCliArgs {
     command: parseCommand(positionals),
     configPath,
     help,
+    templateId,
     passthroughArgs
   };
 }
