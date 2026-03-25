@@ -175,7 +175,7 @@ const CONNECTION_CARD_REVIEW_FIXTURE_ENTRY_PATH = toAbsolutePath(
   "../../test/fixtures/connection-card-review/canonical/index.yaml"
 );
 const REPO_VIEWER_CONFIG_PATH = toAbsolutePath(
-  "../../apps/design-spec-viewer/ddd-spec.config.yaml"
+  "../../apps/ddd-spec-viewer/ddd-spec.config.yaml"
 );
 
 for (const example of EXAMPLE_FIXTURES) {
@@ -290,7 +290,7 @@ test("repo viewer config resolves fixture-backed outputs and sync targets", asyn
     toAbsolutePath("../../.ddd-spec/generated/business-spec.generated.ts")
   );
   assert.deepEqual(config.viewer.syncTargetPaths, [
-    toAbsolutePath("../../apps/design-spec-viewer/public/generated/viewer-spec.json")
+    toAbsolutePath("../../apps/ddd-spec-viewer/public/generated/viewer-spec.json")
   ]);
 });
 
@@ -302,18 +302,18 @@ test("root package scripts target the repo viewer config", async () => {
 
   assert.equal(
     packageJson.scripts["ddd-spec:validate"],
-    "node --import tsx packages/ddd-spec-cli/cli.ts validate --config apps/design-spec-viewer/ddd-spec.config.yaml"
+    "node --import tsx packages/ddd-spec-cli/cli.ts validate --config apps/ddd-spec-viewer/ddd-spec.config.yaml"
   );
   assert.equal(
     packageJson.scripts["ddd-spec:build"],
-    "node --import tsx packages/ddd-spec-cli/cli.ts build --config apps/design-spec-viewer/ddd-spec.config.yaml"
+    "node --import tsx packages/ddd-spec-cli/cli.ts build --config apps/ddd-spec-viewer/ddd-spec.config.yaml"
   );
   assert.equal(
     packageJson.scripts["ddd-spec:viewer"],
-    "node --import tsx packages/ddd-spec-cli/cli.ts viewer --config apps/design-spec-viewer/ddd-spec.config.yaml --"
+    "node --import tsx packages/ddd-spec-cli/cli.ts viewer --config apps/ddd-spec-viewer/ddd-spec.config.yaml --"
   );
   assert.equal(packageJson.scripts["ddd-spec:init"], undefined);
-  assert.equal(packageJson.scripts["dev:design-spec-viewer"], "npm run ddd-spec:viewer");
+  assert.equal(packageJson.scripts["dev:ddd-spec-viewer"], "npm run ddd-spec:viewer");
 });
 
 test("CLI build syncs viewer spec to configured sync targets", async () => {
@@ -571,7 +571,7 @@ test("CLI viewer rebuilds the zero-config viewer artifact and launches the exist
     });
 
     assert.deepEqual(ensuredDependenciesFor, {
-      appDirPath: join(tempDir, "apps", "design-spec-viewer")
+      appDirPath: join(tempDir, "apps", "ddd-spec-viewer")
     });
     assert.ok(launchOptions);
     assert.equal(
@@ -798,14 +798,14 @@ async function copyExampleCanonicalToZeroConfigRoot(
 }
 
 async function writeViewerAppStub(rootPath: string): Promise<void> {
-  const appDirPath = join(rootPath, "apps", "design-spec-viewer");
+  const appDirPath = join(rootPath, "apps", "ddd-spec-viewer");
 
   await mkdir(appDirPath, { recursive: true });
   await writeFile(
     join(appDirPath, "package.json"),
     JSON.stringify(
       {
-        name: "design-spec-viewer-test-stub",
+        name: "ddd-spec-viewer-test-stub",
         private: true
       },
       null,

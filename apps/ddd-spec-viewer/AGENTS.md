@@ -6,15 +6,15 @@
 
 ## File-Scoped Commands
 - No dedicated file-scoped lint or test commands are configured in this app.
-- Use `npm run build --workspace=apps/design-spec-viewer` for app-level typecheck and production build validation from the repo root.
+- Use `npm run build --workspace=apps/ddd-spec-viewer` for app-level typecheck and production build validation from the repo root.
 
 ## Commands
 | Task | Command |
 |------|---------|
 | Dev from repo root | `npm run ddd-spec:viewer` |
-| Dev from repo root without rebuild pipeline | `npm run dev --workspace=apps/design-spec-viewer` |
-| Build viewer | `npm run build --workspace=apps/design-spec-viewer` |
-| Preview build | `npm run preview --workspace=apps/design-spec-viewer` |
+| Dev from repo root without rebuild pipeline | `npm run dev --workspace=apps/ddd-spec-viewer` |
+| Build viewer | `npm run build --workspace=apps/ddd-spec-viewer` |
+| Preview build | `npm run preview --workspace=apps/ddd-spec-viewer` |
 
 ## Commit Attribution
 - AI commits MUST include `Co-Authored-By: Codex <codex@openai.com>`

@@ -16,7 +16,7 @@ This repository is a private maintainer monorepo for the DDD spec toolchain. The
 4. `npm run ddd-spec:verify`
 5. `npm run ddd-spec:viewer`
 
-The root `ddd-spec:*` scripts target [`apps/design-spec-viewer/ddd-spec.config.yaml`](./apps/design-spec-viewer/ddd-spec.config.yaml). That repo-local config builds the shared [`test/fixtures/connection-card-review/`](./test/fixtures/connection-card-review/) fixture into `./.ddd-spec/` and syncs the viewer fallback asset into [`apps/design-spec-viewer/public/generated/viewer-spec.json`](./apps/design-spec-viewer/public/generated/viewer-spec.json).
+The root `ddd-spec:*` scripts target [`apps/ddd-spec-viewer/ddd-spec.config.yaml`](./apps/ddd-spec-viewer/ddd-spec.config.yaml). That repo-local config builds the shared [`test/fixtures/connection-card-review/`](./test/fixtures/connection-card-review/) fixture into `./.ddd-spec/` and syncs the viewer fallback asset into [`apps/ddd-spec-viewer/public/generated/viewer-spec.json`](./apps/ddd-spec-viewer/public/generated/viewer-spec.json).
 
 ## Repository Layout
 
@@ -25,7 +25,7 @@ The root `ddd-spec:*` scripts target [`apps/design-spec-viewer/ddd-spec.config.y
 - [`packages/ddd-spec-projection-viewer/`](./packages/ddd-spec-projection-viewer/): private viewer JSON projection implementation
 - [`packages/ddd-spec-projection-typescript/`](./packages/ddd-spec-projection-typescript/): private TypeScript projection implementation
 - [`packages/ddd-spec-viewer-contract/`](./packages/ddd-spec-viewer-contract/): private shared viewer contract types
-- [`apps/design-spec-viewer/`](./apps/design-spec-viewer/): React viewer app and repo-local dogfood consumer
+- [`apps/ddd-spec-viewer/`](./apps/ddd-spec-viewer/): React viewer app and repo-local dogfood consumer
 - [`test/fixtures/connection-card-review/`](./test/fixtures/connection-card-review/): shared canonical fixture used by package regression tests and viewer dogfood
 - [`examples/order-payment/`](./examples/order-payment/): self-contained example domain for regression pressure testing
 - [`examples/content-moderation/`](./examples/content-moderation/): second self-contained example domain for cross-domain pressure testing
@@ -39,4 +39,4 @@ The external package still supports zero-config consumer repos with `ddd-spec/ca
 ## Further Reading
 
 - [`docs/ddd-spec/README.md`](./docs/ddd-spec/README.md): repo internals, boundaries, and roadmap notes
-- [`apps/design-spec-viewer/README.md`](./apps/design-spec-viewer/README.md): viewer-specific behavior and app-local development notes
+- [`apps/ddd-spec-viewer/README.md`](./apps/ddd-spec-viewer/README.md): viewer-specific behavior and app-local development notes

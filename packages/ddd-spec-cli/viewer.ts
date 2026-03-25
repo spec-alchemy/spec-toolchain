@@ -3,7 +3,7 @@ import { access } from "node:fs/promises";
 import { join, relative, resolve, sep } from "node:path";
 import type { ResolvedDddSpecConfig } from "./config.js";
 
-const VIEWER_APP_RELATIVE_PATH = "apps/design-spec-viewer";
+const VIEWER_APP_RELATIVE_PATH = "apps/ddd-spec-viewer";
 const VIEWER_APP_PACKAGE_JSON = "package.json";
 const VIEWER_NODE_MODULES_DIR = "node_modules";
 const VIEWER_SPEC_DEFAULT_URL_ENV = "VITE_DDD_SPEC_DEFAULT_URL";

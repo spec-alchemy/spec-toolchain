@@ -1,5 +1,5 @@
 {
-  "name": "design-spec-viewer",
+  "name": "ddd-spec-viewer",
   "private": true,
   "type": "module",
   "scripts": {

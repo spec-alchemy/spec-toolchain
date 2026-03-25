@@ -32,7 +32,7 @@ export function ViewerHeader({
             React Flow + ELK
           </p>
           <h1 className="text-xl font-semibold tracking-[-0.02em] text-foreground">
-            {viewerSpec?.title ?? "Design Spec Viewer"}
+            {viewerSpec?.title ?? "DDD Spec Viewer"}
           </h1>
           <p className="max-w-3xl text-[13px] leading-6 text-muted-foreground">
             {viewerSpec?.summary ??
