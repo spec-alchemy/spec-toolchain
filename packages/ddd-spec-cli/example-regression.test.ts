@@ -34,7 +34,7 @@ import type {
   ViewerViewSpec
 } from "../ddd-spec-viewer-contract/index.js";
 import YAML from "yaml";
-import { buildUsageText } from "./console.js";
+import { buildUsageText, formatCliFailureOutput } from "./console.js";
 import { loadDddSpecConfig } from "./config.js";
 import { runCliCommand } from "./commands.js";
 import type { ViewerDevSessionStatus } from "./viewer-dev-session.js";
@@ -305,13 +305,23 @@ test("zero-config dev shows an init hint when the canonical entry is missing", a
   }
 });
 
-test("CLI help documents zero-config defaults plus advanced template and config paths", () => {
+test("CLI help documents the init to dev workflow plus the explicit alternative", () => {
   const usageText = buildUsageText();
 
-  assert.match(usageText, /Default workflow:/);
-  assert.match(usageText, /One-shot commands:/);
+  assert.match(usageText, /After install, start here:/);
+  assert.match(usageText, /Why this path:/);
+  assert.match(usageText, /Alternative step-by-step flow:/);
+  assert.match(usageText, /Zero-config defaults:/);
   assert.match(usageText, /Advanced init templates:/);
   assert.match(usageText, /Advanced config:/);
+  assert.match(
+    usageText,
+    /init scaffolds a complete teaching workflow in the default workspace layout/
+  );
+  assert.match(
+    usageText,
+    /dev validates, builds, opens the packaged viewer, and rebuilds on save/
+  );
   assert.match(usageText, /Most first-time users should stick with plain ddd-spec init/);
   assert.match(usageText, /Use init --template <name> only when you want a different packaged scaffold/);
   assert.match(usageText, /Supported templates: default, minimal, order-payment/);
@@ -328,8 +338,51 @@ test("CLI help documents zero-config defaults plus advanced template and config 
   assert.match(usageText, /\n  ddd-spec init\n/);
   assert.match(usageText, /edit ddd-spec\/canonical\//);
   assert.match(usageText, /\n  ddd-spec dev\n/);
-  assert.match(usageText, /ddd-spec\/canonical\/index\.yaml/);
-  assert.match(usageText, /\.ddd-spec\//);
+  assert.match(usageText, /ddd-spec viewer -- --port 4173/);
+  assert.match(
+    usageText,
+    /Reads ddd-spec\/canonical\/index\.yaml from the current workspace/
+  );
+  assert.match(
+    usageText,
+    /Writes bundle, analysis, viewer, and generated TypeScript outputs into \.ddd-spec\//
+  );
+});
+
+test("CLI failure output adds command-specific next steps for common failures", () => {
+  assert.match(
+    formatCliFailureOutput(["validate"], new Error("invalid canonical YAML")),
+    /Fix the reported canonical YAML or config issue, then rerun `ddd-spec validate`/
+  );
+  assert.match(
+    formatCliFailureOutput(["build"], new Error("analysis failed")),
+    /Fix the reported canonical, analysis, or config issue, then rerun `ddd-spec build`/
+  );
+  assert.match(
+    formatCliFailureOutput(
+      ["viewer", "--", "--port", "nope"],
+      new Error("Viewer port must be an integer between 0 and 65535; received nope")
+    ),
+    /retry with `ddd-spec viewer -- --port 0`/
+  );
+  assert.match(
+    formatCliFailureOutput(
+      ["dev", "--", "--port", "nope"],
+      new Error("Viewer port must be an integer between 0 and 65535; received nope")
+    ),
+    /use `ddd-spec dev -- --no-open`; if the port is busy, use `ddd-spec dev -- --port 0`/
+  );
+});
+
+test("CLI failure output preserves an existing init hint without duplicating guidance", () => {
+  const output = formatCliFailureOutput(
+    ["validate"],
+    new Error(
+      "No canonical spec found at /tmp/example/ddd-spec/canonical/index.yaml. Run `ddd-spec init` to create ddd-spec/canonical/index.yaml before running this command."
+    )
+  );
+
+  assert.equal(countMatches(output, "Run `ddd-spec init`"), 1);
 });
 
 test("repo viewer config resolves fixture-backed outputs and sync targets", async () => {
@@ -486,6 +539,23 @@ test("maintainer docs describe the package boundary, viewer delivery, and repo-o
   assert.match(viewerReadmeSource, /消费者安装和零配置说明请查看/);
 });
 
+test("repo README presents install to init to dev as the consumer path", async () => {
+  const rootReadmeSource = await readFile(REPO_ROOT_README_PATH, "utf8");
+
+  assert.match(rootReadmeSource, /Install the package into your workspace/);
+  assert.match(rootReadmeSource, /npm install --save-dev @knowledge-alchemy\/ddd-spec/);
+  assert.match(rootReadmeSource, /npm exec ddd-spec init/);
+  assert.match(rootReadmeSource, /npm exec ddd-spec dev/);
+  assert.match(
+    rootReadmeSource,
+    /If you want the explicit step-by-step flow instead of the watch loop/
+  );
+  assert.match(rootReadmeSource, /npm exec ddd-spec validate/);
+  assert.match(rootReadmeSource, /npm exec ddd-spec build/);
+  assert.match(rootReadmeSource, /npm exec ddd-spec viewer -- --port 4173/);
+  assert.match(rootReadmeSource, /repo root stays `private: true`/);
+});
+
 test("CLI package metadata publishes a dist-backed installable command surface", async () => {
   const packageSource = await readFile(CLI_PACKAGE_JSON_PATH, "utf8");
   const packageJson = JSON.parse(packageSource) as {
@@ -542,6 +612,8 @@ test("product README documents zero-config defaults plus advanced template and c
   const readmeSource = await readFile(CLI_PACKAGE_README_PATH, "utf8");
 
   assert.match(readmeSource, /Zero-config is the default product path/);
+  assert.match(readmeSource, /Preferred Onboarding/);
+  assert.match(readmeSource, /preferred path is `install -> init -> dev`/);
   assert.match(readmeSource, /Use `--config <path>` only when a workspace needs custom entry paths/);
   assert.match(
     readmeSource,
@@ -552,30 +624,34 @@ test("product README documents zero-config defaults plus advanced template and c
   assert.match(readmeSource, /opens the browser automatically by default/);
   assert.match(readmeSource, /keeps watching canonical inputs so edits trigger rebuilds/);
   assert.match(readmeSource, /already-open viewer automatically reloads the current workspace viewer spec/);
+  assert.match(readmeSource, /terminal tells you what broke, keeps the watcher alive/);
   assert.match(readmeSource, /viewer keeps showing the last successful result with an in-app warning/);
+  assert.match(readmeSource, /Step-by-Step Alternative/);
   assert.match(readmeSource, /Most users should keep using plain `ddd-spec init`/);
   assert.match(readmeSource, /Advanced users can opt into an explicit scaffold with `--template <name>`/);
   assert.match(readmeSource, /`default`: the same teaching-oriented approval workflow/);
   assert.match(readmeSource, /`minimal`: the smallest valid scaffold/);
   assert.match(readmeSource, /`order-payment`: an example-style order and payment workflow/);
-  assert.match(readmeSource, /npx @knowledge-alchemy\/ddd-spec init/);
-  assert.match(readmeSource, /npx @knowledge-alchemy\/ddd-spec dev/);
-  assert.match(readmeSource, /npx @knowledge-alchemy\/ddd-spec init --template default/);
-  assert.match(readmeSource, /npx @knowledge-alchemy\/ddd-spec init --template minimal/);
-  assert.match(readmeSource, /npx @knowledge-alchemy\/ddd-spec init --template order-payment/);
-  assert.match(readmeSource, /npx @knowledge-alchemy\/ddd-spec build/);
-  assert.match(readmeSource, /npx @knowledge-alchemy\/ddd-spec viewer -- --port 4173/);
+  assert.match(readmeSource, /npm install --save-dev @knowledge-alchemy\/ddd-spec/);
+  assert.match(readmeSource, /npm exec ddd-spec init/);
+  assert.match(readmeSource, /npm exec ddd-spec dev/);
+  assert.match(readmeSource, /npm exec ddd-spec init --template default/);
+  assert.match(readmeSource, /npm exec ddd-spec init --template minimal/);
+  assert.match(readmeSource, /npm exec ddd-spec init --template order-payment/);
+  assert.match(readmeSource, /npm exec ddd-spec validate/);
+  assert.match(readmeSource, /npm exec ddd-spec build/);
+  assert.match(readmeSource, /npm exec ddd-spec viewer -- --port 4173/);
   assert.match(
     readmeSource,
-    /npx @knowledge-alchemy\/ddd-spec validate --config \.\/ddd-spec\.config\.yaml/
+    /npm exec ddd-spec validate --config \.\/ddd-spec\.config\.yaml/
   );
   assert.match(
     readmeSource,
-    /npx @knowledge-alchemy\/ddd-spec dev --config \.\/ddd-spec\.config\.yaml -- --no-open/
+    /npm exec ddd-spec dev --config \.\/ddd-spec\.config\.yaml -- --no-open/
   );
   assert.match(
     readmeSource,
-    /npx @knowledge-alchemy\/ddd-spec viewer --config \.\/ddd-spec\.config\.yaml -- --host 0\.0\.0\.0/
+    /npm exec ddd-spec viewer --config \.\/ddd-spec\.config\.yaml -- --host 0\.0\.0\.0/
   );
   assert.match(readmeSource, /npm install -g @knowledge-alchemy\/ddd-spec/);
   assert.match(readmeSource, /ddd-spec dev/);
@@ -623,7 +699,7 @@ test("CLI dist entry runs without tsx or repo source entrypoints", async () => {
   const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-dist-cli-"));
 
   try {
-    await runCommand(
+    const initResult = await runCommand(
       process.execPath,
       [CLI_DIST_ENTRY_PATH, "init"],
       { cwd: tempDir }
@@ -634,6 +710,10 @@ test("CLI dist entry runs without tsx or repo source entrypoints", async () => {
       { cwd: tempDir }
     );
 
+    assert.match(
+      initResult.stdout,
+      /\[ddd-spec\] next: edit ddd-spec\/canonical\/ and run `ddd-spec dev`/
+    );
     await access(join(tempDir, "ddd-spec", "canonical", "index.yaml"));
   } finally {
     await rm(tempDir, { recursive: true, force: true });
@@ -698,10 +778,20 @@ test("npm pack smoke test installs the tarball and runs zero-config init plus bu
     const installedPackagePath = await installPublishedCliTarball(consumerRootPath);
     const installedCliEntryPath = getInstalledCliEntryPath(installedPackagePath);
 
-    await runCommand(
+    const initResult = await runCommand(
       process.execPath,
       [installedCliEntryPath, "init"],
       { cwd: consumerRootPath }
+    );
+
+    assert.match(initResult.stdout, /created canonical entry/);
+    assert.match(
+      initResult.stdout,
+      /\[ddd-spec\] next: edit ddd-spec\/canonical\/ and run `ddd-spec dev`/
+    );
+    assert.match(
+      initResult.stdout,
+      /\[ddd-spec\] alternative: run `ddd-spec validate`, then `ddd-spec build`, then `ddd-spec viewer`/
     );
 
     await assertGeneratedInitSkeleton(consumerRootPath);
@@ -747,6 +837,58 @@ test("npm pack smoke test installs the tarball and runs zero-config init plus bu
     assert.ok(typescriptSource.includes(`"id": "${ZERO_CONFIG_FIXTURE.id}"`));
     assert.ok(typescriptSource.includes(`"${ZERO_CONFIG_FIXTURE.processId}"`));
     assert.match(typescriptSource, /export const businessSpec =/);
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
+
+test("npm pack smoke test installed CLI help documents the onboarding and alternative flows", async () => {
+  const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-pack-smoke-help-"));
+  const consumerRootPath = join(tempDir, "consumer");
+
+  try {
+    await mkdir(consumerRootPath, { recursive: true });
+    const installedPackagePath = await installPublishedCliTarball(consumerRootPath);
+    const installedCliEntryPath = getInstalledCliEntryPath(installedPackagePath);
+
+    const helpResult = await runCommand(
+      process.execPath,
+      [installedCliEntryPath, "--help"],
+      { cwd: consumerRootPath }
+    );
+
+    assert.match(helpResult.stdout, /After install, start here:/);
+    assert.match(helpResult.stdout, /\n  ddd-spec init\n/);
+    assert.match(helpResult.stdout, /\n  ddd-spec dev\n/);
+    assert.match(helpResult.stdout, /Alternative step-by-step flow:/);
+    assert.match(helpResult.stdout, /ddd-spec viewer -- --port 4173/);
+    assert.match(
+      helpResult.stdout,
+      /Writes bundle, analysis, viewer, and generated TypeScript outputs into \.ddd-spec\//
+    );
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
+
+test("npm pack smoke test installed CLI failure output keeps the init repair hint", async () => {
+  const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-pack-smoke-failure-"));
+  const consumerRootPath = join(tempDir, "consumer");
+
+  try {
+    await mkdir(consumerRootPath, { recursive: true });
+    const installedPackagePath = await installPublishedCliTarball(consumerRootPath);
+    const installedCliEntryPath = getInstalledCliEntryPath(installedPackagePath);
+
+    const validateResult = await runCommandResult(
+      process.execPath,
+      [installedCliEntryPath, "validate"],
+      { cwd: consumerRootPath }
+    );
+
+    assert.equal(validateResult.exitCode, 1);
+    assert.match(validateResult.stderr, /No canonical spec found at /);
+    assert.match(validateResult.stderr, /Run `ddd-spec init` to create ddd-spec\/canonical\/index\.yaml/);
   } finally {
     await rm(tempDir, { recursive: true, force: true });
   }
@@ -2229,7 +2371,7 @@ function getNpmCommand(): string {
   return process.platform === "win32" ? "npm.cmd" : "npm";
 }
 
-async function runCommand(
+async function runCommandResult(
   command: string,
   args: readonly string[],
   options: {
@@ -2237,6 +2379,8 @@ async function runCommand(
     env?: NodeJS.ProcessEnv;
   }
 ): Promise<{
+  exitCode: number | null;
+  signal: NodeJS.Signals | null;
   stdout: string;
   stderr: string;
 }> {
@@ -2263,21 +2407,41 @@ async function runCommand(
 
     child.once("error", rejectPromise);
     child.once("exit", (code, signal) => {
-      if (code === 0) {
-        resolvePromise({ stdout, stderr });
-        return;
-      }
-
-      if (signal) {
-        rejectPromise(new Error(`${command} exited from signal ${signal}\n${stderr}`));
-        return;
-      }
-
-      rejectPromise(
-        new Error(
-          `${command} ${args.join(" ")} exited with code ${code ?? "unknown"}\n${stderr}`
-        )
-      );
+      resolvePromise({
+        exitCode: code,
+        signal,
+        stdout,
+        stderr
+      });
     });
   });
+}
+
+async function runCommand(
+  command: string,
+  args: readonly string[],
+  options: {
+    cwd: string;
+    env?: NodeJS.ProcessEnv;
+  }
+): Promise<{
+  stdout: string;
+  stderr: string;
+}> {
+  const result = await runCommandResult(command, args, options);
+
+  if (result.exitCode === 0) {
+    return {
+      stdout: result.stdout,
+      stderr: result.stderr
+    };
+  }
+
+  if (result.signal) {
+    throw new Error(`${command} exited from signal ${result.signal}\n${result.stderr}`);
+  }
+
+  throw new Error(
+    `${command} ${args.join(" ")} exited with code ${result.exitCode ?? "unknown"}\n${result.stderr}`
+  );
 }

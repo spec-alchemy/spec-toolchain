@@ -71,8 +71,13 @@ async function runBuildAttempt(
     logInfo("build passed");
   } catch (error: unknown) {
     devSessionStatusController.markBuildFailed(toErrorMessage(error));
-    logError("build failed; watcher remains active");
-    console.error(toErrorMessage(error));
+    logError(
+      [
+        "build failed; watcher remains active",
+        toErrorMessage(error),
+        "Next: fix the reported canonical or config issue and save again. The next change will trigger another rebuild automatically."
+      ].join("\n")
+    );
   }
 }
 

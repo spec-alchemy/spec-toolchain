@@ -37,9 +37,15 @@ The standard day-to-day workflow is:
 
 ```sh
 # edit ddd-spec/canonical/
+npm exec ddd-spec dev
+```
+
+If you want the explicit step-by-step flow instead of the watch loop:
+
+```sh
 npm exec ddd-spec validate
 npm exec ddd-spec build
-npm exec ddd-spec viewer -- --open
+npm exec ddd-spec viewer -- --port 4173
 ```
 
 ## What You Edit
@@ -68,7 +74,9 @@ If you want concrete examples before starting from scratch, inspect:
 - `.ddd-spec/artifacts/viewer-spec.json`: viewer projection consumed by the packaged viewer
 - `.ddd-spec/generated/business-spec.generated.ts`: generated TypeScript source
 
-`npm exec ddd-spec viewer` rebuilds the workspace viewer artifact if needed and then serves the packaged viewer at `http://localhost:4173/` by default.
+`npm exec ddd-spec dev` runs the initial validation/build, opens the packaged viewer automatically by default, and keeps rebuilding when canonical files change.
+
+`npm exec ddd-spec viewer` rebuilds the workspace viewer artifact if needed and then serves the packaged viewer at `http://localhost:4173/` by default when you want the explicit one-shot flow instead.
 
 ## Advanced Config
 

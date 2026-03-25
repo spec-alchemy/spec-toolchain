@@ -69,15 +69,18 @@ export async function initDddSpec(
 
   if (gitignoreStatus === "created") {
     logArtifact("created .gitignore", resolve(cwd, ".gitignore"));
-    return;
-  }
-
-  if (gitignoreStatus === "updated") {
+  } else if (gitignoreStatus === "updated") {
     logInfo("updated .gitignore to ignore .ddd-spec/");
-    return;
+  } else {
+    logInfo(".gitignore already ignores .ddd-spec/");
   }
 
-  logInfo(".gitignore already ignores .ddd-spec/");
+  logInfo(
+    "next: edit ddd-spec/canonical/ and run `ddd-spec dev` for the live rebuild loop plus packaged viewer"
+  );
+  logInfo(
+    "alternative: run `ddd-spec validate`, then `ddd-spec build`, then `ddd-spec viewer` when you want one-shot steps"
+  );
 }
 
 async function assertNoExistingScaffold(cwd: string): Promise<void> {
@@ -90,12 +93,12 @@ async function assertNoExistingScaffold(cwd: string): Promise<void> {
 
   if (existingFile === entryPath) {
     throw new Error(
-      `Refusing to overwrite existing canonical entry at ${existingFile}.`
+      `Refusing to overwrite existing canonical entry at ${existingFile}. Keep editing that workspace in place, or remove the existing scaffold before running \`ddd-spec init\` again.`
     );
   }
 
   throw new Error(
-    `Refusing to overwrite existing scaffold file at ${existingFile}. Remove it before running \`ddd-spec init\` again.`
+    `Refusing to overwrite existing scaffold file at ${existingFile}. Remove the existing scaffold or switch to an empty consumer workspace before running \`ddd-spec init\` again.`
   );
 }
 
