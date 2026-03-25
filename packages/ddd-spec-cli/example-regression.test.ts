@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { access, cp, mkdir, mkdtemp, readFile, rm, stat, writeFile } from "node:fs/promises";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import { tmpdir } from "node:os";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
@@ -181,6 +181,7 @@ const CLI_DIST_ENTRY_PATH = toAbsolutePath("./dist/ddd-spec-cli/cli.js");
 const CLI_DIST_INDEX_PATH = toAbsolutePath("./dist/ddd-spec-cli/index.js");
 const CLI_DIST_SCHEMA_PATH = toAbsolutePath("./dist/ddd-spec-core/schema/business-spec.schema.json");
 const REPO_ROOT_PATH = toAbsolutePath("../../");
+const REPO_ROOT_NODE_MODULES_PATH = toAbsolutePath("../../node_modules");
 const REPO_VIEWER_CONFIG_PATH = toAbsolutePath(
   "../../apps/ddd-spec-viewer/ddd-spec.config.yaml"
 );
@@ -461,6 +462,52 @@ test("npm pack dry-run keeps the published CLI package on dist output only", asy
     assert.ok(!packedPaths.includes("example-regression.test.ts"));
   } finally {
     await rm(npmCacheDir, { recursive: true, force: true });
+  }
+});
+
+test("published package build runs from an isolated installed package directory", async () => {
+  const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-install-mode-"));
+  const consumerRootPath = join(tempDir, "consumer");
+
+  try {
+    await mkdir(consumerRootPath, { recursive: true });
+    await copyExampleCanonicalToZeroConfigRoot(consumerRootPath, ZERO_CONFIG_FIXTURE.id);
+
+    const installedPackagePath = await installPublishedCliPackage(consumerRootPath);
+
+    await runCommand(
+      process.execPath,
+      [join(installedPackagePath, "dist", "ddd-spec-cli", "cli.js"), "build"],
+      {
+        cwd: consumerRootPath
+      }
+    );
+
+    const bundle = JSON.parse(
+      await readFile(join(consumerRootPath, ".ddd-spec", "artifacts", "business-spec.json"), "utf8")
+    ) as BusinessSpec;
+    const analysis = JSON.parse(
+      await readFile(
+        join(consumerRootPath, ".ddd-spec", "artifacts", "business-spec.analysis.json"),
+        "utf8"
+      )
+    ) as BusinessSpecAnalysis;
+    const viewer = JSON.parse(
+      await readFile(join(consumerRootPath, ".ddd-spec", "artifacts", "viewer-spec.json"), "utf8")
+    ) as BusinessViewerSpec;
+    const typescriptSource = await readFile(
+      join(consumerRootPath, ".ddd-spec", "generated", "business-spec.generated.ts"),
+      "utf8"
+    );
+
+    assertExampleBundle(bundle, ZERO_CONFIG_FIXTURE);
+    assertExampleAnalysis(analysis, ZERO_CONFIG_FIXTURE);
+    assertExampleViewer(viewer, ZERO_CONFIG_FIXTURE);
+    assert.ok(typescriptSource.includes(`"id": "${ZERO_CONFIG_FIXTURE.id}"`));
+    assert.ok(typescriptSource.includes(`"${ZERO_CONFIG_FIXTURE.processId}"`));
+    assert.match(typescriptSource, /export const businessSpec =/);
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
   }
 });
 
@@ -961,6 +1008,84 @@ async function writeViewerAppStub(rootPath: string): Promise<void> {
     ),
     "utf8"
   );
+}
+
+async function installPublishedCliPackage(consumerRootPath: string): Promise<string> {
+  const installedPackagePath = join(
+    consumerRootPath,
+    "node_modules",
+    "@knowledge-alchemy",
+    "ddd-spec"
+  );
+  const targetNodeModulesPath = join(consumerRootPath, "node_modules");
+  const packageJson = JSON.parse(await readFile(CLI_PACKAGE_JSON_PATH, "utf8")) as {
+    dependencies?: Record<string, string>;
+  };
+  const copiedPackages = new Set<string>();
+
+  await mkdir(installedPackagePath, { recursive: true });
+  await cp(toAbsolutePath("./dist"), join(installedPackagePath, "dist"), {
+    recursive: true
+  });
+  await cp(CLI_PACKAGE_JSON_PATH, join(installedPackagePath, "package.json"));
+
+  for (const dependencyName of Object.keys(packageJson.dependencies ?? {})) {
+    await copyInstalledDependency({
+      copiedPackages,
+      packageName: dependencyName,
+      targetNodeModulesPath
+    });
+  }
+
+  return installedPackagePath;
+}
+
+async function copyInstalledDependency(options: {
+  copiedPackages: Set<string>;
+  packageName: string;
+  targetNodeModulesPath: string;
+}): Promise<void> {
+  if (options.copiedPackages.has(options.packageName)) {
+    return;
+  }
+
+  options.copiedPackages.add(options.packageName);
+
+  const sourcePackagePath = resolveNodeModulesPackagePath(
+    REPO_ROOT_NODE_MODULES_PATH,
+    options.packageName
+  );
+  const targetPackagePath = resolveNodeModulesPackagePath(
+    options.targetNodeModulesPath,
+    options.packageName
+  );
+  const dependencyPackageJson = JSON.parse(
+    await readFile(join(sourcePackagePath, "package.json"), "utf8")
+  ) as {
+    dependencies?: Record<string, string>;
+    optionalDependencies?: Record<string, string>;
+  };
+
+  await mkdir(dirname(targetPackagePath), { recursive: true });
+  await cp(sourcePackagePath, targetPackagePath, {
+    recursive: true,
+    dereference: true
+  });
+
+  for (const dependencyName of Object.keys({
+    ...dependencyPackageJson.dependencies,
+    ...dependencyPackageJson.optionalDependencies
+  })) {
+    await copyInstalledDependency({
+      copiedPackages: options.copiedPackages,
+      packageName: dependencyName,
+      targetNodeModulesPath: options.targetNodeModulesPath
+    });
+  }
+}
+
+function resolveNodeModulesPackagePath(nodeModulesPath: string, packageName: string): string {
+  return join(nodeModulesPath, ...packageName.split("/"));
 }
 
 function toViteFsUrlPath(path: string): string {
