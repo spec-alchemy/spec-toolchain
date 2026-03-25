@@ -71,6 +71,12 @@ interface ExampleFixture {
   fieldRequirements: readonly ExampleFieldRequirement[];
 }
 
+interface PackedCliTarball {
+  packedPaths: readonly string[];
+  tarballPath: string;
+  tempDirPath: string;
+}
+
 function toAbsolutePath(relativePath: string): string {
   return fileURLToPath(new URL(relativePath, import.meta.url));
 }
@@ -550,28 +556,11 @@ test("CLI dist entry runs without tsx or repo source entrypoints", async () => {
   }
 });
 
-test("npm pack dry-run keeps the published CLI package on dist output only", async () => {
-  const npmCacheDir = await mkdtemp(join(tmpdir(), "ddd-spec-npm-cache-"));
+test("npm pack tarball keeps the published CLI package on runtime files only", async () => {
+  const packedCliTarball = await packPublishedCliTarball();
 
   try {
-    const result = await runCommand(
-      getNpmCommand(),
-      ["pack", "--dry-run", "--json", "--ignore-scripts", "--workspace=packages/ddd-spec-cli"],
-      {
-        cwd: REPO_ROOT_PATH,
-        env: {
-          NPM_CONFIG_CACHE: npmCacheDir
-        }
-      }
-    );
-    const [packSummary] = JSON.parse(result.stdout.trim()) as [
-      {
-        files: Array<{
-          path: string;
-        }>;
-      }
-    ];
-    const packedPaths = packSummary.files.map((file) => file.path);
+    const packedPaths = packedCliTarball.packedPaths;
 
     assert.ok(packedPaths.includes("dist/ddd-spec-cli/cli.js"));
     assert.ok(packedPaths.includes("dist/ddd-spec-cli/index.js"));
@@ -593,24 +582,59 @@ test("npm pack dry-run keeps the published CLI package on dist output only", asy
     assert.ok(!packedPaths.includes("commands.ts"));
     assert.ok(!packedPaths.includes("config.ts"));
     assert.ok(!packedPaths.includes("example-regression.test.ts"));
+    assert.ok(!packedPaths.includes("dist/ddd-spec-cli/static/viewer/generated/.gitkeep"));
+    assert.ok(!packedPaths.some((path) => /(^|\/)(docs|examples|fixtures|test)\//.test(path)));
+    assert.ok(!packedPaths.some((path) => /(^|\/)apps\//.test(path)));
+    assert.ok(!packedPaths.some((path) => /(^|\/)src\//.test(path)));
+
+    for (const forbiddenPath of [
+      "AGENTS.md",
+      "components.json",
+      "package-lock.json",
+      "postcss.config.js",
+      "tailwind.config.ts",
+      "tsconfig.json",
+      "vite.config.ts"
+    ]) {
+      assert.ok(
+        !packedPaths.some((path) => path === forbiddenPath || path.endsWith(`/${forbiddenPath}`))
+      );
+    }
   } finally {
-    await rm(npmCacheDir, { recursive: true, force: true });
+    await rm(packedCliTarball.tempDirPath, { recursive: true, force: true });
   }
 });
 
-test("published package build runs from an isolated installed package directory", async () => {
-  const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-install-mode-"));
+test("npm pack smoke test installs the tarball and runs zero-config init plus build", async () => {
+  const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-pack-smoke-zero-config-"));
   const consumerRootPath = join(tempDir, "consumer");
 
   try {
     await mkdir(consumerRootPath, { recursive: true });
-    await copyExampleCanonicalToZeroConfigRoot(consumerRootPath, ZERO_CONFIG_FIXTURE.id);
-
-    const installedPackagePath = await installPublishedCliPackage(consumerRootPath);
+    const installedPackagePath = await installPublishedCliTarball(consumerRootPath);
+    const installedCliEntryPath = getInstalledCliEntryPath(installedPackagePath);
 
     await runCommand(
       process.execPath,
-      [join(installedPackagePath, "dist", "ddd-spec-cli", "cli.js"), "build"],
+      [installedCliEntryPath, "init"],
+      { cwd: consumerRootPath }
+    );
+
+    await assertGeneratedInitSkeleton(consumerRootPath);
+
+    const gitignoreSource = await readFile(join(consumerRootPath, ".gitignore"), "utf8");
+
+    assert.match(gitignoreSource, /^\.ddd-spec\/$/m);
+
+    await rm(join(consumerRootPath, "ddd-spec", "canonical"), {
+      recursive: true,
+      force: true
+    });
+    await copyExampleCanonicalToZeroConfigRoot(consumerRootPath, ZERO_CONFIG_FIXTURE.id);
+
+    await runCommand(
+      process.execPath,
+      [installedCliEntryPath, "build"],
       {
         cwd: consumerRootPath
       }
@@ -644,8 +668,61 @@ test("published package build runs from an isolated installed package directory"
   }
 });
 
-test("published package viewer serves packaged assets and the current workspace viewer spec", async () => {
-  const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-install-viewer-"));
+test("npm pack smoke test installs the tarball and runs build with --config", async () => {
+  const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-pack-smoke-config-"));
+  const consumerRootPath = join(tempDir, "consumer");
+
+  try {
+    await mkdir(consumerRootPath, { recursive: true });
+
+    const configPath = await writeExampleConfig({
+      rootPath: consumerRootPath,
+      example: ZERO_CONFIG_FIXTURE
+    });
+    const installedPackagePath = await installPublishedCliTarball(consumerRootPath);
+    const installedCliEntryPath = getInstalledCliEntryPath(installedPackagePath);
+
+    await runCommand(
+      process.execPath,
+      [installedCliEntryPath, "build", "--config", configPath],
+      {
+        cwd: consumerRootPath
+      }
+    );
+
+    const bundle = JSON.parse(
+      await readFile(join(consumerRootPath, "artifacts", "business-spec.json"), "utf8")
+    ) as BusinessSpec;
+    const analysis = JSON.parse(
+      await readFile(
+        join(consumerRootPath, "artifacts", "business-spec.analysis.json"),
+        "utf8"
+      )
+    ) as BusinessSpecAnalysis;
+    const viewer = JSON.parse(
+      await readFile(
+        join(consumerRootPath, "artifacts", "business-viewer", "viewer-spec.json"),
+        "utf8"
+      )
+    ) as BusinessViewerSpec;
+    const typescriptSource = await readFile(
+      join(consumerRootPath, "generated", `${ZERO_CONFIG_FIXTURE.id}.generated.ts`),
+      "utf8"
+    );
+
+    assertExampleBundle(bundle, ZERO_CONFIG_FIXTURE);
+    assertExampleAnalysis(analysis, ZERO_CONFIG_FIXTURE);
+    assertExampleViewer(viewer, ZERO_CONFIG_FIXTURE);
+    assert.ok(typescriptSource.includes(`"id": "${ZERO_CONFIG_FIXTURE.id}"`));
+    assert.ok(typescriptSource.includes(`"${ZERO_CONFIG_FIXTURE.processId}"`));
+    assert.match(typescriptSource, /export const businessSpec =/);
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
+
+test("npm pack smoke test installs the tarball and serves packaged viewer assets", async () => {
+  const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-pack-smoke-viewer-"));
   const consumerRootPath = join(tempDir, "consumer");
   let child: ReturnType<typeof spawn> | undefined;
 
@@ -653,11 +730,12 @@ test("published package viewer serves packaged assets and the current workspace 
     await mkdir(consumerRootPath, { recursive: true });
     await copyExampleCanonicalToZeroConfigRoot(consumerRootPath, ZERO_CONFIG_FIXTURE.id);
 
-    const installedPackagePath = await installPublishedCliPackage(consumerRootPath);
+    const installedPackagePath = await installPublishedCliTarball(consumerRootPath);
+    const installedCliEntryPath = getInstalledCliEntryPath(installedPackagePath);
 
     child = spawn(
       process.execPath,
-      [join(installedPackagePath, "dist", "ddd-spec-cli", "cli.js"), "viewer", "--", "--port", "0"],
+      [installedCliEntryPath, "viewer", "--", "--port", "0"],
       {
         cwd: consumerRootPath,
         env: {
@@ -1269,7 +1347,57 @@ async function writeExampleConfig(options: {
   return configPath;
 }
 
-async function installPublishedCliPackage(consumerRootPath: string): Promise<string> {
+function getInstalledCliEntryPath(installedPackagePath: string): string {
+  return join(installedPackagePath, "dist", "ddd-spec-cli", "cli.js");
+}
+
+async function packPublishedCliTarball(): Promise<PackedCliTarball> {
+  const tempDirPath = await mkdtemp(join(tmpdir(), "ddd-spec-packed-cli-"));
+  const npmCacheDir = join(tempDirPath, "npm-cache");
+
+  try {
+    const result = await runCommand(
+      getNpmCommand(),
+      [
+        "pack",
+        "--json",
+        "--ignore-scripts",
+        "--pack-destination",
+        tempDirPath,
+        "--workspace=packages/ddd-spec-cli"
+      ],
+      {
+        cwd: REPO_ROOT_PATH,
+        env: {
+          NPM_CONFIG_CACHE: npmCacheDir
+        }
+      }
+    );
+    const [packSummary] = JSON.parse(result.stdout.trim()) as [
+      {
+        filename: string;
+        files: Array<{
+          path: string;
+        }>;
+      }
+    ];
+    const tarballPath = join(tempDirPath, packSummary.filename);
+
+    await access(tarballPath);
+
+    return {
+      packedPaths: packSummary.files.map((file) => file.path),
+      tarballPath,
+      tempDirPath
+    };
+  } catch (error) {
+    await rm(tempDirPath, { recursive: true, force: true });
+    throw error;
+  }
+}
+
+async function installPublishedCliTarball(consumerRootPath: string): Promise<string> {
+  const packedCliTarball = await packPublishedCliTarball();
   const installedPackagePath = join(
     consumerRootPath,
     "node_modules",
@@ -1277,26 +1405,36 @@ async function installPublishedCliPackage(consumerRootPath: string): Promise<str
     "ddd-spec"
   );
   const targetNodeModulesPath = join(consumerRootPath, "node_modules");
-  const packageJson = JSON.parse(await readFile(CLI_PACKAGE_JSON_PATH, "utf8")) as {
-    dependencies?: Record<string, string>;
-  };
   const copiedPackages = new Set<string>();
 
-  await mkdir(installedPackagePath, { recursive: true });
-  await cp(toAbsolutePath("./dist"), join(installedPackagePath, "dist"), {
-    recursive: true
-  });
-  await cp(CLI_PACKAGE_JSON_PATH, join(installedPackagePath, "package.json"));
+  try {
+    await mkdir(installedPackagePath, { recursive: true });
+    await runCommand(
+      "tar",
+      ["-xzf", packedCliTarball.tarballPath, "-C", installedPackagePath, "--strip-components=1"],
+      {
+        cwd: REPO_ROOT_PATH
+      }
+    );
 
-  for (const dependencyName of Object.keys(packageJson.dependencies ?? {})) {
-    await copyInstalledDependency({
-      copiedPackages,
-      packageName: dependencyName,
-      targetNodeModulesPath
-    });
+    const packageJson = JSON.parse(
+      await readFile(join(installedPackagePath, "package.json"), "utf8")
+    ) as {
+      dependencies?: Record<string, string>;
+    };
+
+    for (const dependencyName of Object.keys(packageJson.dependencies ?? {})) {
+      await copyInstalledDependency({
+        copiedPackages,
+        packageName: dependencyName,
+        targetNodeModulesPath
+      });
+    }
+
+    return installedPackagePath;
+  } finally {
+    await rm(packedCliTarball.tempDirPath, { recursive: true, force: true });
   }
-
-  return installedPackagePath;
 }
 
 async function copyInstalledDependency(options: {

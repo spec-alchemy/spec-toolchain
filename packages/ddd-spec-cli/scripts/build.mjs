@@ -29,6 +29,11 @@ const viewerStaticOutputPath = join(
   "static",
   "viewer"
 );
+const viewerGeneratedGitkeepPath = join(
+  viewerStaticOutputPath,
+  "generated",
+  ".gitkeep"
+);
 
 await rm(distDirPath, { recursive: true, force: true });
 await runTypescriptBuild();
@@ -68,6 +73,7 @@ async function buildViewerStaticAssets() {
     cwd: viewerAppDirPath,
     label: "viewer static build"
   });
+  await rm(viewerGeneratedGitkeepPath, { force: true });
 }
 
 async function runNodeCli(options) {
