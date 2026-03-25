@@ -1,6 +1,6 @@
 version: 1
 spec:
-  entry: ../../dogfood/connection-card-review/canonical/index.yaml
+  entry: ../../scenarios/connection-card-review/canonical/index.yaml
 outputs:
   rootDir: ../../.ddd-spec/artifacts
   bundle: ../../.ddd-spec/artifacts/business-spec.json

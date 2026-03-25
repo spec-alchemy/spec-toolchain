@@ -192,8 +192,8 @@ const DEFAULT_SCHEMA_PATH = toAbsolutePath("../ddd-spec-core/schema/business-spe
 const CONNECTION_CARD_REVIEW_FIXTURE_ENTRY_PATH = toAbsolutePath(
   "../../test/fixtures/connection-card-review/canonical/index.yaml"
 );
-const REPO_DOGFOOD_ENTRY_PATH = toAbsolutePath(
-  "../../dogfood/connection-card-review/canonical/index.yaml"
+const REPO_SCENARIO_ENTRY_PATH = toAbsolutePath(
+  "../../scenarios/connection-card-review/canonical/index.yaml"
 );
 const CLI_PACKAGE_JSON_PATH = toAbsolutePath("./package.json");
 const CLI_PACKAGE_README_PATH = toAbsolutePath("./README.md");
@@ -388,14 +388,14 @@ test("CLI failure output preserves an existing init hint without duplicating gui
   assert.equal(countMatches(output, "Run `ddd-spec init`"), 1);
 });
 
-test("repo viewer config resolves dogfood-backed outputs and sync targets", async () => {
+test("repo viewer config resolves scenario-backed outputs and sync targets", async () => {
   const config = await loadDddSpecConfig({
     configPath: REPO_VIEWER_CONFIG_PATH
   });
 
   assert.equal(config.mode, "config");
   assert.equal(config.sourceDescription, REPO_VIEWER_CONFIG_PATH);
-  assert.equal(config.spec.entryPath, REPO_DOGFOOD_ENTRY_PATH);
+  assert.equal(config.spec.entryPath, REPO_SCENARIO_ENTRY_PATH);
   assert.equal(
     config.outputs.rootDirPath,
     toAbsolutePath("../../.ddd-spec/artifacts")
@@ -523,15 +523,15 @@ test("maintainer docs describe the package boundary, viewer delivery, and repo-o
     readFile(VIEWER_APP_README_PATH, "utf8")
   ]);
 
-  assert.match(rootReadmeSource, /maintainer workflows for repo-local dogfooding and regression/);
-  assert.match(rootReadmeSource, /dogfood\//);
+  assert.match(rootReadmeSource, /maintainer workflows for repo-local scenario validation and regression/);
+  assert.match(rootReadmeSource, /scenarios\//);
   assert.match(rootReadmeSource, /test\/fixtures\//);
   assert.match(
     rootReadmeSource,
     /remains private source\. The shipped viewer is the static bundle emitted into `packages\/ddd-spec-cli\/dist\/ddd-spec-cli\/static\/viewer\/`/
   );
   assert.match(agentsSource, /Root package is a private maintainer workspace/);
-  assert.match(agentsSource, /dogfood\//);
+  assert.match(agentsSource, /scenarios\//);
   assert.match(agentsSource, /test\/fixtures\//);
   assert.match(agentsSource, /the shipped viewer is the built bundle/);
   assert.match(viewerReadmeSource, /不是对外 npm package 边界/);

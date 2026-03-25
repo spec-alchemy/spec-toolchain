@@ -2,7 +2,7 @@
 
 `apps/ddd-spec-viewer/` 是内部维护用的 React viewer source workspace，不是对外 npm package 边界，也不会以源码形式随 `@knowledge-alchemy/ddd-spec` 发布。真正随 `@knowledge-alchemy/ddd-spec` 发布的是构建出的静态 bundle：`packages/ddd-spec-cli/dist/ddd-spec-cli/static/viewer/`。
 
-消费者安装和零配置说明请查看 [`../../packages/ddd-spec-cli/README.md`](../../packages/ddd-spec-cli/README.md)。本 README 只描述 monorepo maintainer 的 dogfood 与 app-local 开发路径。
+消费者安装和零配置说明请查看 [`../../packages/ddd-spec-cli/README.md`](../../packages/ddd-spec-cli/README.md)。本 README 只描述 monorepo maintainer 的 `scenarios/` 场景与 app-local 开发路径。
 
 ## Maintainer Usage
 
@@ -14,11 +14,11 @@ npm run repo:viewer
 
 这条命令会：
 
-1. 读取 [`./ddd-spec.config.yaml`](./ddd-spec.config.yaml)，从共享 fixture 生成仓库根目录下最新的 `./.ddd-spec` artifacts
+1. 读取 [`./ddd-spec.config.yaml`](./ddd-spec.config.yaml)，从仓库内置 scenario 生成仓库根目录下最新的 `./.ddd-spec` artifacts
 2. 启动 CLI 内置的本地静态服务器，直接使用打包进 `@knowledge-alchemy/ddd-spec` 的 viewer 资产
 3. 通过同源 `/generated/viewer-spec.json` 提供仓库根目录下的 `./.ddd-spec/artifacts/viewer-spec.json`
 
-`examples/`、`test/fixtures/` 和 `docs/ddd-spec/` 继续作为仓库内的回归、dogfood 和说明材料存在，不属于已发布包的运行时内容。
+`scenarios/`、`examples/`、`test/fixtures/` 和 `docs/ddd-spec/` 继续作为仓库内的场景、回归和说明材料存在，不属于已发布包的运行时内容。
 
 如果要做 app-local 开发，单独运行 workspace 的 Vite dev server：
 

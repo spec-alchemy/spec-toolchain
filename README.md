@@ -2,7 +2,7 @@
 
 `@knowledge-alchemy/ddd-spec` is an installable CLI for DDD-style business modeling. In a consumer workspace, you write YAML under `ddd-spec/canonical/`, validate the model, build generated outputs into `.ddd-spec/`, and open a local viewer to inspect the result.
 
-This repository is also the private maintainer monorepo for that toolchain. The repo root hosts the npm workspace graph, maintainer scripts, release docs, and repo-local dogfood inputs; the installed-package workflow below is the path ordinary users should follow in their own projects.
+This repository is also the private maintainer monorepo for that toolchain. The repo root hosts the npm workspace graph, maintainer scripts, release docs, and repo-local scenario inputs; the installed-package workflow below is the path ordinary users should follow in their own projects.
 
 ## Consumer Quick Start
 
@@ -100,27 +100,27 @@ The repo root stays `private: true` and should be read as maintainer infrastruct
 - [`packages/ddd-spec-cli/`](./packages/ddd-spec-cli/) is the single public npm package boundary, published under the working name `@knowledge-alchemy/ddd-spec`.
 - The consumer README for installed-package usage lives at [`packages/ddd-spec-cli/README.md`](./packages/ddd-spec-cli/README.md).
 - [`apps/ddd-spec-viewer/`](./apps/ddd-spec-viewer/) remains private source. The shipped viewer is the static bundle emitted into `packages/ddd-spec-cli/dist/ddd-spec-cli/static/viewer/` during package build.
-- [`dogfood/`](./dogfood/), [`examples/`](./examples/), [`test/fixtures/`](./test/fixtures/), and [`docs/ddd-spec/`](./docs/ddd-spec/) are repo-only maintainer, example, dogfood, and regression materials. They do not ship in the published tarball.
+- [`scenarios/`](./scenarios/), [`examples/`](./examples/), [`test/fixtures/`](./test/fixtures/), and [`docs/ddd-spec/`](./docs/ddd-spec/) are repo-only maintainer scenario, example, and regression materials. They do not ship in the published tarball.
 - All other workspace packages remain private implementation units behind the CLI package boundary.
 
 ## Maintainer Workflow
 
 | Task | Command |
 |------|---------|
-| Validate repo-local dogfood flow | `npm run repo:validate` |
-| Build repo-local dogfood outputs | `npm run repo:build` |
+| Validate repo-local scenario flow | `npm run repo:validate` |
+| Build repo-local scenario outputs | `npm run repo:build` |
 | Run package regressions | `npm run pkg:test` |
 | Verify packaged CLI and viewer workspace | `npm run verify` |
-| Launch packaged viewer against the repo dogfood input | `npm run repo:viewer` |
+| Launch packaged viewer against the repo scenario input | `npm run repo:viewer` |
 | Run the viewer Vite dev server | `npm run dev --workspace=apps/ddd-spec-viewer` |
 | Build the viewer workspace only | `npm run build --workspace=apps/ddd-spec-viewer` |
 
-The root `repo:*` scripts target [`apps/ddd-spec-viewer/ddd-spec.config.yaml`](./apps/ddd-spec-viewer/ddd-spec.config.yaml). That repo-local config builds the dedicated [`dogfood/connection-card-review/`](./dogfood/connection-card-review/) input into `./.ddd-spec/` and syncs the internal app fallback asset into [`apps/ddd-spec-viewer/public/generated/viewer-spec.json`](./apps/ddd-spec-viewer/public/generated/viewer-spec.json).
-These root scripts are maintainer workflows for repo-local dogfooding and regression around the public package boundary, not consumer install instructions. `npm run pkg:test` exercises the packaged CLI contract, while `npm run verify` adds the private viewer workspace build on top.
+The root `repo:*` scripts target [`apps/ddd-spec-viewer/ddd-spec.config.yaml`](./apps/ddd-spec-viewer/ddd-spec.config.yaml). That repo-local config builds the dedicated [`scenarios/connection-card-review/`](./scenarios/connection-card-review/) input into `./.ddd-spec/` and syncs the internal app fallback asset into [`apps/ddd-spec-viewer/public/generated/viewer-spec.json`](./apps/ddd-spec-viewer/public/generated/viewer-spec.json).
+These root scripts are maintainer workflows for repo-local scenario validation and regression around the public package boundary, not consumer install instructions. `npm run pkg:test` exercises the packaged CLI contract, while `npm run verify` adds the private viewer workspace build on top.
 
 ## Viewer Delivery
 
-`npm run repo:viewer` builds the public package, regenerates the repo-local viewer artifact through the explicit config above, and then launches the packaged CLI viewer server. That server serves the bundled SPA plus the current workspace viewer output at `/generated/viewer-spec.json`, so the same frontend path works for install-mode product usage and repo-local maintainer dogfooding.
+`npm run repo:viewer` builds the public package, regenerates the repo-local viewer artifact through the explicit config above, and then launches the packaged CLI viewer server. That server serves the bundled SPA plus the current workspace viewer output at `/generated/viewer-spec.json`, so the same frontend path works for install-mode product usage and repo-local maintainer scenario validation.
 
 `npm run dev --workspace=apps/ddd-spec-viewer` stays separate on purpose. It is the private Vite development path for [`apps/ddd-spec-viewer/`](./apps/ddd-spec-viewer/), and it reads [`apps/ddd-spec-viewer/public/generated/viewer-spec.json`](./apps/ddd-spec-viewer/public/generated/viewer-spec.json) after a repo-local `npm run repo:build`.
 
@@ -160,8 +160,8 @@ These items are maintainer backlog, not a public product promise:
 - [`packages/ddd-spec-projection-viewer/`](./packages/ddd-spec-projection-viewer/): private viewer JSON projection implementation
 - [`packages/ddd-spec-projection-typescript/`](./packages/ddd-spec-projection-typescript/): private TypeScript projection implementation
 - [`packages/ddd-spec-viewer-contract/`](./packages/ddd-spec-viewer-contract/): private shared viewer contract types
-- [`apps/ddd-spec-viewer/`](./apps/ddd-spec-viewer/): private React viewer source used for dogfooding and packaged bundle generation
-- [`dogfood/connection-card-review/`](./dogfood/connection-card-review/): repo-local maintainer canonical input used for packaged viewer dogfooding; not published
+- [`apps/ddd-spec-viewer/`](./apps/ddd-spec-viewer/): private React viewer source used for scenario validation and packaged bundle generation
+- [`scenarios/connection-card-review/`](./scenarios/connection-card-review/): repo-local maintainer canonical input used for packaged viewer scenario validation; not published
 - [`examples/order-payment/`](./examples/order-payment/): self-contained example domain for regression pressure testing; not published
 - [`examples/content-moderation/`](./examples/content-moderation/): second self-contained example domain for cross-domain pressure testing; not published
 - [`test/fixtures/connection-card-review/`](./test/fixtures/connection-card-review/): shared canonical fixture used by automated regression tests only; not published
