@@ -6,6 +6,22 @@ export interface ExampleFieldRequirement {
   required: boolean;
 }
 
+export interface ExampleFieldStructureExpectation {
+  objectId: string;
+  fieldId: string;
+  structure: "enum" | "reference" | "scalar";
+  target?: string;
+}
+
+export interface ExampleRelationExpectation {
+  objectId: string;
+  relationId: string;
+  kind: "association" | "composition" | "reference";
+  target: string;
+  field?: string;
+  cardinality?: "1" | "0..1" | "0..n" | "1..n";
+}
+
 export interface ExampleAdvance {
   sourceStage: string;
   eventType: string;
@@ -31,6 +47,8 @@ export interface ExampleFixture {
   finalStageIds: readonly string[];
   processAdvances: readonly ExampleAdvance[];
   fieldRequirements: readonly ExampleFieldRequirement[];
+  fieldStructures?: readonly ExampleFieldStructureExpectation[];
+  relations?: readonly ExampleRelationExpectation[];
 }
 
 export interface PackedCliTarball {
@@ -83,7 +101,30 @@ export const EXAMPLE_FIXTURES: readonly ExampleFixture[] = [
         targetStage: "closedOrderPaid"
       }
     ],
-    fieldRequirements: []
+    fieldRequirements: [],
+    fieldStructures: [
+      {
+        objectId: "Order",
+        fieldId: "status",
+        structure: "enum",
+        target: "OrderStatus"
+      },
+      {
+        objectId: "Payment",
+        fieldId: "orderId",
+        structure: "reference",
+        target: "Order"
+      }
+    ],
+    relations: [
+      {
+        objectId: "Payment",
+        relationId: "settlesOrder",
+        kind: "reference",
+        target: "Order",
+        field: "orderId"
+      }
+    ]
   },
   {
     id: "content-moderation",
@@ -146,6 +187,36 @@ export const EXAMPLE_FIXTURES: readonly ExampleFixture[] = [
         objectId: "Publication",
         fieldId: "channel",
         required: false
+      }
+    ],
+    fieldStructures: [
+      {
+        objectId: "ModerationCase",
+        fieldId: "moderationStatus",
+        structure: "enum",
+        target: "ModerationStatus"
+      },
+      {
+        objectId: "Publication",
+        fieldId: "moderationCaseId",
+        structure: "reference",
+        target: "ModerationCase"
+      }
+    ],
+    relations: [
+      {
+        objectId: "ModerationCase",
+        relationId: "approvedPublication",
+        kind: "composition",
+        target: "Publication",
+        cardinality: "0..1"
+      },
+      {
+        objectId: "Publication",
+        relationId: "sourceModerationCase",
+        kind: "reference",
+        target: "ModerationCase",
+        field: "moderationCaseId"
       }
     ]
   }

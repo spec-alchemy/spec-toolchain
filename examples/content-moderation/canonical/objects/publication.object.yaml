@@ -11,6 +11,12 @@ fields:
     type: uuid
     required: true
     description: 发布记录的唯一标识。
+  - id: moderationCaseId
+    type: uuid
+    required: true
+    structure: reference
+    target: ModerationCase
+    description: 产出该发布记录的审核工单标识。
   - id: contentId
     type: uuid
     required: true
@@ -25,3 +31,9 @@ fields:
     structure: enum
     target: PublicationStatus
     description: 发布记录当前所处的生命周期状态。
+relations:
+  - id: sourceModerationCase
+    kind: reference
+    target: ModerationCase
+    field: moderationCaseId
+    description: 发布记录回指触发它的审核工单。

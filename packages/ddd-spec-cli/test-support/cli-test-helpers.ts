@@ -34,9 +34,11 @@ import {
   CORE_SCHEMA_DIR_PATH,
   EXAMPLE_FIXTURES,
   type ExampleAdvance,
+  type ExampleFieldStructureExpectation,
   type ExampleFixture,
   type InitTemplateId,
   type PackedCliTarball,
+  type ExampleRelationExpectation,
   REPO_ROOT_NODE_MODULES_PATH,
   REPO_ROOT_PATH,
   SCHEMA_FILE_NAMES,
@@ -75,6 +77,14 @@ export function assertExampleBundle(bundle: BusinessSpec, example: ExampleFixtur
     const field = mustFind(object.fields, (candidate) => candidate.id === requirement.fieldId);
 
     assert.equal(field.required, requirement.required);
+  }
+
+  for (const expectation of example.fieldStructures ?? []) {
+    assertExampleFieldStructure(bundle, expectation);
+  }
+
+  for (const expectation of example.relations ?? []) {
+    assertExampleRelation(bundle, expectation);
   }
 }
 
@@ -188,6 +198,35 @@ export async function copyExampleCanonicalToZeroConfigRoot(
     join(targetRootPath, "ddd-spec", "canonical"),
     { recursive: true }
   );
+}
+
+function assertExampleFieldStructure(
+  bundle: BusinessSpec,
+  expectation: ExampleFieldStructureExpectation
+): void {
+  const object = mustFind(bundle.domain.objects, (candidate) => candidate.id === expectation.objectId);
+
+  if (!isAggregateObjectSpec(object)) {
+    throw new Error(`Expected aggregate object ${expectation.objectId}`);
+  }
+
+  const field = mustFind(object.fields, (candidate) => candidate.id === expectation.fieldId);
+
+  assert.equal(field.structure, expectation.structure);
+  assert.equal(field.target, expectation.target);
+}
+
+function assertExampleRelation(
+  bundle: BusinessSpec,
+  expectation: ExampleRelationExpectation
+): void {
+  const object = mustFind(bundle.domain.objects, (candidate) => candidate.id === expectation.objectId);
+  const relation = mustFind(object.relations ?? [], (candidate) => candidate.id === expectation.relationId);
+
+  assert.equal(relation.kind, expectation.kind);
+  assert.equal(relation.target, expectation.target);
+  assert.equal(relation.field, expectation.field);
+  assert.equal(relation.cardinality, expectation.cardinality);
 }
 
 export async function writeExampleConfig(options: {
