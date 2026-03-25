@@ -2,19 +2,19 @@
 
 ## Package Manager
 - Use `npm`
-- Install in app: `npm install`
+- Install from repo root: `npm install`
 
 ## File-Scoped Commands
 - No dedicated file-scoped lint or test commands are configured in this app.
-- Use `npm --prefix apps/design-spec-viewer run build` for app-level typecheck and production build validation.
+- Use `npm run build --workspace=apps/design-spec-viewer` for app-level typecheck and production build validation from the repo root.
 
 ## Commands
 | Task | Command |
 |------|---------|
 | Dev from repo root | `npm run ddd-spec:viewer` |
-| Dev in app | `npm --prefix apps/design-spec-viewer run dev` |
-| Build viewer | `npm --prefix apps/design-spec-viewer run build` |
-| Preview build | `npm --prefix apps/design-spec-viewer run preview` |
+| Dev from repo root without rebuild pipeline | `npm run dev --workspace=apps/design-spec-viewer` |
+| Build viewer | `npm run build --workspace=apps/design-spec-viewer` |
+| Preview build | `npm run preview --workspace=apps/design-spec-viewer` |
 
 ## Commit Attribution
 - AI commits MUST include `Co-Authored-By: Codex <codex@openai.com>`

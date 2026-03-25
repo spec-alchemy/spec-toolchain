@@ -13,8 +13,8 @@
 | Run spec regression tests | `npm run ddd-spec:test` |
 | Verify spec pipeline and viewer build | `npm run ddd-spec:verify` |
 | Start React viewer from root | `npm run ddd-spec:viewer` |
-| Start viewer inside app | `npm --prefix apps/design-spec-viewer run dev` |
-| Build viewer inside app | `npm --prefix apps/design-spec-viewer run build` |
+| Start viewer workspace from root | `npm run dev --workspace=apps/design-spec-viewer` |
+| Build viewer workspace from root | `npm run build --workspace=apps/design-spec-viewer` |
 
 ## Commit Attribution
 - AI commits MUST include `Co-Authored-By: Codex <codex@openai.com>`
@@ -23,7 +23,7 @@
 - `apps/design-spec-viewer/ddd-spec.config.yaml`: repo-local config used by root maintainer scripts
 - `test/fixtures/connection-card-review/`: shared canonical fixture for regression tests and viewer dogfood
 - `packages/ddd-spec-core/`: shared DDD spec core implementation
-- `packages/ddd-spec-cli/`: shared DDD spec CLI entrypoints
+- `packages/ddd-spec-cli/`: the single external package boundary, published under the working name `@knowledge-alchemy/ddd-spec`
 - `packages/ddd-spec-viewer-contract/`: shared viewer JSON contract used by projection and app
 - `packages/ddd-spec-projection-viewer/`: viewer projection generator from canonical graph IR
 - `packages/ddd-spec-projection-typescript/`: TypeScript projection generator
@@ -35,8 +35,10 @@
 - `docs/ddd-spec/`: repo internals, boundaries, and roadmap notes
 
 ## Key Conventions
+- Keep the repo root private; it is the maintainer workspace root, not the public npm package boundary
 - Do not add a repo-level `ddd-spec/canonical/`; this repo is the tooling monorepo, not a consumer workspace
 - Put reusable modeling logic in `packages/ddd-spec-core/`, not in repo-local wrappers
+- Treat `packages/ddd-spec-cli/` as the only external v1 package surface; keep the other packages private implementation units
 - Keep shared regression domains under `test/fixtures/`
 - Keep self-contained example domains under `examples/`
 - Do not hand edit generated files under `.ddd-spec/artifacts/`, `.ddd-spec/generated/`, or `apps/design-spec-viewer/public/generated/`

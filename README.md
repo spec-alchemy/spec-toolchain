@@ -1,6 +1,12 @@
 # DDD Spec Workflow Monorepo
 
-This repository develops the DDD spec compiler packages, the shared viewer app, and the regression fixtures that pressure-test the modeling boundary. It is not itself a zero-config consumer repo.
+This repository is a private maintainer monorepo for the DDD spec toolchain. The root package is only the workspace shell for `packages/*` and `apps/*`; it is not itself the external product package or a zero-config consumer repo.
+
+## Package Boundary
+
+- The repo root stays `private: true` and exists to host the npm workspace graph plus maintainer scripts.
+- [`packages/ddd-spec-cli/`](./packages/ddd-spec-cli/) is the single external product package boundary, with the working npm package name `@knowledge-alchemy/ddd-spec`.
+- All other workspace packages remain private implementation units behind that external package boundary, and the viewer app remains a private dogfood app.
 
 ## Root Workflow
 
@@ -15,10 +21,10 @@ The root `ddd-spec:*` scripts target [`apps/design-spec-viewer/ddd-spec.config.y
 ## Repository Layout
 
 - [`packages/ddd-spec-core/`](./packages/ddd-spec-core/): canonical loading, schema validation, semantic validation, graph IR, and analysis
-- [`packages/ddd-spec-cli/`](./packages/ddd-spec-cli/): CLI commands, config loading, build orchestration, and viewer launch helpers
-- [`packages/ddd-spec-projection-viewer/`](./packages/ddd-spec-projection-viewer/): viewer JSON projection
-- [`packages/ddd-spec-projection-typescript/`](./packages/ddd-spec-projection-typescript/): TypeScript projection
-- [`packages/ddd-spec-viewer-contract/`](./packages/ddd-spec-viewer-contract/): shared viewer contract types
+- [`packages/ddd-spec-cli/`](./packages/ddd-spec-cli/): the single external package boundary for `@knowledge-alchemy/ddd-spec`, including CLI commands, config loading, build orchestration, and viewer launch helpers
+- [`packages/ddd-spec-projection-viewer/`](./packages/ddd-spec-projection-viewer/): private viewer JSON projection implementation
+- [`packages/ddd-spec-projection-typescript/`](./packages/ddd-spec-projection-typescript/): private TypeScript projection implementation
+- [`packages/ddd-spec-viewer-contract/`](./packages/ddd-spec-viewer-contract/): private shared viewer contract types
 - [`apps/design-spec-viewer/`](./apps/design-spec-viewer/): React viewer app and repo-local dogfood consumer
 - [`test/fixtures/connection-card-review/`](./test/fixtures/connection-card-review/): shared canonical fixture used by package regression tests and viewer dogfood
 - [`examples/order-payment/`](./examples/order-payment/): self-contained example domain for regression pressure testing
@@ -28,7 +34,7 @@ The root `ddd-spec:*` scripts target [`apps/design-spec-viewer/ddd-spec.config.y
 
 ## Consumer Note
 
-The CLI still supports zero-config consumer repos with `ddd-spec/canonical/index.yaml`, `ddd-spec init`, and standard `.ddd-spec/` outputs. That workflow is now exercised in CLI regression tests rather than by maintaining a business domain at this repo root.
+The external package still supports zero-config consumer repos with `ddd-spec/canonical/index.yaml`, `ddd-spec init`, and standard `.ddd-spec/` outputs. That workflow is now exercised in CLI regression tests rather than by maintaining a business domain at this repo root.
 
 ## Further Reading
 
