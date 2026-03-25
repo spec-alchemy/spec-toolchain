@@ -1829,14 +1829,99 @@
       "id": "domain-structure",
       "kind": "domain-structure",
       "title": "Domain Structure",
-      "description": "Shows domain objects as entity, value-object, and enum nodes, plus structural composition, reference, and association edges.",
+      "description": "Shows domain objects grouped by aggregate boundaries where possible, with normalized association, composition, and reference edges.",
       "nodes": [
+        {
+          "id": "domain-structure:aggregate:Connection",
+          "kind": "aggregate-group",
+          "label": "Connection",
+          "subtitle": "aggregate Connection",
+          "summary": "2 object(s)",
+          "width": 280,
+          "height": 184,
+          "headerHeight": 112,
+          "details": [
+            {
+              "semanticKey": "aggregate.id",
+              "label": "Aggregate",
+              "value": "Connection"
+            },
+            {
+              "semanticKey": "aggregate.lifecycle_field",
+              "label": "Lifecycle field",
+              "value": "status"
+            },
+            {
+              "semanticKey": "aggregate.lifecycle",
+              "label": "Lifecycle",
+              "value": "suggested, confirmed, archived"
+            },
+            {
+              "semanticKey": "object.fields",
+              "label": "Fields",
+              "value": "connectionId [uuid, required, scalar]: 连接唯一标识。\nsourceId [uuid, required, scalar]: 源节点 ID。\ntargetId [uuid, required, scalar]: 目标节点 ID。\ninsight [text, required, scalar]: 连接的核心洞察。\nstatus [ConnectionStatus, required, enum -> ConnectionStatus]: 连接生命周期字段。"
+            },
+            {
+              "semanticKey": "object.relations",
+              "label": "Relations",
+              "value": "none"
+            },
+            {
+              "semanticKey": "object.referenced_by",
+              "label": "Referenced by",
+              "value": "Card.sourceConnection [reference via connectionId]"
+            }
+          ]
+        },
+        {
+          "id": "domain-structure:aggregate:Card",
+          "kind": "aggregate-group",
+          "label": "Card",
+          "subtitle": "aggregate Card",
+          "summary": "2 object(s)",
+          "width": 280,
+          "height": 184,
+          "headerHeight": 112,
+          "details": [
+            {
+              "semanticKey": "aggregate.id",
+              "label": "Aggregate",
+              "value": "Card"
+            },
+            {
+              "semanticKey": "aggregate.lifecycle_field",
+              "label": "Lifecycle field",
+              "value": "status"
+            },
+            {
+              "semanticKey": "aggregate.lifecycle",
+              "label": "Lifecycle",
+              "value": "suggested, accepted, archived"
+            },
+            {
+              "semanticKey": "object.fields",
+              "label": "Fields",
+              "value": "cardId [uuid, required, scalar]: 卡片唯一标识。\nconnectionId [uuid, required, reference -> Connection]: 来源连接 ID。\nfront [text, required, scalar]: 卡片正面内容。\nback [text, required, scalar]: 卡片背面内容。\nstatus [CardStatus, required, enum -> CardStatus]: 卡片生命周期字段。"
+            },
+            {
+              "semanticKey": "object.relations",
+              "label": "Relations",
+              "value": "sourceConnection [reference] -> Connection via connectionId"
+            },
+            {
+              "semanticKey": "object.referenced_by",
+              "label": "Referenced by",
+              "value": "none"
+            }
+          ]
+        },
         {
           "id": "domain-structure:object:Connection",
           "kind": "entity",
           "label": "Connection",
           "subtitle": "lifecycle: status",
           "summary": "5 field(s), 0 relation(s)",
+          "parentId": "domain-structure:aggregate:Connection",
           "width": 224,
           "height": 139,
           "details": [
@@ -1883,6 +1968,7 @@
           "label": "Card",
           "subtitle": "lifecycle: status",
           "summary": "5 field(s), 1 relation(s)",
+          "parentId": "domain-structure:aggregate:Card",
           "width": 224,
           "height": 139,
           "details": [
@@ -1929,6 +2015,7 @@
           "label": "Connection Status",
           "subtitle": "ConnectionStatus",
           "summary": "3 value(s)",
+          "parentId": "domain-structure:aggregate:Connection",
           "width": 196,
           "height": 123,
           "details": [
@@ -1960,6 +2047,7 @@
           "label": "Card Status",
           "subtitle": "CardStatus",
           "summary": "3 value(s)",
+          "parentId": "domain-structure:aggregate:Card",
           "width": 196,
           "height": 123,
           "details": [
@@ -2033,7 +2121,8 @@
           "kind": "reference",
           "source": "domain-structure:object:Card",
           "target": "domain-structure:object:Connection",
-          "label": "sourceConnection",
+          "label": "source connection",
+          "cardinality": "1",
           "description": "卡片由某条连接生成。",
           "details": [
             {
@@ -2055,6 +2144,11 @@
               "semanticKey": "relation.field",
               "label": "Field",
               "value": "connectionId"
+            },
+            {
+              "semanticKey": "relation.cardinality",
+              "label": "Cardinality",
+              "value": "1"
             },
             {
               "semanticKey": "relation.description",

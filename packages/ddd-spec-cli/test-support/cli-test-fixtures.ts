@@ -102,7 +102,13 @@ export const EXAMPLE_FIXTURES: readonly ExampleFixture[] = [
         targetStage: "closedOrderPaid"
       }
     ],
-    fieldRequirements: [],
+    fieldRequirements: [
+      {
+        objectId: "Payment",
+        fieldId: "orderId",
+        required: true
+      }
+    ],
     fieldStructures: [
       {
         objectId: "Order",
@@ -190,6 +196,11 @@ export const EXAMPLE_FIXTURES: readonly ExampleFixture[] = [
         objectId: "ModerationCase",
         fieldId: "reviewerId",
         required: false
+      },
+      {
+        objectId: "Publication",
+        fieldId: "moderationCaseId",
+        required: true
       },
       {
         objectId: "Publication",

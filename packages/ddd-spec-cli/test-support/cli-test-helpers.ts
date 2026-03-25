@@ -164,6 +164,14 @@ export function assertExampleViewer(viewer: BusinessViewerSpec, example: Example
   assert.deepEqual(
     sortStrings(
       domainStructureView.nodes
+        .filter((node) => node.kind === "aggregate-group")
+        .map((node) => getDetailValue(node.details, "aggregate.id"))
+    ),
+    sortStrings(example.aggregateIds)
+  );
+  assert.deepEqual(
+    sortStrings(
+      domainStructureView.nodes
         .filter((node) => node.kind === "entity")
         .map((node) => getDetailValue(node.details, "object.id"))
     ),
@@ -228,19 +236,77 @@ export function assertExampleViewer(viewer: BusinessViewerSpec, example: Example
         .map((expectation) => `${expectation.objectId}|${expectation.fieldId}|${expectation.target}`)
     )
   );
+  assert.equal(
+    domainStructureView.edges.length,
+    collectExpectedDomainStructureEdgeCount(example)
+  );
+
+  for (const aggregateId of example.aggregateIds) {
+    const entityNode = mustFind(
+      domainStructureView.nodes,
+      (candidate) =>
+        candidate.kind === "entity" &&
+        getDetailValue(candidate.details, "object.id") === aggregateId
+    );
+
+    assert.equal(entityNode.parentId, toDomainStructureAggregateGroupId(aggregateId));
+  }
+
+  for (const [objectId, aggregateId] of collectOwnedDomainStructureObjects(example).entries()) {
+    const node = mustFind(
+      domainStructureView.nodes,
+      (candidate) => getOptionalDetailValue(candidate.details, "object.id") === objectId
+    );
+
+    assert.equal(node.parentId, toDomainStructureAggregateGroupId(aggregateId));
+  }
+
+  for (const expectation of example.fieldStructures ?? []) {
+    const kind = toExpectedDomainStructureFieldEdgeKind(expectation);
+
+    if (!kind || !expectation.target) {
+      continue;
+    }
+
+    const matchingRelation = (example.relations ?? []).find(
+      (relation) =>
+        relation.kind === kind &&
+        relation.objectId === expectation.objectId &&
+        relation.field === expectation.fieldId &&
+        relation.target === expectation.target
+    );
+
+    if (matchingRelation) {
+      continue;
+    }
+
+    const edge = mustFind(
+      domainStructureView.edges,
+      (candidate) =>
+        candidate.kind === kind &&
+        getDetailValue(candidate.details, "relation.from") === expectation.objectId &&
+        getDetailValue(candidate.details, "relation.field") === expectation.fieldId &&
+        getDetailValue(candidate.details, "relation.to") === expectation.target
+    );
+
+    assert.equal(edge.label, toReadableDomainStructureLabel(expectation.fieldId));
+  }
 
   for (const relationExpectation of example.relations ?? []) {
     const edge = mustFind(
       domainStructureView.edges,
       (candidate) =>
         candidate.kind === relationExpectation.kind &&
-        candidate.label === relationExpectation.relationId &&
         getDetailValue(candidate.details, "relation.from") === relationExpectation.objectId &&
         getDetailValue(candidate.details, "relation.to") === relationExpectation.target
     );
 
+    assert.equal(edge.label, toReadableDomainStructureLabel(relationExpectation.relationId));
     assert.equal(getOptionalDetailValue(edge.details, "relation.field"), relationExpectation.field);
-    assert.equal(edge.cardinality, relationExpectation.cardinality);
+    assert.equal(
+      edge.cardinality,
+      relationExpectation.cardinality ?? toExpectedRelationFieldCardinality(example, relationExpectation)
+    );
     assert.equal(edge.description, relationExpectation.description);
   }
 }
@@ -1039,6 +1105,127 @@ function formatStructureFieldEdge(edge: ViewerEdgeSpec): string {
     getDetailValue(edge.details, "relation.field"),
     getDetailValue(edge.details, "relation.to")
   ].join("|");
+}
+
+function collectExpectedDomainStructureEdgeCount(example: ExampleFixture): number {
+  const edgeKeys = new Set<string>();
+
+  for (const relation of example.relations ?? []) {
+    edgeKeys.add(
+      formatExpectedDomainStructureEdgeKey(
+        relation.kind,
+        relation.objectId,
+        relation.field,
+        relation.target
+      )
+    );
+  }
+
+  for (const fieldStructure of example.fieldStructures ?? []) {
+    const kind = toExpectedDomainStructureFieldEdgeKind(fieldStructure);
+
+    if (!kind || !fieldStructure.target) {
+      continue;
+    }
+
+    edgeKeys.add(
+      formatExpectedDomainStructureEdgeKey(
+        kind,
+        fieldStructure.objectId,
+        fieldStructure.fieldId,
+        fieldStructure.target
+      )
+    );
+  }
+
+  return edgeKeys.size;
+}
+
+function collectOwnedDomainStructureObjects(
+  example: ExampleFixture
+): ReadonlyMap<string, string> {
+  const ownerCandidatesByObjectId = new Map<string, string[]>();
+
+  for (const fieldStructure of example.fieldStructures ?? []) {
+    if (fieldStructure.structure !== "enum" || !fieldStructure.target) {
+      continue;
+    }
+
+    ownerCandidatesByObjectId.set(
+      fieldStructure.target,
+      unique([
+        ...(ownerCandidatesByObjectId.get(fieldStructure.target) ?? []),
+        fieldStructure.objectId
+      ])
+    );
+  }
+
+  return new Map(
+    [...ownerCandidatesByObjectId.entries()]
+      .filter(([, ownerCandidates]) => ownerCandidates.length === 1)
+      .map(([objectId, ownerCandidates]) => [objectId, ownerCandidates[0]])
+  );
+}
+
+function formatExpectedDomainStructureEdgeKey(
+  kind: string,
+  objectId: string,
+  fieldId: string | undefined,
+  target: string
+): string {
+  return [kind, objectId, fieldId ?? "", target].join("|");
+}
+
+function toExpectedDomainStructureFieldEdgeKind(
+  expectation: ExampleFieldStructureExpectation
+): "association" | "reference" | undefined {
+  switch (expectation.structure) {
+    case "enum":
+      return "association";
+    case "reference":
+      return "reference";
+    default:
+      return undefined;
+  }
+}
+
+function toExpectedRelationFieldCardinality(
+  example: ExampleFixture,
+  relation: ExampleRelationExpectation
+): "1" | "0..1" | undefined {
+  if (!relation.field) {
+    return undefined;
+  }
+
+  const matchingField = mustFind(
+    example.fieldStructures ?? [],
+    (candidate) =>
+      candidate.objectId === relation.objectId &&
+      candidate.fieldId === relation.field &&
+      candidate.target === relation.target
+  );
+  const matchingRequirement = mustFind(
+    example.fieldRequirements,
+    (candidate) =>
+      candidate.objectId === matchingField.objectId &&
+      candidate.fieldId === matchingField.fieldId
+  );
+
+  return matchingRequirement.required ? "1" : "0..1";
+}
+
+function toDomainStructureAggregateGroupId(aggregateId: string): string {
+  return `domain-structure:aggregate:${aggregateId}`;
+}
+
+function toReadableDomainStructureLabel(identifier: string): string {
+  return identifier
+    .replace(/([A-Z]+)([A-Z][a-z0-9]+)/g, "$1 $2")
+    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+    .replace(/[_-]+/g, " ")
+    .trim()
+    .replace(/\s+/g, " ")
+    .toLowerCase();
 }
 
 function getDetailValue(details: readonly ViewerDetailItem[], semanticKey: string): string {
