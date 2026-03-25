@@ -1,6 +1,8 @@
 import {
   useDeferredValue,
   useEffect,
+  useEffectEvent,
+  useRef,
   useState
 } from "react";
 import { Card } from "@/components/ui/card";
@@ -17,6 +19,13 @@ import {
   resolveViewerSpecSource,
   type ViewerSpecSource
 } from "@/lib/load-viewer-spec";
+import {
+  getViewerDevSessionMessage,
+  loadViewerDevSessionStatus,
+  shouldReloadViewerSpec,
+  VIEWER_DEV_SESSION_POLL_INTERVAL_MS,
+  type ViewerDevSessionStatus
+} from "@/lib/viewer-dev-session";
 import type {
   BusinessViewerSpec,
   InspectorSelection,
@@ -33,11 +42,75 @@ export default function App() {
   const [layoutedView, setLayoutedView] = useState<LayoutedView | null>(null);
   const [selection, setSelection] = useState<InspectorSelection | null>(null);
   const [loadingMessage, setLoadingMessage] = useState("Loading viewer spec...");
+  const [devSessionStatus, setDevSessionStatus] = useState<ViewerDevSessionStatus | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const lastLoadedBuildRevisionRef = useRef(0);
+  const pendingBuildRevisionRef = useRef<number | null>(null);
+  const stopDevSessionPollingRef = useRef(false);
 
   useEffect(() => {
+    stopDevSessionPollingRef.current = false;
     void refreshViewerSpec();
   }, []);
+
+  async function refreshViewerSpec(
+    options: { loadedBuildRevision?: number } = {}
+  ): Promise<void> {
+    try {
+      const nextSource = resolveViewerSpecSource();
+
+      setSpecSource(nextSource);
+      setLoadingMessage(`Loading viewer spec from ${nextSource.label}...`);
+      const nextSpec = await loadViewerSpec(nextSource);
+
+      setViewerSpec(nextSpec);
+      setSelectedViewId((current) =>
+        nextSpec.views.some((view) => view.id === current)
+          ? current
+          : (nextSpec.views[0]?.id ?? "")
+      );
+      setErrorMessage(null);
+
+      if (typeof options.loadedBuildRevision === "number") {
+        lastLoadedBuildRevisionRef.current = options.loadedBuildRevision;
+      }
+    } catch (error: unknown) {
+      setErrorMessage(toErrorMessage(error));
+    } finally {
+      if (typeof options.loadedBuildRevision === "number") {
+        pendingBuildRevisionRef.current = null;
+      }
+    }
+  }
+
+  const pollViewerDevSession = useEffectEvent(async (): Promise<void> => {
+    if (stopDevSessionPollingRef.current || !specSource.isDefault) {
+      return;
+    }
+
+    try {
+      const nextStatus = await loadViewerDevSessionStatus();
+
+      setDevSessionStatus(nextStatus);
+
+      if (!nextStatus.enabled) {
+        stopDevSessionPollingRef.current = true;
+        return;
+      }
+
+      if (
+        shouldReloadViewerSpec(nextStatus, lastLoadedBuildRevisionRef.current) &&
+        pendingBuildRevisionRef.current !== nextStatus.lastSuccessfulBuildRevision
+      ) {
+        pendingBuildRevisionRef.current = nextStatus.lastSuccessfulBuildRevision;
+        await refreshViewerSpec({
+          loadedBuildRevision: nextStatus.lastSuccessfulBuildRevision
+        });
+      }
+    } catch (error: unknown) {
+      stopDevSessionPollingRef.current = true;
+    }
+  });
 
   useEffect(() => {
     if (!viewerSpec) {
@@ -77,32 +150,37 @@ export default function App() {
     };
   }, [viewerSpec, deferredViewId]);
 
-  const currentView = viewerSpec?.views.find((view) => view.id === deferredViewId) ?? viewerSpec?.views[0] ?? null;
-
-  async function refreshViewerSpec(): Promise<void> {
-    try {
-      const nextSource = resolveViewerSpecSource();
-
-      setSpecSource(nextSource);
-      setLoadingMessage(`Loading viewer spec from ${nextSource.label}...`);
-      const nextSpec = await loadViewerSpec(nextSource);
-
-      setViewerSpec(nextSpec);
-      setSelectedViewId((current) =>
-        nextSpec.views.some((view) => view.id === current)
-          ? current
-          : (nextSpec.views[0]?.id ?? "")
-      );
-      setErrorMessage(null);
-    } catch (error: unknown) {
-      setErrorMessage(toErrorMessage(error));
+  useEffect(() => {
+    if (!specSource.isDefault) {
+      setDevSessionStatus(null);
+      stopDevSessionPollingRef.current = true;
+      return;
     }
-  }
+
+    stopDevSessionPollingRef.current = false;
+    void pollViewerDevSession();
+
+    const intervalId = window.setInterval(() => {
+      void pollViewerDevSession();
+    }, VIEWER_DEV_SESSION_POLL_INTERVAL_MS);
+
+    return () => {
+      stopDevSessionPollingRef.current = true;
+      window.clearInterval(intervalId);
+    };
+  }, [specSource.isDefault]);
+
+  const currentView = viewerSpec?.views.find((view) => view.id === deferredViewId) ?? viewerSpec?.views[0] ?? null;
+  const devSessionMessage = getViewerDevSessionMessage(devSessionStatus, {
+    isDefaultSpecSource: specSource.isDefault
+  });
 
   return (
     <TooltipProvider delayDuration={120}>
       <div className="grid h-full grid-cols-[minmax(0,1fr)_320px] grid-rows-[auto_minmax(0,1fr)] gap-3 p-3 max-[1080px]:grid-cols-1 max-[1080px]:grid-rows-[auto_minmax(420px,1fr)_auto]">
         <ViewerHeader
+          devSessionMessage={devSessionMessage.message}
+          devSessionTone={devSessionMessage.tone}
           viewerSpec={viewerSpec}
           specSourceLabel={specSource.label}
           selectedViewId={selectedViewId}

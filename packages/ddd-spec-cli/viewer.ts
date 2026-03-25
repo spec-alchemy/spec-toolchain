@@ -5,6 +5,11 @@ import { extname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { logInfo } from "./console.js";
 import type { ResolvedDddSpecConfig } from "./config.js";
+import {
+  getViewerDevSessionStatus,
+  VIEWER_DEV_SESSION_ROUTE_PATH,
+  type ViewerDevSessionStatusProvider
+} from "./viewer-dev-session.js";
 
 const DEFAULT_VIEWER_HOST = "127.0.0.1";
 const DEFAULT_VIEWER_PORT = 4173;
@@ -17,6 +22,7 @@ const VIEWER_ASSET_DIR_CANDIDATES = [
 
 export interface LaunchViewerOptions {
   assetDirPath: string;
+  devSessionStatusProvider?: ViewerDevSessionStatusProvider;
   host: string;
   openBrowser: boolean;
   port: number;
@@ -29,6 +35,7 @@ export interface ViewerCommandHooks {
 
 export interface StartDddSpecViewerOptions {
   args?: readonly string[];
+  devSessionStatusProvider?: ViewerDevSessionStatusProvider;
   hooks?: ViewerCommandHooks;
   openBrowserByDefault?: boolean;
 }
@@ -43,6 +50,7 @@ export async function startDddSpecViewer(
 
   await (hooks.launchViewer ?? launchViewerServer)({
     assetDirPath,
+    devSessionStatusProvider: options.devSessionStatusProvider,
     viewerSpecPath,
     ...parseViewerArgs(options.args ?? [], {
       defaultOpenBrowser: options.openBrowserByDefault ?? false
@@ -113,6 +121,15 @@ async function handleViewerRequest(
       cacheControl: "no-store",
       contentType: "application/json; charset=utf-8"
     });
+    return;
+  }
+
+  if (requestUrl.pathname === VIEWER_DEV_SESSION_ROUTE_PATH) {
+    sendJsonResponse(
+      response,
+      200,
+      getViewerDevSessionStatus(options.devSessionStatusProvider)
+    );
     return;
   }
 
@@ -209,6 +226,19 @@ function sendTextResponse(
     "content-length": Buffer.byteLength(body).toString()
   });
   response.end(body);
+}
+
+function sendJsonResponse(
+  response: ServerResponse,
+  statusCode: number,
+  body: unknown
+): void {
+  sendTextResponse(
+    response,
+    statusCode,
+    `${JSON.stringify(body, null, 2)}\n`,
+    "application/json; charset=utf-8"
+  );
 }
 
 async function listen(

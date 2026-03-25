@@ -3,6 +3,7 @@ import { readdir, stat } from "node:fs/promises";
 import { dirname, join, relative, sep } from "node:path";
 import { logError, logInfo } from "./console.js";
 import type { ResolvedDddSpecConfig } from "./config.js";
+import { createViewerDevSessionStatusController } from "./viewer-dev-session.js";
 import { startDddSpecViewer, type ViewerCommandHooks } from "./viewer.js";
 
 const DEFAULT_WATCH_INTERVAL_MS = 250;
@@ -29,16 +30,17 @@ export async function startDddSpecDevSession(
   options: StartDddSpecDevSessionOptions
 ): Promise<void> {
   const watchRootPath = dirname(config.spec.entryPath);
+  const devSessionStatusController = createViewerDevSessionStatusController();
 
   logInfo("starting dev loop");
-  await runBuildAttempt(options.rebuild);
+  await runBuildAttempt(options.rebuild, devSessionStatusController);
 
   const watcher = await startPollingWatcher({
     ignoredPaths: collectIgnoredPaths(config, watchRootPath),
     intervalMs: DEFAULT_WATCH_INTERVAL_MS,
     onChange: async () => {
       logInfo("rebuilding after canonical input changes");
-      await runBuildAttempt(options.rebuild);
+      await runBuildAttempt(options.rebuild, devSessionStatusController);
     },
     rootPath: watchRootPath
   });
@@ -48,6 +50,7 @@ export async function startDddSpecDevSession(
   try {
     await startDddSpecViewer(config, {
       args: options.args,
+      devSessionStatusProvider: devSessionStatusController,
       hooks: options.hooks,
       openBrowserByDefault: true
     });
@@ -56,11 +59,18 @@ export async function startDddSpecDevSession(
   }
 }
 
-async function runBuildAttempt(rebuild: () => Promise<void>): Promise<void> {
+async function runBuildAttempt(
+  rebuild: () => Promise<void>,
+  devSessionStatusController: ReturnType<
+    typeof createViewerDevSessionStatusController
+  >
+): Promise<void> {
   try {
     await rebuild();
+    devSessionStatusController.markBuildSucceeded();
     logInfo("build passed");
   } catch (error: unknown) {
+    devSessionStatusController.markBuildFailed(toErrorMessage(error));
     logError("build failed; watcher remains active");
     console.error(toErrorMessage(error));
   }

@@ -10,6 +10,8 @@ import {
 } from "@/components/ui/select";
 
 interface ViewerHeaderProps {
+  devSessionMessage?: string | null;
+  devSessionTone?: "info" | "warning" | null;
   viewerSpec: BusinessViewerSpec | null;
   specSourceLabel: string;
   selectedViewId: string;
@@ -18,6 +20,8 @@ interface ViewerHeaderProps {
 }
 
 export function ViewerHeader({
+  devSessionMessage,
+  devSessionTone,
   viewerSpec,
   specSourceLabel,
   selectedViewId,
@@ -41,6 +45,17 @@ export function ViewerHeader({
           <p className="max-w-3xl break-all text-[12px] leading-5 text-muted-foreground">
             Source: {specSourceLabel}
           </p>
+          {devSessionMessage ? (
+            <p
+              className={
+                devSessionTone === "warning"
+                  ? "max-w-3xl rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-[12px] leading-5 text-amber-900"
+                  : "max-w-3xl rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-[12px] leading-5 text-emerald-900"
+              }
+            >
+              {devSessionMessage}
+            </p>
+          ) : null}
         </div>
 
         <div className="flex items-center gap-2 max-sm:w-full max-sm:flex-wrap">

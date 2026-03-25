@@ -37,6 +37,7 @@ import YAML from "yaml";
 import { buildUsageText } from "./console.js";
 import { loadDddSpecConfig } from "./config.js";
 import { runCliCommand } from "./commands.js";
+import type { ViewerDevSessionStatus } from "./viewer-dev-session.js";
 import type { LaunchViewerOptions } from "./viewer.js";
 
 interface ExampleFieldRequirement {
@@ -550,6 +551,8 @@ test("product README documents zero-config defaults plus advanced template and c
   assert.match(readmeSource, /The `dev` command is the recommended iteration loop/);
   assert.match(readmeSource, /opens the browser automatically by default/);
   assert.match(readmeSource, /keeps watching canonical inputs so edits trigger rebuilds/);
+  assert.match(readmeSource, /already-open viewer automatically reloads the current workspace viewer spec/);
+  assert.match(readmeSource, /viewer keeps showing the last successful result with an in-app warning/);
   assert.match(readmeSource, /Most users should keep using plain `ddd-spec init`/);
   assert.match(readmeSource, /Advanced users can opt into an explicit scaffold with `--template <name>`/);
   assert.match(readmeSource, /`default`: the same teaching-oriented approval workflow/);
@@ -889,6 +892,15 @@ test("npm pack smoke test installs the tarball and serves packaged viewer assets
 
     assert.equal(viewerResponse.status, 200);
 
+    const devSessionStatus = await readViewerDevSessionStatus(viewerUrl);
+
+    assert.deepEqual(devSessionStatus, {
+      enabled: false,
+      buildState: "idle",
+      lastFailureMessage: null,
+      lastSuccessfulBuildRevision: 0
+    });
+
     const viewer = await viewerResponse.json() as BusinessViewerSpec;
     const builtViewer = JSON.parse(
       await readFile(join(consumerRootPath, ".ddd-spec", "artifacts", "viewer-spec.json"), "utf8")
@@ -931,6 +943,10 @@ test("npm pack smoke test installs the tarball and keeps the packaged dev watch 
       "order-payment.process.yaml"
     );
     const originalProcessSource = await readFile(processPath, "utf8");
+    const recoveredProcessSource = originalProcessSource.replace(
+      "title: 订单提交与支付确认闭环",
+      "title: 订单提交与支付确认闭环（恢复后）"
+    );
 
     child = spawn(
       process.execPath,
@@ -960,6 +976,12 @@ test("npm pack smoke test installs the tarball and keeps the packaged dev watch 
     assert.match(output.stdout, /\[ddd-spec\] build passed/);
 
     const initialBuildPassCount = countMatches(output.stdout, "[ddd-spec] build passed");
+    const initialDevSessionStatus = await readViewerDevSessionStatus(viewerUrl);
+
+    assert.equal(initialDevSessionStatus.enabled, true);
+    assert.equal(initialDevSessionStatus.buildState, "ready");
+    assert.equal(initialDevSessionStatus.lastSuccessfulBuildRevision, 1);
+    assert.equal(initialDevSessionStatus.lastFailureMessage, null);
 
     await writeFile(processPath, "id: [\n", "utf8");
 
@@ -967,12 +989,36 @@ test("npm pack smoke test installs the tarball and keeps the packaged dev watch 
     await waitForCondition(() =>
       output.stderr.includes("[ddd-spec] build failed; watcher remains active")
     );
+    await waitForCondition(async () => {
+      const failedDevSessionStatus = await readViewerDevSessionStatus(viewerUrl);
 
-    await writeFile(processPath, originalProcessSource, "utf8");
+      return (
+        failedDevSessionStatus.buildState === "failed" &&
+        failedDevSessionStatus.lastSuccessfulBuildRevision === 1 &&
+        Boolean(failedDevSessionStatus.lastFailureMessage)
+      );
+    });
+
+    await writeFile(processPath, recoveredProcessSource, "utf8");
 
     await waitForCondition(
       () => countMatches(output.stdout, "[ddd-spec] build passed") > initialBuildPassCount
     );
+    await waitForCondition(async () => {
+      const recoveredDevSessionStatus = await readViewerDevSessionStatus(viewerUrl);
+
+      return (
+        recoveredDevSessionStatus.buildState === "ready" &&
+        recoveredDevSessionStatus.lastSuccessfulBuildRevision > 1 &&
+        recoveredDevSessionStatus.lastFailureMessage === null
+      );
+    });
+
+    const recoveredViewer = JSON.parse(
+      await readFile(join(consumerRootPath, ".ddd-spec", "artifacts", "viewer-spec.json"), "utf8")
+    ) as BusinessViewerSpec;
+
+    assert.match(JSON.stringify(recoveredViewer), /订单提交与支付确认闭环（恢复后）/);
   } finally {
     if (child) {
       child.kill("SIGTERM");
@@ -1861,6 +1907,16 @@ async function waitForViewerServer(
       );
     });
   });
+}
+
+async function readViewerDevSessionStatus(
+  viewerUrl: URL
+): Promise<ViewerDevSessionStatus> {
+  const response = await fetch(new URL("/__ddd-spec/dev-session", viewerUrl));
+
+  assert.equal(response.status, 200);
+
+  return response.json() as Promise<ViewerDevSessionStatus>;
 }
 
 async function waitForChildExit(child: ReturnType<typeof spawn>): Promise<void> {
