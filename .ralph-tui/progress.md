@@ -11,6 +11,7 @@ after each iteration and it's included in prompts for context.
 - During the staged vNext reset, keep schema-preview inputs under `canonical-vnext/` and isolated schema assets under `packages/ddd-spec-core/schema/vnext/` so current `canonical/`-bound repo gates can keep passing until the vNext loader lands.
 - When introducing a new canonical version, keep legacy loaders version-locked and add a separate version-dispatch loader for mixed repos; do not back-adapt vNext inputs into legacy `domain.*` shapes just to satisfy old call sites.
 - When vNext validation needs to feed later IR or CLI layers, collect structured diagnostics (`code`, `path`, `message`) first and layer the throwing validator on top, rather than forcing downstream code to parse error strings.
+- For vNext modeling, keep one analysis layer as the source of truth for normalization, view projections, and diagnostics; compatibility wrappers such as `vnext-semantic-validation.ts` should delegate instead of re-encoding rules.
 
 ---
 
@@ -118,4 +119,23 @@ after each iteration and it's included in prompts for context.
     - vNext semantic rules are easier to grow when each rule emits a stable `code/path/message` diagnostic and only the outer validation API decides how to surface failure text.
   - Gotchas encountered
     - Breaking a scenario `next` reference can legitimately surface as “multiple entry steps” instead of “unreachable final step”, because the orphaned downstream step becomes a new root once the incoming edge disappears.
+---
+
+## 2026-03-27 - knowledge-alchemy-app-v2-1gc
+- Added `packages/ddd-spec-core/vnext-analysis.ts` as the unified vNext analysis layer that normalizes context boundaries, actor/system participation, scenario step sequences, message flows, aggregate lifecycles, and policy coordination into one IR.
+- Moved vNext diagnostics to derive from that IR, kept `vnext-semantic-validation.ts` as a thin compatibility wrapper, and exposed explicit projection helpers for the four primary views plus policy coordination.
+- Extended `packages/ddd-spec-core/vnext-loader.test.ts` to assert the unified IR shape and projection coverage, and updated `packages/ddd-spec-cli/package.json` so `pkg:test` now executes the vNext core test file.
+- Verified `npm run repo:validate`, `npm run repo:build`, `npm run pkg:test`, and `npm run verify` all pass after the refactor.
+- Files changed:
+  - `packages/ddd-spec-core/vnext-analysis.ts`
+  - `packages/ddd-spec-core/vnext-semantic-validation.ts`
+  - `packages/ddd-spec-core/index.ts`
+  - `packages/ddd-spec-core/vnext-loader.test.ts`
+  - `packages/ddd-spec-cli/package.json`
+  - `.ralph-tui/progress.md`
+- **Learnings:**
+  - Patterns discovered
+    - A shared vNext analysis IR stays practical if it carries both normalized topology and stable source paths, so projection code and diagnostics can share one dataset without losing precise error locations.
+  - Gotchas encountered
+    - `shnote`’s `node` subcommand is not a transparent pass-through in this environment; wrapping `node ...` inside `shnote run "..."` was the reliable way to keep command annotations while running focused tests.
 ---
