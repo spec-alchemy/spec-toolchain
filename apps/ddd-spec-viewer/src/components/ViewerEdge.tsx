@@ -71,6 +71,8 @@ export function ViewerEdge({
             className={`viewer-edge-label nopan relation-kind-${data.kind}`}
             onPointerDown={stopLabelPointer}
             onClick={handleLabelClick}
+            data-component="viewer-edge-label"
+            data-relation-kind={data.kind}
             style={{
               width: `${labelLayout.width}px`,
               minHeight: `${labelLayout.height}px`,

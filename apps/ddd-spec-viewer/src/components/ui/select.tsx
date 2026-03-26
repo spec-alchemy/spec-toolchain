@@ -17,6 +17,7 @@ const SelectTrigger = React.forwardRef<
       "flex h-9 w-full items-center justify-between rounded-md border border-border bg-white/80 px-3 py-2 text-sm text-foreground ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50",
       className
     )}
+    data-component="select-trigger"
     {...props}
   >
     {children}
@@ -40,9 +41,11 @@ const SelectContent = React.forwardRef<
         className
       )}
       position={position}
+      data-component="select-content"
+      data-position={position}
       {...props}
     >
-      <SelectPrimitive.Viewport className="p-1">
+      <SelectPrimitive.Viewport className="p-1" data-slot="select-viewport">
         {children}
       </SelectPrimitive.Viewport>
     </SelectPrimitive.Content>
@@ -57,6 +60,7 @@ const SelectLabel = React.forwardRef<
   <SelectPrimitive.Label
     ref={ref}
     className={cn("px-2 py-1.5 text-xs font-semibold text-muted-foreground", className)}
+    data-slot="select-label"
     {...props}
   />
 ));
@@ -72,9 +76,10 @@ const SelectItem = React.forwardRef<
       "relative flex w-full cursor-default select-none items-center rounded-md py-1.5 pl-8 pr-2 text-sm outline-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
       className
     )}
+    data-component="select-item"
     {...props}
   >
-    <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+    <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center" data-slot="select-item-indicator">
       <SelectPrimitive.ItemIndicator>
         <Check className="h-4 w-4" />
       </SelectPrimitive.ItemIndicator>
@@ -91,6 +96,7 @@ const SelectSeparator = React.forwardRef<
   <SelectPrimitive.Separator
     ref={ref}
     className={cn("-mx-1 my-1 h-px bg-border", className)}
+    data-slot="select-separator"
     {...props}
   />
 ));

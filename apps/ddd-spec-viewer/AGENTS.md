@@ -27,3 +27,9 @@
 - Reuse the shared viewer color mappings for MiniMap, legend items, and flow edge styling.
 - Inspector detail rendering is contract-driven: consume structured `ViewerDetailValue` data rather than parsing prose back into UI structure.
 - New viewer kinds and new inspector sections should reuse the generic detail renderer path where possible; introduce new detail node kinds only when the semantics cannot be expressed by existing primitives.
+
+## DOM Debug Contract
+- Keep Chrome DevTools-readable DOM markers on viewer UI: `data-component` on component roots, `data-slot` on stable internal regions, and `data-kind` / `data-state` for domain state.
+- Do not use Tailwind utility class names as the DOM debugging contract.
+- Shared wrappers in `src/components/ui/` should provide generic `data-component` / `data-slot` defaults; feature components may override them with more specific names.
+- Keep marker names stable and semantic; prefer component and slot names over visual descriptions.

@@ -15,6 +15,8 @@ const Separator = React.forwardRef<
       orientation === "horizontal" ? "h-px w-full" : "h-full w-px",
       className
     )}
+    data-component="separator"
+    data-orientation={orientation}
     {...props}
   />
 ));

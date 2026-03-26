@@ -20,7 +20,7 @@ export function ItemNode({ data }: NodeProps<FlowNode>) {
         isConnectable={false}
         style={hiddenHandleStyle}
       />
-      <div className={`node-card kind-${data.kind}`}>
+      <div className={`node-card kind-${data.kind}`} data-component="item-node" data-kind={data.kind}>
         <div className="node-card__body">
           <span className="kind-pill">{getNodeKindLabel(data.kind)}</span>
           <h3 className="node-label">{data.label}</h3>

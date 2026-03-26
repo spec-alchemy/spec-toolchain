@@ -29,9 +29,12 @@ export function ViewerHeader({
   onReload
 }: ViewerHeaderProps) {
   return (
-    <header className="col-span-full rounded-[20px] border border-border bg-card/90 px-4 py-3 shadow-viewer backdrop-blur">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div className="min-w-0 space-y-1">
+    <header
+      className="col-span-full rounded-[20px] border border-border bg-card/90 px-4 py-3 shadow-viewer backdrop-blur"
+      data-component="viewer-header"
+    >
+      <div className="flex flex-wrap items-end justify-between gap-3" data-slot="content">
+        <div className="min-w-0 space-y-1" data-slot="title-block">
           <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-muted-foreground">
             React Flow + ELK
           </p>
@@ -52,13 +55,15 @@ export function ViewerHeader({
                   ? "max-w-3xl rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-[12px] leading-5 text-amber-900"
                   : "max-w-3xl rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-[12px] leading-5 text-emerald-900"
               }
+              data-slot="dev-session-message"
+              data-tone={devSessionTone ?? "info"}
             >
               {devSessionMessage}
             </p>
           ) : null}
         </div>
 
-        <div className="flex items-center gap-2 max-sm:w-full max-sm:flex-wrap">
+        <div className="flex items-center gap-2 max-sm:w-full max-sm:flex-wrap" data-slot="controls">
           <Select
             value={selectedViewId}
             disabled={!viewerSpec}

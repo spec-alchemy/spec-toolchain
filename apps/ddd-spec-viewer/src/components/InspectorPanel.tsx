@@ -17,7 +17,7 @@ export function InspectorPanel({
 }: InspectorPanelProps) {
   if (!view) {
     return (
-      <section className="space-y-2">
+      <section className="space-y-2" data-component="inspector-panel" data-state="no-view">
         <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-muted-foreground">
           Status
         </p>
@@ -33,8 +33,12 @@ export function InspectorPanel({
 
   if (!selection) {
     return (
-      <section className="space-y-3">
-        <div className="space-y-2">
+      <section
+        className="space-y-3"
+        data-component="inspector-panel"
+        data-state="no-selection"
+      >
+        <div className="space-y-2" data-slot="selection-summary">
           <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-muted-foreground">
             Selection
           </p>
@@ -43,10 +47,14 @@ export function InspectorPanel({
           </h2>
           <p className="text-[13px] leading-6 text-muted-foreground">{view.description}</p>
         </div>
-        <div className="grid gap-2">
-          <Card className="rounded-2xl border-border/80 bg-white/60 shadow-none backdrop-blur-0">
+        <div className="grid gap-2" data-slot="detail-list">
+          <Card
+            className="rounded-2xl border-border/80 bg-white/60 shadow-none backdrop-blur-0"
+            data-component="inspector-detail-card"
+            data-semantic-key="ui.how_to_read"
+          >
             <CardContent className="p-3">
-              <div className="mb-1.5 flex items-center gap-1.5">
+              <div className="mb-1.5 flex items-center gap-1.5" data-slot="card-header">
                 <span className="text-[11px] font-bold uppercase tracking-[0.04em] text-muted-foreground">
                   How To Read
                 </span>
@@ -66,8 +74,13 @@ export function InspectorPanel({
   }
 
   return (
-    <section className="space-y-3">
-      <div className="space-y-2">
+    <section
+      className="space-y-3"
+      data-component="inspector-panel"
+      data-state="selection"
+      data-selection-type={selection.type}
+    >
+      <div className="space-y-2" data-slot="selection-summary">
         <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-muted-foreground">
           {selection.type}
         </p>
@@ -78,15 +91,17 @@ export function InspectorPanel({
           <p className="text-[13px] leading-6 text-muted-foreground">{selection.summary}</p>
         ) : null}
       </div>
-      <div className="grid gap-2">
+      <div className="grid gap-2" data-slot="detail-list">
         {selection.details.length > 0 ? (
           selection.details.map((item, index) => (
             <Card
               className="rounded-2xl border-border/80 bg-white/60 shadow-none backdrop-blur-0"
               key={`${selection.type}-${item.semanticKey}-${index}`}
+              data-component="inspector-detail-card"
+              data-semantic-key={item.semanticKey}
             >
               <CardContent className="p-3">
-                <div className="mb-1.5 flex items-center gap-1.5">
+                <div className="mb-1.5 flex items-center gap-1.5" data-slot="card-header">
                   <span className="text-[11px] font-bold uppercase tracking-[0.04em] text-muted-foreground">
                     {item.label}
                   </span>
@@ -100,9 +115,13 @@ export function InspectorPanel({
             </Card>
           ))
         ) : (
-          <Card className="rounded-2xl border-border/80 bg-white/60 shadow-none backdrop-blur-0">
+          <Card
+            className="rounded-2xl border-border/80 bg-white/60 shadow-none backdrop-blur-0"
+            data-component="inspector-detail-card"
+            data-semantic-key="ui.details"
+          >
             <CardContent className="p-3">
-              <div className="mb-1.5 flex items-center gap-1.5">
+              <div className="mb-1.5 flex items-center gap-1.5" data-slot="card-header">
                 <span className="text-[11px] font-bold uppercase tracking-[0.04em] text-muted-foreground">
                   Details
                 </span>

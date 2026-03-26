@@ -177,7 +177,10 @@ export default function App() {
 
   return (
     <TooltipProvider delayDuration={120}>
-      <div className="grid h-full grid-cols-[minmax(0,1fr)_320px] grid-rows-[auto_minmax(0,1fr)] gap-3 p-3 max-[1080px]:grid-cols-1 max-[1080px]:grid-rows-[auto_minmax(420px,1fr)_auto]">
+      <div
+        className="grid h-full grid-cols-[minmax(0,1fr)_320px] grid-rows-[auto_minmax(0,1fr)] gap-3 p-3 max-[1080px]:grid-cols-1 max-[1080px]:grid-rows-[auto_minmax(420px,1fr)_auto]"
+        data-component="viewer-app"
+      >
         <ViewerHeader
           devSessionMessage={devSessionMessage.message}
           devSessionTone={devSessionMessage.tone}
@@ -190,7 +193,7 @@ export default function App() {
           }}
         />
 
-        <Card className="min-h-0 overflow-hidden">
+        <Card className="min-h-0 overflow-hidden" data-slot="canvas-panel">
           {errorMessage ? (
             <ViewerEmptyState
               title="Viewer Load Failed"
@@ -211,9 +214,9 @@ export default function App() {
           )}
         </Card>
 
-        <Card className="min-h-0 overflow-hidden">
+        <Card className="min-h-0 overflow-hidden" data-slot="sidebar-panel">
           <ScrollArea className="h-full">
-            <aside className="space-y-4 p-4">
+            <aside className="space-y-4 p-4" data-component="viewer-sidebar">
               <InspectorPanel
                 view={currentView as ViewerViewSpec | null}
                 selection={selection}

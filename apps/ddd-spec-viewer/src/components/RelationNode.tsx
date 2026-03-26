@@ -19,7 +19,11 @@ export function RelationNode({ data }: NodeProps<FlowNode>) {
         isConnectable={false}
         style={hiddenHandleStyle}
       />
-      <div className={`relation-card relation-kind-${data.relationKind ?? "relation"}`}>
+      <div
+        className={`relation-card relation-kind-${data.relationKind ?? "relation"}`}
+        data-component="relation-node"
+        data-relation-kind={data.relationKind ?? "relation"}
+      >
         <div className="relation-card__content">
           {data.relationKind ? (
             <span className="relation-card__kind">

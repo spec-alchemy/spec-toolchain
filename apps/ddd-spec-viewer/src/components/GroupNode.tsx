@@ -14,7 +14,12 @@ export function GroupNode({ data }: NodeProps<FlowNode>) {
   };
 
   return (
-    <div className={`group-card kind-${data.kind}`} style={groupCardStyle}>
+    <div
+      className={`group-card kind-${data.kind}`}
+      data-component="group-node"
+      data-kind={data.kind}
+      style={groupCardStyle}
+    >
       <div className="group-card__header">
         <span className="kind-pill">{getNodeKindLabel(data.kind)}</span>
         <h3 className="node-label">{data.label}</h3>

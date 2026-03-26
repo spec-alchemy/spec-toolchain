@@ -12,19 +12,26 @@ export function DetailValueRenderer({ value }: DetailValueRendererProps) {
   switch (value.kind) {
     case "text":
       return (
-        <div className="whitespace-pre-wrap text-[13px] leading-6 text-foreground/90">
+        <div
+          className="whitespace-pre-wrap text-[13px] leading-6 text-foreground/90"
+          data-component="detail-value"
+          data-kind="text"
+        >
           {value.text}
         </div>
       );
     case "section":
       return (
-        <section className="space-y-2">
+        <section className="space-y-2" data-component="detail-value" data-kind="section">
           {value.title ? (
-            <p className="text-[11px] font-bold uppercase tracking-[0.04em] text-muted-foreground">
+            <p
+              className="text-[11px] font-bold uppercase tracking-[0.04em] text-muted-foreground"
+              data-slot="section-title"
+            >
               {value.title}
             </p>
           ) : null}
-          <div className="space-y-2">
+          <div className="space-y-2" data-slot="section-children">
             {value.children.map((child, index) => (
               <DetailValueRenderer
                 key={`section-${value.title ?? "untitled"}-${index}`}
@@ -36,7 +43,7 @@ export function DetailValueRenderer({ value }: DetailValueRendererProps) {
       );
     case "list":
       return (
-        <div className="space-y-2">
+        <div className="space-y-2" data-component="detail-value" data-kind="list">
           {value.items.map((item, index) => (
             <DetailValueRenderer key={`list-item-${index}`} value={item} />
           ))}
@@ -44,9 +51,17 @@ export function DetailValueRenderer({ value }: DetailValueRendererProps) {
       );
     case "record":
       return (
-        <dl className="grid gap-2 rounded-xl border border-border/70 bg-background/75 p-2.5">
+        <dl
+          className="grid gap-2 rounded-xl border border-border/70 bg-background/75 p-2.5"
+          data-component="detail-value"
+          data-kind="record"
+        >
           {value.entries.map((entry, index) => (
-            <div className="grid gap-1" key={`record-entry-${entry.label}-${index}`}>
+            <div
+              className="grid gap-1"
+              data-slot="record-entry"
+              key={`record-entry-${entry.label}-${index}`}
+            >
               <dt className="text-[11px] font-bold uppercase tracking-[0.04em] text-muted-foreground">
                 {entry.label}
               </dt>
@@ -59,7 +74,11 @@ export function DetailValueRenderer({ value }: DetailValueRendererProps) {
       );
     case "field":
       return (
-        <article className="rounded-xl border border-border/70 bg-background/75 p-2.5">
+        <article
+          className="rounded-xl border border-border/70 bg-background/75 p-2.5"
+          data-component="detail-value"
+          data-kind="field"
+        >
           <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
             <span className="text-[13px] font-semibold text-foreground">{value.name}</span>
             <span className="text-[12px] leading-5 text-muted-foreground">
