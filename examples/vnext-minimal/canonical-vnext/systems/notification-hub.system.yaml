@@ -1,0 +1,8 @@
+kind: system
+id: notification-hub
+title: Notification Hub
+summary: Delivers outbound notifications after approval outcomes are finalized.
+boundary: external
+capabilities:
+  - Send email notifications
+  - Send in-app notifications

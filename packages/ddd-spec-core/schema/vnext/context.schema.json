@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "vnext/context.schema.json",
+  "title": "vNext Context",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["kind", "id", "title", "summary", "owners", "responsibilities"],
+  "properties": {
+    "kind": {
+      "const": "context"
+    },
+    "id": {
+      "$ref": "shared.schema.json#/$defs/identifier"
+    },
+    "title": {
+      "$ref": "shared.schema.json#/$defs/nonEmptyString"
+    },
+    "summary": {
+      "$ref": "shared.schema.json#/$defs/summary"
+    },
+    "owners": {
+      "$ref": "shared.schema.json#/$defs/stringArray"
+    },
+    "responsibilities": {
+      "$ref": "shared.schema.json#/$defs/stringArray"
+    },
+    "relationships": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "kind", "target"],
+        "properties": {
+          "id": {
+            "$ref": "shared.schema.json#/$defs/identifier"
+          },
+          "kind": {
+            "$ref": "shared.schema.json#/$defs/identifier"
+          },
+          "target": {
+            "$ref": "shared.schema.json#/$defs/resourceRef"
+          },
+          "description": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

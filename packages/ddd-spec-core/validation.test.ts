@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { readdir, readFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import test from "node:test";
 import type { ErrorObject } from "ajv";
+import YAML from "yaml";
 import {
   validateBusinessSpecSchema,
   validateBusinessSpecSemantics
@@ -12,6 +13,59 @@ import {
   CORE_SCHEMA_PATH,
   loadConnectionCardReviewFixture
 } from "./test-fixtures.js";
+
+const VNEXT_SCHEMA_DIR_PATH = join(dirname(CORE_SCHEMA_PATH), "vnext");
+const VNEXT_EXAMPLE_ROOT_PATH = join(
+  dirname(CORE_SCHEMA_PATH),
+  "../../../examples/vnext-minimal/canonical-vnext"
+);
+const VNEXT_MODEL_COLLECTIONS = [
+  {
+    key: "contexts",
+    schemaFile: "context.schema.json",
+    suffix: ".context.yaml"
+  },
+  {
+    key: "actors",
+    schemaFile: "actor.schema.json",
+    suffix: ".actor.yaml"
+  },
+  {
+    key: "systems",
+    schemaFile: "system.schema.json",
+    suffix: ".system.yaml"
+  },
+  {
+    key: "scenarios",
+    schemaFile: "scenario.schema.json",
+    suffix: ".scenario.yaml"
+  },
+  {
+    key: "messages",
+    schemaFile: "message.schema.json",
+    suffix: ".message.yaml"
+  },
+  {
+    key: "aggregates",
+    schemaFile: "aggregate.schema.json",
+    suffix: ".aggregate.yaml"
+  },
+  {
+    key: "policies",
+    schemaFile: "policy.schema.json",
+    suffix: ".policy.yaml"
+  }
+] as const;
+
+type VnextCollectionKey = (typeof VNEXT_MODEL_COLLECTIONS)[number]["key"];
+
+interface VnextCanonicalIndexSpec {
+  version: 3;
+  id: string;
+  title: string;
+  summary: string;
+  model: Record<VnextCollectionKey, string | string[]>;
+}
 
 test("schema validation accepts the canonical fixture", async () => {
   const spec = await loadConnectionCardReviewFixture();
@@ -273,6 +327,76 @@ test("standalone canonical index schema requires version 2", async () => {
   assert.ok(
     errors.some((error) => error.instancePath === "/version" && error.keyword === "const")
   );
+});
+
+test("standalone vnext canonical index schema accepts directory references and file collections", async () => {
+  const validate = await createVnextSchemaValidator("canonical-index.schema.json");
+  const indexSpec = {
+    version: 3,
+    id: "approval-flow-vnext",
+    title: "Approval Flow vNext",
+    summary: "Preview vNext canonical index with mixed collection reference styles.",
+    model: {
+      contexts: "./contexts",
+      actors: ["./actors/requester.actor.yaml", "./actors/approver.actor.yaml"],
+      systems: "./systems",
+      scenarios: "./scenarios",
+      messages: "./messages",
+      aggregates: "./aggregates",
+      policies: "./policies"
+    }
+  };
+
+  assertSchemaValidationPasses(validate, indexSpec);
+});
+
+test("standalone vnext canonical index schema rejects legacy domain keys", async () => {
+  const validate = await createVnextSchemaValidator("canonical-index.schema.json");
+  const indexSpec = {
+    version: 3,
+    id: "approval-flow-vnext",
+    title: "Approval Flow vNext",
+    summary: "Incorrectly tries to keep the old domain-centered shape.",
+    domain: {
+      objects: ["./objects/request.object.yaml"]
+    }
+  };
+
+  const errors = assertSchemaValidationFails(validate, indexSpec);
+
+  assert.ok(
+    errors.some(
+      (error) =>
+        (error.instancePath === "" || error.instancePath === "/") &&
+        (error.keyword === "required" || error.keyword === "additionalProperties")
+    )
+  );
+});
+
+test("minimal vnext canonical example validates against v3 schemas", async () => {
+  const index = await loadYamlFile<VnextCanonicalIndexSpec>(
+    join(VNEXT_EXAMPLE_ROOT_PATH, "index.yaml")
+  );
+  const validateIndex = await createVnextSchemaValidator("canonical-index.schema.json");
+
+  assertSchemaValidationPasses(validateIndex, index);
+
+  for (const collection of VNEXT_MODEL_COLLECTIONS) {
+    const validateEntry = await createVnextSchemaValidator(collection.schemaFile);
+    const filePaths = await resolveVnextCollectionPaths(
+      VNEXT_EXAMPLE_ROOT_PATH,
+      index.model[collection.key],
+      collection.suffix
+    );
+
+    assert.ok(filePaths.length > 0, `${collection.key} should contain at least one schema file`);
+
+    for (const filePath of filePaths) {
+      const document = await loadYamlFile<Record<string, unknown>>(filePath);
+
+      assertSchemaValidationPasses(validateEntry, document);
+    }
+  }
 });
 
 test("semantic validation accepts the canonical fixture", async () => {
@@ -598,6 +722,49 @@ async function createStandaloneSchemaValidator(
   ajv.addSchema(businessSpecSchema, "business-spec.schema.json");
 
   return ajv.compile(JSON.parse(schemaSource) as object);
+}
+
+async function createVnextSchemaValidator(schemaFileName: string): Promise<JsonSchemaValidator> {
+  const schemaFileNames = (await readdir(VNEXT_SCHEMA_DIR_PATH))
+    .filter((fileName) => fileName.endsWith(".json"))
+    .sort();
+  const rootSchemaSource = await readFile(join(VNEXT_SCHEMA_DIR_PATH, schemaFileName), "utf8");
+  const Ajv2020 = (await import("ajv/dist/2020.js")).default as unknown as Ajv2020Constructor;
+  const ajv = new Ajv2020({ allErrors: true, strict: false });
+
+  for (const fileName of schemaFileNames) {
+    if (fileName === schemaFileName) {
+      continue;
+    }
+
+    const schemaSource = await readFile(join(VNEXT_SCHEMA_DIR_PATH, fileName), "utf8");
+    ajv.addSchema(JSON.parse(schemaSource) as object);
+  }
+
+  return ajv.compile(JSON.parse(rootSchemaSource) as object);
+}
+
+async function resolveVnextCollectionPaths(
+  rootPath: string,
+  reference: string | readonly string[],
+  suffix: string
+): Promise<readonly string[]> {
+  if (Array.isArray(reference)) {
+    return reference.map((relativePath) => join(rootPath, relativePath));
+  }
+
+  const dirPath = join(rootPath, reference);
+  const fileNames = (await readdir(dirPath))
+    .filter((fileName) => fileName.endsWith(suffix))
+    .sort();
+
+  return fileNames.map((fileName) => join(dirPath, fileName));
+}
+
+async function loadYamlFile<Value>(filePath: string): Promise<Value> {
+  const source = await readFile(filePath, "utf8");
+
+  return YAML.parse(source) as Value;
 }
 
 function assertSchemaValidationPasses(

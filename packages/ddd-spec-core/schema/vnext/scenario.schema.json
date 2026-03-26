@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "vnext/scenario.schema.json",
+  "title": "vNext Scenario",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["kind", "id", "title", "summary", "goal", "ownerContext", "steps"],
+  "properties": {
+    "kind": {
+      "const": "scenario"
+    },
+    "id": {
+      "$ref": "shared.schema.json#/$defs/identifier"
+    },
+    "title": {
+      "$ref": "shared.schema.json#/$defs/nonEmptyString"
+    },
+    "summary": {
+      "$ref": "shared.schema.json#/$defs/summary"
+    },
+    "goal": {
+      "$ref": "shared.schema.json#/$defs/nonEmptyString"
+    },
+    "ownerContext": {
+      "$ref": "shared.schema.json#/$defs/identifier"
+    },
+    "steps": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/stepSpec"
+      }
+    }
+  },
+  "$defs": {
+    "stepSpec": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title", "context"],
+      "properties": {
+        "id": {
+          "$ref": "shared.schema.json#/$defs/identifier"
+        },
+        "title": {
+          "$ref": "shared.schema.json#/$defs/nonEmptyString"
+        },
+        "context": {
+          "$ref": "shared.schema.json#/$defs/identifier"
+        },
+        "actor": {
+          "$ref": "shared.schema.json#/$defs/identifier"
+        },
+        "system": {
+          "$ref": "shared.schema.json#/$defs/identifier"
+        },
+        "incomingMessages": {
+          "$ref": "shared.schema.json#/$defs/identifierArray"
+        },
+        "outgoingMessages": {
+          "$ref": "shared.schema.json#/$defs/identifierArray"
+        },
+        "next": {
+          "$ref": "shared.schema.json#/$defs/identifierArray"
+        },
+        "final": {
+          "type": "boolean"
+        },
+        "outcome": {
+          "$ref": "shared.schema.json#/$defs/nonEmptyString"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "required": ["final"],
+            "properties": {
+              "final": {
+                "const": true
+              }
+            }
+          },
+          "then": {
+            "required": ["outcome"]
+          }
+        }
+      ]
+    }
+  }
+}

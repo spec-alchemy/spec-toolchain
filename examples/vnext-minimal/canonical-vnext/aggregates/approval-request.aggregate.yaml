@@ -1,0 +1,23 @@
+kind: aggregate
+id: approval-request
+title: Approval Request
+summary: Controls the approval lifecycle from draft through submitted to approved.
+context: approvals
+states:
+  - draft
+  - submitted
+  - approved
+initialState: draft
+transitions:
+  - id: submit-request
+    from: draft
+    to: submitted
+    onMessage: submit-approval-request
+    emits:
+      - approval-request-submitted
+  - id: approve-request
+    from: submitted
+    to: approved
+    onMessage: approve-request
+    emits:
+      - approval-request-approved

@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "vnext/shared.schema.json",
+  "title": "vNext Canonical Shared Definitions",
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$"
+    },
+    "nonEmptyString": {
+      "type": "string",
+      "minLength": 1
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 1
+    },
+    "identifierArray": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/identifier"
+      }
+    },
+    "stringArray": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/nonEmptyString"
+      }
+    },
+    "resourceKind": {
+      "enum": [
+        "context",
+        "actor",
+        "system",
+        "scenario",
+        "message",
+        "aggregate",
+        "policy"
+      ]
+    },
+    "resourceRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "id"],
+      "properties": {
+        "kind": {
+          "$ref": "#/$defs/resourceKind"
+        },
+        "id": {
+          "$ref": "#/$defs/identifier"
+        }
+      }
+    },
+    "collectionRef": {
+      "oneOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      ]
+    },
+    "payloadField": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "required"],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "type": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "description": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

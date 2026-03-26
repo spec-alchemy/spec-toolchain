@@ -8,6 +8,7 @@ after each iteration and it's included in prompts for context.
 - Product-line docs under `docs/` should use a `README.md` master brief plus one normative detail doc. The master brief defines reading order, stable conclusions, and which downstream file is the implementation authority.
 - Viewer primary/secondary ordering now lives in `ViewerViewSpec.navigation`; when view sets change, update the contract, projection output order, viewer default-selection logic, and test expectations together.
 - Viewer semantic vocabulary is duplicated intentionally across fixture/example `canonical/vocabulary/viewer-detail-semantics.yaml` files and `packages/ddd-spec-cli/init-templates.ts`; new semantic keys should be added to both sources in the same change.
+- During the staged vNext reset, keep schema-preview inputs under `canonical-vnext/` and isolated schema assets under `packages/ddd-spec-core/schema/vnext/` so current `canonical/`-bound repo gates can keep passing until the vNext loader lands.
 
 ---
 
@@ -60,5 +61,24 @@ after each iteration and it's included in prompts for context.
     - Semantic help is part of the viewer contract surface in practice; if a new detail key only lands in projection code, fixtures and init templates drift immediately.
   - Gotchas encountered
     - The existing canonical model still lacks first-class `context/actor/system` source data, so the new primary views need a transitional projection layer that maps current aggregate/process data into vNext semantics without reintroducing `composition` as the default story.
-    - Snapshot tests span core bundle output, viewer projection, and TypeScript projection, so changing viewer semantics requires regenerating multiple checked-in goldens, not just the viewer JSON.
+  - Snapshot tests span core bundle output, viewer projection, and TypeScript projection, so changing viewer semantics requires regenerating multiple checked-in goldens, not just the viewer JSON.
+---
+
+## 2026-03-27 - knowledge-alchemy-app-v2-iol
+- Defined a new vNext canonical schema surface as `version: 3` under `packages/ddd-spec-core/schema/vnext/`, centered on `contexts`, `actors`, `systems`, `scenarios`, `messages`, `aggregates`, and `policies`.
+- Added a minimal repo-owned vNext example under `examples/vnext-minimal/canonical-vnext/` that exercises the full top-level directory layout with one context, two actors, one external system, one scenario, five messages, one aggregate, and one policy.
+- Extended `packages/ddd-spec-core/validation.test.ts` to validate the new v3 index shape, reject legacy `domain`-centered keys, and prove the minimal example passes all new schema files.
+- Updated `docs/ddd-spec/README.md` and added `docs/ddd-spec/vnext-canonical-schema.md` so schema version, index shape, and directory-layout authority are explicit alongside the product-design doc.
+- Files changed:
+  - `packages/ddd-spec-core/schema/vnext/`
+  - `examples/vnext-minimal/canonical-vnext/`
+  - `packages/ddd-spec-core/validation.test.ts`
+  - `docs/ddd-spec/README.md`
+  - `docs/ddd-spec/vnext-canonical-schema.md`
+  - `.ralph-tui/progress.md`
+- **Learnings:**
+  - Patterns discovered
+    - Defining vNext schema resources and sample inputs ahead of the loader is viable as long as they live in an isolated `vnext/` + `canonical-vnext/` lane and are verified by dedicated schema tests.
+  - Gotchas encountered
+    - Ajv resolves cross-file `$ref` relative to each schema `$id`, so sibling refs inside `packages/ddd-spec-core/schema/vnext/` must use relative paths like `shared.schema.json#...` rather than repeating the `vnext/` prefix.
 ---

@@ -1,0 +1,17 @@
+kind: context
+id: approvals
+title: Approvals
+summary: Owns the approval request lifecycle and the core decision flow.
+owners:
+  - approvals-team
+responsibilities:
+  - Receive approval requests
+  - Track review state
+  - Publish approval outcomes
+relationships:
+  - id: notify-requester
+    kind: notifies
+    target:
+      kind: system
+      id: notification-hub
+    description: Uses the notification hub to deliver requester-facing messages after final decisions.

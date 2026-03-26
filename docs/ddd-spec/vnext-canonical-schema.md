@@ -1,0 +1,112 @@
+# DDD Spec Workflow vNext Canonical Schema
+
+## 1. 文档定位
+
+本文件定义 vNext canonical schema 与目录布局。
+
+从本文件生效开始：
+
+- `version: 3` 是 vNext canonical 的正式 schema version。
+- `contexts / actors / systems / scenarios / messages / aggregates / policies` 是 vNext 的顶层建模概念。
+- 旧的 `objects / commands / events / aggregates / processes` 只代表当前 `v2` runtime 的历史实现，不再代表 vNext 的设计中心。
+
+如果后续 loader、validation、IR 或 CLI 模板实现与本文件冲突，以本文件为准。
+
+## 2. 稳定结论
+
+1. vNext canonical index 使用 `model` 作为顶层集合容器，不再使用旧的 `domain.objects / commands / events / processes` 心智。
+2. `model.contexts`、`model.actors`、`model.systems`、`model.scenarios`、`model.messages`、`model.aggregates`、`model.policies` 这 7 个键必须同时存在。
+3. index 中每个集合引用支持两种形态：
+   - 单个字符串：表示一个目录，例如 `./messages`
+   - 字符串数组：表示显式文件集合，例如 `["./messages/a.message.yaml", "./messages/b.message.yaml"]`
+4. `messages` 是统一抽象，使用 `messageKind = command | event | query` 区分类型。
+5. `aggregate` 在 vNext 中不再依赖 `objectId` 作为 schema 中心；它直接表达所属 context、states、initialState 与 transitions。
+6. `policy` 是一等概念，即使第一版 UI 暂不以它为主视图，也必须在 canonical 中拥有稳定目录与 schema。
+
+## 3. 推荐目录布局
+
+推荐根目录布局如下：
+
+```text
+canonical-vnext/
+  index.yaml
+  contexts/
+  actors/
+  systems/
+  scenarios/
+  messages/
+  aggregates/
+  policies/
+```
+
+推荐文件命名：
+
+- `contexts/*.context.yaml`
+- `actors/*.actor.yaml`
+- `systems/*.system.yaml`
+- `scenarios/*.scenario.yaml`
+- `messages/*.message.yaml`
+- `aggregates/*.aggregate.yaml`
+- `policies/*.policy.yaml`
+
+## 4. Index 结构
+
+最小 index 示例：
+
+```yaml
+version: 3
+id: approval-flow-vnext
+title: Approval Flow vNext
+summary: Minimal vNext canonical example centered on context, scenario, message flow, lifecycle, and a follow-up policy.
+model:
+  contexts: ./contexts
+  actors: ./actors
+  systems: ./systems
+  scenarios: ./scenarios
+  messages: ./messages
+  aggregates: ./aggregates
+  policies: ./policies
+```
+
+## 5. 概念文件的最小职责
+
+| 目录 | 作用 | 当前最小必填语义 |
+|------|------|------------------|
+| `contexts/` | 声明 bounded context 与 ownership | `owners`、`responsibilities` |
+| `actors/` | 声明触发业务动作的人或角色 | `title`、`summary` |
+| `systems/` | 声明外部或跨边界系统 | `title`、`summary` |
+| `scenarios/` | 声明默认业务故事和有序 steps | `goal`、`ownerContext`、`steps` |
+| `messages/` | 声明统一消息抽象 | `messageKind`、`producers`、`consumers` |
+| `aggregates/` | 声明生命周期复杂度 | `context`、`states`、`initialState`、`transitions` |
+| `policies/` | 声明跨步骤或跨边界协调逻辑 | `triggerMessages` |
+
+## 6. Repo 内的最小样例
+
+当前 repo 用以下路径承载最小 vNext canonical 结构：
+
+- [`/Users/tella/Development/knowledge-alchemy-app-v2/examples/vnext-minimal/canonical-vnext/index.yaml`](../../examples/vnext-minimal/canonical-vnext/index.yaml)
+
+该样例故意放在 `canonical-vnext/` 下，而不是当前产品仍在使用的 `canonical/` 下。原因是：
+
+1. 当前 repo 级 `repo:*` 命令仍绑定旧 `v2` loader。
+2. 本 story 的目标是先钉住 schema 与目录布局，而不是提前引入兼容层。
+3. 后续 loader story 可以在不回退本 schema 定义的前提下，把运行时入口切换到 vNext。
+
+## 7. Schema 资源位置
+
+vNext schema 文件当前位于：
+
+- [`/Users/tella/Development/knowledge-alchemy-app-v2/packages/ddd-spec-core/schema/vnext/canonical-index.schema.json`](../../packages/ddd-spec-core/schema/vnext/canonical-index.schema.json)
+- [`/Users/tella/Development/knowledge-alchemy-app-v2/packages/ddd-spec-core/schema/vnext/context.schema.json`](../../packages/ddd-spec-core/schema/vnext/context.schema.json)
+- [`/Users/tella/Development/knowledge-alchemy-app-v2/packages/ddd-spec-core/schema/vnext/actor.schema.json`](../../packages/ddd-spec-core/schema/vnext/actor.schema.json)
+- [`/Users/tella/Development/knowledge-alchemy-app-v2/packages/ddd-spec-core/schema/vnext/system.schema.json`](../../packages/ddd-spec-core/schema/vnext/system.schema.json)
+- [`/Users/tella/Development/knowledge-alchemy-app-v2/packages/ddd-spec-core/schema/vnext/scenario.schema.json`](../../packages/ddd-spec-core/schema/vnext/scenario.schema.json)
+- [`/Users/tella/Development/knowledge-alchemy-app-v2/packages/ddd-spec-core/schema/vnext/message.schema.json`](../../packages/ddd-spec-core/schema/vnext/message.schema.json)
+- [`/Users/tella/Development/knowledge-alchemy-app-v2/packages/ddd-spec-core/schema/vnext/aggregate.schema.json`](../../packages/ddd-spec-core/schema/vnext/aggregate.schema.json)
+- [`/Users/tella/Development/knowledge-alchemy-app-v2/packages/ddd-spec-core/schema/vnext/policy.schema.json`](../../packages/ddd-spec-core/schema/vnext/policy.schema.json)
+
+---
+
+*文档版本：v1.0*
+*最后更新：2026-03-27*
+*状态：schema 与目录布局已定义*
