@@ -1,4 +1,4 @@
-export const BUSINESS_VIEWER_SPEC_VERSION = 1 as const;
+export const BUSINESS_VIEWER_SPEC_VERSION = 2 as const;
 
 export type ViewerViewKind =
   | "composition"
@@ -30,10 +30,58 @@ export type ViewerEdgeKind =
   | "composition"
   | "reference";
 
+export interface ViewerTextDetailValue {
+  kind: "text";
+  text: string;
+}
+
+export interface ViewerSectionDetailValue {
+  kind: "section";
+  title?: string;
+  children: readonly ViewerDetailValue[];
+}
+
+export interface ViewerListDetailValue {
+  kind: "list";
+  items: readonly ViewerDetailValue[];
+}
+
+export interface ViewerRecordDetailEntry {
+  label: string;
+  value: ViewerDetailValue;
+}
+
+export interface ViewerRecordDetailValue {
+  kind: "record";
+  entries: readonly ViewerRecordDetailEntry[];
+}
+
+export interface ViewerFieldRelationDetailValue {
+  kind: "reference" | "composition" | "enum";
+  target: string;
+  cardinality?: string;
+}
+
+export interface ViewerFieldDetailValue {
+  kind: "field";
+  name: string;
+  fieldType: string;
+  required: boolean;
+  description?: string;
+  relation?: ViewerFieldRelationDetailValue;
+}
+
+export type ViewerDetailValue =
+  | ViewerTextDetailValue
+  | ViewerSectionDetailValue
+  | ViewerListDetailValue
+  | ViewerRecordDetailValue
+  | ViewerFieldDetailValue;
+
 export interface ViewerDetailItem {
   semanticKey: string;
   label: string;
-  value: string;
+  value: ViewerDetailValue;
 }
 
 export interface ViewerNodeSpec {

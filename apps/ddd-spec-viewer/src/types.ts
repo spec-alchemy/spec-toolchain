@@ -9,10 +9,18 @@ export type {
   BusinessViewerSpec,
   ViewerDetailHelpSpec,
   ViewerDetailItem,
+  ViewerDetailValue,
   ViewerEdgeKind,
   ViewerEdgeSpec,
+  ViewerFieldDetailValue,
+  ViewerFieldRelationDetailValue,
+  ViewerListDetailValue,
   ViewerNodeKind,
   ViewerNodeSpec,
+  ViewerRecordDetailEntry,
+  ViewerRecordDetailValue,
+  ViewerSectionDetailValue,
+  ViewerTextDetailValue,
   ViewerViewKind,
   ViewerViewSpec
 } from "@knowledge-alchemy/ddd-spec-viewer-contract";

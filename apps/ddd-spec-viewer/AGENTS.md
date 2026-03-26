@@ -25,3 +25,5 @@
 - Keep repeated viewer display tokens in shared constants under `src/lib/`.
 - Do not inline hex colors or other repeated presentation literals in React components; reuse `src/lib/viewer-colors.ts`.
 - Reuse the shared viewer color mappings for MiniMap, legend items, and flow edge styling.
+- Inspector detail rendering is contract-driven: consume structured `ViewerDetailValue` data rather than parsing prose back into UI structure.
+- New viewer kinds and new inspector sections should reuse the generic detail renderer path where possible; introduce new detail node kinds only when the semantics cannot be expressed by existing primitives.

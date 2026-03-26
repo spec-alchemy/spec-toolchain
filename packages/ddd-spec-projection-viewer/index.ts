@@ -24,6 +24,7 @@ import { resolveFieldDescription } from "../ddd-spec-core/field-explanation.js";
 import type {
   BusinessViewerSpec,
   ViewerDetailItem,
+  ViewerDetailValue,
   ViewerEdgeSpec,
   ViewerNodeSpec,
   ViewerViewSpec
@@ -162,8 +163,12 @@ function buildCompositionView(context: ViewerContext): ViewerViewSpec {
       details: [
         detail(context, "process.id", processGraph.processId),
         detail(context, "process.initial_stage", processGraph.initialStage),
-        detail(context, "process.used_aggregates", formatList(usedAggregateIds)),
-        detail(context, "process.final_stages", formatList(processGraph.finalStageIds))
+        detail(context, "process.used_aggregates", formatTextList(usedAggregateIds)),
+        detail(
+          context,
+          "process.final_stages",
+          formatTextList(processGraph.finalStageIds)
+        )
       ]
     });
 
@@ -201,8 +206,16 @@ function buildCompositionView(context: ViewerContext): ViewerViewSpec {
                 detail(context, "aggregate.state.id", stageNode.aggregateStateId)
               ]
             : []),
-          detail(context, "behavior.accepted_commands", formatList(acceptedCommands)),
-          detail(context, "behavior.observed_events", formatList(observedEvents)),
+          detail(
+            context,
+            "behavior.accepted_commands",
+            formatTextList(acceptedCommands)
+          ),
+          detail(
+            context,
+            "behavior.observed_events",
+            formatTextList(observedEvents)
+          ),
           ...(stageSpec.outcome ? [detail(context, "stage.outcome", stageSpec.outcome)] : [])
         ]
       });
@@ -239,11 +252,11 @@ function buildCompositionView(context: ViewerContext): ViewerViewSpec {
           details: [
             detail(context, "aggregate.id", objectId),
             detail(context, "aggregate.lifecycle_field", objectSpec.lifecycleField),
-            detail(context, "aggregate.lifecycle", formatList(objectSpec.lifecycle)),
+            detail(context, "aggregate.lifecycle", formatTextList(objectSpec.lifecycle)),
             detail(
               context,
               "aggregate.referenced_by_stages",
-              formatList(unique(lifecycleRefs))
+              formatTextList(unique(lifecycleRefs))
             )
           ]
         });
@@ -290,19 +303,19 @@ function buildCompositionView(context: ViewerContext): ViewerViewSpec {
             detail(
               context,
               "behavior.accepted_commands",
-              formatList(stateGraph.outgoingCommands)
+              formatTextList(stateGraph.outgoingCommands)
             ),
             detail(
               context,
               "aggregate.state.emitted_events",
-              formatList(
+              formatTextList(
                 Object.values(emittedEvents.on ?? {}).map((transition) => transition.emit.type)
               )
             ),
             detail(
               context,
               "aggregate.state.bound_by_stages",
-              formatList(
+              formatTextList(
                 mustGet(
                   context.stageRefsByAggregateStateKey,
                   toAggregateStateKey(objectId, stateId),
@@ -388,11 +401,11 @@ function buildLifecycleView(context: ViewerContext): ViewerViewSpec {
       details: [
         detail(context, "aggregate.id", aggregateGraph.objectId),
         detail(context, "aggregate.initial_state", aggregateGraph.initialState),
-        detail(context, "aggregate.lifecycle", formatList(objectSpec.lifecycle)),
+        detail(context, "aggregate.lifecycle", formatTextList(objectSpec.lifecycle)),
         detail(
           context,
           "behavior.accepted_commands",
-          formatList(
+          formatTextList(
             unique(
               aggregateGraph.transitions.map((transition) => transition.commandType)
             )
@@ -432,9 +445,13 @@ function buildLifecycleView(context: ViewerContext): ViewerViewSpec {
           detail(
             context,
             "aggregate.state.outgoing_commands",
-            formatList(stateNode.outgoingCommands)
+            formatTextList(stateNode.outgoingCommands)
           ),
-          detail(context, "aggregate.referenced_by_stages", formatList(refs))
+          detail(
+            context,
+            "aggregate.referenced_by_stages",
+            formatTextList(refs)
+          )
         ]
       });
     }
@@ -457,7 +474,7 @@ function buildLifecycleView(context: ViewerContext): ViewerViewSpec {
           detail(
             context,
             "transition.payload_mapping",
-            formatPayloadMapping(transitionSpec?.emit.payloadFrom ?? {})
+            formatStructuredPayloadMapping(transitionSpec?.emit.payloadFrom ?? {})
           )
         ]
       });
@@ -1453,12 +1470,12 @@ function toAggregateStateKey(objectId: string, stateId: string): string {
 function detail(
   context: ViewerContext,
   semanticKey: string,
-  value: string
+  value: ViewerDetailValue | string
 ): ViewerDetailItem {
   return {
     semanticKey,
     label: getViewerDetailSemantic(context.spec, semanticKey).label,
-    value
+    value: typeof value === "string" ? textDetailValue(value) : value
   };
 }
 
@@ -1520,12 +1537,31 @@ function formatList(values: readonly string[]): string {
   return values.length > 0 ? values.join(", ") : "none";
 }
 
-function formatPayloadMapping(payloadFrom: Readonly<Record<string, string>>): string {
-  const pairs = Object.entries(payloadFrom).map(
-    ([fieldId, source]) => `${fieldId} <- ${source}`
-  );
+function formatTextList(values: readonly string[]): ViewerDetailValue {
+  if (values.length === 0) {
+    return textDetailValue("none");
+  }
 
-  return formatList(pairs);
+  return listDetailValue(values.map((value) => textDetailValue(value)));
+}
+
+function formatStructuredPayloadMapping(
+  payloadFrom: Readonly<Record<string, string>>
+): ViewerDetailValue {
+  const pairs = Object.entries(payloadFrom);
+
+  if (pairs.length === 0) {
+    return textDetailValue("none");
+  }
+
+  return listDetailValue(
+    pairs.map(([fieldId, source]) =>
+      recordDetailValue([
+        recordDetailEntry("Field", textDetailValue(fieldId)),
+        recordDetailEntry("From", textDetailValue(source))
+      ])
+    )
+  );
 }
 
 function formatPayloadFields(
@@ -1536,54 +1572,141 @@ function formatPayloadFields(
     description?: string;
   }[],
   object?: ObjectSpec
-): string {
+): ViewerDetailValue {
   if (fields.length === 0) {
-    return "none";
+    return textDetailValue("none");
   }
 
-  return fields
-    .map((field) => {
-      const requiredLabel = field.required ? "required" : "optional";
-      const description = resolveFieldDescription(field, object) ?? "No description available.";
-
-      return `${field.id} [${field.type}, ${requiredLabel}]: ${description}`;
-    })
-    .join("\n");
+  return listDetailValue(
+    fields.map((field) =>
+      fieldDetailValue({
+        name: field.id,
+        fieldType: field.type,
+        required: field.required,
+        description: resolveFieldDescription(field, object) ?? "No description available."
+      })
+    )
+  );
 }
 
 function formatDomainFields(
   fields: readonly FieldSpec[],
   object?: ObjectSpec
-): string {
+): ViewerDetailValue {
   if (fields.length === 0) {
-    return "none";
+    return textDetailValue("none");
   }
 
-  return fields
-    .map((field) => {
-      const requiredLabel = field.required ? "required" : "optional";
-      const refLabel = field.ref
-        ? `${field.ref.kind} -> ${field.ref.objectId}${field.ref.cardinality ? ` (${field.ref.cardinality})` : ""}`
-        : "scalar";
-      const description = resolveFieldDescription(field, object) ?? "No description available.";
-
-      return `${field.id} [${field.type}, ${requiredLabel}, ${refLabel}]: ${description}`;
-    })
-    .join("\n");
+  return listDetailValue(
+    fields.map((field) =>
+      fieldDetailValue({
+        name: field.id,
+        fieldType: field.type,
+        required: field.required,
+        description: resolveFieldDescription(field, object) ?? "No description available.",
+        relation: toFieldRelationDetailValue(field.ref)
+      })
+    )
+  );
 }
 
-function formatDomainRelations(relations: readonly RelationSpec[]): string {
+function formatDomainRelations(relations: readonly RelationSpec[]): ViewerDetailValue {
   if (relations.length === 0) {
-    return "none";
+    return textDetailValue("none");
   }
 
-  return relations
-    .map((relation) => {
-      const cardinality = relation.cardinality ? ` ${relation.cardinality}` : "";
+  return listDetailValue(
+    relations.map((relation) =>
+      recordDetailValue([
+        recordDetailEntry("Relation", textDetailValue(relation.id)),
+        recordDetailEntry("Type", textDetailValue(relation.kind)),
+        recordDetailEntry("Target", textDetailValue(relation.target)),
+        ...(relation.cardinality
+          ? [recordDetailEntry("Cardinality", textDetailValue(relation.cardinality))]
+          : []),
+        ...(relation.description
+          ? [recordDetailEntry("Description", textDetailValue(relation.description))]
+          : [])
+      ])
+    )
+  );
+}
 
-      return `${relation.id} [${relation.kind}${cardinality}] -> ${relation.target}`;
-    })
-    .join("\n");
+function textDetailValue(text: string): ViewerDetailValue {
+  return {
+    kind: "text",
+    text
+  };
+}
+
+function listDetailValue(items: readonly ViewerDetailValue[]): ViewerDetailValue {
+  return {
+    kind: "list",
+    items
+  };
+}
+
+function recordDetailEntry(label: string, value: ViewerDetailValue): {
+  label: string;
+  value: ViewerDetailValue;
+} {
+  return {
+    label,
+    value
+  };
+}
+
+function recordDetailValue(
+  entries: readonly {
+    label: string;
+    value: ViewerDetailValue;
+  }[]
+): ViewerDetailValue {
+  return {
+    kind: "record",
+    entries
+  };
+}
+
+function fieldDetailValue(input: {
+  name: string;
+  fieldType: string;
+  required: boolean;
+  description?: string;
+  relation?: {
+    kind: "reference" | "composition" | "enum";
+    target: string;
+    cardinality?: string;
+  };
+}): ViewerDetailValue {
+  return {
+    kind: "field",
+    name: input.name,
+    fieldType: input.fieldType,
+    required: input.required,
+    ...(input.description ? { description: input.description } : {}),
+    ...(input.relation ? { relation: input.relation } : {})
+  };
+}
+
+function toFieldRelationDetailValue(
+  ref: FieldRefSpec | undefined
+):
+  | {
+      kind: "reference" | "composition" | "enum";
+      target: string;
+      cardinality?: string;
+    }
+  | undefined {
+  if (!ref) {
+    return undefined;
+  }
+
+  return {
+    kind: ref.kind,
+    target: ref.objectId,
+    ...(ref.cardinality ? { cardinality: ref.cardinality } : {})
+  };
 }
 
 function countDomainStructureRelations(

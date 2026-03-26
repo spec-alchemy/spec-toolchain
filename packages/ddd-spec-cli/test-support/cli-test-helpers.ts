@@ -122,7 +122,7 @@ export function assertExampleAnalysis(
 }
 
 export function assertExampleViewer(viewer: BusinessViewerSpec, example: ExampleFixture): void {
-  assert.equal(viewer.viewerVersion, 1);
+  assert.equal(viewer.viewerVersion, 2);
   assert.equal(viewer.specId, example.id);
   assert.deepEqual(
     viewer.views.map((view) => view.id),
@@ -1294,14 +1294,28 @@ function getDetailValue(details: readonly ViewerDetailItem[], semanticKey: strin
     throw new Error(`Expected detail ${semanticKey}`);
   }
 
-  return detail.value;
+  if (detail.value.kind !== "text") {
+    throw new Error(`Expected text detail ${semanticKey}`);
+  }
+
+  return detail.value.text;
 }
 
 function getOptionalDetailValue(
   details: readonly ViewerDetailItem[],
   semanticKey: string
 ): string | undefined {
-  return details.find((candidate) => candidate.semanticKey === semanticKey)?.value;
+  const detail = details.find((candidate) => candidate.semanticKey === semanticKey);
+
+  if (!detail) {
+    return undefined;
+  }
+
+  if (detail.value.kind !== "text") {
+    throw new Error(`Expected text detail ${semanticKey}`);
+  }
+
+  return detail.value.text;
 }
 
 function sortStrings(values: readonly string[]): string[] {

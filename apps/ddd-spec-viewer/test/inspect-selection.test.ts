@@ -1,5 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import { DetailValueRenderer } from "../src/components/DetailValueRenderer";
 import { activateSelectableEdge } from "../src/lib/view-layout/edge-activation";
 import { buildElkGraph } from "../src/lib/view-layout/build-elk-graph";
 import { mapLayoutedGraphToFlow } from "../src/lib/view-layout/map-layout-to-flow";
@@ -8,13 +11,20 @@ import {
   selectionFromEdgeData,
   selectionFromNodeData
 } from "../src/lib/view-layout/selection";
-import type { ViewerDetailItem, ViewerViewSpec } from "../src/types";
+import type { FlowEdge, ViewerDetailItem, ViewerDetailValue, ViewerViewSpec } from "../src/types";
+
+function textDetailValue(text: string): ViewerDetailValue {
+  return {
+    kind: "text",
+    text
+  };
+}
 
 const RELATION_DETAILS: readonly ViewerDetailItem[] = [
-  { semanticKey: "relation.kind", label: "Relation Type", value: "composition" },
-  { semanticKey: "relation.label", label: "Relation", value: "card content" },
-  { semanticKey: "relation.from", label: "From", value: "Connection" },
-  { semanticKey: "relation.to", label: "To", value: "CardContent" }
+  { semanticKey: "relation.kind", label: "Relation Type", value: textDetailValue("composition") },
+  { semanticKey: "relation.label", label: "Relation", value: textDetailValue("card content") },
+  { semanticKey: "relation.from", label: "From", value: textDetailValue("Connection") },
+  { semanticKey: "relation.to", label: "To", value: textDetailValue("CardContent") }
 ];
 
 test("relation node reuses edge details without injecting duplicate kind metadata", () => {
@@ -206,6 +216,52 @@ test("relation selections hide redundant label and kind details", () => {
     edgeSelection.details.map((item) => item.semanticKey),
     ["relation.from", "relation.to"]
   );
+});
+
+test("detail renderer recursively renders structured field sections", () => {
+  const markup = renderToStaticMarkup(
+    createElement(DetailValueRenderer, {
+      value: {
+        kind: "section",
+        title: "Fields",
+        children: [
+          {
+            kind: "list",
+            items: [
+              {
+                kind: "field",
+                name: "connectionId",
+                fieldType: "uuid",
+                required: true,
+                relation: {
+                  kind: "reference",
+                  target: "Connection",
+                  cardinality: "1"
+                },
+                description: "Source connection id."
+              },
+              {
+                kind: "record",
+                entries: [
+                  {
+                    label: "Relation",
+                    value: textDetailValue("content")
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    })
+  );
+
+  assert.match(markup, /Fields/);
+  assert.match(markup, /connectionId/);
+  assert.match(markup, /uuid · required · references Connection \(1\)/);
+  assert.match(markup, /Source connection id\./);
+  assert.match(markup, /Relation/);
+  assert.match(markup, /content/);
 });
 
 test("edge label activation mirrors single-select edge clicks", () => {

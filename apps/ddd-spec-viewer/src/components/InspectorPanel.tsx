@@ -1,5 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { InfoTooltip } from "./InfoTooltip";
+import { DetailValueRenderer } from "./DetailValueRenderer";
 import { getInspectorDetailHelp } from "../lib/inspector-detail-help";
 import type { InspectorSelection, ViewerViewSpec } from "../types";
 
@@ -94,9 +95,7 @@ export function InspectorPanel({
                     description={getInspectorDetailHelp(item.semanticKey, semanticDetailHelp)}
                   />
                 </div>
-                <div className="whitespace-pre-wrap text-[13px] leading-6 text-foreground/90">
-                  {item.value}
-                </div>
+                <DetailValueRenderer value={item.value} />
               </CardContent>
             </Card>
           ))

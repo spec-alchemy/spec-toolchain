@@ -32,3 +32,8 @@
 - [`scenarios/`](./scenarios/), [`examples/`](./examples/), [`test/fixtures/`](./test/fixtures/), and [`docs/ddd-spec/`](./docs/ddd-spec/) are repo-only inputs/docs and are not published in the product tarball
 - Put reusable modeling logic in [`packages/ddd-spec-core/`](./packages/ddd-spec-core/); keep the rest of `packages/*` private unless the package boundary intentionally changes
 - Do not hand edit generated files under `.ddd-spec/artifacts/`, `.ddd-spec/generated/`, or `apps/ddd-spec-viewer/public/generated/`
+
+## Viewer Detail Contract
+- Treat viewer detail data as structured contract data, not prose templates.
+- When adding a new viewer type or expanding inspector coverage for an existing type, prefer `ViewerDetailValue` structures that preserve semantics such as sections, lists, records, and fields instead of flattening them into display-only strings.
+- If a change introduces new structured viewer detail shape, update the contract, projection, viewer renderer, and tests together so all viewer types follow the same spec boundary.

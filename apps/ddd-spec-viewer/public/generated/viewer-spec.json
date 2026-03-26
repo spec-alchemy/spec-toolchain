@@ -1,5 +1,5 @@
 {
-  "viewerVersion": 1,
+  "viewerVersion": 2,
   "specId": "connection-card-review",
   "title": "建议 Connection -> 建议 Card 审核闭环",
   "summary": "最小审核闭环：先审核建议连接，再审核其衍生建议卡片，形成一条正常完成路径和两条提前结束路径。",
@@ -78,22 +78,56 @@
             {
               "semanticKey": "process.id",
               "label": "Process",
-              "value": "connectionCardReviewProcess"
+              "value": {
+                "kind": "text",
+                "text": "connectionCardReviewProcess"
+              }
             },
             {
               "semanticKey": "process.initial_stage",
               "label": "Initial stage",
-              "value": "awaitingConnectionReview"
+              "value": {
+                "kind": "text",
+                "text": "awaitingConnectionReview"
+              }
             },
             {
               "semanticKey": "process.used_aggregates",
               "label": "Used aggregates",
-              "value": "Connection, Card"
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "Connection"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "Card"
+                  }
+                ]
+              }
             },
             {
               "semanticKey": "process.final_stages",
               "label": "Final stages",
-              "value": "closedConnectionArchived, closedCardArchived, closedCardAccepted"
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "closedConnectionArchived"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "closedCardArchived"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "closedCardAccepted"
+                  }
+                ]
+              }
             }
           ]
         },
@@ -110,32 +144,68 @@
             {
               "semanticKey": "stage.id",
               "label": "Stage",
-              "value": "awaitingConnectionReview"
+              "value": {
+                "kind": "text",
+                "text": "awaitingConnectionReview"
+              }
             },
             {
               "semanticKey": "stage.final",
               "label": "Final",
-              "value": "no"
+              "value": {
+                "kind": "text",
+                "text": "no"
+              }
             },
             {
               "semanticKey": "aggregate.id",
               "label": "Aggregate",
-              "value": "Connection"
+              "value": {
+                "kind": "text",
+                "text": "Connection"
+              }
             },
             {
               "semanticKey": "aggregate.state.id",
               "label": "State",
-              "value": "suggested"
+              "value": {
+                "kind": "text",
+                "text": "suggested"
+              }
             },
             {
               "semanticKey": "behavior.accepted_commands",
               "label": "Accepted commands",
-              "value": "confirmConnection, archiveConnection"
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "confirmConnection"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "archiveConnection"
+                  }
+                ]
+              }
             },
             {
               "semanticKey": "behavior.observed_events",
               "label": "Observed events",
-              "value": "ConnectionConfirmed, ConnectionArchived"
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "ConnectionConfirmed"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "ConnectionArchived"
+                  }
+                ]
+              }
             }
           ]
         },
@@ -152,22 +222,52 @@
             {
               "semanticKey": "aggregate.id",
               "label": "Aggregate",
-              "value": "Connection"
+              "value": {
+                "kind": "text",
+                "text": "Connection"
+              }
             },
             {
               "semanticKey": "aggregate.lifecycle_field",
               "label": "Lifecycle field",
-              "value": "status"
+              "value": {
+                "kind": "text",
+                "text": "status"
+              }
             },
             {
               "semanticKey": "aggregate.lifecycle",
               "label": "Lifecycle",
-              "value": "suggested, confirmed, archived"
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "suggested"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "confirmed"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "archived"
+                  }
+                ]
+              }
             },
             {
               "semanticKey": "aggregate.referenced_by_stages",
               "label": "Referenced by stages",
-              "value": "connectionCardReviewProcess.awaitingConnectionReview (等待连接审核)"
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "connectionCardReviewProcess.awaitingConnectionReview (等待连接审核)"
+                  }
+                ]
+              }
             }
           ]
         },
@@ -184,27 +284,65 @@
             {
               "semanticKey": "aggregate.id",
               "label": "Aggregate",
-              "value": "Connection"
+              "value": {
+                "kind": "text",
+                "text": "Connection"
+              }
             },
             {
               "semanticKey": "aggregate.state.id",
               "label": "State",
-              "value": "suggested"
+              "value": {
+                "kind": "text",
+                "text": "suggested"
+              }
             },
             {
               "semanticKey": "behavior.accepted_commands",
               "label": "Accepted commands",
-              "value": "confirmConnection, archiveConnection"
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "confirmConnection"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "archiveConnection"
+                  }
+                ]
+              }
             },
             {
               "semanticKey": "aggregate.state.emitted_events",
               "label": "Emitted events",
-              "value": "ConnectionConfirmed, ConnectionArchived"
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "ConnectionConfirmed"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "ConnectionArchived"
+                  }
+                ]
+              }
             },
             {
               "semanticKey": "aggregate.state.bound_by_stages",
               "label": "Bound by stages",
-              "value": "connectionCardReviewProcess.awaitingConnectionReview (等待连接审核)"
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "connectionCardReviewProcess.awaitingConnectionReview (等待连接审核)"
+                  }
+                ]
+              }
             }
           ]
         },
@@ -221,32 +359,68 @@
             {
               "semanticKey": "stage.id",
               "label": "Stage",
-              "value": "awaitingCardReview"
+              "value": {
+                "kind": "text",
+                "text": "awaitingCardReview"
+              }
             },
             {
               "semanticKey": "stage.final",
               "label": "Final",
-              "value": "no"
+              "value": {
+                "kind": "text",
+                "text": "no"
+              }
             },
             {
               "semanticKey": "aggregate.id",
               "label": "Aggregate",
-              "value": "Card"
+              "value": {
+                "kind": "text",
+                "text": "Card"
+              }
             },
             {
               "semanticKey": "aggregate.state.id",
               "label": "State",
-              "value": "suggested"
+              "value": {
+                "kind": "text",
+                "text": "suggested"
+              }
             },
             {
               "semanticKey": "behavior.accepted_commands",
               "label": "Accepted commands",
-              "value": "acceptSuggestedCard, archiveCard"
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "acceptSuggestedCard"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "archiveCard"
+                  }
+                ]
+              }
             },
             {
               "semanticKey": "behavior.observed_events",
               "label": "Observed events",
-              "value": "CardAccepted, CardArchived"
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "CardAccepted"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "CardArchived"
+                  }
+                ]
+              }
             }
           ]
         },
@@ -263,22 +437,52 @@
             {
               "semanticKey": "aggregate.id",
               "label": "Aggregate",
-              "value": "Card"
+              "value": {
+                "kind": "text",
+                "text": "Card"
+              }
             },
             {
               "semanticKey": "aggregate.lifecycle_field",
               "label": "Lifecycle field",
-              "value": "status"
+              "value": {
+                "kind": "text",
+                "text": "status"
+              }
             },
             {
               "semanticKey": "aggregate.lifecycle",
               "label": "Lifecycle",
-              "value": "suggested, accepted, archived"
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "suggested"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "accepted"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "archived"
+                  }
+                ]
+              }
             },
             {
               "semanticKey": "aggregate.referenced_by_stages",
               "label": "Referenced by stages",
-              "value": "connectionCardReviewProcess.awaitingCardReview (等待卡片审核)"
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "connectionCardReviewProcess.awaitingCardReview (等待卡片审核)"
+                  }
+                ]
+              }
             }
           ]
         },
@@ -295,27 +499,65 @@
             {
               "semanticKey": "aggregate.id",
               "label": "Aggregate",
-              "value": "Card"
+              "value": {
+                "kind": "text",
+                "text": "Card"
+              }
             },
             {
               "semanticKey": "aggregate.state.id",
               "label": "State",
-              "value": "suggested"
+              "value": {
+                "kind": "text",
+                "text": "suggested"
+              }
             },
             {
               "semanticKey": "behavior.accepted_commands",
               "label": "Accepted commands",
-              "value": "acceptSuggestedCard, archiveCard"
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "acceptSuggestedCard"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "archiveCard"
+                  }
+                ]
+              }
             },
             {
               "semanticKey": "aggregate.state.emitted_events",
               "label": "Emitted events",
-              "value": "CardAccepted, CardArchived"
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "CardAccepted"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "CardArchived"
+                  }
+                ]
+              }
             },
             {
               "semanticKey": "aggregate.state.bound_by_stages",
               "label": "Bound by stages",
-              "value": "connectionCardReviewProcess.awaitingCardReview (等待卡片审核)"
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "connectionCardReviewProcess.awaitingCardReview (等待卡片审核)"
+                  }
+                ]
+              }
             }
           ]
         },
@@ -332,27 +574,42 @@
             {
               "semanticKey": "stage.id",
               "label": "Stage",
-              "value": "closedConnectionArchived"
+              "value": {
+                "kind": "text",
+                "text": "closedConnectionArchived"
+              }
             },
             {
               "semanticKey": "stage.final",
               "label": "Final",
-              "value": "yes"
+              "value": {
+                "kind": "text",
+                "text": "yes"
+              }
             },
             {
               "semanticKey": "behavior.accepted_commands",
               "label": "Accepted commands",
-              "value": "none"
+              "value": {
+                "kind": "text",
+                "text": "none"
+              }
             },
             {
               "semanticKey": "behavior.observed_events",
               "label": "Observed events",
-              "value": "none"
+              "value": {
+                "kind": "text",
+                "text": "none"
+              }
             },
             {
               "semanticKey": "stage.outcome",
               "label": "Outcome",
-              "value": "connectionArchived"
+              "value": {
+                "kind": "text",
+                "text": "connectionArchived"
+              }
             }
           ]
         },
@@ -369,27 +626,42 @@
             {
               "semanticKey": "stage.id",
               "label": "Stage",
-              "value": "closedCardArchived"
+              "value": {
+                "kind": "text",
+                "text": "closedCardArchived"
+              }
             },
             {
               "semanticKey": "stage.final",
               "label": "Final",
-              "value": "yes"
+              "value": {
+                "kind": "text",
+                "text": "yes"
+              }
             },
             {
               "semanticKey": "behavior.accepted_commands",
               "label": "Accepted commands",
-              "value": "none"
+              "value": {
+                "kind": "text",
+                "text": "none"
+              }
             },
             {
               "semanticKey": "behavior.observed_events",
               "label": "Observed events",
-              "value": "none"
+              "value": {
+                "kind": "text",
+                "text": "none"
+              }
             },
             {
               "semanticKey": "stage.outcome",
               "label": "Outcome",
-              "value": "cardArchived"
+              "value": {
+                "kind": "text",
+                "text": "cardArchived"
+              }
             }
           ]
         },
@@ -406,27 +678,42 @@
             {
               "semanticKey": "stage.id",
               "label": "Stage",
-              "value": "closedCardAccepted"
+              "value": {
+                "kind": "text",
+                "text": "closedCardAccepted"
+              }
             },
             {
               "semanticKey": "stage.final",
               "label": "Final",
-              "value": "yes"
+              "value": {
+                "kind": "text",
+                "text": "yes"
+              }
             },
             {
               "semanticKey": "behavior.accepted_commands",
               "label": "Accepted commands",
-              "value": "none"
+              "value": {
+                "kind": "text",
+                "text": "none"
+              }
             },
             {
               "semanticKey": "behavior.observed_events",
               "label": "Observed events",
-              "value": "none"
+              "value": {
+                "kind": "text",
+                "text": "none"
+              }
             },
             {
               "semanticKey": "stage.outcome",
               "label": "Outcome",
-              "value": "cardAccepted"
+              "value": {
+                "kind": "text",
+                "text": "cardAccepted"
+              }
             }
           ]
         }
@@ -442,22 +729,34 @@
             {
               "semanticKey": "process.id",
               "label": "Process",
-              "value": "connectionCardReviewProcess"
+              "value": {
+                "kind": "text",
+                "text": "connectionCardReviewProcess"
+              }
             },
             {
               "semanticKey": "stage.id",
               "label": "Stage",
-              "value": "awaitingConnectionReview"
+              "value": {
+                "kind": "text",
+                "text": "awaitingConnectionReview"
+              }
             },
             {
               "semanticKey": "aggregate.id",
               "label": "Aggregate",
-              "value": "Connection"
+              "value": {
+                "kind": "text",
+                "text": "Connection"
+              }
             },
             {
               "semanticKey": "aggregate.state.id",
               "label": "State",
-              "value": "suggested"
+              "value": {
+                "kind": "text",
+                "text": "suggested"
+              }
             }
           ]
         },
@@ -471,22 +770,34 @@
             {
               "semanticKey": "process.id",
               "label": "Process",
-              "value": "connectionCardReviewProcess"
+              "value": {
+                "kind": "text",
+                "text": "connectionCardReviewProcess"
+              }
             },
             {
               "semanticKey": "stage.id",
               "label": "Stage",
-              "value": "awaitingCardReview"
+              "value": {
+                "kind": "text",
+                "text": "awaitingCardReview"
+              }
             },
             {
               "semanticKey": "aggregate.id",
               "label": "Aggregate",
-              "value": "Card"
+              "value": {
+                "kind": "text",
+                "text": "Card"
+              }
             },
             {
               "semanticKey": "aggregate.state.id",
               "label": "State",
-              "value": "suggested"
+              "value": {
+                "kind": "text",
+                "text": "suggested"
+              }
             }
           ]
         },
@@ -500,22 +811,34 @@
             {
               "semanticKey": "process.id",
               "label": "Process",
-              "value": "connectionCardReviewProcess"
+              "value": {
+                "kind": "text",
+                "text": "connectionCardReviewProcess"
+              }
             },
             {
               "semanticKey": "event.type",
               "label": "Event",
-              "value": "ConnectionConfirmed"
+              "value": {
+                "kind": "text",
+                "text": "ConnectionConfirmed"
+              }
             },
             {
               "semanticKey": "relation.from",
               "label": "From",
-              "value": "awaitingConnectionReview"
+              "value": {
+                "kind": "text",
+                "text": "awaitingConnectionReview"
+              }
             },
             {
               "semanticKey": "relation.to",
               "label": "To",
-              "value": "awaitingCardReview"
+              "value": {
+                "kind": "text",
+                "text": "awaitingCardReview"
+              }
             }
           ]
         },
@@ -529,22 +852,34 @@
             {
               "semanticKey": "process.id",
               "label": "Process",
-              "value": "connectionCardReviewProcess"
+              "value": {
+                "kind": "text",
+                "text": "connectionCardReviewProcess"
+              }
             },
             {
               "semanticKey": "event.type",
               "label": "Event",
-              "value": "ConnectionArchived"
+              "value": {
+                "kind": "text",
+                "text": "ConnectionArchived"
+              }
             },
             {
               "semanticKey": "relation.from",
               "label": "From",
-              "value": "awaitingConnectionReview"
+              "value": {
+                "kind": "text",
+                "text": "awaitingConnectionReview"
+              }
             },
             {
               "semanticKey": "relation.to",
               "label": "To",
-              "value": "closedConnectionArchived"
+              "value": {
+                "kind": "text",
+                "text": "closedConnectionArchived"
+              }
             }
           ]
         },
@@ -558,22 +893,34 @@
             {
               "semanticKey": "process.id",
               "label": "Process",
-              "value": "connectionCardReviewProcess"
+              "value": {
+                "kind": "text",
+                "text": "connectionCardReviewProcess"
+              }
             },
             {
               "semanticKey": "event.type",
               "label": "Event",
-              "value": "CardAccepted"
+              "value": {
+                "kind": "text",
+                "text": "CardAccepted"
+              }
             },
             {
               "semanticKey": "relation.from",
               "label": "From",
-              "value": "awaitingCardReview"
+              "value": {
+                "kind": "text",
+                "text": "awaitingCardReview"
+              }
             },
             {
               "semanticKey": "relation.to",
               "label": "To",
-              "value": "closedCardAccepted"
+              "value": {
+                "kind": "text",
+                "text": "closedCardAccepted"
+              }
             }
           ]
         },
@@ -587,22 +934,34 @@
             {
               "semanticKey": "process.id",
               "label": "Process",
-              "value": "connectionCardReviewProcess"
+              "value": {
+                "kind": "text",
+                "text": "connectionCardReviewProcess"
+              }
             },
             {
               "semanticKey": "event.type",
               "label": "Event",
-              "value": "CardArchived"
+              "value": {
+                "kind": "text",
+                "text": "CardArchived"
+              }
             },
             {
               "semanticKey": "relation.from",
               "label": "From",
-              "value": "awaitingCardReview"
+              "value": {
+                "kind": "text",
+                "text": "awaitingCardReview"
+              }
             },
             {
               "semanticKey": "relation.to",
               "label": "To",
-              "value": "closedCardArchived"
+              "value": {
+                "kind": "text",
+                "text": "closedCardArchived"
+              }
             }
           ]
         }
@@ -627,22 +986,56 @@
             {
               "semanticKey": "aggregate.id",
               "label": "Aggregate",
-              "value": "Connection"
+              "value": {
+                "kind": "text",
+                "text": "Connection"
+              }
             },
             {
               "semanticKey": "aggregate.initial_state",
               "label": "Initial state",
-              "value": "suggested"
+              "value": {
+                "kind": "text",
+                "text": "suggested"
+              }
             },
             {
               "semanticKey": "aggregate.lifecycle",
               "label": "Lifecycle",
-              "value": "suggested, confirmed, archived"
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "suggested"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "confirmed"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "archived"
+                  }
+                ]
+              }
             },
             {
               "semanticKey": "behavior.accepted_commands",
               "label": "Accepted commands",
-              "value": "confirmConnection, archiveConnection"
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "confirmConnection"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "archiveConnection"
+                  }
+                ]
+              }
             }
           ]
         },
@@ -659,27 +1052,56 @@
             {
               "semanticKey": "aggregate.id",
               "label": "Aggregate",
-              "value": "Connection"
+              "value": {
+                "kind": "text",
+                "text": "Connection"
+              }
             },
             {
               "semanticKey": "aggregate.state.id",
               "label": "State",
-              "value": "suggested"
+              "value": {
+                "kind": "text",
+                "text": "suggested"
+              }
             },
             {
               "semanticKey": "aggregate.state.reachable",
               "label": "Reachable",
-              "value": "yes"
+              "value": {
+                "kind": "text",
+                "text": "yes"
+              }
             },
             {
               "semanticKey": "aggregate.state.outgoing_commands",
               "label": "Outgoing commands",
-              "value": "confirmConnection, archiveConnection"
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "confirmConnection"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "archiveConnection"
+                  }
+                ]
+              }
             },
             {
               "semanticKey": "aggregate.referenced_by_stages",
               "label": "Referenced by stages",
-              "value": "connectionCardReviewProcess.awaitingConnectionReview (等待连接审核)"
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "connectionCardReviewProcess.awaitingConnectionReview (等待连接审核)"
+                  }
+                ]
+              }
             }
           ]
         },
@@ -696,27 +1118,42 @@
             {
               "semanticKey": "aggregate.id",
               "label": "Aggregate",
-              "value": "Connection"
+              "value": {
+                "kind": "text",
+                "text": "Connection"
+              }
             },
             {
               "semanticKey": "aggregate.state.id",
               "label": "State",
-              "value": "confirmed"
+              "value": {
+                "kind": "text",
+                "text": "confirmed"
+              }
             },
             {
               "semanticKey": "aggregate.state.reachable",
               "label": "Reachable",
-              "value": "yes"
+              "value": {
+                "kind": "text",
+                "text": "yes"
+              }
             },
             {
               "semanticKey": "aggregate.state.outgoing_commands",
               "label": "Outgoing commands",
-              "value": "none"
+              "value": {
+                "kind": "text",
+                "text": "none"
+              }
             },
             {
               "semanticKey": "aggregate.referenced_by_stages",
               "label": "Referenced by stages",
-              "value": "none"
+              "value": {
+                "kind": "text",
+                "text": "none"
+              }
             }
           ]
         },
@@ -733,27 +1170,42 @@
             {
               "semanticKey": "aggregate.id",
               "label": "Aggregate",
-              "value": "Connection"
+              "value": {
+                "kind": "text",
+                "text": "Connection"
+              }
             },
             {
               "semanticKey": "aggregate.state.id",
               "label": "State",
-              "value": "archived"
+              "value": {
+                "kind": "text",
+                "text": "archived"
+              }
             },
             {
               "semanticKey": "aggregate.state.reachable",
               "label": "Reachable",
-              "value": "yes"
+              "value": {
+                "kind": "text",
+                "text": "yes"
+              }
             },
             {
               "semanticKey": "aggregate.state.outgoing_commands",
               "label": "Outgoing commands",
-              "value": "none"
+              "value": {
+                "kind": "text",
+                "text": "none"
+              }
             },
             {
               "semanticKey": "aggregate.referenced_by_stages",
               "label": "Referenced by stages",
-              "value": "none"
+              "value": {
+                "kind": "text",
+                "text": "none"
+              }
             }
           ]
         },
@@ -770,22 +1222,56 @@
             {
               "semanticKey": "aggregate.id",
               "label": "Aggregate",
-              "value": "Card"
+              "value": {
+                "kind": "text",
+                "text": "Card"
+              }
             },
             {
               "semanticKey": "aggregate.initial_state",
               "label": "Initial state",
-              "value": "suggested"
+              "value": {
+                "kind": "text",
+                "text": "suggested"
+              }
             },
             {
               "semanticKey": "aggregate.lifecycle",
               "label": "Lifecycle",
-              "value": "suggested, accepted, archived"
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "suggested"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "accepted"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "archived"
+                  }
+                ]
+              }
             },
             {
               "semanticKey": "behavior.accepted_commands",
               "label": "Accepted commands",
-              "value": "acceptSuggestedCard, archiveCard"
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "acceptSuggestedCard"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "archiveCard"
+                  }
+                ]
+              }
             }
           ]
         },
@@ -802,27 +1288,56 @@
             {
               "semanticKey": "aggregate.id",
               "label": "Aggregate",
-              "value": "Card"
+              "value": {
+                "kind": "text",
+                "text": "Card"
+              }
             },
             {
               "semanticKey": "aggregate.state.id",
               "label": "State",
-              "value": "suggested"
+              "value": {
+                "kind": "text",
+                "text": "suggested"
+              }
             },
             {
               "semanticKey": "aggregate.state.reachable",
               "label": "Reachable",
-              "value": "yes"
+              "value": {
+                "kind": "text",
+                "text": "yes"
+              }
             },
             {
               "semanticKey": "aggregate.state.outgoing_commands",
               "label": "Outgoing commands",
-              "value": "acceptSuggestedCard, archiveCard"
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "acceptSuggestedCard"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "archiveCard"
+                  }
+                ]
+              }
             },
             {
               "semanticKey": "aggregate.referenced_by_stages",
               "label": "Referenced by stages",
-              "value": "connectionCardReviewProcess.awaitingCardReview (等待卡片审核)"
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "connectionCardReviewProcess.awaitingCardReview (等待卡片审核)"
+                  }
+                ]
+              }
             }
           ]
         },
@@ -839,27 +1354,42 @@
             {
               "semanticKey": "aggregate.id",
               "label": "Aggregate",
-              "value": "Card"
+              "value": {
+                "kind": "text",
+                "text": "Card"
+              }
             },
             {
               "semanticKey": "aggregate.state.id",
               "label": "State",
-              "value": "accepted"
+              "value": {
+                "kind": "text",
+                "text": "accepted"
+              }
             },
             {
               "semanticKey": "aggregate.state.reachable",
               "label": "Reachable",
-              "value": "yes"
+              "value": {
+                "kind": "text",
+                "text": "yes"
+              }
             },
             {
               "semanticKey": "aggregate.state.outgoing_commands",
               "label": "Outgoing commands",
-              "value": "none"
+              "value": {
+                "kind": "text",
+                "text": "none"
+              }
             },
             {
               "semanticKey": "aggregate.referenced_by_stages",
               "label": "Referenced by stages",
-              "value": "none"
+              "value": {
+                "kind": "text",
+                "text": "none"
+              }
             }
           ]
         },
@@ -876,27 +1406,42 @@
             {
               "semanticKey": "aggregate.id",
               "label": "Aggregate",
-              "value": "Card"
+              "value": {
+                "kind": "text",
+                "text": "Card"
+              }
             },
             {
               "semanticKey": "aggregate.state.id",
               "label": "State",
-              "value": "archived"
+              "value": {
+                "kind": "text",
+                "text": "archived"
+              }
             },
             {
               "semanticKey": "aggregate.state.reachable",
               "label": "Reachable",
-              "value": "yes"
+              "value": {
+                "kind": "text",
+                "text": "yes"
+              }
             },
             {
               "semanticKey": "aggregate.state.outgoing_commands",
               "label": "Outgoing commands",
-              "value": "none"
+              "value": {
+                "kind": "text",
+                "text": "none"
+              }
             },
             {
               "semanticKey": "aggregate.referenced_by_stages",
               "label": "Referenced by stages",
-              "value": "none"
+              "value": {
+                "kind": "text",
+                "text": "none"
+              }
             }
           ]
         }
@@ -912,32 +1457,70 @@
             {
               "semanticKey": "aggregate.id",
               "label": "Aggregate",
-              "value": "Connection"
+              "value": {
+                "kind": "text",
+                "text": "Connection"
+              }
             },
             {
               "semanticKey": "command.type",
               "label": "Command",
-              "value": "confirmConnection"
+              "value": {
+                "kind": "text",
+                "text": "confirmConnection"
+              }
             },
             {
               "semanticKey": "event.type",
               "label": "Event",
-              "value": "ConnectionConfirmed"
+              "value": {
+                "kind": "text",
+                "text": "ConnectionConfirmed"
+              }
             },
             {
               "semanticKey": "relation.from",
               "label": "From",
-              "value": "suggested"
+              "value": {
+                "kind": "text",
+                "text": "suggested"
+              }
             },
             {
               "semanticKey": "relation.to",
               "label": "To",
-              "value": "confirmed"
+              "value": {
+                "kind": "text",
+                "text": "confirmed"
+              }
             },
             {
               "semanticKey": "transition.payload_mapping",
               "label": "Payload mapping",
-              "value": "connectionId <- $command.connectionId"
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "record",
+                    "entries": [
+                      {
+                        "label": "Field",
+                        "value": {
+                          "kind": "text",
+                          "text": "connectionId"
+                        }
+                      },
+                      {
+                        "label": "From",
+                        "value": {
+                          "kind": "text",
+                          "text": "$command.connectionId"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
             }
           ]
         },
@@ -951,32 +1534,89 @@
             {
               "semanticKey": "aggregate.id",
               "label": "Aggregate",
-              "value": "Connection"
+              "value": {
+                "kind": "text",
+                "text": "Connection"
+              }
             },
             {
               "semanticKey": "command.type",
               "label": "Command",
-              "value": "archiveConnection"
+              "value": {
+                "kind": "text",
+                "text": "archiveConnection"
+              }
             },
             {
               "semanticKey": "event.type",
               "label": "Event",
-              "value": "ConnectionArchived"
+              "value": {
+                "kind": "text",
+                "text": "ConnectionArchived"
+              }
             },
             {
               "semanticKey": "relation.from",
               "label": "From",
-              "value": "suggested"
+              "value": {
+                "kind": "text",
+                "text": "suggested"
+              }
             },
             {
               "semanticKey": "relation.to",
               "label": "To",
-              "value": "archived"
+              "value": {
+                "kind": "text",
+                "text": "archived"
+              }
             },
             {
               "semanticKey": "transition.payload_mapping",
               "label": "Payload mapping",
-              "value": "connectionId <- $command.connectionId, reason <- $command.reason"
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "record",
+                    "entries": [
+                      {
+                        "label": "Field",
+                        "value": {
+                          "kind": "text",
+                          "text": "connectionId"
+                        }
+                      },
+                      {
+                        "label": "From",
+                        "value": {
+                          "kind": "text",
+                          "text": "$command.connectionId"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "record",
+                    "entries": [
+                      {
+                        "label": "Field",
+                        "value": {
+                          "kind": "text",
+                          "text": "reason"
+                        }
+                      },
+                      {
+                        "label": "From",
+                        "value": {
+                          "kind": "text",
+                          "text": "$command.reason"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
             }
           ]
         },
@@ -990,32 +1630,70 @@
             {
               "semanticKey": "aggregate.id",
               "label": "Aggregate",
-              "value": "Card"
+              "value": {
+                "kind": "text",
+                "text": "Card"
+              }
             },
             {
               "semanticKey": "command.type",
               "label": "Command",
-              "value": "acceptSuggestedCard"
+              "value": {
+                "kind": "text",
+                "text": "acceptSuggestedCard"
+              }
             },
             {
               "semanticKey": "event.type",
               "label": "Event",
-              "value": "CardAccepted"
+              "value": {
+                "kind": "text",
+                "text": "CardAccepted"
+              }
             },
             {
               "semanticKey": "relation.from",
               "label": "From",
-              "value": "suggested"
+              "value": {
+                "kind": "text",
+                "text": "suggested"
+              }
             },
             {
               "semanticKey": "relation.to",
               "label": "To",
-              "value": "accepted"
+              "value": {
+                "kind": "text",
+                "text": "accepted"
+              }
             },
             {
               "semanticKey": "transition.payload_mapping",
               "label": "Payload mapping",
-              "value": "cardId <- $command.cardId"
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "record",
+                    "entries": [
+                      {
+                        "label": "Field",
+                        "value": {
+                          "kind": "text",
+                          "text": "cardId"
+                        }
+                      },
+                      {
+                        "label": "From",
+                        "value": {
+                          "kind": "text",
+                          "text": "$command.cardId"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
             }
           ]
         },
@@ -1029,32 +1707,89 @@
             {
               "semanticKey": "aggregate.id",
               "label": "Aggregate",
-              "value": "Card"
+              "value": {
+                "kind": "text",
+                "text": "Card"
+              }
             },
             {
               "semanticKey": "command.type",
               "label": "Command",
-              "value": "archiveCard"
+              "value": {
+                "kind": "text",
+                "text": "archiveCard"
+              }
             },
             {
               "semanticKey": "event.type",
               "label": "Event",
-              "value": "CardArchived"
+              "value": {
+                "kind": "text",
+                "text": "CardArchived"
+              }
             },
             {
               "semanticKey": "relation.from",
               "label": "From",
-              "value": "suggested"
+              "value": {
+                "kind": "text",
+                "text": "suggested"
+              }
             },
             {
               "semanticKey": "relation.to",
               "label": "To",
-              "value": "archived"
+              "value": {
+                "kind": "text",
+                "text": "archived"
+              }
             },
             {
               "semanticKey": "transition.payload_mapping",
               "label": "Payload mapping",
-              "value": "cardId <- $command.cardId, reason <- $command.reason"
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "record",
+                    "entries": [
+                      {
+                        "label": "Field",
+                        "value": {
+                          "kind": "text",
+                          "text": "cardId"
+                        }
+                      },
+                      {
+                        "label": "From",
+                        "value": {
+                          "kind": "text",
+                          "text": "$command.cardId"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "record",
+                    "entries": [
+                      {
+                        "label": "Field",
+                        "value": {
+                          "kind": "text",
+                          "text": "reason"
+                        }
+                      },
+                      {
+                        "label": "From",
+                        "value": {
+                          "kind": "text",
+                          "text": "$command.reason"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
             }
           ]
         }
@@ -1079,17 +1814,26 @@
             {
               "semanticKey": "process.id",
               "label": "Process",
-              "value": "connectionCardReviewProcess"
+              "value": {
+                "kind": "text",
+                "text": "connectionCardReviewProcess"
+              }
             },
             {
               "semanticKey": "process.initial_stage",
               "label": "Initial stage",
-              "value": "awaitingConnectionReview"
+              "value": {
+                "kind": "text",
+                "text": "awaitingConnectionReview"
+              }
             },
             {
               "semanticKey": "process.final_stages",
               "label": "Final stages",
-              "value": "closedConnectionArchived, closedCardArchived, closedCardAccepted"
+              "value": {
+                "kind": "text",
+                "text": "closedConnectionArchived, closedCardArchived, closedCardAccepted"
+              }
             }
           ]
         },
@@ -1106,27 +1850,42 @@
             {
               "semanticKey": "stage.id",
               "label": "Stage",
-              "value": "awaitingConnectionReview"
+              "value": {
+                "kind": "text",
+                "text": "awaitingConnectionReview"
+              }
             },
             {
               "semanticKey": "aggregate.id",
               "label": "Aggregate",
-              "value": "Connection"
+              "value": {
+                "kind": "text",
+                "text": "Connection"
+              }
             },
             {
               "semanticKey": "aggregate.state.id",
               "label": "State",
-              "value": "suggested"
+              "value": {
+                "kind": "text",
+                "text": "suggested"
+              }
             },
             {
               "semanticKey": "behavior.accepted_commands",
               "label": "Accepted commands",
-              "value": "confirmConnection, archiveConnection"
+              "value": {
+                "kind": "text",
+                "text": "confirmConnection, archiveConnection"
+              }
             },
             {
               "semanticKey": "behavior.observed_events",
               "label": "Observed events",
-              "value": "ConnectionConfirmed, ConnectionArchived"
+              "value": {
+                "kind": "text",
+                "text": "ConnectionConfirmed, ConnectionArchived"
+              }
             }
           ]
         },
@@ -1143,32 +1902,58 @@
             {
               "semanticKey": "command.type",
               "label": "Command",
-              "value": "confirmConnection"
+              "value": {
+                "kind": "text",
+                "text": "confirmConnection"
+              }
             },
             {
               "semanticKey": "command.target_aggregate",
               "label": "Target aggregate",
-              "value": "Connection"
+              "value": {
+                "kind": "text",
+                "text": "Connection"
+              }
             },
             {
               "semanticKey": "command.payload_fields",
               "label": "Payload fields",
-              "value": "connectionId [uuid, required]: 连接唯一标识。"
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "field",
+                    "name": "connectionId",
+                    "fieldType": "uuid",
+                    "required": true,
+                    "description": "连接唯一标识。"
+                  }
+                ]
+              }
             },
             {
               "semanticKey": "entity.description",
               "label": "Description",
-              "value": "将建议连接确认成正式连接。"
+              "value": {
+                "kind": "text",
+                "text": "将建议连接确认成正式连接。"
+              }
             },
             {
               "semanticKey": "transition.from_state",
               "label": "From state",
-              "value": "Connection.suggested"
+              "value": {
+                "kind": "text",
+                "text": "Connection.suggested"
+              }
             },
             {
               "semanticKey": "transition.to_state",
               "label": "To state",
-              "value": "Connection.confirmed"
+              "value": {
+                "kind": "text",
+                "text": "Connection.confirmed"
+              }
             }
           ]
         },
@@ -1185,32 +1970,58 @@
             {
               "semanticKey": "event.type",
               "label": "Event",
-              "value": "ConnectionConfirmed"
+              "value": {
+                "kind": "text",
+                "text": "ConnectionConfirmed"
+              }
             },
             {
               "semanticKey": "event.source_aggregate",
               "label": "Source aggregate",
-              "value": "Connection"
+              "value": {
+                "kind": "text",
+                "text": "Connection"
+              }
             },
             {
               "semanticKey": "event.payload_fields",
               "label": "Payload fields",
-              "value": "connectionId [uuid, required]: 连接唯一标识。"
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "field",
+                    "name": "connectionId",
+                    "fieldType": "uuid",
+                    "required": true,
+                    "description": "连接唯一标识。"
+                  }
+                ]
+              }
             },
             {
               "semanticKey": "entity.description",
               "label": "Description",
-              "value": "连接聚合已从 suggested 进入 confirmed。"
+              "value": {
+                "kind": "text",
+                "text": "连接聚合已从 suggested 进入 confirmed。"
+              }
             },
             {
               "semanticKey": "event.observed_by_stage",
               "label": "Observed by stage",
-              "value": "yes"
+              "value": {
+                "kind": "text",
+                "text": "yes"
+              }
             },
             {
               "semanticKey": "event.advances_to",
               "label": "Advances to",
-              "value": "awaitingCardReview"
+              "value": {
+                "kind": "text",
+                "text": "awaitingCardReview"
+              }
             }
           ]
         },
@@ -1227,32 +2038,65 @@
             {
               "semanticKey": "command.type",
               "label": "Command",
-              "value": "archiveConnection"
+              "value": {
+                "kind": "text",
+                "text": "archiveConnection"
+              }
             },
             {
               "semanticKey": "command.target_aggregate",
               "label": "Target aggregate",
-              "value": "Connection"
+              "value": {
+                "kind": "text",
+                "text": "Connection"
+              }
             },
             {
               "semanticKey": "command.payload_fields",
               "label": "Payload fields",
-              "value": "connectionId [uuid, required]: 连接唯一标识。\nreason [text, required]: 归档这条连接的业务原因说明。"
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "field",
+                    "name": "connectionId",
+                    "fieldType": "uuid",
+                    "required": true,
+                    "description": "连接唯一标识。"
+                  },
+                  {
+                    "kind": "field",
+                    "name": "reason",
+                    "fieldType": "text",
+                    "required": true,
+                    "description": "归档这条连接的业务原因说明。"
+                  }
+                ]
+              }
             },
             {
               "semanticKey": "entity.description",
               "label": "Description",
-              "value": "归档建议连接，并在连接阶段提前结束闭环。"
+              "value": {
+                "kind": "text",
+                "text": "归档建议连接，并在连接阶段提前结束闭环。"
+              }
             },
             {
               "semanticKey": "transition.from_state",
               "label": "From state",
-              "value": "Connection.suggested"
+              "value": {
+                "kind": "text",
+                "text": "Connection.suggested"
+              }
             },
             {
               "semanticKey": "transition.to_state",
               "label": "To state",
-              "value": "Connection.archived"
+              "value": {
+                "kind": "text",
+                "text": "Connection.archived"
+              }
             }
           ]
         },
@@ -1269,32 +2113,65 @@
             {
               "semanticKey": "event.type",
               "label": "Event",
-              "value": "ConnectionArchived"
+              "value": {
+                "kind": "text",
+                "text": "ConnectionArchived"
+              }
             },
             {
               "semanticKey": "event.source_aggregate",
               "label": "Source aggregate",
-              "value": "Connection"
+              "value": {
+                "kind": "text",
+                "text": "Connection"
+              }
             },
             {
               "semanticKey": "event.payload_fields",
               "label": "Payload fields",
-              "value": "connectionId [uuid, required]: 连接唯一标识。\nreason [text, required]: 触发连接归档的业务原因说明。"
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "field",
+                    "name": "connectionId",
+                    "fieldType": "uuid",
+                    "required": true,
+                    "description": "连接唯一标识。"
+                  },
+                  {
+                    "kind": "field",
+                    "name": "reason",
+                    "fieldType": "text",
+                    "required": true,
+                    "description": "触发连接归档的业务原因说明。"
+                  }
+                ]
+              }
             },
             {
               "semanticKey": "entity.description",
               "label": "Description",
-              "value": "连接聚合已从 suggested 进入 archived。"
+              "value": {
+                "kind": "text",
+                "text": "连接聚合已从 suggested 进入 archived。"
+              }
             },
             {
               "semanticKey": "event.observed_by_stage",
               "label": "Observed by stage",
-              "value": "yes"
+              "value": {
+                "kind": "text",
+                "text": "yes"
+              }
             },
             {
               "semanticKey": "event.advances_to",
               "label": "Advances to",
-              "value": "closedConnectionArchived"
+              "value": {
+                "kind": "text",
+                "text": "closedConnectionArchived"
+              }
             }
           ]
         },
@@ -1311,27 +2188,42 @@
             {
               "semanticKey": "stage.id",
               "label": "Stage",
-              "value": "awaitingCardReview"
+              "value": {
+                "kind": "text",
+                "text": "awaitingCardReview"
+              }
             },
             {
               "semanticKey": "aggregate.id",
               "label": "Aggregate",
-              "value": "Card"
+              "value": {
+                "kind": "text",
+                "text": "Card"
+              }
             },
             {
               "semanticKey": "aggregate.state.id",
               "label": "State",
-              "value": "suggested"
+              "value": {
+                "kind": "text",
+                "text": "suggested"
+              }
             },
             {
               "semanticKey": "behavior.accepted_commands",
               "label": "Accepted commands",
-              "value": "acceptSuggestedCard, archiveCard"
+              "value": {
+                "kind": "text",
+                "text": "acceptSuggestedCard, archiveCard"
+              }
             },
             {
               "semanticKey": "behavior.observed_events",
               "label": "Observed events",
-              "value": "CardAccepted, CardArchived"
+              "value": {
+                "kind": "text",
+                "text": "CardAccepted, CardArchived"
+              }
             }
           ]
         },
@@ -1348,32 +2240,58 @@
             {
               "semanticKey": "command.type",
               "label": "Command",
-              "value": "acceptSuggestedCard"
+              "value": {
+                "kind": "text",
+                "text": "acceptSuggestedCard"
+              }
             },
             {
               "semanticKey": "command.target_aggregate",
               "label": "Target aggregate",
-              "value": "Card"
+              "value": {
+                "kind": "text",
+                "text": "Card"
+              }
             },
             {
               "semanticKey": "command.payload_fields",
               "label": "Payload fields",
-              "value": "cardId [uuid, required]: 卡片唯一标识。"
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "field",
+                    "name": "cardId",
+                    "fieldType": "uuid",
+                    "required": true,
+                    "description": "卡片唯一标识。"
+                  }
+                ]
+              }
             },
             {
               "semanticKey": "entity.description",
               "label": "Description",
-              "value": "接受建议卡片，使闭环正常完成。"
+              "value": {
+                "kind": "text",
+                "text": "接受建议卡片，使闭环正常完成。"
+              }
             },
             {
               "semanticKey": "transition.from_state",
               "label": "From state",
-              "value": "Card.suggested"
+              "value": {
+                "kind": "text",
+                "text": "Card.suggested"
+              }
             },
             {
               "semanticKey": "transition.to_state",
               "label": "To state",
-              "value": "Card.accepted"
+              "value": {
+                "kind": "text",
+                "text": "Card.accepted"
+              }
             }
           ]
         },
@@ -1390,32 +2308,58 @@
             {
               "semanticKey": "event.type",
               "label": "Event",
-              "value": "CardAccepted"
+              "value": {
+                "kind": "text",
+                "text": "CardAccepted"
+              }
             },
             {
               "semanticKey": "event.source_aggregate",
               "label": "Source aggregate",
-              "value": "Card"
+              "value": {
+                "kind": "text",
+                "text": "Card"
+              }
             },
             {
               "semanticKey": "event.payload_fields",
               "label": "Payload fields",
-              "value": "cardId [uuid, required]: 卡片唯一标识。"
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "field",
+                    "name": "cardId",
+                    "fieldType": "uuid",
+                    "required": true,
+                    "description": "卡片唯一标识。"
+                  }
+                ]
+              }
             },
             {
               "semanticKey": "entity.description",
               "label": "Description",
-              "value": "卡片聚合已从 suggested 进入 accepted。"
+              "value": {
+                "kind": "text",
+                "text": "卡片聚合已从 suggested 进入 accepted。"
+              }
             },
             {
               "semanticKey": "event.observed_by_stage",
               "label": "Observed by stage",
-              "value": "yes"
+              "value": {
+                "kind": "text",
+                "text": "yes"
+              }
             },
             {
               "semanticKey": "event.advances_to",
               "label": "Advances to",
-              "value": "closedCardAccepted"
+              "value": {
+                "kind": "text",
+                "text": "closedCardAccepted"
+              }
             }
           ]
         },
@@ -1432,32 +2376,65 @@
             {
               "semanticKey": "command.type",
               "label": "Command",
-              "value": "archiveCard"
+              "value": {
+                "kind": "text",
+                "text": "archiveCard"
+              }
             },
             {
               "semanticKey": "command.target_aggregate",
               "label": "Target aggregate",
-              "value": "Card"
+              "value": {
+                "kind": "text",
+                "text": "Card"
+              }
             },
             {
               "semanticKey": "command.payload_fields",
               "label": "Payload fields",
-              "value": "cardId [uuid, required]: 卡片唯一标识。\nreason [text, required]: 归档这张卡片的业务原因说明。"
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "field",
+                    "name": "cardId",
+                    "fieldType": "uuid",
+                    "required": true,
+                    "description": "卡片唯一标识。"
+                  },
+                  {
+                    "kind": "field",
+                    "name": "reason",
+                    "fieldType": "text",
+                    "required": true,
+                    "description": "归档这张卡片的业务原因说明。"
+                  }
+                ]
+              }
             },
             {
               "semanticKey": "entity.description",
               "label": "Description",
-              "value": "归档建议卡片，并在卡片阶段提前结束闭环。"
+              "value": {
+                "kind": "text",
+                "text": "归档建议卡片，并在卡片阶段提前结束闭环。"
+              }
             },
             {
               "semanticKey": "transition.from_state",
               "label": "From state",
-              "value": "Card.suggested"
+              "value": {
+                "kind": "text",
+                "text": "Card.suggested"
+              }
             },
             {
               "semanticKey": "transition.to_state",
               "label": "To state",
-              "value": "Card.archived"
+              "value": {
+                "kind": "text",
+                "text": "Card.archived"
+              }
             }
           ]
         },
@@ -1474,32 +2451,65 @@
             {
               "semanticKey": "event.type",
               "label": "Event",
-              "value": "CardArchived"
+              "value": {
+                "kind": "text",
+                "text": "CardArchived"
+              }
             },
             {
               "semanticKey": "event.source_aggregate",
               "label": "Source aggregate",
-              "value": "Card"
+              "value": {
+                "kind": "text",
+                "text": "Card"
+              }
             },
             {
               "semanticKey": "event.payload_fields",
               "label": "Payload fields",
-              "value": "cardId [uuid, required]: 卡片唯一标识。\nreason [text, required]: 触发卡片归档的业务原因说明。"
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "field",
+                    "name": "cardId",
+                    "fieldType": "uuid",
+                    "required": true,
+                    "description": "卡片唯一标识。"
+                  },
+                  {
+                    "kind": "field",
+                    "name": "reason",
+                    "fieldType": "text",
+                    "required": true,
+                    "description": "触发卡片归档的业务原因说明。"
+                  }
+                ]
+              }
             },
             {
               "semanticKey": "entity.description",
               "label": "Description",
-              "value": "卡片聚合已从 suggested 进入 archived。"
+              "value": {
+                "kind": "text",
+                "text": "卡片聚合已从 suggested 进入 archived。"
+              }
             },
             {
               "semanticKey": "event.observed_by_stage",
               "label": "Observed by stage",
-              "value": "yes"
+              "value": {
+                "kind": "text",
+                "text": "yes"
+              }
             },
             {
               "semanticKey": "event.advances_to",
               "label": "Advances to",
-              "value": "closedCardArchived"
+              "value": {
+                "kind": "text",
+                "text": "closedCardArchived"
+              }
             }
           ]
         },
@@ -1516,22 +2526,34 @@
             {
               "semanticKey": "stage.id",
               "label": "Stage",
-              "value": "closedConnectionArchived"
+              "value": {
+                "kind": "text",
+                "text": "closedConnectionArchived"
+              }
             },
             {
               "semanticKey": "behavior.accepted_commands",
               "label": "Accepted commands",
-              "value": "none"
+              "value": {
+                "kind": "text",
+                "text": "none"
+              }
             },
             {
               "semanticKey": "behavior.observed_events",
               "label": "Observed events",
-              "value": "none"
+              "value": {
+                "kind": "text",
+                "text": "none"
+              }
             },
             {
               "semanticKey": "stage.outcome",
               "label": "Outcome",
-              "value": "connectionArchived"
+              "value": {
+                "kind": "text",
+                "text": "connectionArchived"
+              }
             }
           ]
         },
@@ -1548,22 +2570,34 @@
             {
               "semanticKey": "stage.id",
               "label": "Stage",
-              "value": "closedCardArchived"
+              "value": {
+                "kind": "text",
+                "text": "closedCardArchived"
+              }
             },
             {
               "semanticKey": "behavior.accepted_commands",
               "label": "Accepted commands",
-              "value": "none"
+              "value": {
+                "kind": "text",
+                "text": "none"
+              }
             },
             {
               "semanticKey": "behavior.observed_events",
               "label": "Observed events",
-              "value": "none"
+              "value": {
+                "kind": "text",
+                "text": "none"
+              }
             },
             {
               "semanticKey": "stage.outcome",
               "label": "Outcome",
-              "value": "cardArchived"
+              "value": {
+                "kind": "text",
+                "text": "cardArchived"
+              }
             }
           ]
         },
@@ -1580,22 +2614,34 @@
             {
               "semanticKey": "stage.id",
               "label": "Stage",
-              "value": "closedCardAccepted"
+              "value": {
+                "kind": "text",
+                "text": "closedCardAccepted"
+              }
             },
             {
               "semanticKey": "behavior.accepted_commands",
               "label": "Accepted commands",
-              "value": "none"
+              "value": {
+                "kind": "text",
+                "text": "none"
+              }
             },
             {
               "semanticKey": "behavior.observed_events",
               "label": "Observed events",
-              "value": "none"
+              "value": {
+                "kind": "text",
+                "text": "none"
+              }
             },
             {
               "semanticKey": "stage.outcome",
               "label": "Outcome",
-              "value": "cardAccepted"
+              "value": {
+                "kind": "text",
+                "text": "cardAccepted"
+              }
             }
           ]
         }
@@ -1611,12 +2657,18 @@
             {
               "semanticKey": "stage.id",
               "label": "Stage",
-              "value": "awaitingConnectionReview"
+              "value": {
+                "kind": "text",
+                "text": "awaitingConnectionReview"
+              }
             },
             {
               "semanticKey": "command.type",
               "label": "Command",
-              "value": "confirmConnection"
+              "value": {
+                "kind": "text",
+                "text": "confirmConnection"
+              }
             }
           ]
         },
@@ -1630,12 +2682,18 @@
             {
               "semanticKey": "command.type",
               "label": "Command",
-              "value": "confirmConnection"
+              "value": {
+                "kind": "text",
+                "text": "confirmConnection"
+              }
             },
             {
               "semanticKey": "event.type",
               "label": "Event",
-              "value": "ConnectionConfirmed"
+              "value": {
+                "kind": "text",
+                "text": "ConnectionConfirmed"
+              }
             }
           ]
         },
@@ -1649,12 +2707,18 @@
             {
               "semanticKey": "event.type",
               "label": "Event",
-              "value": "ConnectionConfirmed"
+              "value": {
+                "kind": "text",
+                "text": "ConnectionConfirmed"
+              }
             },
             {
               "semanticKey": "event.target_stage",
               "label": "Target stage",
-              "value": "awaitingCardReview"
+              "value": {
+                "kind": "text",
+                "text": "awaitingCardReview"
+              }
             }
           ]
         },
@@ -1668,12 +2732,18 @@
             {
               "semanticKey": "stage.id",
               "label": "Stage",
-              "value": "awaitingConnectionReview"
+              "value": {
+                "kind": "text",
+                "text": "awaitingConnectionReview"
+              }
             },
             {
               "semanticKey": "command.type",
               "label": "Command",
-              "value": "archiveConnection"
+              "value": {
+                "kind": "text",
+                "text": "archiveConnection"
+              }
             }
           ]
         },
@@ -1687,12 +2757,18 @@
             {
               "semanticKey": "command.type",
               "label": "Command",
-              "value": "archiveConnection"
+              "value": {
+                "kind": "text",
+                "text": "archiveConnection"
+              }
             },
             {
               "semanticKey": "event.type",
               "label": "Event",
-              "value": "ConnectionArchived"
+              "value": {
+                "kind": "text",
+                "text": "ConnectionArchived"
+              }
             }
           ]
         },
@@ -1706,12 +2782,18 @@
             {
               "semanticKey": "event.type",
               "label": "Event",
-              "value": "ConnectionArchived"
+              "value": {
+                "kind": "text",
+                "text": "ConnectionArchived"
+              }
             },
             {
               "semanticKey": "event.target_stage",
               "label": "Target stage",
-              "value": "closedConnectionArchived"
+              "value": {
+                "kind": "text",
+                "text": "closedConnectionArchived"
+              }
             }
           ]
         },
@@ -1725,12 +2807,18 @@
             {
               "semanticKey": "stage.id",
               "label": "Stage",
-              "value": "awaitingCardReview"
+              "value": {
+                "kind": "text",
+                "text": "awaitingCardReview"
+              }
             },
             {
               "semanticKey": "command.type",
               "label": "Command",
-              "value": "acceptSuggestedCard"
+              "value": {
+                "kind": "text",
+                "text": "acceptSuggestedCard"
+              }
             }
           ]
         },
@@ -1744,12 +2832,18 @@
             {
               "semanticKey": "command.type",
               "label": "Command",
-              "value": "acceptSuggestedCard"
+              "value": {
+                "kind": "text",
+                "text": "acceptSuggestedCard"
+              }
             },
             {
               "semanticKey": "event.type",
               "label": "Event",
-              "value": "CardAccepted"
+              "value": {
+                "kind": "text",
+                "text": "CardAccepted"
+              }
             }
           ]
         },
@@ -1763,12 +2857,18 @@
             {
               "semanticKey": "event.type",
               "label": "Event",
-              "value": "CardAccepted"
+              "value": {
+                "kind": "text",
+                "text": "CardAccepted"
+              }
             },
             {
               "semanticKey": "event.target_stage",
               "label": "Target stage",
-              "value": "closedCardAccepted"
+              "value": {
+                "kind": "text",
+                "text": "closedCardAccepted"
+              }
             }
           ]
         },
@@ -1782,12 +2882,18 @@
             {
               "semanticKey": "stage.id",
               "label": "Stage",
-              "value": "awaitingCardReview"
+              "value": {
+                "kind": "text",
+                "text": "awaitingCardReview"
+              }
             },
             {
               "semanticKey": "command.type",
               "label": "Command",
-              "value": "archiveCard"
+              "value": {
+                "kind": "text",
+                "text": "archiveCard"
+              }
             }
           ]
         },
@@ -1801,12 +2907,18 @@
             {
               "semanticKey": "command.type",
               "label": "Command",
-              "value": "archiveCard"
+              "value": {
+                "kind": "text",
+                "text": "archiveCard"
+              }
             },
             {
               "semanticKey": "event.type",
               "label": "Event",
-              "value": "CardArchived"
+              "value": {
+                "kind": "text",
+                "text": "CardArchived"
+              }
             }
           ]
         },
@@ -1820,12 +2932,18 @@
             {
               "semanticKey": "event.type",
               "label": "Event",
-              "value": "CardArchived"
+              "value": {
+                "kind": "text",
+                "text": "CardArchived"
+              }
             },
             {
               "semanticKey": "event.target_stage",
               "label": "Target stage",
-              "value": "closedCardArchived"
+              "value": {
+                "kind": "text",
+                "text": "closedCardArchived"
+              }
             }
           ]
         }
@@ -1850,42 +2968,66 @@
             {
               "semanticKey": "aggregate.id",
               "label": "Aggregate",
-              "value": "Connection"
+              "value": {
+                "kind": "text",
+                "text": "Connection"
+              }
             },
             {
               "semanticKey": "aggregate.root_object",
               "label": "Root object",
-              "value": "Connection"
+              "value": {
+                "kind": "text",
+                "text": "Connection"
+              }
             },
             {
               "semanticKey": "aggregate.owned_objects",
               "label": "Owned objects",
-              "value": "none"
+              "value": {
+                "kind": "text",
+                "text": "none"
+              }
             },
             {
               "semanticKey": "aggregate.shared_types",
               "label": "Shared types",
-              "value": "ConnectionStatus"
+              "value": {
+                "kind": "text",
+                "text": "ConnectionStatus"
+              }
             },
             {
               "semanticKey": "aggregate.external_dependencies",
               "label": "External dependencies",
-              "value": "none"
+              "value": {
+                "kind": "text",
+                "text": "none"
+              }
             },
             {
               "semanticKey": "aggregate.lifecycle_field",
               "label": "Lifecycle field",
-              "value": "status"
+              "value": {
+                "kind": "text",
+                "text": "status"
+              }
             },
             {
               "semanticKey": "aggregate.lifecycle",
               "label": "Lifecycle",
-              "value": "suggested, confirmed, archived"
+              "value": {
+                "kind": "text",
+                "text": "suggested, confirmed, archived"
+              }
             },
             {
               "semanticKey": "object.referenced_by",
               "label": "Referenced by",
-              "value": "Card.connectionId [reference]"
+              "value": {
+                "kind": "text",
+                "text": "Card.connectionId [reference]"
+              }
             }
           ]
         },
@@ -1902,42 +3044,66 @@
             {
               "semanticKey": "aggregate.id",
               "label": "Aggregate",
-              "value": "Card"
+              "value": {
+                "kind": "text",
+                "text": "Card"
+              }
             },
             {
               "semanticKey": "aggregate.root_object",
               "label": "Root object",
-              "value": "Card"
+              "value": {
+                "kind": "text",
+                "text": "Card"
+              }
             },
             {
               "semanticKey": "aggregate.owned_objects",
               "label": "Owned objects",
-              "value": "CardContent, CardWording"
+              "value": {
+                "kind": "text",
+                "text": "CardContent, CardWording"
+              }
             },
             {
               "semanticKey": "aggregate.shared_types",
               "label": "Shared types",
-              "value": "CardStatus"
+              "value": {
+                "kind": "text",
+                "text": "CardStatus"
+              }
             },
             {
               "semanticKey": "aggregate.external_dependencies",
               "label": "External dependencies",
-              "value": "Connection [reference via connectionId]"
+              "value": {
+                "kind": "text",
+                "text": "Connection [reference via connectionId]"
+              }
             },
             {
               "semanticKey": "aggregate.lifecycle_field",
               "label": "Lifecycle field",
-              "value": "status"
+              "value": {
+                "kind": "text",
+                "text": "status"
+              }
             },
             {
               "semanticKey": "aggregate.lifecycle",
               "label": "Lifecycle",
-              "value": "suggested, accepted, archived"
+              "value": {
+                "kind": "text",
+                "text": "suggested, accepted, archived"
+              }
             },
             {
               "semanticKey": "object.referenced_by",
               "label": "Referenced by",
-              "value": "none"
+              "value": {
+                "kind": "text",
+                "text": "none"
+              }
             }
           ]
         },
@@ -1954,12 +3120,18 @@
             {
               "semanticKey": "domain.shared_types",
               "label": "Shared types",
-              "value": "ConnectionStatus, CardStatus"
+              "value": {
+                "kind": "text",
+                "text": "ConnectionStatus, CardStatus"
+              }
             },
             {
               "semanticKey": "domain.shared_type_consumers",
               "label": "Used by",
-              "value": "ConnectionStatus: Connection.status [association], CardStatus: Card.status [association]"
+              "value": {
+                "kind": "text",
+                "text": "ConnectionStatus: Connection.status [association], CardStatus: Card.status [association]"
+              }
             }
           ]
         },
@@ -1976,37 +3148,98 @@
             {
               "semanticKey": "object.id",
               "label": "Object",
-              "value": "Connection"
+              "value": {
+                "kind": "text",
+                "text": "Connection"
+              }
             },
             {
               "semanticKey": "object.role",
               "label": "Role",
-              "value": "entity"
+              "value": {
+                "kind": "text",
+                "text": "entity"
+              }
             },
             {
               "semanticKey": "object.fields",
               "label": "Fields",
-              "value": "connectionId [uuid, required, scalar]: 连接唯一标识。\nsourceId [uuid, required, scalar]: 源节点 ID。\ntargetId [uuid, required, scalar]: 目标节点 ID。\ninsight [text, required, scalar]: 连接的核心洞察。\nstatus [ConnectionStatus, required, enum -> ConnectionStatus]: 连接生命周期字段。"
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "field",
+                    "name": "connectionId",
+                    "fieldType": "uuid",
+                    "required": true,
+                    "description": "连接唯一标识。"
+                  },
+                  {
+                    "kind": "field",
+                    "name": "sourceId",
+                    "fieldType": "uuid",
+                    "required": true,
+                    "description": "源节点 ID。"
+                  },
+                  {
+                    "kind": "field",
+                    "name": "targetId",
+                    "fieldType": "uuid",
+                    "required": true,
+                    "description": "目标节点 ID。"
+                  },
+                  {
+                    "kind": "field",
+                    "name": "insight",
+                    "fieldType": "text",
+                    "required": true,
+                    "description": "连接的核心洞察。"
+                  },
+                  {
+                    "kind": "field",
+                    "name": "status",
+                    "fieldType": "ConnectionStatus",
+                    "required": true,
+                    "description": "连接生命周期字段。",
+                    "relation": {
+                      "kind": "enum",
+                      "target": "ConnectionStatus"
+                    }
+                  }
+                ]
+              }
             },
             {
               "semanticKey": "object.relations",
               "label": "Explicit Relations",
-              "value": "none"
+              "value": {
+                "kind": "text",
+                "text": "none"
+              }
             },
             {
               "semanticKey": "object.referenced_by",
               "label": "Referenced by",
-              "value": "Card.connectionId [reference]"
+              "value": {
+                "kind": "text",
+                "text": "Card.connectionId [reference]"
+              }
             },
             {
               "semanticKey": "aggregate.lifecycle_field",
               "label": "Lifecycle field",
-              "value": "status"
+              "value": {
+                "kind": "text",
+                "text": "status"
+              }
             },
             {
               "semanticKey": "aggregate.lifecycle",
               "label": "Lifecycle",
-              "value": "suggested, confirmed, archived"
+              "value": {
+                "kind": "text",
+                "text": "suggested, confirmed, archived"
+              }
             }
           ]
         },
@@ -2023,37 +3256,99 @@
             {
               "semanticKey": "object.id",
               "label": "Object",
-              "value": "Card"
+              "value": {
+                "kind": "text",
+                "text": "Card"
+              }
             },
             {
               "semanticKey": "object.role",
               "label": "Role",
-              "value": "entity"
+              "value": {
+                "kind": "text",
+                "text": "entity"
+              }
             },
             {
               "semanticKey": "object.fields",
               "label": "Fields",
-              "value": "cardId [uuid, required, scalar]: 卡片唯一标识。\nconnectionId [uuid, required, reference -> Connection]: 来源连接 ID。\ncontent [CardContent, required, composition -> CardContent]: 卡片正文内容，由聚合内部的值对象承载。\nstatus [CardStatus, required, enum -> CardStatus]: 卡片生命周期字段。"
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "field",
+                    "name": "cardId",
+                    "fieldType": "uuid",
+                    "required": true,
+                    "description": "卡片唯一标识。"
+                  },
+                  {
+                    "kind": "field",
+                    "name": "connectionId",
+                    "fieldType": "uuid",
+                    "required": true,
+                    "description": "来源连接 ID。",
+                    "relation": {
+                      "kind": "reference",
+                      "target": "Connection"
+                    }
+                  },
+                  {
+                    "kind": "field",
+                    "name": "content",
+                    "fieldType": "CardContent",
+                    "required": true,
+                    "description": "卡片正文内容，由聚合内部的值对象承载。",
+                    "relation": {
+                      "kind": "composition",
+                      "target": "CardContent"
+                    }
+                  },
+                  {
+                    "kind": "field",
+                    "name": "status",
+                    "fieldType": "CardStatus",
+                    "required": true,
+                    "description": "卡片生命周期字段。",
+                    "relation": {
+                      "kind": "enum",
+                      "target": "CardStatus"
+                    }
+                  }
+                ]
+              }
             },
             {
               "semanticKey": "object.relations",
               "label": "Explicit Relations",
-              "value": "none"
+              "value": {
+                "kind": "text",
+                "text": "none"
+              }
             },
             {
               "semanticKey": "object.referenced_by",
               "label": "Referenced by",
-              "value": "none"
+              "value": {
+                "kind": "text",
+                "text": "none"
+              }
             },
             {
               "semanticKey": "aggregate.lifecycle_field",
               "label": "Lifecycle field",
-              "value": "status"
+              "value": {
+                "kind": "text",
+                "text": "status"
+              }
             },
             {
               "semanticKey": "aggregate.lifecycle",
               "label": "Lifecycle",
-              "value": "suggested, accepted, archived"
+              "value": {
+                "kind": "text",
+                "text": "suggested, accepted, archived"
+              }
             }
           ]
         },
@@ -2070,27 +3365,61 @@
             {
               "semanticKey": "object.id",
               "label": "Object",
-              "value": "CardContent"
+              "value": {
+                "kind": "text",
+                "text": "CardContent"
+              }
             },
             {
               "semanticKey": "object.role",
               "label": "Role",
-              "value": "value-object"
+              "value": {
+                "kind": "text",
+                "text": "value-object"
+              }
             },
             {
               "semanticKey": "object.fields",
               "label": "Fields",
-              "value": "wording [CardWording, required, composition -> CardWording]: 卡片正反面文案的组合值对象。\nnote [text, optional, scalar]: 供审核人补充的可选备注。"
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "field",
+                    "name": "wording",
+                    "fieldType": "CardWording",
+                    "required": true,
+                    "description": "卡片正反面文案的组合值对象。",
+                    "relation": {
+                      "kind": "composition",
+                      "target": "CardWording"
+                    }
+                  },
+                  {
+                    "kind": "field",
+                    "name": "note",
+                    "fieldType": "text",
+                    "required": false,
+                    "description": "供审核人补充的可选备注。"
+                  }
+                ]
+              }
             },
             {
               "semanticKey": "object.relations",
               "label": "Explicit Relations",
-              "value": "none"
+              "value": {
+                "kind": "text",
+                "text": "none"
+              }
             },
             {
               "semanticKey": "object.referenced_by",
               "label": "Referenced by",
-              "value": "Card.content [composition]"
+              "value": {
+                "kind": "text",
+                "text": "Card.content [composition]"
+              }
             }
           ]
         },
@@ -2107,27 +3436,57 @@
             {
               "semanticKey": "object.id",
               "label": "Object",
-              "value": "CardWording"
+              "value": {
+                "kind": "text",
+                "text": "CardWording"
+              }
             },
             {
               "semanticKey": "object.role",
               "label": "Role",
-              "value": "value-object"
+              "value": {
+                "kind": "text",
+                "text": "value-object"
+              }
             },
             {
               "semanticKey": "object.fields",
               "label": "Fields",
-              "value": "front [text, required, scalar]: 卡片正面内容。\nback [text, required, scalar]: 卡片背面内容。"
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "field",
+                    "name": "front",
+                    "fieldType": "text",
+                    "required": true,
+                    "description": "卡片正面内容。"
+                  },
+                  {
+                    "kind": "field",
+                    "name": "back",
+                    "fieldType": "text",
+                    "required": true,
+                    "description": "卡片背面内容。"
+                  }
+                ]
+              }
             },
             {
               "semanticKey": "object.relations",
               "label": "Explicit Relations",
-              "value": "none"
+              "value": {
+                "kind": "text",
+                "text": "none"
+              }
             },
             {
               "semanticKey": "object.referenced_by",
               "label": "Referenced by",
-              "value": "CardContent.wording [composition]"
+              "value": {
+                "kind": "text",
+                "text": "CardContent.wording [composition]"
+              }
             }
           ]
         },
@@ -2144,22 +3503,34 @@
             {
               "semanticKey": "object.id",
               "label": "Object",
-              "value": "ConnectionStatus"
+              "value": {
+                "kind": "text",
+                "text": "ConnectionStatus"
+              }
             },
             {
               "semanticKey": "object.role",
               "label": "Role",
-              "value": "enum"
+              "value": {
+                "kind": "text",
+                "text": "enum"
+              }
             },
             {
               "semanticKey": "enum.values",
               "label": "Values",
-              "value": "suggested, confirmed, archived"
+              "value": {
+                "kind": "text",
+                "text": "suggested, confirmed, archived"
+              }
             },
             {
               "semanticKey": "object.referenced_by",
               "label": "Referenced by",
-              "value": "Connection.status [association]"
+              "value": {
+                "kind": "text",
+                "text": "Connection.status [association]"
+              }
             }
           ]
         },
@@ -2176,22 +3547,34 @@
             {
               "semanticKey": "object.id",
               "label": "Object",
-              "value": "CardStatus"
+              "value": {
+                "kind": "text",
+                "text": "CardStatus"
+              }
             },
             {
               "semanticKey": "object.role",
               "label": "Role",
-              "value": "enum"
+              "value": {
+                "kind": "text",
+                "text": "enum"
+              }
             },
             {
               "semanticKey": "enum.values",
               "label": "Values",
-              "value": "suggested, accepted, archived"
+              "value": {
+                "kind": "text",
+                "text": "suggested, accepted, archived"
+              }
             },
             {
               "semanticKey": "object.referenced_by",
               "label": "Referenced by",
-              "value": "Card.status [association]"
+              "value": {
+                "kind": "text",
+                "text": "Card.status [association]"
+              }
             }
           ]
         }
@@ -2209,32 +3592,50 @@
             {
               "semanticKey": "relation.kind",
               "label": "Relation Type",
-              "value": "association"
+              "value": {
+                "kind": "text",
+                "text": "association"
+              }
             },
             {
               "semanticKey": "relation.from",
               "label": "From",
-              "value": "Connection"
+              "value": {
+                "kind": "text",
+                "text": "Connection"
+              }
             },
             {
               "semanticKey": "relation.to",
               "label": "To",
-              "value": "ConnectionStatus"
+              "value": {
+                "kind": "text",
+                "text": "ConnectionStatus"
+              }
             },
             {
               "semanticKey": "relation.field",
               "label": "Field",
-              "value": "status"
+              "value": {
+                "kind": "text",
+                "text": "status"
+              }
             },
             {
               "semanticKey": "relation.cardinality",
               "label": "Cardinality",
-              "value": "1"
+              "value": {
+                "kind": "text",
+                "text": "1"
+              }
             },
             {
               "semanticKey": "relation.description",
               "label": "Description",
-              "value": "连接生命周期字段。"
+              "value": {
+                "kind": "text",
+                "text": "连接生命周期字段。"
+              }
             }
           ]
         },
@@ -2250,32 +3651,50 @@
             {
               "semanticKey": "relation.kind",
               "label": "Relation Type",
-              "value": "reference"
+              "value": {
+                "kind": "text",
+                "text": "reference"
+              }
             },
             {
               "semanticKey": "relation.from",
               "label": "From",
-              "value": "Card"
+              "value": {
+                "kind": "text",
+                "text": "Card"
+              }
             },
             {
               "semanticKey": "relation.to",
               "label": "To",
-              "value": "Connection"
+              "value": {
+                "kind": "text",
+                "text": "Connection"
+              }
             },
             {
               "semanticKey": "relation.field",
               "label": "Field",
-              "value": "connectionId"
+              "value": {
+                "kind": "text",
+                "text": "connectionId"
+              }
             },
             {
               "semanticKey": "relation.cardinality",
               "label": "Cardinality",
-              "value": "1"
+              "value": {
+                "kind": "text",
+                "text": "1"
+              }
             },
             {
               "semanticKey": "relation.description",
               "label": "Description",
-              "value": "来源连接 ID。"
+              "value": {
+                "kind": "text",
+                "text": "来源连接 ID。"
+              }
             }
           ]
         },
@@ -2291,32 +3710,50 @@
             {
               "semanticKey": "relation.kind",
               "label": "Relation Type",
-              "value": "composition"
+              "value": {
+                "kind": "text",
+                "text": "composition"
+              }
             },
             {
               "semanticKey": "relation.from",
               "label": "From",
-              "value": "Card"
+              "value": {
+                "kind": "text",
+                "text": "Card"
+              }
             },
             {
               "semanticKey": "relation.to",
               "label": "To",
-              "value": "CardContent"
+              "value": {
+                "kind": "text",
+                "text": "CardContent"
+              }
             },
             {
               "semanticKey": "relation.field",
               "label": "Field",
-              "value": "content"
+              "value": {
+                "kind": "text",
+                "text": "content"
+              }
             },
             {
               "semanticKey": "relation.cardinality",
               "label": "Cardinality",
-              "value": "1"
+              "value": {
+                "kind": "text",
+                "text": "1"
+              }
             },
             {
               "semanticKey": "relation.description",
               "label": "Description",
-              "value": "卡片正文内容，由聚合内部的值对象承载。"
+              "value": {
+                "kind": "text",
+                "text": "卡片正文内容，由聚合内部的值对象承载。"
+              }
             }
           ]
         },
@@ -2332,32 +3769,50 @@
             {
               "semanticKey": "relation.kind",
               "label": "Relation Type",
-              "value": "association"
+              "value": {
+                "kind": "text",
+                "text": "association"
+              }
             },
             {
               "semanticKey": "relation.from",
               "label": "From",
-              "value": "Card"
+              "value": {
+                "kind": "text",
+                "text": "Card"
+              }
             },
             {
               "semanticKey": "relation.to",
               "label": "To",
-              "value": "CardStatus"
+              "value": {
+                "kind": "text",
+                "text": "CardStatus"
+              }
             },
             {
               "semanticKey": "relation.field",
               "label": "Field",
-              "value": "status"
+              "value": {
+                "kind": "text",
+                "text": "status"
+              }
             },
             {
               "semanticKey": "relation.cardinality",
               "label": "Cardinality",
-              "value": "1"
+              "value": {
+                "kind": "text",
+                "text": "1"
+              }
             },
             {
               "semanticKey": "relation.description",
               "label": "Description",
-              "value": "卡片生命周期字段。"
+              "value": {
+                "kind": "text",
+                "text": "卡片生命周期字段。"
+              }
             }
           ]
         },
@@ -2373,32 +3828,50 @@
             {
               "semanticKey": "relation.kind",
               "label": "Relation Type",
-              "value": "composition"
+              "value": {
+                "kind": "text",
+                "text": "composition"
+              }
             },
             {
               "semanticKey": "relation.from",
               "label": "From",
-              "value": "CardContent"
+              "value": {
+                "kind": "text",
+                "text": "CardContent"
+              }
             },
             {
               "semanticKey": "relation.to",
               "label": "To",
-              "value": "CardWording"
+              "value": {
+                "kind": "text",
+                "text": "CardWording"
+              }
             },
             {
               "semanticKey": "relation.field",
               "label": "Field",
-              "value": "wording"
+              "value": {
+                "kind": "text",
+                "text": "wording"
+              }
             },
             {
               "semanticKey": "relation.cardinality",
               "label": "Cardinality",
-              "value": "1"
+              "value": {
+                "kind": "text",
+                "text": "1"
+              }
             },
             {
               "semanticKey": "relation.description",
               "label": "Description",
-              "value": "卡片正反面文案的组合值对象。"
+              "value": {
+                "kind": "text",
+                "text": "卡片正反面文案的组合值对象。"
+              }
             }
           ]
         }

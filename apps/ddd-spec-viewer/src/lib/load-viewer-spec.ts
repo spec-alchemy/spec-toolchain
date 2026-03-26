@@ -1,3 +1,4 @@
+import { BUSINESS_VIEWER_SPEC_VERSION } from "@knowledge-alchemy/ddd-spec-viewer-contract";
 import type { BusinessViewerSpec } from "../types";
 
 const DEFAULT_VIEWER_SPEC_PATH = "generated/viewer-spec.json";
@@ -45,5 +46,13 @@ export async function loadViewerSpec(
     );
   }
 
-  return response.json() as Promise<BusinessViewerSpec>;
+  const spec = (await response.json()) as BusinessViewerSpec;
+
+  if (spec.viewerVersion !== BUSINESS_VIEWER_SPEC_VERSION) {
+    throw new Error(
+      `Unsupported viewer spec version ${String(spec.viewerVersion)}; expected ${String(BUSINESS_VIEWER_SPEC_VERSION)}`
+    );
+  }
+
+  return spec;
 }
