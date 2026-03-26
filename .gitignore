@@ -49,3 +49,8 @@ examples/*/generated/
 
 # Viewer app generated data
 apps/design-spec-viewer/public/generated/viewer-spec.json
+
+# Beads / Dolt files (added by bd init)
+.dolt/
+*.db
+.beads-credential-key
