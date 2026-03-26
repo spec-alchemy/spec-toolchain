@@ -5,24 +5,7 @@ import { validateBusinessSpecSemantics } from "./semantic-validation.js";
 
 export const BUSINESS_SPEC_SCHEMA_VERSION = 2 as const;
 
-export const FIELD_STRUCTURES = ["scalar", "enum", "reference"] as const;
-
-export type FieldStructure = (typeof FIELD_STRUCTURES)[number];
-
-export interface FieldSpec {
-  id: string;
-  type: string;
-  required: boolean;
-  description?: string;
-  structure?: FieldStructure;
-  target?: string;
-}
-
-export interface PayloadSpec {
-  fields: readonly FieldSpec[];
-}
-
-export const OBJECT_ROLES = ["aggregate", "enum"] as const;
+export const OBJECT_ROLES = ["entity", "value-object", "enum"] as const;
 
 export type ObjectRole = (typeof OBJECT_ROLES)[number];
 
@@ -33,11 +16,32 @@ export const RELATION_CARDINALITIES = ["1", "0..1", "0..n", "1..n"] as const;
 
 export type RelationCardinality = (typeof RELATION_CARDINALITIES)[number];
 
+export const FIELD_REF_KINDS = ["enum", "composition", "reference"] as const;
+
+export type FieldRefKind = (typeof FIELD_REF_KINDS)[number];
+
+export interface FieldRefSpec {
+  kind: FieldRefKind;
+  objectId: string;
+  cardinality?: RelationCardinality;
+}
+
+export interface FieldSpec {
+  id: string;
+  type: string;
+  required: boolean;
+  description?: string;
+  ref?: FieldRefSpec;
+}
+
+export interface PayloadSpec {
+  fields: readonly FieldSpec[];
+}
+
 export interface RelationSpec {
   id: string;
   kind: RelationKind;
   target: string;
-  field?: string;
   cardinality?: RelationCardinality;
   description?: string;
 }
@@ -47,14 +51,26 @@ interface BaseObjectSpec {
   id: string;
   title: string;
   role: ObjectRole;
+}
+
+interface FieldedObjectSpec extends BaseObjectSpec {
+  fields: readonly FieldSpec[];
   relations?: readonly RelationSpec[];
 }
 
-export interface AggregateObjectSpec extends BaseObjectSpec {
-  role: "aggregate";
+export interface EntityObjectSpec extends FieldedObjectSpec {
+  role: "entity";
+  lifecycleField?: string;
+  lifecycle?: readonly string[];
+}
+
+export interface ValueObjectSpec extends FieldedObjectSpec {
+  role: "value-object";
+}
+
+export interface AggregateObjectSpec extends EntityObjectSpec {
   lifecycleField: string;
   lifecycle: readonly string[];
-  fields: readonly FieldSpec[];
 }
 
 export interface EnumObjectSpec extends BaseObjectSpec {
@@ -62,7 +78,7 @@ export interface EnumObjectSpec extends BaseObjectSpec {
   values: readonly string[];
 }
 
-export type ObjectSpec = AggregateObjectSpec | EnumObjectSpec;
+export type ObjectSpec = EntityObjectSpec | ValueObjectSpec | EnumObjectSpec;
 
 export interface CommandSpec {
   kind: "command";
@@ -167,12 +183,28 @@ export interface LoadBusinessSpecOptions {
   validateSemantics?: boolean;
 }
 
-export function isAggregateObjectSpec(object: ObjectSpec): object is AggregateObjectSpec {
-  return object.role === "aggregate";
+export function isEntityObjectSpec(object: ObjectSpec): object is EntityObjectSpec {
+  return object.role === "entity";
+}
+
+export function isValueObjectSpec(object: ObjectSpec): object is ValueObjectSpec {
+  return object.role === "value-object";
+}
+
+export function hasObjectFields(object: ObjectSpec): object is EntityObjectSpec | ValueObjectSpec {
+  return isEntityObjectSpec(object) || isValueObjectSpec(object);
 }
 
 export function isEnumObjectSpec(object: ObjectSpec): object is EnumObjectSpec {
   return object.role === "enum";
+}
+
+export function hasAggregateLifecycle(object: ObjectSpec): object is AggregateObjectSpec {
+  return (
+    isEntityObjectSpec(object) &&
+    typeof object.lifecycleField === "string" &&
+    Array.isArray(object.lifecycle)
+  );
 }
 
 export async function loadCanonicalIndexSpec(entryPath: string): Promise<CanonicalIndexSpec> {

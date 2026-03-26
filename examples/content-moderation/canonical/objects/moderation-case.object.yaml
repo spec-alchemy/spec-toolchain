@@ -1,7 +1,7 @@
 kind: object
 id: ModerationCase
 title: ModerationCase
-role: aggregate
+role: entity
 lifecycleField: moderationStatus
 lifecycle:
   - queued
@@ -24,12 +24,13 @@ fields:
   - id: moderationStatus
     type: ModerationStatus
     required: true
-    structure: enum
-    target: ModerationStatus
+    ref:
+      kind: enum
+      objectId: ModerationStatus
     description: 审核工单当前所处的生命周期状态。
 relations:
   - id: approvedPublication
-    kind: composition
+    kind: reference
     target: Publication
     cardinality: 0..1
     description: 审核工单在内容通过后会产出一条发布记录。

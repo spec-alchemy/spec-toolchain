@@ -113,52 +113,27 @@
         "description": {
           "type": "string"
         },
-        "structure": {
-          "enum": ["scalar", "enum", "reference"]
+        "ref": {
+          "$ref": "#/$defs/fieldRefSpec"
+        }
+      }
+    },
+    "fieldRefSpec": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "objectId"],
+      "properties": {
+        "kind": {
+          "enum": ["enum", "composition", "reference"]
         },
-        "target": {
+        "objectId": {
           "type": "string",
           "minLength": 1
-        }
-      },
-      "allOf": [
-        {
-          "if": {
-            "required": ["target"]
-          },
-          "then": {
-            "required": ["structure"]
-          }
         },
-        {
-          "if": {
-            "properties": {
-              "structure": {
-                "enum": ["enum", "reference"]
-              }
-            },
-            "required": ["structure"]
-          },
-          "then": {
-            "required": ["target"]
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "structure": {
-                "const": "scalar"
-              }
-            },
-            "required": ["structure"]
-          },
-          "then": {
-            "not": {
-              "required": ["target"]
-            }
-          }
+        "cardinality": {
+          "enum": ["1", "0..1", "0..n", "1..n"]
         }
-      ]
+      }
     },
     "relationSpec": {
       "type": "object",
@@ -173,10 +148,6 @@
           "enum": ["association", "composition", "reference"]
         },
         "target": {
-          "type": "string",
-          "minLength": 1
-        },
-        "field": {
           "type": "string",
           "minLength": 1
         },
@@ -204,17 +175,20 @@
     "objectSpec": {
       "oneOf": [
         {
-          "$ref": "#/$defs/aggregateObjectSpec"
+          "$ref": "#/$defs/entityObjectSpec"
+        },
+        {
+          "$ref": "#/$defs/valueObjectSpec"
         },
         {
           "$ref": "#/$defs/enumObjectSpec"
         }
       ]
     },
-    "aggregateObjectSpec": {
+    "entityObjectSpec": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["kind", "id", "title", "role", "lifecycleField", "lifecycle", "fields"],
+      "required": ["kind", "id", "title", "role", "fields"],
       "properties": {
         "kind": {
           "const": "object"
@@ -228,7 +202,7 @@
           "minLength": 1
         },
         "role": {
-          "const": "aggregate"
+          "const": "entity"
         },
         "lifecycleField": {
           "type": "string",
@@ -241,6 +215,58 @@
             "type": "string",
             "minLength": 1
           }
+        },
+        "fields": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/fieldSpec"
+          }
+        },
+        "relations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/relationSpec"
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "required": ["lifecycleField"]
+          },
+          "then": {
+            "required": ["lifecycle"]
+          }
+        },
+        {
+          "if": {
+            "required": ["lifecycle"]
+          },
+          "then": {
+            "required": ["lifecycleField"]
+          }
+        }
+      ]
+    },
+    "valueObjectSpec": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "id", "title", "role", "fields"],
+      "properties": {
+        "kind": {
+          "const": "object"
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "role": {
+          "const": "value-object"
         },
         "fields": {
           "type": "array",
@@ -282,12 +308,6 @@
           "items": {
             "type": "string",
             "minLength": 1
-          }
-        },
-        "relations": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/relationSpec"
           }
         }
       }

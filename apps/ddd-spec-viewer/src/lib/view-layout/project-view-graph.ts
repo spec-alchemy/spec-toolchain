@@ -64,11 +64,7 @@ function createRelationNode(
     parentId,
     width: size.width,
     height: size.height,
-    details: [
-      { semanticKey: "relation.label", label: "Relation", value: edge.label },
-      { semanticKey: "relation.kind", label: "Kind", value: edge.kind },
-      ...edge.details
-    ]
+    details: edge.details
   };
 }
 

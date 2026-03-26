@@ -1,7 +1,7 @@
 kind: object
 id: Publication
 title: Publication
-role: aggregate
+role: entity
 lifecycleField: publicationStatus
 lifecycle:
   - pending
@@ -14,8 +14,9 @@ fields:
   - id: moderationCaseId
     type: uuid
     required: true
-    structure: reference
-    target: ModerationCase
+    ref:
+      kind: reference
+      objectId: ModerationCase
     description: 产出该发布记录的审核工单标识。
   - id: contentId
     type: uuid
@@ -28,12 +29,7 @@ fields:
   - id: publicationStatus
     type: PublicationStatus
     required: true
-    structure: enum
-    target: PublicationStatus
+    ref:
+      kind: enum
+      objectId: PublicationStatus
     description: 发布记录当前所处的生命周期状态。
-relations:
-  - id: sourceModerationCase
-    kind: reference
-    target: ModerationCase
-    field: moderationCaseId
-    description: 发布记录回指触发它的审核工单。

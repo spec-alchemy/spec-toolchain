@@ -79,10 +79,10 @@ export function InspectorPanel({
       </div>
       <div className="grid gap-2">
         {selection.details.length > 0 ? (
-          selection.details.map((item) => (
+          selection.details.map((item, index) => (
             <Card
               className="rounded-2xl border-border/80 bg-white/60 shadow-none backdrop-blur-0"
-              key={`${selection.type}-${item.label}`}
+              key={`${selection.type}-${item.semanticKey}-${index}`}
             >
               <CardContent className="p-3">
                 <div className="mb-1.5 flex items-center gap-1.5">

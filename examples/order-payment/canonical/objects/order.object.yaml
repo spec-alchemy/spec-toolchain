@@ -1,7 +1,7 @@
 kind: object
 id: Order
 title: Order
-role: aggregate
+role: entity
 lifecycleField: status
 lifecycle:
   - draft
@@ -22,6 +22,7 @@ fields:
   - id: status
     type: OrderStatus
     required: true
-    structure: enum
-    target: OrderStatus
+    ref:
+      kind: enum
+      objectId: OrderStatus
     description: 订单生命周期字段。

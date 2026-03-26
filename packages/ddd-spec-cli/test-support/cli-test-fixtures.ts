@@ -9,8 +9,13 @@ export interface ExampleFieldRequirement {
 export interface ExampleFieldStructureExpectation {
   objectId: string;
   fieldId: string;
-  structure: "enum" | "reference" | "scalar";
-  target?: string;
+  ref?:
+    | {
+        kind: "enum" | "composition" | "reference";
+        objectId: string;
+        cardinality?: "1" | "0..1" | "0..n" | "1..n";
+      }
+    | undefined;
 }
 
 export interface ExampleRelationExpectation {
@@ -18,7 +23,6 @@ export interface ExampleRelationExpectation {
   relationId: string;
   kind: "association" | "composition" | "reference";
   target: string;
-  field?: string;
   cardinality?: "1" | "0..1" | "0..n" | "1..n";
   description?: string;
 }
@@ -113,30 +117,34 @@ export const EXAMPLE_FIXTURES: readonly ExampleFixture[] = [
       {
         objectId: "Order",
         fieldId: "status",
-        structure: "enum",
-        target: "OrderStatus"
+        ref: {
+          kind: "enum",
+          objectId: "OrderStatus"
+        }
       },
       {
         objectId: "Payment",
         fieldId: "orderId",
-        structure: "reference",
-        target: "Order"
+        ref: {
+          kind: "reference",
+          objectId: "Order"
+        }
+      },
+      {
+        objectId: "Payment",
+        fieldId: "settlement",
+        ref: {
+          kind: "composition",
+          objectId: "PaymentSettlement"
+        }
       },
       {
         objectId: "Payment",
         fieldId: "paymentStatus",
-        structure: "enum",
-        target: "PaymentStatus"
-      }
-    ],
-    relations: [
-      {
-        objectId: "Payment",
-        relationId: "settlesOrder",
-        kind: "reference",
-        target: "Order",
-        field: "orderId",
-        description: "支付记录结算对应订单。"
+        ref: {
+          kind: "enum",
+          objectId: "PaymentStatus"
+        }
       }
     ]
   },
@@ -212,38 +220,36 @@ export const EXAMPLE_FIXTURES: readonly ExampleFixture[] = [
       {
         objectId: "ModerationCase",
         fieldId: "moderationStatus",
-        structure: "enum",
-        target: "ModerationStatus"
+        ref: {
+          kind: "enum",
+          objectId: "ModerationStatus"
+        }
       },
       {
         objectId: "Publication",
         fieldId: "moderationCaseId",
-        structure: "reference",
-        target: "ModerationCase"
+        ref: {
+          kind: "reference",
+          objectId: "ModerationCase"
+        }
       },
       {
         objectId: "Publication",
         fieldId: "publicationStatus",
-        structure: "enum",
-        target: "PublicationStatus"
+        ref: {
+          kind: "enum",
+          objectId: "PublicationStatus"
+        }
       }
     ],
     relations: [
       {
         objectId: "ModerationCase",
         relationId: "approvedPublication",
-        kind: "composition",
+        kind: "reference",
         target: "Publication",
         cardinality: "0..1",
         description: "审核工单在内容通过后会产出一条发布记录。"
-      },
-      {
-        objectId: "Publication",
-        relationId: "sourceModerationCase",
-        kind: "reference",
-        target: "ModerationCase",
-        field: "moderationCaseId",
-        description: "发布记录回指触发它的审核工单。"
       }
     ]
   }

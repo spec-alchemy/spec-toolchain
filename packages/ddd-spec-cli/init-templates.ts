@@ -77,20 +77,20 @@ relation.label:
   label: Relation
   description: The semantic label that explains why two nodes are connected.
 relation.kind:
-  label: Kind
-  description: The relationship category, such as state transition, stage binding, process advance, association, composition, or reference.
+  label: Relation Type
+  description: The relationship type, such as state transition, stage binding, process advance, association, composition, or reference.
 object.id:
   label: Object
   description: The identifier of the structural object node shown in the domain structure view.
 object.role:
   label: Role
-  description: The canonical object role shown for the object node, such as aggregate or enum.
+  description: The canonical object role shown for the object node, such as entity, value-object, or enum.
 object.fields:
   label: Fields
-  description: The object fields, including their types, requirements, and structural targets.
+  description: The object fields, including their types, requirements, and optional semantic refs.
 object.relations:
-  label: Relations
-  description: The structural relations declared directly on the object.
+  label: Explicit Relations
+  description: The explicit relations declared directly on the object when no concrete field carries them.
 object.referenced_by:
   label: Referenced by
   description: The fields or relations that point at the current object from elsewhere in the model.
@@ -198,7 +198,7 @@ domain:
         source: `kind: object
 id: ApprovalRequest
 title: Approval Request
-role: aggregate
+role: entity
 lifecycleField: status
 lifecycle:
   - draft
@@ -229,8 +229,9 @@ fields:
   - id: status
     type: ApprovalRequestStatus
     required: true
-    structure: enum
-    target: ApprovalRequestStatus
+    ref:
+      kind: enum
+      objectId: ApprovalRequestStatus
     description: Lifecycle field mirrored by the aggregate states and the workflow stages.
 `
       },
@@ -494,7 +495,7 @@ domain:
         source: `kind: object
 id: ExampleRecord
 title: Example Record
-role: aggregate
+role: entity
 lifecycleField: status
 lifecycle:
   - draft
@@ -507,8 +508,9 @@ fields:
   - id: status
     type: ExampleRecordStatus
     required: true
-    structure: enum
-    target: ExampleRecordStatus
+    ref:
+      kind: enum
+      objectId: ExampleRecordStatus
     description: Lifecycle field used by the minimal aggregate and process.
 `
       },
@@ -607,6 +609,7 @@ domain:
   objects:
     - ./objects/order.object.yaml
     - ./objects/payment.object.yaml
+    - ./objects/payment-settlement.object.yaml
     - ./objects/order-status.object.yaml
     - ./objects/payment-status.object.yaml
   commands:
@@ -628,7 +631,7 @@ domain:
         source: `kind: object
 id: Order
 title: Order
-role: aggregate
+role: entity
 lifecycleField: status
 lifecycle:
   - draft
@@ -649,8 +652,9 @@ fields:
   - id: status
     type: OrderStatus
     required: true
-    structure: enum
-    target: OrderStatus
+    ref:
+      kind: enum
+      objectId: OrderStatus
     description: Lifecycle field mirrored by the order aggregate states.
 `
       },
@@ -659,7 +663,7 @@ fields:
         source: `kind: object
 id: Payment
 title: Payment
-role: aggregate
+role: entity
 lifecycleField: paymentStatus
 lifecycle:
   - pending
@@ -672,9 +676,17 @@ fields:
   - id: orderId
     type: uuid
     required: true
-    structure: reference
-    target: Order
+    ref:
+      kind: reference
+      objectId: Order
     description: Connects the payment back to the order it settles.
+  - id: settlement
+    type: PaymentSettlement
+    required: true
+    ref:
+      kind: composition
+      objectId: PaymentSettlement
+    description: Captures the settlement detail owned by the payment aggregate.
   - id: paidAmount
     type: decimal
     required: true
@@ -682,15 +694,27 @@ fields:
   - id: paymentStatus
     type: PaymentStatus
     required: true
-    structure: enum
-    target: PaymentStatus
+    ref:
+      kind: enum
+      objectId: PaymentStatus
     description: Lifecycle field mirrored by the payment aggregate states.
-relations:
-  - id: settlesOrder
-    kind: reference
-    target: Order
-    field: orderId
-    description: Payment settles the order it references.
+`
+      },
+      {
+        relativePath: `${ZERO_CONFIG_CANONICAL_DIR}/objects/payment-settlement.object.yaml`,
+        source: `kind: object
+id: PaymentSettlement
+title: Payment Settlement
+role: value-object
+fields:
+  - id: method
+    type: text
+    required: true
+    description: Payment channel or method captured with the confirmed settlement.
+  - id: confirmedAt
+    type: datetime
+    required: true
+    description: Timestamp recorded when the settlement is considered complete.
 `
       },
       {

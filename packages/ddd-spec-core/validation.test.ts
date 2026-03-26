@@ -49,13 +49,13 @@ test("schema validation rejects v1 business spec bundles", async () => {
   );
 });
 
-test("standalone object schema accepts v2 aggregate objects with relations", async () => {
+test("standalone object schema accepts v2 entity objects with relations", async () => {
   const validate = await createStandaloneSchemaValidator("object.schema.json");
   const objectSpec = {
     kind: "object",
     id: "Order",
     title: "Order",
-    role: "aggregate",
+    role: "entity",
     lifecycleField: "status",
     lifecycle: ["draft", "submitted"],
     fields: [
@@ -63,15 +63,19 @@ test("standalone object schema accepts v2 aggregate objects with relations", asy
         id: "status",
         type: "OrderStatus",
         required: true,
-        structure: "enum",
-        target: "OrderStatus"
+        ref: {
+          kind: "enum",
+          objectId: "OrderStatus"
+        }
       },
       {
         id: "customerId",
         type: "uuid",
         required: true,
-        structure: "reference",
-        target: "Customer"
+        ref: {
+          kind: "reference",
+          objectId: "Customer"
+        }
       }
     ],
     relations: [
@@ -79,9 +83,36 @@ test("standalone object schema accepts v2 aggregate objects with relations", asy
         id: "belongsToCustomer",
         kind: "reference",
         target: "Customer",
-        field: "customerId",
         cardinality: "0..n",
         description: "Links the order to its customer."
+      }
+    ]
+  };
+
+  assertSchemaValidationPasses(validate, objectSpec);
+});
+
+test("standalone object schema accepts v2 value objects", async () => {
+  const validate = await createStandaloneSchemaValidator("object.schema.json");
+  const objectSpec = {
+    kind: "object",
+    id: "OrderLine",
+    title: "Order Line",
+    role: "value-object",
+    fields: [
+      {
+        id: "sku",
+        type: "string",
+        required: true
+      },
+      {
+        id: "status",
+        type: "OrderStatus",
+        required: true,
+        ref: {
+          kind: "enum",
+          objectId: "OrderStatus"
+        }
       }
     ]
   };
@@ -127,11 +158,11 @@ test("standalone object schema requires enum objects to declare values", async (
 
 test("standalone object schema rejects invalid field reference semantics", async () => {
   const validate = await createStandaloneSchemaValidator("object.schema.json");
-  const missingStructure = {
+  const missingKind = {
     kind: "object",
     id: "Order",
     title: "Order",
-    role: "aggregate",
+    role: "entity",
     lifecycleField: "status",
     lifecycle: ["draft"],
     fields: [
@@ -139,15 +170,17 @@ test("standalone object schema rejects invalid field reference semantics", async
         id: "status",
         type: "OrderStatus",
         required: true,
-        target: "OrderStatus"
+        ref: {
+          objectId: "OrderStatus"
+        }
       }
     ]
   };
-  const missingTarget = {
+  const missingObjectId = {
     kind: "object",
     id: "Order",
     title: "Order",
-    role: "aggregate",
+    role: "entity",
     lifecycleField: "status",
     lifecycle: ["draft"],
     fields: [
@@ -155,22 +188,24 @@ test("standalone object schema rejects invalid field reference semantics", async
         id: "status",
         type: "OrderStatus",
         required: true,
-        structure: "enum"
+        ref: {
+          kind: "enum"
+        }
       }
     ]
   };
 
-  const missingStructureErrors = assertSchemaValidationFails(validate, missingStructure);
-  const missingTargetErrors = assertSchemaValidationFails(validate, missingTarget);
+  const missingKindErrors = assertSchemaValidationFails(validate, missingKind);
+  const missingObjectIdErrors = assertSchemaValidationFails(validate, missingObjectId);
 
   assert.ok(
-    missingStructureErrors.some(
-      (error) => error.instancePath === "/fields/0" && error.keyword === "required"
+    missingKindErrors.some(
+      (error) => error.instancePath === "/fields/0/ref" && error.keyword === "required"
     )
   );
   assert.ok(
-    missingTargetErrors.some(
-      (error) => error.instancePath === "/fields/0" && error.keyword === "required"
+    missingObjectIdErrors.some(
+      (error) => error.instancePath === "/fields/0/ref" && error.keyword === "required"
     )
   );
 });
@@ -181,7 +216,7 @@ test("standalone object schema rejects invalid relation cardinality", async () =
     kind: "object",
     id: "Order",
     title: "Order",
-    role: "aggregate",
+    role: "entity",
     lifecycleField: "status",
     lifecycle: ["draft"],
     fields: [
@@ -189,8 +224,10 @@ test("standalone object schema rejects invalid relation cardinality", async () =
         id: "status",
         type: "OrderStatus",
         required: true,
-        structure: "enum",
-        target: "OrderStatus"
+        ref: {
+          kind: "enum",
+          objectId: "OrderStatus"
+        }
       }
     ],
     relations: [
@@ -261,7 +298,7 @@ test("semantic validation rejects broken aggregate bindings", async () => {
     () => {
       validateBusinessSpecSemantics(spec);
     },
-    /targets unknown object MissingObject/
+    /Command confirmConnection target MissingObject must reference existing object/
   );
 });
 
@@ -271,13 +308,13 @@ test("semantic validation rejects invalid object roles", async () => {
   const connectionObject = objects.find((object) => object.id === "Connection");
 
   assert.ok(connectionObject);
-  (connectionObject as typeof connectionObject & { role: string }).role = "value-object";
+  (connectionObject as typeof connectionObject & { role: string }).role = "aggregate";
 
   assert.throws(
     () => {
       validateBusinessSpecSemantics(spec);
     },
-    /Object Connection role value-object must be one of aggregate, enum/
+    /Object Connection role aggregate must be one of entity, value-object, enum/
   );
 });
 
@@ -297,12 +334,12 @@ test("semantic validation rejects enum objects without values", async () => {
   );
 });
 
-test("semantic validation rejects aggregate objects declaring enum values", async () => {
+test("semantic validation rejects entity objects declaring enum values", async () => {
   const spec = cloneBusinessSpec(await loadConnectionCardReviewFixture());
   const objects = asMutableArray(spec.domain.objects);
   const connectionObject = objects.find((object) => object.id === "Connection");
 
-  assert.ok(connectionObject && connectionObject.role === "aggregate");
+  assert.ok(connectionObject && connectionObject.role === "entity");
   (connectionObject as typeof connectionObject & { values?: readonly string[] }).values = [
     "suggested"
   ];
@@ -311,7 +348,7 @@ test("semantic validation rejects aggregate objects declaring enum values", asyn
     () => {
       validateBusinessSpecSemantics(spec);
     },
-    /Object Connection role aggregate cannot declare values/
+    /Object Connection role entity cannot declare values/
   );
 });
 
@@ -338,7 +375,7 @@ test("semantic validation rejects enum fields targeting non-enum objects", async
     : never;
   const connectionObject = objects.find((object) => object.id === "Connection");
 
-  assert.ok(connectionObject && connectionObject.role === "aggregate");
+  assert.ok(connectionObject && connectionObject.role === "entity");
 
   const fields = connectionObject.fields as typeof connectionObject.fields extends readonly (infer Item)[]
     ? Item[]
@@ -346,7 +383,8 @@ test("semantic validation rejects enum fields targeting non-enum objects", async
   const statusField = fields.find((field) => field.id === "status");
 
   assert.ok(statusField);
-  statusField.target = "Connection";
+  assert.ok(statusField.ref);
+  statusField.ref.objectId = "Connection";
 
   assert.throws(
     () => {
@@ -361,13 +399,14 @@ test("semantic validation rejects field references targeting missing objects", a
   const objects = asMutableArray(spec.domain.objects);
   const cardObject = objects.find((object) => object.id === "Card");
 
-  assert.ok(cardObject && cardObject.role === "aggregate");
+  assert.ok(cardObject && cardObject.role === "entity");
 
   const fields = asMutableArray(cardObject.fields);
   const connectionField = fields.find((field) => field.id === "connectionId");
 
   assert.ok(connectionField);
-  connectionField.target = "MissingObject";
+  assert.ok(connectionField.ref);
+  connectionField.ref.objectId = "MissingObject";
 
   assert.throws(
     () => {
@@ -377,14 +416,14 @@ test("semantic validation rejects field references targeting missing objects", a
   );
 });
 
-test("semantic validation rejects field targets without structure", async () => {
+test("semantic validation rejects malformed field refs", async () => {
   const spec = cloneBusinessSpec(await loadConnectionCardReviewFixture());
   const objects = spec.domain.objects as typeof spec.domain.objects extends readonly (infer Item)[]
     ? Item[]
     : never;
   const cardObject = objects.find((object) => object.id === "Card");
 
-  assert.ok(cardObject && cardObject.role === "aggregate");
+  assert.ok(cardObject && cardObject.role === "entity");
 
   const fields = cardObject.fields as typeof cardObject.fields extends readonly (infer Item)[]
     ? Item[]
@@ -392,13 +431,36 @@ test("semantic validation rejects field targets without structure", async () => 
   const connectionField = fields.find((field) => field.id === "connectionId");
 
   assert.ok(connectionField);
-  delete connectionField.structure;
+  assert.ok(connectionField.ref);
+  delete (connectionField.ref as { kind?: unknown }).kind;
 
   assert.throws(
     () => {
       validateBusinessSpecSemantics(spec);
     },
-    /Object Card field connectionId target requires structure/
+    /Object Card field connectionId ref.kind undefined must be one of enum, composition, reference/
+  );
+});
+
+test("semantic validation rejects object relations that duplicate field refs", async () => {
+  const spec = cloneBusinessSpec(await loadConnectionCardReviewFixture());
+  const objects = asMutableArray(spec.domain.objects);
+  const cardObject = objects.find((object) => object.id === "Card");
+
+  assert.ok(cardObject && cardObject.role === "entity");
+  cardObject.relations = [
+    {
+      id: "sourceConnection",
+      kind: "reference",
+      target: "Connection"
+    }
+  ];
+
+  assert.throws(
+    () => {
+      validateBusinessSpecSemantics(spec);
+    },
+    /Object Card relation sourceConnection duplicates field-level relation reference -> Connection/
   );
 });
 
@@ -407,40 +469,62 @@ test("semantic validation rejects object relations targeting missing objects", a
   const objects = asMutableArray(spec.domain.objects);
   const cardObject = objects.find((object) => object.id === "Card");
 
-  assert.ok(cardObject && cardObject.role === "aggregate" && cardObject.relations);
-
-  const relations = asMutableArray(cardObject.relations);
-  relations[0] = {
-    ...relations[0],
-    target: "MissingObject"
-  };
+  assert.ok(cardObject && cardObject.role === "entity");
+  cardObject.relations = [
+    {
+      id: "missingConnection",
+      kind: "reference",
+      target: "MissingObject"
+    }
+  ];
 
   assert.throws(
     () => {
       validateBusinessSpecSemantics(spec);
     },
-    /Object Card relation sourceConnection target MissingObject must reference existing object/
+    /Object Card relation missingConnection target MissingObject must reference existing object/
   );
 });
 
-test("semantic validation rejects object relation bindings to missing fields", async () => {
+test("semantic validation rejects composition refs targeting aggregate roots", async () => {
   const spec = cloneBusinessSpec(await loadConnectionCardReviewFixture());
   const objects = asMutableArray(spec.domain.objects);
   const cardObject = objects.find((object) => object.id === "Card");
 
-  assert.ok(cardObject && cardObject.role === "aggregate" && cardObject.relations);
+  assert.ok(cardObject && cardObject.role === "entity");
+  const fields = asMutableArray(cardObject.fields);
+  const contentField = fields.find((field) => field.id === "content");
 
-  const relations = asMutableArray(cardObject.relations);
-  relations[0] = {
-    ...relations[0],
-    field: "missingField"
-  };
+  assert.ok(contentField && contentField.ref);
+  contentField.ref.objectId = "Connection";
 
   assert.throws(
     () => {
       validateBusinessSpecSemantics(spec);
     },
-    /Object Card relation sourceConnection field missingField must exist in fields/
+    /Object Card field content composition target Connection cannot reference aggregate root object/
+  );
+});
+
+test("semantic validation rejects multiple composition parents", async () => {
+  const spec = cloneBusinessSpec(await loadConnectionCardReviewFixture());
+  const objects = asMutableArray(spec.domain.objects);
+  const connectionObject = objects.find((object) => object.id === "Connection");
+
+  assert.ok(connectionObject && connectionObject.role === "entity");
+  connectionObject.relations = [
+    {
+      id: "alsoOwnsContent",
+      kind: "composition",
+      target: "CardContent"
+    }
+  ];
+
+  assert.throws(
+    () => {
+      validateBusinessSpecSemantics(spec);
+    },
+    /Object CardContent cannot have more than one composition parent: Card, Connection/
   );
 });
 
@@ -449,16 +533,21 @@ test("semantic validation rejects invalid object relation cardinality", async ()
   const objects = asMutableArray(spec.domain.objects);
   const cardObject = objects.find((object) => object.id === "Card");
 
-  assert.ok(cardObject && cardObject.role === "aggregate" && cardObject.relations);
-
-  const relations = asMutableArray(cardObject.relations);
-  (relations[0] as (typeof relations)[number] & { cardinality?: string }).cardinality = "many";
+  assert.ok(cardObject && cardObject.role === "entity");
+  cardObject.relations = [
+    {
+      id: "relatedConnection",
+      kind: "reference",
+      target: "Connection",
+      cardinality: "many" as unknown as "1"
+    }
+  ];
 
   assert.throws(
     () => {
       validateBusinessSpecSemantics(spec);
     },
-    /Object Card relation sourceConnection cardinality many must be one of 1, 0\.\.1, 0\.\.n, 1\.\.n/
+    /Object Card relation relatedConnection cardinality many must be one of 1, 0\.\.1, 0\.\.n, 1\.\.n/
   );
 });
 
@@ -466,10 +555,10 @@ test("semantic validation rejects aggregates targeting missing objects", async (
   const spec = cloneBusinessSpec(await loadConnectionCardReviewFixture());
   const aggregates = asMutableArray(spec.domain.aggregates);
 
-  aggregates[0] = {
+  aggregates.push({
     ...aggregates[0],
     objectId: "MissingObject"
-  };
+  });
 
   assert.throws(
     () => {

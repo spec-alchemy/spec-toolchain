@@ -2,22 +2,32 @@ import type {
   AggregateObjectSpec,
   AggregateSpec,
   BusinessSpec,
+  EntityObjectSpec,
+  FieldRefKind,
+  FieldRefSpec,
   FieldSpec,
-  FieldStructure,
   ObjectSpec,
-  ObjectRole,
   RelationCardinality,
   RelationKind,
   RelationSpec
 } from "./spec.js";
 import {
-  FIELD_STRUCTURES,
-  isAggregateObjectSpec,
+  FIELD_REF_KINDS,
+  hasAggregateLifecycle,
+  hasObjectFields,
+  isEntityObjectSpec,
   isEnumObjectSpec,
+  isValueObjectSpec,
   OBJECT_ROLES,
   RELATION_CARDINALITIES,
   RELATION_KINDS
 } from "./spec.js";
+
+interface CompositionEdge {
+  sourceObjectId: string;
+  targetObjectId: string;
+  sourceLabel: string;
+}
 
 export function validateBusinessSpecSemantics(spec: BusinessSpec): void {
   const objectMap = asMap(spec.domain.objects, "id", "object");
@@ -28,77 +38,63 @@ export function validateBusinessSpecSemantics(spec: BusinessSpec): void {
 
   for (const object of spec.domain.objects) {
     const objectLabel = describeObject(object);
+    const objectRole = getObjectRole(object, objectLabel);
     const relations = getRelations(object);
-    const role = getObjectRole(object);
 
     assertUniqueRelations(relations, `object ${object.id}`);
     validateRelations(object, objectMap, relations);
 
-    if (role === "aggregate") {
-      assertPropertyAbsent(object, "values", `${objectLabel} role aggregate cannot declare values`);
-      const fields = getObjectFields(object);
-      const lifecycle = getLifecycle(object);
-      const lifecycleField = getLifecycleField(object);
+    if (objectRole === "entity") {
+      validateEntityObject(object as EntityObjectSpec, objectMap, relations, objectLabel);
+      continue;
+    }
 
-      assertUniqueFields(fields, `object ${object.id}`);
-      assertUniqueStrings(lifecycle, `object ${object.id} lifecycle`);
-      validateFieldTargets(fields, objectMap, objectLabel);
-      assertIncludes(
-        fields.map((field) => field.id),
-        lifecycleField,
-        `${objectLabel} lifecycleField must exist in fields`
+    if (objectRole === "value-object") {
+      validateValueObject(
+        object as ObjectSpec & { role: "value-object"; fields: readonly FieldSpec[] },
+        objectMap,
+        relations,
+        objectLabel
       );
       continue;
     }
 
-    assertPropertyAbsent(object, "fields", `${objectLabel} role enum cannot declare fields`);
-    assertPropertyAbsent(
-      object,
-      "lifecycle",
-      `${objectLabel} role enum cannot declare lifecycle`
-    );
-    assertPropertyAbsent(
-      object,
-      "lifecycleField",
-      `${objectLabel} role enum cannot declare lifecycleField`
-    );
-    assertUniqueStrings(getEnumValues(object), `enum ${object.id} values`);
+    validateEnumObject(object as ObjectSpec & { role: "enum" }, relations, objectLabel);
   }
+
+  validateCompositionTopology(spec.domain.objects, objectMap, aggregateMap);
 
   for (const command of spec.domain.commands) {
     assertUniqueFields(command.payload.fields, `command ${command.type}`);
-    validateFieldTargets(command.payload.fields, objectMap, `Command ${command.type}`);
+    validateFieldRefs(command.payload.fields, objectMap, `Command ${command.type}`);
 
-    const targetObject = objectMap.get(command.target);
-
-    if (!targetObject) {
-      throw new Error(`Command ${command.type} targets unknown object ${command.target}`);
-    }
-
-    if (!isAggregateObjectSpec(targetObject)) {
-      throw new Error(
-        `Command ${command.type} must target aggregate object ${command.target}`
-      );
-    }
+    mustGetAggregateRootObjectSpec(
+      objectMap,
+      aggregateMap,
+      command.target,
+      `Command ${command.type} target ${command.target}`
+    );
   }
 
   for (const event of spec.domain.events) {
     assertUniqueFields(event.payload.fields, `event ${event.type}`);
-    validateFieldTargets(event.payload.fields, objectMap, `Event ${event.type}`);
+    validateFieldRefs(event.payload.fields, objectMap, `Event ${event.type}`);
 
-    const sourceObject = objectMap.get(event.source);
-
-    if (!sourceObject) {
-      throw new Error(`Event ${event.type} sources unknown object ${event.source}`);
-    }
-
-    if (!isAggregateObjectSpec(sourceObject)) {
-      throw new Error(`Event ${event.type} must source aggregate object ${event.source}`);
-    }
+    mustGetAggregateRootObjectSpec(
+      objectMap,
+      aggregateMap,
+      event.source,
+      `Event ${event.type} source ${event.source}`
+    );
   }
 
   for (const aggregate of spec.domain.aggregates) {
-    const object = mustGetAggregateObjectSpec(objectMap, aggregate.objectId);
+    const object = mustGetAggregateRootObjectSpec(
+      objectMap,
+      aggregateMap,
+      aggregate.objectId,
+      `Aggregate ${aggregate.objectId} objectId`
+    );
     const lifecycle = new Set(object.lifecycle);
     const aggregateStates = Object.keys(aggregate.states);
 
@@ -285,14 +281,215 @@ export function validateBusinessSpecSemantics(spec: BusinessSpec): void {
       }
     }
   }
+}
 
-  for (const objectId of objectMap.keys()) {
-    const object = mustGet(objectMap, objectId, "object");
+function validateEntityObject(
+  object: EntityObjectSpec,
+  objectMap: ReadonlyMap<string, ObjectSpec>,
+  relations: readonly RelationSpec[],
+  objectLabel: string
+): void {
+  assertPropertyAbsent(object, "values", `${objectLabel} role entity cannot declare values`);
+  assertUniqueFields(object.fields, `object ${object.id}`);
+  validateFieldRefs(object.fields, objectMap, objectLabel);
+  assertNoDuplicateFieldRelations(object, relations);
 
-    if (isAggregateObjectSpec(object) && !aggregateMap.has(objectId)) {
-      throw new Error(`Object ${objectId} is missing aggregate definition`);
+  const lifecycleField = getOptionalNonEmptyString(
+    (object as { lifecycleField?: unknown }).lifecycleField,
+    `${objectLabel} lifecycleField`
+  );
+  const lifecycle = getOptionalStringArray(
+    (object as { lifecycle?: unknown }).lifecycle,
+    `${objectLabel} lifecycle`
+  );
+
+  if (lifecycleField || lifecycle) {
+    if (!lifecycleField || !lifecycle) {
+      throw new Error(`${objectLabel} must declare both lifecycleField and lifecycle together`);
+    }
+
+    assertUniqueStrings(lifecycle, `object ${object.id} lifecycle`);
+    assertIncludes(
+      object.fields.map((field) => field.id),
+      lifecycleField,
+      `${objectLabel} lifecycleField must exist in fields`
+    );
+  }
+}
+
+function validateValueObject(
+  object: ObjectSpec & { role: "value-object"; fields: readonly FieldSpec[] },
+  objectMap: ReadonlyMap<string, ObjectSpec>,
+  relations: readonly RelationSpec[],
+  objectLabel: string
+): void {
+  assertPropertyAbsent(
+    object,
+    "values",
+    `${objectLabel} role value-object cannot declare values`
+  );
+  assertPropertyAbsent(
+    object,
+    "lifecycle",
+    `${objectLabel} role value-object cannot declare lifecycle`
+  );
+  assertPropertyAbsent(
+    object,
+    "lifecycleField",
+    `${objectLabel} role value-object cannot declare lifecycleField`
+  );
+  assertUniqueFields(object.fields, `object ${object.id}`);
+  validateFieldRefs(object.fields, objectMap, objectLabel);
+  assertNoDuplicateFieldRelations(object, relations);
+}
+
+function validateEnumObject(
+  object: ObjectSpec & { role: "enum" },
+  relations: readonly RelationSpec[],
+  objectLabel: string
+): void {
+  assertPropertyAbsent(object, "fields", `${objectLabel} role enum cannot declare fields`);
+  assertPropertyAbsent(
+    object,
+    "lifecycle",
+    `${objectLabel} role enum cannot declare lifecycle`
+  );
+  assertPropertyAbsent(
+    object,
+    "lifecycleField",
+    `${objectLabel} role enum cannot declare lifecycleField`
+  );
+
+  if (relations.length > 0) {
+    throw new Error(`${objectLabel} role enum cannot declare relations`);
+  }
+
+  assertUniqueStrings(getEnumValues(object), `enum ${object.id} values`);
+}
+
+function validateCompositionTopology(
+  objects: readonly ObjectSpec[],
+  objectMap: ReadonlyMap<string, ObjectSpec>,
+  aggregateMap: ReadonlyMap<string, AggregateSpec>
+): void {
+  const incomingParentsByObjectId = new Map<string, string[]>();
+  const compositionEdges = collectCompositionEdges(objects);
+
+  for (const edge of compositionEdges) {
+    const targetObject = mustGet(objectMap, edge.targetObjectId, "object");
+
+    if (isEnumObjectSpec(targetObject)) {
+      throw new Error(
+        `${edge.sourceLabel} composition target ${edge.targetObjectId} cannot reference enum object`
+      );
+    }
+
+    if (aggregateMap.has(edge.targetObjectId)) {
+      throw new Error(
+        `${edge.sourceLabel} composition target ${edge.targetObjectId} cannot reference aggregate root object`
+      );
+    }
+
+    if (edge.sourceObjectId === edge.targetObjectId) {
+      throw new Error(`${edge.sourceLabel} cannot compose itself`);
+    }
+
+    incomingParentsByObjectId.set(edge.targetObjectId, [
+      ...(incomingParentsByObjectId.get(edge.targetObjectId) ?? []),
+      edge.sourceObjectId
+    ]);
+  }
+
+  for (const [objectId, parentIds] of incomingParentsByObjectId.entries()) {
+    if (parentIds.length > 1) {
+      throw new Error(
+        `Object ${objectId} cannot have more than one composition parent: ${[...parentIds].sort().join(", ")}`
+      );
     }
   }
+
+  assertNoCompositionCycles(compositionEdges);
+}
+
+function collectCompositionEdges(objects: readonly ObjectSpec[]): readonly CompositionEdge[] {
+  const edges: CompositionEdge[] = [];
+
+  for (const object of objects) {
+    if (hasObjectFields(object)) {
+      for (const field of object.fields) {
+        if (field.ref?.kind !== "composition") {
+          continue;
+        }
+
+        edges.push({
+          sourceObjectId: object.id,
+          targetObjectId: field.ref.objectId,
+          sourceLabel: `${describeObject(object)} field ${field.id}`
+        });
+      }
+    }
+
+    for (const relation of getRelations(object)) {
+      if (relation.kind !== "composition") {
+        continue;
+      }
+
+      edges.push({
+        sourceObjectId: object.id,
+        targetObjectId: relation.target,
+        sourceLabel: `${describeObject(object)} relation ${relation.id}`
+      });
+    }
+  }
+
+  return edges;
+}
+
+function assertNoCompositionCycles(edges: readonly CompositionEdge[]): void {
+  const adjacency = new Map<string, string[]>();
+
+  for (const edge of edges) {
+    adjacency.set(edge.sourceObjectId, [
+      ...(adjacency.get(edge.sourceObjectId) ?? []),
+      edge.targetObjectId
+    ]);
+  }
+
+  const visiting = new Set<string>();
+  const visited = new Set<string>();
+
+  for (const objectId of adjacency.keys()) {
+    visitCompositionNode(objectId, adjacency, visiting, visited, []);
+  }
+}
+
+function visitCompositionNode(
+  objectId: string,
+  adjacency: ReadonlyMap<string, readonly string[]>,
+  visiting: Set<string>,
+  visited: Set<string>,
+  path: readonly string[]
+): void {
+  if (visited.has(objectId)) {
+    return;
+  }
+
+  if (visiting.has(objectId)) {
+    const cycleStartIndex = path.indexOf(objectId);
+    const cyclePath =
+      cycleStartIndex >= 0 ? [...path.slice(cycleStartIndex), objectId] : [...path, objectId];
+
+    throw new Error(`Composition graph contains a cycle: ${cyclePath.join(" -> ")}`);
+  }
+
+  visiting.add(objectId);
+
+  for (const targetObjectId of adjacency.get(objectId) ?? []) {
+    visitCompositionNode(targetObjectId, adjacency, visiting, visited, [...path, objectId]);
+  }
+
+  visiting.delete(objectId);
+  visited.add(objectId);
 }
 
 function asMap<Value extends Record<Key, string>, Key extends keyof Value>(
@@ -367,55 +564,49 @@ function assertUniqueStrings(values: readonly string[], label: string): void {
   }
 }
 
-function validateFieldTargets(
+function validateFieldRefs(
   fields: readonly FieldSpec[],
   objectMap: ReadonlyMap<string, ObjectSpec>,
   label: string
 ): void {
   for (const field of fields) {
     const fieldLabel = `${label} field ${field.id}`;
-    const structure = getFieldStructure(field, fieldLabel);
-    const target = getOptionalNonEmptyString(
-      (field as { target?: unknown }).target,
-      `${fieldLabel} target`
-    );
+    const ref = getOptionalFieldRef(field, fieldLabel);
 
-    if (!structure) {
-      if (target) {
-        throw new Error(`${fieldLabel} target requires structure`);
-      }
-
+    if (!ref) {
       continue;
     }
 
-    if (structure === "scalar") {
-      if (target) {
-        throw new Error(`${fieldLabel} cannot declare target for scalar structure`);
-      }
-
-      continue;
-    }
-
-    if (!target) {
-      throw new Error(`${fieldLabel} must declare target for ${structure}`);
-    }
-
-    const targetObject = objectMap.get(target);
+    const targetObject = objectMap.get(ref.objectId);
 
     if (!targetObject) {
-      throw new Error(`${fieldLabel} ${structure} target ${target} must reference existing object`);
-    }
-
-    if (structure === "enum" && !isEnumObjectSpec(targetObject)) {
       throw new Error(
-        `${fieldLabel} enum target ${target} must reference enum object`
+        `${fieldLabel} ${ref.kind} target ${ref.objectId} must reference existing object`
       );
     }
 
-    if (structure === "reference" && isEnumObjectSpec(targetObject)) {
-      throw new Error(
-        `${fieldLabel} reference target ${target} cannot reference enum object`
-      );
+    switch (ref.kind) {
+      case "enum":
+        if (!isEnumObjectSpec(targetObject)) {
+          throw new Error(
+            `${fieldLabel} enum target ${ref.objectId} must reference enum object`
+          );
+        }
+        break;
+      case "reference":
+        if (isEnumObjectSpec(targetObject)) {
+          throw new Error(
+            `${fieldLabel} reference target ${ref.objectId} cannot reference enum object`
+          );
+        }
+        break;
+      case "composition":
+        if (isEnumObjectSpec(targetObject)) {
+          throw new Error(
+            `${fieldLabel} composition target ${ref.objectId} cannot reference enum object`
+          );
+        }
+        break;
     }
   }
 }
@@ -425,42 +616,66 @@ function validateRelations(
   objectMap: ReadonlyMap<string, ObjectSpec>,
   relations: readonly RelationSpec[]
 ): void {
-  const fieldIds =
-    getObjectRole(object) === "aggregate"
-      ? new Set(getObjectFields(object).map((field) => field.id))
-      : undefined;
-
   for (const relation of relations) {
     const relationLabel = `${describeObject(object)} relation ${relation.id}`;
     const target = getRequiredNonEmptyString(
       (relation as { target?: unknown }).target,
       `${relationLabel} target`
     );
+    const kind = getRelationKind(relation, relationLabel);
 
-    getRelationKind(relation, relationLabel);
     getRelationCardinality(relation, relationLabel);
 
     if (!objectMap.has(target)) {
       throw new Error(`${relationLabel} target ${target} must reference existing object`);
     }
 
-    const field = getOptionalNonEmptyString(
-      (relation as { field?: unknown }).field,
-      `${relationLabel} field`
-    );
-
-    if (!field) {
-      continue;
-    }
-
-    if (!fieldIds) {
-      throw new Error(`${relationLabel} cannot bind field ${field}`);
-    }
-
-    if (!fieldIds.has(field)) {
-      throw new Error(`${relationLabel} field ${field} must exist in fields`);
+    if (kind === "composition" && isEnumObjectSpec(mustGet(objectMap, target, "object"))) {
+      throw new Error(`${relationLabel} composition target ${target} cannot reference enum object`);
     }
   }
+}
+
+function assertNoDuplicateFieldRelations(
+  object: ObjectSpec & { fields: readonly FieldSpec[] },
+  relations: readonly RelationSpec[]
+): void {
+  const fieldRelationKeys = new Set(
+    object.fields.flatMap((field) => {
+      const ref = field.ref;
+
+      if (!ref) {
+        return [];
+      }
+
+      return [toRelationKey(toRelationKindFromFieldRef(ref.kind), ref.objectId)];
+    })
+  );
+
+  for (const relation of relations) {
+    const relationKey = toRelationKey(relation.kind, relation.target);
+
+    if (fieldRelationKeys.has(relationKey)) {
+      throw new Error(
+        `${describeObject(object)} relation ${relation.id} duplicates field-level relation ${relation.kind} -> ${relation.target}`
+      );
+    }
+  }
+}
+
+function toRelationKindFromFieldRef(kind: FieldRefKind): RelationKind {
+  switch (kind) {
+    case "enum":
+      return "association";
+    case "composition":
+      return "composition";
+    case "reference":
+      return "reference";
+  }
+}
+
+function toRelationKey(kind: RelationKind, targetObjectId: string): string {
+  return `${kind}:${targetObjectId}`;
 }
 
 function getAggregateState(
@@ -486,18 +701,28 @@ function unwrapCommandFieldReference(reference: string): string {
   return reference.slice(prefix.length);
 }
 
-function mustGetAggregateObjectSpec(
+function mustGetAggregateRootObjectSpec(
   objectMap: ReadonlyMap<string, ObjectSpec>,
-  objectId: string
+  aggregateMap: ReadonlyMap<string, AggregateSpec>,
+  objectId: string,
+  label: string
 ): AggregateObjectSpec {
   const object = objectMap.get(objectId);
 
   if (!object) {
-    throw new Error(`Aggregate ${objectId} objectId must reference existing object`);
+    throw new Error(`${label} must reference existing object`);
   }
 
-  if (!isAggregateObjectSpec(object)) {
-    throw new Error(`Aggregate ${objectId} must bind to object role aggregate`);
+  if (!isEntityObjectSpec(object)) {
+    throw new Error(`${label} must reference entity object`);
+  }
+
+  if (!hasAggregateLifecycle(object)) {
+    throw new Error(`${label} must declare lifecycleField and lifecycle`);
+  }
+
+  if (!aggregateMap.has(objectId)) {
+    throw new Error(`${label} must reference aggregate root object`);
   }
 
   return object;
@@ -507,39 +732,21 @@ function describeObject(object: ObjectSpec): string {
   return `Object ${String((object as { id?: unknown }).id ?? "<unknown>")}`;
 }
 
-function getObjectRole(object: ObjectSpec): ObjectRole {
-  return getAllowedValue(
-    (object as { role?: unknown }).role,
-    OBJECT_ROLES,
-    `${describeObject(object)} role`
-  );
-}
-
-function getObjectFields(object: ObjectSpec): readonly FieldSpec[] {
-  return getNonEmptyArray(
-    (object as { fields?: unknown }).fields,
-    `${describeObject(object)} fields`
-  ) as readonly FieldSpec[];
-}
-
-function getLifecycle(object: ObjectSpec): readonly string[] {
-  return getNonEmptyStringArray(
-    (object as { lifecycle?: unknown }).lifecycle,
-    `${describeObject(object)} lifecycle`
-  );
-}
-
-function getLifecycleField(object: ObjectSpec): string {
-  return getRequiredNonEmptyString(
-    (object as { lifecycleField?: unknown }).lifecycleField,
-    `${describeObject(object)} lifecycleField`
-  );
-}
-
 function getEnumValues(object: ObjectSpec): readonly string[] {
   return getNonEmptyStringArray(
     (object as { values?: unknown }).values,
     `${describeObject(object)} role enum values`
+  );
+}
+
+function getObjectRole(
+  object: ObjectSpec,
+  objectLabel: string
+): "entity" | "value-object" | "enum" {
+  return getAllowedValue(
+    (object as { role?: unknown }).role,
+    OBJECT_ROLES,
+    `${objectLabel} role`
   );
 }
 
@@ -557,14 +764,37 @@ function getRelations(object: ObjectSpec): readonly RelationSpec[] {
   return relations as readonly RelationSpec[];
 }
 
-function getFieldStructure(field: FieldSpec, label: string): FieldStructure | undefined {
-  const structure = (field as { structure?: unknown }).structure;
+function getOptionalFieldRef(field: FieldSpec, label: string): FieldRefSpec | undefined {
+  const ref = (field as { ref?: unknown }).ref;
 
-  if (structure === undefined) {
+  if (ref === undefined) {
     return undefined;
   }
 
-  return getAllowedValue(structure, FIELD_STRUCTURES, `${label} structure`);
+  if (typeof ref !== "object" || ref === null) {
+    throw new Error(`${label} ref must be an object`);
+  }
+
+  const kind = getAllowedValue(
+    (ref as { kind?: unknown }).kind,
+    FIELD_REF_KINDS,
+    `${label} ref.kind`
+  );
+  const objectId = getRequiredNonEmptyString(
+    (ref as { objectId?: unknown }).objectId,
+    `${label} ref.objectId`
+  );
+  const cardinality = getOptionalAllowedValue(
+    (ref as { cardinality?: unknown }).cardinality,
+    RELATION_CARDINALITIES,
+    `${label} ref.cardinality`
+  );
+
+  return {
+    kind,
+    objectId,
+    ...(cardinality ? { cardinality } : {})
+  };
 }
 
 function getRelationKind(relation: RelationSpec, label: string): RelationKind {
@@ -575,14 +805,8 @@ function getRelationCardinality(
   relation: RelationSpec,
   label: string
 ): RelationCardinality | undefined {
-  const cardinality = (relation as { cardinality?: unknown }).cardinality;
-
-  if (cardinality === undefined) {
-    return undefined;
-  }
-
-  return getAllowedValue(
-    cardinality,
+  return getOptionalAllowedValue(
+    (relation as { cardinality?: unknown }).cardinality,
     RELATION_CARDINALITIES,
     `${label} cardinality`
   );
@@ -612,6 +836,18 @@ function getNonEmptyArray(value: unknown, label: string): readonly unknown[] {
   return value;
 }
 
+function getOptionalArray(value: unknown, label: string): readonly unknown[] | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  if (!Array.isArray(value) || value.length === 0) {
+    throw new Error(`${label} must be a non-empty array`);
+  }
+
+  return value;
+}
+
 function getNonEmptyStringArray(value: unknown, label: string): readonly string[] {
   const values = getNonEmptyArray(value, label);
 
@@ -624,32 +860,48 @@ function getNonEmptyStringArray(value: unknown, label: string): readonly string[
   return values as readonly string[];
 }
 
-function getAllowedValue<Value extends string>(
-  value: unknown,
-  allowed: readonly Value[],
-  label: string
-): Value {
-  if (typeof value !== "string" || !allowed.some((candidate) => candidate === value)) {
-    throw new Error(`${label} ${formatValue(value)} must be one of ${allowed.join(", ")}`);
+function getOptionalStringArray(value: unknown, label: string): readonly string[] | undefined {
+  const values = getOptionalArray(value, label);
+
+  if (!values) {
+    return undefined;
   }
 
-  return value as Value;
+  for (const [index, item] of values.entries()) {
+    if (typeof item !== "string" || item.length === 0) {
+      throw new Error(`${label}[${index}] must be a non-empty string`);
+    }
+  }
+
+  return values as readonly string[];
 }
 
-function assertPropertyAbsent(
-  value: object,
-  propertyName: string,
-  message: string
-): void {
-  if (Object.prototype.hasOwnProperty.call(value, propertyName)) {
+function assertPropertyAbsent(value: object, property: string, message: string): void {
+  if (Object.prototype.hasOwnProperty.call(value, property)) {
     throw new Error(message);
   }
 }
 
-function formatValue(value: unknown): string {
-  if (typeof value === "string") {
-    return value;
+function getAllowedValue<const Allowed extends readonly string[]>(
+  value: unknown,
+  allowedValues: Allowed,
+  label: string
+): Allowed[number] {
+  if (typeof value !== "string" || !allowedValues.includes(value)) {
+    throw new Error(`${label} ${String(value)} must be one of ${allowedValues.join(", ")}`);
   }
 
-  return JSON.stringify(value) ?? String(value);
+  return value;
+}
+
+function getOptionalAllowedValue<const Allowed extends readonly string[]>(
+  value: unknown,
+  allowedValues: Allowed,
+  label: string
+): Allowed[number] | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  return getAllowedValue(value, allowedValues, label);
 }

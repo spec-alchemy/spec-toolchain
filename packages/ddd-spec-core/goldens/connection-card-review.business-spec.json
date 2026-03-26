@@ -86,8 +86,8 @@
         "description": "当前关系节点或边代表的业务关系语义。"
       },
       "relation.kind": {
-        "label": "Kind",
-        "description": "关系的类别，例如 binding、transition、advance、association、composition、reference。"
+        "label": "Relation Type",
+        "description": "关系的类型，例如 binding、transition、advance、association、composition、reference。"
       },
       "object.id": {
         "label": "Object",
@@ -102,8 +102,8 @@
         "description": "对象包含的字段清单，以及字段类型、约束和结构目标。"
       },
       "object.relations": {
-        "label": "Relations",
-        "description": "对象声明的结构关系清单。"
+        "label": "Explicit Relations",
+        "description": "对象上显式声明、且不由具体字段承载的结构关系清单。"
       },
       "object.referenced_by": {
         "label": "Referenced by",
@@ -193,7 +193,7 @@
         "kind": "object",
         "id": "Connection",
         "title": "Connection",
-        "role": "aggregate",
+        "role": "entity",
         "lifecycleField": "status",
         "lifecycle": [
           "suggested",
@@ -229,8 +229,10 @@
             "id": "status",
             "type": "ConnectionStatus",
             "required": true,
-            "structure": "enum",
-            "target": "ConnectionStatus",
+            "ref": {
+              "kind": "enum",
+              "objectId": "ConnectionStatus"
+            },
             "description": "连接生命周期字段。"
           }
         ]
@@ -239,7 +241,7 @@
         "kind": "object",
         "id": "Card",
         "title": "Card",
-        "role": "aggregate",
+        "role": "entity",
         "lifecycleField": "status",
         "lifecycle": [
           "suggested",
@@ -257,10 +259,64 @@
             "id": "connectionId",
             "type": "uuid",
             "required": true,
-            "structure": "reference",
-            "target": "Connection",
+            "ref": {
+              "kind": "reference",
+              "objectId": "Connection"
+            },
             "description": "来源连接 ID。"
           },
+          {
+            "id": "content",
+            "type": "CardContent",
+            "required": true,
+            "ref": {
+              "kind": "composition",
+              "objectId": "CardContent"
+            },
+            "description": "卡片正文内容，由聚合内部的值对象承载。"
+          },
+          {
+            "id": "status",
+            "type": "CardStatus",
+            "required": true,
+            "ref": {
+              "kind": "enum",
+              "objectId": "CardStatus"
+            },
+            "description": "卡片生命周期字段。"
+          }
+        ]
+      },
+      {
+        "kind": "object",
+        "id": "CardContent",
+        "title": "Card Content",
+        "role": "value-object",
+        "fields": [
+          {
+            "id": "wording",
+            "type": "CardWording",
+            "required": true,
+            "ref": {
+              "kind": "composition",
+              "objectId": "CardWording"
+            },
+            "description": "卡片正反面文案的组合值对象。"
+          },
+          {
+            "id": "note",
+            "type": "text",
+            "required": false,
+            "description": "供审核人补充的可选备注。"
+          }
+        ]
+      },
+      {
+        "kind": "object",
+        "id": "CardWording",
+        "title": "Card Wording",
+        "role": "value-object",
+        "fields": [
           {
             "id": "front",
             "type": "text",
@@ -272,23 +328,6 @@
             "type": "text",
             "required": true,
             "description": "卡片背面内容。"
-          },
-          {
-            "id": "status",
-            "type": "CardStatus",
-            "required": true,
-            "structure": "enum",
-            "target": "CardStatus",
-            "description": "卡片生命周期字段。"
-          }
-        ],
-        "relations": [
-          {
-            "id": "sourceConnection",
-            "kind": "reference",
-            "target": "Connection",
-            "field": "connectionId",
-            "description": "卡片由某条连接生成。"
           }
         ]
       },

@@ -25,11 +25,11 @@
       "relation.from": "转移或关系的起点状态或起始阶段。",
       "relation.to": "转移或关系的目标状态或目标阶段。",
       "relation.label": "当前关系节点或边代表的业务关系语义。",
-      "relation.kind": "关系的类别，例如 binding、transition、advance、association、composition、reference。",
+      "relation.kind": "关系的类型，例如 binding、transition、advance、association、composition、reference。",
       "object.id": "领域结构视图中对象节点的标识，用于区分实体、值对象、枚举等结构元素。",
       "object.role": "领域结构视图里对象节点的 canonical role，例如 aggregate 或 enum。",
       "object.fields": "对象包含的字段清单，以及字段类型、约束和结构目标。",
-      "object.relations": "对象声明的结构关系清单。",
+      "object.relations": "对象上显式声明、且不由具体字段承载的结构关系清单。",
       "object.referenced_by": "哪些字段或关系会指向当前对象。",
       "enum.values": "枚举对象允许的取值集合。",
       "relation.cardinality": "关系允许的数量约束，例如 1、0..1、0..n、1..n。",
@@ -1836,7 +1836,7 @@
           "kind": "aggregate-group",
           "label": "Connection",
           "subtitle": "aggregate Connection",
-          "summary": "2 object(s)",
+          "summary": "1 object(s)",
           "width": 280,
           "height": 184,
           "headerHeight": 112,
@@ -1863,13 +1863,13 @@
             },
             {
               "semanticKey": "object.relations",
-              "label": "Relations",
+              "label": "Explicit Relations",
               "value": "none"
             },
             {
               "semanticKey": "object.referenced_by",
               "label": "Referenced by",
-              "value": "Card.sourceConnection [reference via connectionId]"
+              "value": "Card.connectionId [reference]"
             }
           ]
         },
@@ -1878,7 +1878,7 @@
           "kind": "aggregate-group",
           "label": "Card",
           "subtitle": "aggregate Card",
-          "summary": "2 object(s)",
+          "summary": "3 object(s)",
           "width": 280,
           "height": 184,
           "headerHeight": 112,
@@ -1901,12 +1901,12 @@
             {
               "semanticKey": "object.fields",
               "label": "Fields",
-              "value": "cardId [uuid, required, scalar]: 卡片唯一标识。\nconnectionId [uuid, required, reference -> Connection]: 来源连接 ID。\nfront [text, required, scalar]: 卡片正面内容。\nback [text, required, scalar]: 卡片背面内容。\nstatus [CardStatus, required, enum -> CardStatus]: 卡片生命周期字段。"
+              "value": "cardId [uuid, required, scalar]: 卡片唯一标识。\nconnectionId [uuid, required, reference -> Connection]: 来源连接 ID。\ncontent [CardContent, required, composition -> CardContent]: 卡片正文内容，由聚合内部的值对象承载。\nstatus [CardStatus, required, enum -> CardStatus]: 卡片生命周期字段。"
             },
             {
               "semanticKey": "object.relations",
-              "label": "Relations",
-              "value": "sourceConnection [reference] -> Connection via connectionId"
+              "label": "Explicit Relations",
+              "value": "none"
             },
             {
               "semanticKey": "object.referenced_by",
@@ -1920,7 +1920,7 @@
           "kind": "entity",
           "label": "Connection",
           "subtitle": "lifecycle: status",
-          "summary": "5 field(s), 0 relation(s)",
+          "summary": "5 field(s), 1 relation(s)",
           "parentId": "domain-structure:aggregate:Connection",
           "width": 224,
           "height": 139,
@@ -1933,7 +1933,7 @@
             {
               "semanticKey": "object.role",
               "label": "Role",
-              "value": "aggregate"
+              "value": "entity"
             },
             {
               "semanticKey": "object.fields",
@@ -1942,13 +1942,13 @@
             },
             {
               "semanticKey": "object.relations",
-              "label": "Relations",
+              "label": "Explicit Relations",
               "value": "none"
             },
             {
               "semanticKey": "object.referenced_by",
               "label": "Referenced by",
-              "value": "Card.sourceConnection [reference via connectionId]"
+              "value": "Card.connectionId [reference]"
             },
             {
               "semanticKey": "aggregate.lifecycle_field",
@@ -1967,7 +1967,7 @@
           "kind": "entity",
           "label": "Card",
           "subtitle": "lifecycle: status",
-          "summary": "5 field(s), 1 relation(s)",
+          "summary": "4 field(s), 3 relation(s)",
           "parentId": "domain-structure:aggregate:Card",
           "width": 224,
           "height": 139,
@@ -1980,17 +1980,17 @@
             {
               "semanticKey": "object.role",
               "label": "Role",
-              "value": "aggregate"
+              "value": "entity"
             },
             {
               "semanticKey": "object.fields",
               "label": "Fields",
-              "value": "cardId [uuid, required, scalar]: 卡片唯一标识。\nconnectionId [uuid, required, reference -> Connection]: 来源连接 ID。\nfront [text, required, scalar]: 卡片正面内容。\nback [text, required, scalar]: 卡片背面内容。\nstatus [CardStatus, required, enum -> CardStatus]: 卡片生命周期字段。"
+              "value": "cardId [uuid, required, scalar]: 卡片唯一标识。\nconnectionId [uuid, required, reference -> Connection]: 来源连接 ID。\ncontent [CardContent, required, composition -> CardContent]: 卡片正文内容，由聚合内部的值对象承载。\nstatus [CardStatus, required, enum -> CardStatus]: 卡片生命周期字段。"
             },
             {
               "semanticKey": "object.relations",
-              "label": "Relations",
-              "value": "sourceConnection [reference] -> Connection via connectionId"
+              "label": "Explicit Relations",
+              "value": "none"
             },
             {
               "semanticKey": "object.referenced_by",
@@ -2010,12 +2010,85 @@
           ]
         },
         {
+          "id": "domain-structure:object:CardContent",
+          "kind": "value-object",
+          "label": "Card Content",
+          "subtitle": "CardContent",
+          "summary": "2 field(s), 1 relation(s)",
+          "parentId": "domain-structure:aggregate:Card",
+          "width": 224,
+          "height": 139,
+          "details": [
+            {
+              "semanticKey": "object.id",
+              "label": "Object",
+              "value": "CardContent"
+            },
+            {
+              "semanticKey": "object.role",
+              "label": "Role",
+              "value": "value-object"
+            },
+            {
+              "semanticKey": "object.fields",
+              "label": "Fields",
+              "value": "wording [CardWording, required, composition -> CardWording]: 卡片正反面文案的组合值对象。\nnote [text, optional, scalar]: 供审核人补充的可选备注。"
+            },
+            {
+              "semanticKey": "object.relations",
+              "label": "Explicit Relations",
+              "value": "none"
+            },
+            {
+              "semanticKey": "object.referenced_by",
+              "label": "Referenced by",
+              "value": "Card.content [composition]"
+            }
+          ]
+        },
+        {
+          "id": "domain-structure:object:CardWording",
+          "kind": "value-object",
+          "label": "Card Wording",
+          "subtitle": "CardWording",
+          "summary": "2 field(s), 0 relation(s)",
+          "parentId": "domain-structure:aggregate:Card",
+          "width": 224,
+          "height": 139,
+          "details": [
+            {
+              "semanticKey": "object.id",
+              "label": "Object",
+              "value": "CardWording"
+            },
+            {
+              "semanticKey": "object.role",
+              "label": "Role",
+              "value": "value-object"
+            },
+            {
+              "semanticKey": "object.fields",
+              "label": "Fields",
+              "value": "front [text, required, scalar]: 卡片正面内容。\nback [text, required, scalar]: 卡片背面内容。"
+            },
+            {
+              "semanticKey": "object.relations",
+              "label": "Explicit Relations",
+              "value": "none"
+            },
+            {
+              "semanticKey": "object.referenced_by",
+              "label": "Referenced by",
+              "value": "CardContent.wording [composition]"
+            }
+          ]
+        },
+        {
           "id": "domain-structure:object:ConnectionStatus",
           "kind": "enum",
           "label": "Connection Status",
           "subtitle": "ConnectionStatus",
           "summary": "3 value(s)",
-          "parentId": "domain-structure:aggregate:Connection",
           "width": 196,
           "height": 123,
           "details": [
@@ -2047,7 +2120,6 @@
           "label": "Card Status",
           "subtitle": "CardStatus",
           "summary": "3 value(s)",
-          "parentId": "domain-structure:aggregate:Card",
           "width": 196,
           "height": 123,
           "details": [
@@ -2086,7 +2158,7 @@
           "details": [
             {
               "semanticKey": "relation.kind",
-              "label": "Kind",
+              "label": "Relation Type",
               "value": "association"
             },
             {
@@ -2117,17 +2189,17 @@
           ]
         },
         {
-          "id": "domain-structure:Card:relation:sourceConnection",
+          "id": "domain-structure:Card:field:connectionId:target:Connection",
           "kind": "reference",
           "source": "domain-structure:object:Card",
           "target": "domain-structure:object:Connection",
-          "label": "source connection",
+          "label": "connection id",
           "cardinality": "1",
-          "description": "卡片由某条连接生成。",
+          "description": "来源连接 ID。",
           "details": [
             {
               "semanticKey": "relation.kind",
-              "label": "Kind",
+              "label": "Relation Type",
               "value": "reference"
             },
             {
@@ -2153,7 +2225,48 @@
             {
               "semanticKey": "relation.description",
               "label": "Description",
-              "value": "卡片由某条连接生成。"
+              "value": "来源连接 ID。"
+            }
+          ]
+        },
+        {
+          "id": "domain-structure:Card:field:content:target:CardContent",
+          "kind": "composition",
+          "source": "domain-structure:object:Card",
+          "target": "domain-structure:object:CardContent",
+          "label": "content",
+          "cardinality": "1",
+          "description": "卡片正文内容，由聚合内部的值对象承载。",
+          "details": [
+            {
+              "semanticKey": "relation.kind",
+              "label": "Relation Type",
+              "value": "composition"
+            },
+            {
+              "semanticKey": "relation.from",
+              "label": "From",
+              "value": "Card"
+            },
+            {
+              "semanticKey": "relation.to",
+              "label": "To",
+              "value": "CardContent"
+            },
+            {
+              "semanticKey": "relation.field",
+              "label": "Field",
+              "value": "content"
+            },
+            {
+              "semanticKey": "relation.cardinality",
+              "label": "Cardinality",
+              "value": "1"
+            },
+            {
+              "semanticKey": "relation.description",
+              "label": "Description",
+              "value": "卡片正文内容，由聚合内部的值对象承载。"
             }
           ]
         },
@@ -2168,7 +2281,7 @@
           "details": [
             {
               "semanticKey": "relation.kind",
-              "label": "Kind",
+              "label": "Relation Type",
               "value": "association"
             },
             {
@@ -2195,6 +2308,47 @@
               "semanticKey": "relation.description",
               "label": "Description",
               "value": "卡片生命周期字段。"
+            }
+          ]
+        },
+        {
+          "id": "domain-structure:CardContent:field:wording:target:CardWording",
+          "kind": "composition",
+          "source": "domain-structure:object:CardContent",
+          "target": "domain-structure:object:CardWording",
+          "label": "wording",
+          "cardinality": "1",
+          "description": "卡片正反面文案的组合值对象。",
+          "details": [
+            {
+              "semanticKey": "relation.kind",
+              "label": "Relation Type",
+              "value": "composition"
+            },
+            {
+              "semanticKey": "relation.from",
+              "label": "From",
+              "value": "CardContent"
+            },
+            {
+              "semanticKey": "relation.to",
+              "label": "To",
+              "value": "CardWording"
+            },
+            {
+              "semanticKey": "relation.field",
+              "label": "Field",
+              "value": "wording"
+            },
+            {
+              "semanticKey": "relation.cardinality",
+              "label": "Cardinality",
+              "value": "1"
+            },
+            {
+              "semanticKey": "relation.description",
+              "label": "Description",
+              "value": "卡片正反面文案的组合值对象。"
             }
           ]
         }

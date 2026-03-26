@@ -15,7 +15,10 @@ import {
   getMiniMapNodeColor,
   VIEWER_GRID_COLOR
 } from "@/lib/viewer-colors";
-import { selectionFromNodeData } from "@/lib/view-layout/selection";
+import {
+  selectionFromEdgeData,
+  selectionFromNodeData
+} from "@/lib/view-layout/selection";
 import type { LayoutedView } from "@/lib/layout";
 import type {
   FlowEdge,
@@ -76,12 +79,13 @@ export function FlowCanvas({
           onSelectSelection(selectionFromNodeData(node.data));
         }}
         onEdgeClick={(_, edge) => {
-          onSelectSelection({
-            type: `${edge.data?.kind ?? "edge"} edge`,
-            label: typeof edge.label === "string" ? edge.label : edge.id,
-            summary: edge.data?.kind,
-            details: edge.data?.details ?? []
-          });
+          onSelectSelection(
+            selectionFromEdgeData({
+              kind: edge.data?.kind,
+              label: typeof edge.label === "string" ? edge.label : edge.id,
+              details: edge.data?.details ?? []
+            })
+          );
         }}
         onPaneClick={() => {
           onSelectSelection(null);

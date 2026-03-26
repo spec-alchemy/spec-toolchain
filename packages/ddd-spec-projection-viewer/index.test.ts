@@ -43,12 +43,35 @@ test("domain structure groups aggregate-owned nodes and humanizes structure labe
     domainStructureView.nodes,
     (node) => node.kind === "enum" && getDetailValue(node.details, "object.id") === "ConnectionStatus"
   );
+  const cardContentNode = mustFind(
+    domainStructureView.nodes,
+    (node) =>
+      node.kind === "value-object" && getDetailValue(node.details, "object.id") === "CardContent"
+  );
+  const cardNode = mustFind(
+    domainStructureView.nodes,
+    (node) => node.kind === "entity" && getDetailValue(node.details, "object.id") === "Card"
+  );
+  const cardWordingNode = mustFind(
+    domainStructureView.nodes,
+    (node) =>
+      node.kind === "value-object" && getDetailValue(node.details, "object.id") === "CardWording"
+  );
   const sourceConnectionEdge = mustFind(
     domainStructureView.edges,
     (edge) =>
       edge.kind === "reference" &&
       getDetailValue(edge.details, "relation.from") === "Card" &&
+      getDetailValue(edge.details, "relation.field") === "connectionId" &&
       getDetailValue(edge.details, "relation.to") === "Connection"
+  );
+  const cardContentEdge = mustFind(
+    domainStructureView.edges,
+    (edge) =>
+      edge.kind === "composition" &&
+      getDetailValue(edge.details, "relation.from") === "Card" &&
+      getDetailValue(edge.details, "relation.field") === "content" &&
+      getDetailValue(edge.details, "relation.to") === "CardContent"
   );
   const cardStatusEdge = mustFind(
     domainStructureView.edges,
@@ -59,13 +82,24 @@ test("domain structure groups aggregate-owned nodes and humanizes structure labe
   );
 
   assert.equal(connectionNode.parentId, "domain-structure:aggregate:Connection");
-  assert.equal(getDetailValue(connectionNode.details, "object.role"), "aggregate");
-  assert.equal(connectionStatusNode.parentId, "domain-structure:aggregate:Connection");
+  assert.equal(getDetailValue(connectionNode.details, "object.role"), "entity");
+  assert.equal(connectionNode.summary, "5 field(s), 1 relation(s)");
+  assert.equal(connectionStatusNode.parentId, undefined);
   assert.equal(getDetailValue(connectionStatusNode.details, "object.role"), "enum");
-  assert.equal(sourceConnectionEdge.label, "source connection");
+  assert.equal(cardNode.summary, "4 field(s), 3 relation(s)");
+  assert.equal(cardContentNode.parentId, "domain-structure:aggregate:Card");
+  assert.equal(getDetailValue(cardContentNode.details, "object.role"), "value-object");
+  assert.equal(cardContentNode.summary, "2 field(s), 1 relation(s)");
+  assert.equal(cardWordingNode.parentId, "domain-structure:aggregate:Card");
+  assert.equal(getDetailValue(cardWordingNode.details, "object.role"), "value-object");
+  assert.equal(cardWordingNode.summary, "2 field(s), 0 relation(s)");
+  assert.equal(sourceConnectionEdge.label, "connection id");
   assert.equal(getDetailValue(sourceConnectionEdge.details, "relation.kind"), "reference");
   assert.equal(sourceConnectionEdge.cardinality, "1");
   assert.equal(getDetailValue(sourceConnectionEdge.details, "relation.cardinality"), "1");
+  assert.equal(cardContentEdge.label, "content");
+  assert.equal(getDetailValue(cardContentEdge.details, "relation.kind"), "composition");
+  assert.equal(cardContentEdge.cardinality, "1");
   assert.equal(cardStatusEdge.label, "status");
   assert.equal(getDetailValue(cardStatusEdge.details, "relation.kind"), "association");
 });

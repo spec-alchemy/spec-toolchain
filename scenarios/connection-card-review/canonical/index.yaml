@@ -8,6 +8,8 @@ domain:
   objects:
     - ./objects/connection.object.yaml
     - ./objects/card.object.yaml
+    - ./objects/card-content.object.yaml
+    - ./objects/card-wording.object.yaml
     - ./objects/connection-status.object.yaml
     - ./objects/card-status.object.yaml
   commands:

@@ -26,7 +26,7 @@
     "cli": "node ./dist/ddd-spec-cli/cli.js",
     "repo:cli": "node ./scripts/run-from-repo-root.mjs",
     "prepack": "npm run build",
-    "test": "npm run build && node --import tsx --test ../ddd-spec-core/output.test.ts ../ddd-spec-core/validation.test.ts ./viewer-dev-session.test.ts ./cli-config.test.ts ./cli-init.test.ts ./cli-packaging.test.ts ./cli-installed-smoke.test.ts ./cli-runtime.test.ts ../ddd-spec-projection-viewer/index.test.ts ../ddd-spec-projection-typescript/index.test.ts ../../apps/ddd-spec-viewer/test/viewer-dev-session.test.ts"
+    "test": "npm run build && node --import tsx --test ../ddd-spec-core/output.test.ts ../ddd-spec-core/validation.test.ts ./viewer-dev-session.test.ts ./cli-config.test.ts ./cli-init.test.ts ./cli-packaging.test.ts ./cli-installed-smoke.test.ts ./cli-runtime.test.ts ../ddd-spec-projection-viewer/index.test.ts ../ddd-spec-projection-typescript/index.test.ts ../../apps/ddd-spec-viewer/test/viewer-dev-session.test.ts ../../apps/ddd-spec-viewer/test/inspect-selection.test.ts"
   },
   "dependencies": {
     "ajv": "^8.18.0",

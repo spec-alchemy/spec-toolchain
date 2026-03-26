@@ -8,6 +8,7 @@ domain:
   objects:
     - ./objects/order.object.yaml
     - ./objects/payment.object.yaml
+    - ./objects/payment-settlement.object.yaml
     - ./objects/order-status.object.yaml
     - ./objects/payment-status.object.yaml
   commands:

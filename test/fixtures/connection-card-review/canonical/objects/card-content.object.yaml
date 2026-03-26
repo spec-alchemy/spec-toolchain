@@ -1,0 +1,16 @@
+kind: object
+id: CardContent
+title: Card Content
+role: value-object
+fields:
+  - id: wording
+    type: CardWording
+    required: true
+    ref:
+      kind: composition
+      objectId: CardWording
+    description: 卡片正反面文案的组合值对象。
+  - id: note
+    type: text
+    required: false
+    description: 供审核人补充的可选备注。

@@ -4,12 +4,15 @@ import type {
   CommandSpec,
   EventSpec,
   FieldSpec,
+  FieldRefSpec,
   ObjectSpec,
   ProcessSpec,
   RelationSpec
 } from "../ddd-spec-core/spec.js";
 import {
-  isAggregateObjectSpec,
+  hasAggregateLifecycle,
+  hasObjectFields,
+  isEntityObjectSpec,
   isEnumObjectSpec
 } from "../ddd-spec-core/spec.js";
 import type {
@@ -702,7 +705,7 @@ function buildTraceView(context: ViewerContext): ViewerViewSpec {
 function buildDomainStructureView(context: ViewerContext): ViewerViewSpec {
   const nodes: ViewerNodeSpec[] = [];
   const ownedObjectIdsByAggregateId = collectDomainStructureOwnedObjectIds(
-    context.spec.domain.objects,
+    context.spec,
     context.domainStructureEdges
   );
   const aggregateOwnerByObjectId = new Map<string, string>();
@@ -749,10 +752,12 @@ function buildDomainStructureView(context: ViewerContext): ViewerViewSpec {
   }
 
   for (const object of context.spec.domain.objects) {
-    if (isAggregateObjectSpec(object)) {
-      const relationCount = object.relations?.length ?? 0;
+    if (isEntityObjectSpec(object)) {
+      const relationCount = countDomainStructureRelations(object);
       const summary = `${object.fields.length} field(s), ${relationCount} relation(s)`;
-      const subtitle = `lifecycle: ${object.lifecycleField}`;
+      const subtitle = hasAggregateLifecycle(object)
+        ? `lifecycle: ${object.lifecycleField}`
+        : object.id;
       const entityBox = measureLeafNodeBox(
         DIMENSIONS.domainEntity,
         object.title,
@@ -778,8 +783,52 @@ function buildDomainStructureView(context: ViewerContext): ViewerViewSpec {
             "object.referenced_by",
             formatList(context.incomingStructureRefsByObjectId.get(object.id) ?? [])
           ),
-          detail(context, "aggregate.lifecycle_field", object.lifecycleField),
-          detail(context, "aggregate.lifecycle", formatList(object.lifecycle))
+          ...(hasAggregateLifecycle(object)
+            ? [
+                detail(context, "aggregate.lifecycle_field", object.lifecycleField),
+                detail(context, "aggregate.lifecycle", formatList(object.lifecycle))
+              ]
+            : [])
+        ]
+      });
+
+      continue;
+    }
+
+    if (hasObjectFields(object)) {
+      const relationCount = countDomainStructureRelations(object);
+      const summary = `${object.fields.length} field(s), ${relationCount} relation(s)`;
+      const valueObjectBox = measureLeafNodeBox(
+        DIMENSIONS.domainEntity,
+        object.title,
+        object.id,
+        summary
+      );
+
+      nodes.push({
+        id: toDomainStructureObjectId(object.id),
+        kind: "value-object",
+        label: object.title,
+        subtitle: object.id,
+        summary,
+        ...(aggregateOwnerByObjectId.has(object.id)
+          ? {
+              parentId: toDomainStructureAggregateGroupId(
+                mustGet(aggregateOwnerByObjectId, object.id, "aggregate owner")
+              )
+            }
+          : {}),
+        ...valueObjectBox,
+        details: [
+          detail(context, "object.id", object.id),
+          detail(context, "object.role", object.role),
+          detail(context, "object.fields", formatDomainFields(object.fields, object)),
+          detail(context, "object.relations", formatDomainRelations(object.relations ?? [])),
+          detail(
+            context,
+            "object.referenced_by",
+            formatList(context.incomingStructureRefsByObjectId.get(object.id) ?? [])
+          )
         ]
       });
 
@@ -844,38 +893,22 @@ function collectDomainStructureEdges(
   const edges: DomainStructureEdgeModel[] = [];
 
   for (const object of spec.domain.objects) {
-    const explicitFieldEdgeKeys = new Set<string>();
-
-    for (const relation of object.relations ?? []) {
-      const edge = buildExplicitDomainStructureEdgeModel(object, relation);
-
-      edges.push(edge);
-
-      if (edge.fieldId) {
-        explicitFieldEdgeKeys.add(
-          toDomainStructureFieldEdgeKey(edge.kind, edge.fieldId, edge.targetObjectId)
-        );
-      }
-    }
-
-    if (!isAggregateObjectSpec(object)) {
+    if (!hasObjectFields(object)) {
       continue;
     }
 
+    for (const relation of object.relations ?? []) {
+      edges.push(buildExplicitDomainStructureEdgeModel(object, relation));
+    }
+
     for (const field of object.fields) {
-      const kind = toDomainStructureFieldEdgeKind(field);
+      const ref = field.ref;
 
-      if (!kind || !field.target) {
+      if (!ref) {
         continue;
       }
 
-      const fieldEdgeKey = toDomainStructureFieldEdgeKey(kind, field.id, field.target);
-
-      if (explicitFieldEdgeKeys.has(fieldEdgeKey)) {
-        continue;
-      }
-
-      edges.push(buildFieldDomainStructureEdgeModel(object, field, kind));
+      edges.push(buildFieldDomainStructureEdgeModel(object, field, ref));
     }
   }
 
@@ -886,8 +919,6 @@ function buildExplicitDomainStructureEdgeModel(
   sourceObject: ObjectSpec,
   relation: RelationSpec
 ): DomainStructureEdgeModel {
-  const boundField = getDomainStructureRelationField(sourceObject, relation);
-
   return {
     id: toDomainStructureRelationEdgeId(sourceObject.id, relation.id),
     kind: relation.kind,
@@ -895,39 +926,27 @@ function buildExplicitDomainStructureEdgeModel(
     targetObjectId: relation.target,
     label: toReadableDomainStructureLabel(relation.id),
     relationId: relation.id,
-    ...(relation.field ? { fieldId: relation.field } : {}),
-    ...(relation.cardinality
-      ? { cardinality: relation.cardinality }
-      : boundField
-        ? { cardinality: toDomainStructureFieldCardinality(boundField) }
-        : {}),
-    ...(relation.description
-      ? { description: relation.description }
-      : boundField
-        ? {
-            description:
-              resolveFieldDescription(boundField, sourceObject) ?? boundField.description
-          }
-        : {})
+    ...(relation.cardinality ? { cardinality: relation.cardinality } : {}),
+    ...(relation.description ? { description: relation.description } : {})
   };
 }
 
 function buildFieldDomainStructureEdgeModel(
-  sourceObject: Extract<ObjectSpec, { role: "aggregate" }>,
+  sourceObject: Extract<ObjectSpec, { role: "entity" | "value-object" }>,
   field: FieldSpec,
-  kind: Extract<ViewerEdgeSpec["kind"], "association" | "reference">
+  ref: FieldRefSpec
 ): DomainStructureEdgeModel {
-  const targetObjectId = field.target as string;
+  const targetObjectId = ref.objectId;
   const description = resolveFieldDescription(field, sourceObject);
 
   return {
     id: toDomainStructureFieldEdgeId(sourceObject.id, field.id, targetObjectId),
-    kind,
+    kind: toViewerEdgeKindFromFieldRef(ref.kind),
     sourceObjectId: sourceObject.id,
     targetObjectId,
     label: toReadableDomainStructureLabel(field.id),
     fieldId: field.id,
-    cardinality: toDomainStructureFieldCardinality(field),
+    cardinality: toDomainStructureFieldCardinality(field, ref),
     ...(description ? { description } : {})
   };
 }
@@ -976,49 +995,44 @@ function collectIncomingStructureRefs(
 }
 
 function collectDomainStructureOwnedObjectIds(
-  objects: readonly ObjectSpec[],
+  spec: BusinessSpec,
   edges: readonly DomainStructureEdgeModel[]
 ): ReadonlyMap<string, readonly string[]> {
-  const aggregateIds = new Set(
-    objects.filter(isAggregateObjectSpec).map((object) => object.id)
-  );
-  const ownerCandidatesByObjectId = new Map<string, string[]>();
+  const aggregateIds = spec.domain.aggregates.map((aggregate) => aggregate.objectId);
+  const adjacency = new Map<string, string[]>();
   const groupMembersByAggregateId = new Map<string, string[]>(
-    objects
-      .filter(isAggregateObjectSpec)
-      .map((object) => [object.id, [object.id]])
+    aggregateIds.map((aggregateId) => [aggregateId, [aggregateId]])
   );
 
   for (const edge of edges) {
-    if (!aggregateIds.has(edge.sourceObjectId) || aggregateIds.has(edge.targetObjectId)) {
+    if (edge.kind !== "composition") {
       continue;
     }
 
-    ownerCandidatesByObjectId.set(
-      edge.targetObjectId,
-      unique([
-        ...(ownerCandidatesByObjectId.get(edge.targetObjectId) ?? []),
-        edge.sourceObjectId
-      ])
-    );
+    adjacency.set(edge.sourceObjectId, [
+      ...(adjacency.get(edge.sourceObjectId) ?? []),
+      edge.targetObjectId
+    ]);
   }
 
-  for (const object of objects) {
-    if (isAggregateObjectSpec(object)) {
-      continue;
+  for (const aggregateId of aggregateIds) {
+    const visited = new Set<string>([aggregateId]);
+    const queue = [...(adjacency.get(aggregateId) ?? [])];
+
+    while (queue.length > 0) {
+      const objectId = queue.shift() as string;
+
+      if (visited.has(objectId)) {
+        continue;
+      }
+
+      visited.add(objectId);
+      groupMembersByAggregateId.set(aggregateId, [
+        ...(groupMembersByAggregateId.get(aggregateId) ?? [aggregateId]),
+        objectId
+      ]);
+      queue.push(...(adjacency.get(objectId) ?? []));
     }
-
-    const ownerCandidates = ownerCandidatesByObjectId.get(object.id) ?? [];
-
-    if (ownerCandidates.length !== 1) {
-      continue;
-    }
-
-    const aggregateId = ownerCandidates[0];
-    groupMembersByAggregateId.set(aggregateId, [
-      ...(groupMembersByAggregateId.get(aggregateId) ?? [aggregateId]),
-      object.id
-    ]);
   }
 
   return new Map(
@@ -1037,45 +1051,24 @@ function pushIncomingStructureRef(
   refs.set(targetObjectId, unique([...(refs.get(targetObjectId) ?? []), value]));
 }
 
-function toDomainStructureFieldEdgeKind(
-  field: FieldSpec
-): Extract<ViewerEdgeSpec["kind"], "association" | "reference"> | undefined {
-  switch (field.structure) {
+function toViewerEdgeKindFromFieldRef(
+  kind: FieldRefSpec["kind"]
+): Extract<ViewerEdgeSpec["kind"], "association" | "composition" | "reference"> {
+  switch (kind) {
     case "enum":
       return "association";
+    case "composition":
+      return "composition";
     case "reference":
       return "reference";
-    default:
-      return undefined;
   }
 }
 
-function getDomainStructureRelationField(
-  sourceObject: ObjectSpec,
-  relation: RelationSpec
-): FieldSpec | undefined {
-  if (!relation.field) {
-    return undefined;
+function toDomainStructureFieldCardinality(field: FieldSpec, ref: FieldRefSpec): string {
+  if (ref.cardinality) {
+    return ref.cardinality;
   }
 
-  if (!isAggregateObjectSpec(sourceObject)) {
-    throw new Error(
-      `Object ${sourceObject.id} relation ${relation.id} cannot bind field ${relation.field}`
-    );
-  }
-
-  const field = sourceObject.fields.find((candidate) => candidate.id === relation.field);
-
-  if (!field) {
-    throw new Error(
-      `Object ${sourceObject.id} relation ${relation.id} field ${relation.field} must exist in fields`
-    );
-  }
-
-  return field;
-}
-
-function toDomainStructureFieldCardinality(field: FieldSpec): string {
   return field.required ? "1" : "0..1";
 }
 
@@ -1351,12 +1344,12 @@ function formatDomainFields(
   return fields
     .map((field) => {
       const requiredLabel = field.required ? "required" : "optional";
-      const structureLabel = field.structure
-        ? `${field.structure}${field.target ? ` -> ${field.target}` : ""}`
+      const refLabel = field.ref
+        ? `${field.ref.kind} -> ${field.ref.objectId}${field.ref.cardinality ? ` (${field.ref.cardinality})` : ""}`
         : "scalar";
       const description = resolveFieldDescription(field, object) ?? "No description available.";
 
-      return `${field.id} [${field.type}, ${requiredLabel}, ${structureLabel}]: ${description}`;
+      return `${field.id} [${field.type}, ${requiredLabel}, ${refLabel}]: ${description}`;
     })
     .join("\n");
 }
@@ -1368,12 +1361,17 @@ function formatDomainRelations(relations: readonly RelationSpec[]): string {
 
   return relations
     .map((relation) => {
-      const viaField = relation.field ? ` via ${relation.field}` : "";
       const cardinality = relation.cardinality ? ` ${relation.cardinality}` : "";
 
-      return `${relation.id} [${relation.kind}${cardinality}] -> ${relation.target}${viaField}`;
+      return `${relation.id} [${relation.kind}${cardinality}] -> ${relation.target}`;
     })
     .join("\n");
+}
+
+function countDomainStructureRelations(
+  object: Extract<ObjectSpec, { role: "entity" | "value-object" }>
+): number {
+  return (object.relations?.length ?? 0) + object.fields.filter((field) => field.ref).length;
 }
 
 function toMap<Value, Key extends string>(
@@ -1396,11 +1394,14 @@ function mustGet<Key, Value>(map: ReadonlyMap<Key, Value>, key: Key, label: stri
 function mustGetAggregateObjectSpec(
   objectById: ReadonlyMap<string, ObjectSpec>,
   objectId: string
-): Extract<ObjectSpec, { role: "aggregate" }> {
+): Extract<ObjectSpec, { role: "entity" }> & {
+  lifecycleField: string;
+  lifecycle: readonly string[];
+} {
   const object = mustGet(objectById, objectId, "object");
 
-  if (!isAggregateObjectSpec(object)) {
-    throw new Error(`Aggregate ${objectId} must bind to object role aggregate`);
+  if (!hasAggregateLifecycle(object)) {
+    throw new Error(`Aggregate ${objectId} must bind to entity object with lifecycle`);
   }
 
   return object;

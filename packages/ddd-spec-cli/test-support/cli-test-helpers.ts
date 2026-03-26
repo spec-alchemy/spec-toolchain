@@ -20,7 +20,8 @@ import type {
   ProcessSpec
 } from "../../ddd-spec-core/index.js";
 import {
-  isAggregateObjectSpec,
+  hasObjectFields,
+  isEntityObjectSpec,
   loadBusinessSpec
 } from "../../ddd-spec-core/index.js";
 import type {
@@ -70,8 +71,8 @@ export function assertExampleBundle(bundle: BusinessSpec, example: ExampleFixtur
       (candidate) => candidate.id === requirement.objectId
     );
 
-    if (!isAggregateObjectSpec(object)) {
-      throw new Error(`Expected aggregate object ${requirement.objectId}`);
+    if (!hasObjectFields(object)) {
+      throw new Error(`Expected object with fields ${requirement.objectId}`);
     }
 
     const field = mustFind(object.fields, (candidate) => candidate.id === requirement.fieldId);
@@ -141,8 +142,8 @@ export function assertExampleViewer(viewer: BusinessViewerSpec, example: Example
   );
   const expectedEnumIds = unique(
     (example.fieldStructures ?? [])
-      .filter((expectation) => expectation.structure === "enum" && expectation.target)
-      .map((expectation) => expectation.target as string)
+      .filter((expectation) => expectation.ref?.kind === "enum")
+      .map((expectation) => expectation.ref?.objectId as string)
   );
 
   assert.deepEqual(
@@ -191,7 +192,7 @@ export function assertExampleViewer(viewer: BusinessViewerSpec, example: Example
         .filter((node) => node.kind === "entity")
         .map((node) => getDetailValue(node.details, "object.role"))
     ),
-    sortStrings(example.aggregateIds.map(() => "aggregate"))
+    sortStrings(example.aggregateIds.map(() => "entity"))
   );
   assert.deepEqual(
     sortStrings(
@@ -248,8 +249,11 @@ export function assertExampleViewer(viewer: BusinessViewerSpec, example: Example
     ),
     sortStrings(
       (example.fieldStructures ?? [])
-        .filter((expectation) => expectation.structure === "enum" && expectation.target)
-        .map((expectation) => `${expectation.objectId}|${expectation.fieldId}|${expectation.target}`)
+        .filter((expectation) => expectation.ref?.kind === "enum")
+        .map(
+          (expectation) =>
+            `${expectation.objectId}|${expectation.fieldId}|${expectation.ref?.objectId}`
+        )
     )
   );
   assert.equal(
@@ -288,20 +292,9 @@ export function assertExampleViewer(viewer: BusinessViewerSpec, example: Example
 
   for (const expectation of example.fieldStructures ?? []) {
     const kind = toExpectedDomainStructureFieldEdgeKind(expectation);
+    const ref = expectation.ref;
 
-    if (!kind || !expectation.target) {
-      continue;
-    }
-
-    const matchingRelation = (example.relations ?? []).find(
-      (relation) =>
-        relation.kind === kind &&
-        relation.objectId === expectation.objectId &&
-        relation.field === expectation.fieldId &&
-        relation.target === expectation.target
-    );
-
-    if (matchingRelation) {
+    if (!kind || !ref) {
       continue;
     }
 
@@ -311,10 +304,15 @@ export function assertExampleViewer(viewer: BusinessViewerSpec, example: Example
         candidate.kind === kind &&
         getDetailValue(candidate.details, "relation.from") === expectation.objectId &&
         getDetailValue(candidate.details, "relation.field") === expectation.fieldId &&
-        getDetailValue(candidate.details, "relation.to") === expectation.target
+        getDetailValue(candidate.details, "relation.to") === ref.objectId
     );
 
     assert.equal(edge.label, toReadableDomainStructureLabel(expectation.fieldId));
+    const expectedCardinality = ref.cardinality ?? toExpectedFieldRefCardinality(example, expectation);
+
+    if (expectedCardinality) {
+      assert.equal(edge.cardinality, expectedCardinality);
+    }
   }
 
   for (const relationExpectation of example.relations ?? []) {
@@ -327,11 +325,8 @@ export function assertExampleViewer(viewer: BusinessViewerSpec, example: Example
     );
 
     assert.equal(edge.label, toReadableDomainStructureLabel(relationExpectation.relationId));
-    assert.equal(getOptionalDetailValue(edge.details, "relation.field"), relationExpectation.field);
-    assert.equal(
-      edge.cardinality,
-      relationExpectation.cardinality ?? toExpectedRelationFieldCardinality(example, relationExpectation)
-    );
+    assert.equal(getOptionalDetailValue(edge.details, "relation.field"), undefined);
+    assert.equal(edge.cardinality, relationExpectation.cardinality);
     assert.equal(edge.description, relationExpectation.description);
   }
 }
@@ -353,14 +348,13 @@ function assertExampleFieldStructure(
 ): void {
   const object = mustFind(bundle.domain.objects, (candidate) => candidate.id === expectation.objectId);
 
-  if (!isAggregateObjectSpec(object)) {
-    throw new Error(`Expected aggregate object ${expectation.objectId}`);
+  if (!hasObjectFields(object)) {
+    throw new Error(`Expected object with fields ${expectation.objectId}`);
   }
 
   const field = mustFind(object.fields, (candidate) => candidate.id === expectation.fieldId);
 
-  assert.equal(field.structure, expectation.structure);
-  assert.equal(field.target, expectation.target);
+  assert.deepEqual(field.ref, expectation.ref);
 }
 
 function assertExampleRelation(
@@ -368,11 +362,15 @@ function assertExampleRelation(
   expectation: ExampleRelationExpectation
 ): void {
   const object = mustFind(bundle.domain.objects, (candidate) => candidate.id === expectation.objectId);
+
+  if (!hasObjectFields(object)) {
+    throw new Error(`Expected object with relations ${expectation.objectId}`);
+  }
+
   const relation = mustFind(object.relations ?? [], (candidate) => candidate.id === expectation.relationId);
 
   assert.equal(relation.kind, expectation.kind);
   assert.equal(relation.target, expectation.target);
-  assert.equal(relation.field, expectation.field);
   assert.equal(relation.cardinality, expectation.cardinality);
   assert.equal(relation.description, expectation.description);
 }
@@ -744,19 +742,21 @@ export async function assertGeneratedInitSkeleton(
         spec.domain.events.map((event) => event.type),
         ["ApprovalRequestSubmitted", "ApprovalRequestApproved", "ApprovalRequestRejected"]
       );
-      assert.ok(isAggregateObjectSpec(approvalObject));
-      assert.equal(approvalObject.role, "aggregate");
+      assert.ok(isEntityObjectSpec(approvalObject));
+      assert.equal(approvalObject.role, "entity");
       assert.equal(approvalObject.lifecycleField, "status");
       assert.deepEqual(approvalObject.lifecycle, ["draft", "submitted", "approved", "rejected"]);
       assert.deepEqual(approvalObject.fields.at(-1), {
         id: "status",
         type: "ApprovalRequestStatus",
         required: true,
-        structure: "enum",
-        target: "ApprovalRequestStatus",
+        ref: {
+          kind: "enum",
+          objectId: "ApprovalRequestStatus"
+        },
         description: "Lifecycle field mirrored by the aggregate states and the workflow stages."
       });
-      assert.ok(!isAggregateObjectSpec(approvalStatus));
+      assert.ok(!hasObjectFields(approvalStatus));
       assert.equal(approvalStatus.role, "enum");
       assert.deepEqual(approvalStatus.values, ["draft", "submitted", "approved", "rejected"]);
       assert.equal(approvalProcess.id, "approvalRequestWorkflow");
@@ -801,19 +801,21 @@ export async function assertGeneratedInitSkeleton(
         spec.domain.processes.map((process) => process.id),
         ["exampleRecordLifecycle"]
       );
-      assert.ok(isAggregateObjectSpec(minimalObject));
-      assert.equal(minimalObject.role, "aggregate");
+      assert.ok(isEntityObjectSpec(minimalObject));
+      assert.equal(minimalObject.role, "entity");
       assert.equal(minimalObject.lifecycleField, "status");
       assert.deepEqual(minimalObject.lifecycle, ["draft", "active"]);
       assert.deepEqual(minimalObject.fields.at(-1), {
         id: "status",
         type: "ExampleRecordStatus",
         required: true,
-        structure: "enum",
-        target: "ExampleRecordStatus",
+        ref: {
+          kind: "enum",
+          objectId: "ExampleRecordStatus"
+        },
         description: "Lifecycle field used by the minimal aggregate and process."
       });
-      assert.ok(!isAggregateObjectSpec(minimalStatus));
+      assert.ok(!hasObjectFields(minimalStatus));
       assert.equal(minimalStatus.role, "enum");
       assert.deepEqual(minimalStatus.values, ["draft", "active"]);
       assert.equal(minimalAggregate.objectId, "ExampleRecord");
@@ -844,6 +846,10 @@ export async function assertGeneratedInitSkeleton(
       const orderProcess = spec.domain.processes[0];
       const orderObject = mustFind(spec.domain.objects, (object) => object.id === "Order");
       const paymentObject = mustFind(spec.domain.objects, (object) => object.id === "Payment");
+      const paymentSettlement = mustFind(
+        spec.domain.objects,
+        (object) => object.id === "PaymentSettlement"
+      );
       const orderStatus = mustFind(spec.domain.objects, (object) => object.id === "OrderStatus");
       const paymentStatus = mustFind(
         spec.domain.objects,
@@ -854,6 +860,7 @@ export async function assertGeneratedInitSkeleton(
       assert.deepEqual(spec.domain.objects.map((object) => object.id), [
         "Order",
         "Payment",
+        "PaymentSettlement",
         "OrderStatus",
         "PaymentStatus"
       ]);
@@ -869,43 +876,51 @@ export async function assertGeneratedInitSkeleton(
         "Order",
         "Payment"
       ]);
-      assert.ok(isAggregateObjectSpec(orderObject));
-      assert.equal(orderObject.role, "aggregate");
+      assert.ok(isEntityObjectSpec(orderObject));
+      assert.equal(orderObject.role, "entity");
       assert.equal(orderObject.lifecycleField, "status");
       assert.deepEqual(orderObject.lifecycle, ["draft", "submitted"]);
       assert.deepEqual(orderObject.fields.at(-1), {
         id: "status",
         type: "OrderStatus",
         required: true,
-        structure: "enum",
-        target: "OrderStatus",
+        ref: {
+          kind: "enum",
+          objectId: "OrderStatus"
+        },
         description: "Lifecycle field mirrored by the order aggregate states."
       });
-      assert.ok(isAggregateObjectSpec(paymentObject));
-      assert.equal(paymentObject.role, "aggregate");
+      assert.ok(isEntityObjectSpec(paymentObject));
+      assert.equal(paymentObject.role, "entity");
       assert.equal(paymentObject.lifecycleField, "paymentStatus");
       assert.deepEqual(paymentObject.lifecycle, ["pending", "confirmed"]);
       assert.deepEqual(paymentObject.fields[1], {
         id: "orderId",
         type: "uuid",
         required: true,
-        structure: "reference",
-        target: "Order",
+        ref: {
+          kind: "reference",
+          objectId: "Order"
+        },
         description: "Connects the payment back to the order it settles."
       });
-      assert.deepEqual(paymentObject.relations, [
-        {
-          id: "settlesOrder",
-          kind: "reference",
-          target: "Order",
-          field: "orderId",
-          description: "Payment settles the order it references."
-        }
-      ]);
-      assert.ok(!isAggregateObjectSpec(orderStatus));
+      assert.deepEqual(paymentObject.fields[2], {
+        id: "settlement",
+        type: "PaymentSettlement",
+        required: true,
+        ref: {
+          kind: "composition",
+          objectId: "PaymentSettlement"
+        },
+        description: "Captures the settlement detail owned by the payment aggregate."
+      });
+      assert.ok(hasObjectFields(paymentSettlement));
+      assert.equal(paymentSettlement.role, "value-object");
+      assert.deepEqual(paymentSettlement.fields.map((field) => field.id), ["method", "confirmedAt"]);
+      assert.ok(!hasObjectFields(orderStatus));
       assert.equal(orderStatus.role, "enum");
       assert.deepEqual(orderStatus.values, ["draft", "submitted"]);
-      assert.ok(!isAggregateObjectSpec(paymentStatus));
+      assert.ok(!hasObjectFields(paymentStatus));
       assert.equal(paymentStatus.role, "enum");
       assert.deepEqual(paymentStatus.values, ["pending", "confirmed"]);
       assert.equal(orderProcess.id, "orderPaymentProcess");
@@ -1140,7 +1155,7 @@ function collectExpectedDomainStructureEdgeCount(example: ExampleFixture): numbe
       formatExpectedDomainStructureEdgeKey(
         relation.kind,
         relation.objectId,
-        relation.field,
+        undefined,
         relation.target
       )
     );
@@ -1149,7 +1164,7 @@ function collectExpectedDomainStructureEdgeCount(example: ExampleFixture): numbe
   for (const fieldStructure of example.fieldStructures ?? []) {
     const kind = toExpectedDomainStructureFieldEdgeKind(fieldStructure);
 
-    if (!kind || !fieldStructure.target) {
+    if (!kind || !fieldStructure.ref) {
       continue;
     }
 
@@ -1158,7 +1173,7 @@ function collectExpectedDomainStructureEdgeCount(example: ExampleFixture): numbe
         kind,
         fieldStructure.objectId,
         fieldStructure.fieldId,
-        fieldStructure.target
+        fieldStructure.ref.objectId
       )
     );
   }
@@ -1169,27 +1184,49 @@ function collectExpectedDomainStructureEdgeCount(example: ExampleFixture): numbe
 function collectOwnedDomainStructureObjects(
   example: ExampleFixture
 ): ReadonlyMap<string, string> {
-  const ownerCandidatesByObjectId = new Map<string, string[]>();
+  const adjacency = new Map<string, string[]>();
+  const owners = new Map<string, string>();
 
   for (const fieldStructure of example.fieldStructures ?? []) {
-    if (fieldStructure.structure !== "enum" || !fieldStructure.target) {
+    if (fieldStructure.ref?.kind !== "composition") {
       continue;
     }
 
-    ownerCandidatesByObjectId.set(
-      fieldStructure.target,
-      unique([
-        ...(ownerCandidatesByObjectId.get(fieldStructure.target) ?? []),
-        fieldStructure.objectId
-      ])
-    );
+    adjacency.set(fieldStructure.objectId, [
+      ...(adjacency.get(fieldStructure.objectId) ?? []),
+      fieldStructure.ref.objectId
+    ]);
   }
 
-  return new Map(
-    [...ownerCandidatesByObjectId.entries()]
-      .filter(([, ownerCandidates]) => ownerCandidates.length === 1)
-      .map(([objectId, ownerCandidates]) => [objectId, ownerCandidates[0]])
-  );
+  for (const relation of example.relations ?? []) {
+    if (relation.kind !== "composition") {
+      continue;
+    }
+
+    adjacency.set(relation.objectId, [
+      ...(adjacency.get(relation.objectId) ?? []),
+      relation.target
+    ]);
+  }
+
+  for (const aggregateId of example.aggregateIds) {
+    const queue = [...(adjacency.get(aggregateId) ?? [])];
+    const visited = new Set<string>();
+
+    while (queue.length > 0) {
+      const objectId = queue.shift() as string;
+
+      if (visited.has(objectId)) {
+        continue;
+      }
+
+      visited.add(objectId);
+      owners.set(objectId, aggregateId);
+      queue.push(...(adjacency.get(objectId) ?? []));
+    }
+  }
+
+  return owners;
 }
 
 function formatExpectedDomainStructureEdgeKey(
@@ -1203,10 +1240,12 @@ function formatExpectedDomainStructureEdgeKey(
 
 function toExpectedDomainStructureFieldEdgeKind(
   expectation: ExampleFieldStructureExpectation
-): "association" | "reference" | undefined {
-  switch (expectation.structure) {
+): "association" | "composition" | "reference" | undefined {
+  switch (expectation.ref?.kind) {
     case "enum":
       return "association";
+    case "composition":
+      return "composition";
     case "reference":
       return "reference";
     default:
@@ -1214,27 +1253,22 @@ function toExpectedDomainStructureFieldEdgeKind(
   }
 }
 
-function toExpectedRelationFieldCardinality(
+function toExpectedFieldRefCardinality(
   example: ExampleFixture,
-  relation: ExampleRelationExpectation
-): "1" | "0..1" | undefined {
-  if (!relation.field) {
-    return undefined;
+  expectation: ExampleFieldStructureExpectation
+): "1" | "0..1" | "0..n" | "1..n" | undefined {
+  if (expectation.ref?.cardinality) {
+    return expectation.ref.cardinality;
   }
 
-  const matchingField = mustFind(
-    example.fieldStructures ?? [],
+  const matchingRequirement = example.fieldRequirements.find(
     (candidate) =>
-      candidate.objectId === relation.objectId &&
-      candidate.fieldId === relation.field &&
-      candidate.target === relation.target
+      candidate.objectId === expectation.objectId && candidate.fieldId === expectation.fieldId
   );
-  const matchingRequirement = mustFind(
-    example.fieldRequirements,
-    (candidate) =>
-      candidate.objectId === matchingField.objectId &&
-      candidate.fieldId === matchingField.fieldId
-  );
+
+  if (!matchingRequirement) {
+    return undefined;
+  }
 
   return matchingRequirement.required ? "1" : "0..1";
 }

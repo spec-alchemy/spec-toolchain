@@ -23,14 +23,6 @@ pnpm-debug.log*
 .DS_Store
 Thumbs.db
 .idea/
-/.vscode/*
-!/.vscode/settings.json
-!/.vscode/extensions.json
-!/.vscode/ddd-spec/
-/.vscode/ddd-spec/*
-!/.vscode/ddd-spec/schema/
-/.vscode/ddd-spec/schema/*
-!/.vscode/ddd-spec/schema/*.json
 *.swp
 *.swo
 *~

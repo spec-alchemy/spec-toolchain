@@ -1,7 +1,7 @@
 kind: object
 id: Card
 title: Card
-role: aggregate
+role: entity
 lifecycleField: status
 lifecycle:
   - suggested
@@ -15,26 +15,21 @@ fields:
   - id: connectionId
     type: uuid
     required: true
-    structure: reference
-    target: Connection
+    ref:
+      kind: reference
+      objectId: Connection
     description: 来源连接 ID。
-  - id: front
-    type: text
+  - id: content
+    type: CardContent
     required: true
-    description: 卡片正面内容。
-  - id: back
-    type: text
-    required: true
-    description: 卡片背面内容。
+    ref:
+      kind: composition
+      objectId: CardContent
+    description: 卡片正文内容，由聚合内部的值对象承载。
   - id: status
     type: CardStatus
     required: true
-    structure: enum
-    target: CardStatus
+    ref:
+      kind: enum
+      objectId: CardStatus
     description: 卡片生命周期字段。
-relations:
-  - id: sourceConnection
-    kind: reference
-    target: Connection
-    field: connectionId
-    description: 卡片由某条连接生成。
