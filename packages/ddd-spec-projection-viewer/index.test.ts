@@ -59,10 +59,15 @@ test("domain structure groups aggregate-owned nodes and humanizes structure labe
   );
 
   assert.equal(connectionNode.parentId, "domain-structure:aggregate:Connection");
+  assert.equal(getDetailValue(connectionNode.details, "object.role"), "aggregate");
   assert.equal(connectionStatusNode.parentId, "domain-structure:aggregate:Connection");
+  assert.equal(getDetailValue(connectionStatusNode.details, "object.role"), "enum");
   assert.equal(sourceConnectionEdge.label, "source connection");
+  assert.equal(getDetailValue(sourceConnectionEdge.details, "relation.kind"), "reference");
   assert.equal(sourceConnectionEdge.cardinality, "1");
+  assert.equal(getDetailValue(sourceConnectionEdge.details, "relation.cardinality"), "1");
   assert.equal(cardStatusEdge.label, "status");
+  assert.equal(getDetailValue(cardStatusEdge.details, "relation.kind"), "association");
 });
 
 function mustFind<Value>(

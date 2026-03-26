@@ -187,6 +187,22 @@ export function assertExampleViewer(viewer: BusinessViewerSpec, example: Example
   );
   assert.deepEqual(
     sortStrings(
+      domainStructureView.nodes
+        .filter((node) => node.kind === "entity")
+        .map((node) => getDetailValue(node.details, "object.role"))
+    ),
+    sortStrings(example.aggregateIds.map(() => "aggregate"))
+  );
+  assert.deepEqual(
+    sortStrings(
+      domainStructureView.nodes
+        .filter((node) => node.kind === "enum")
+        .map((node) => getDetailValue(node.details, "object.role"))
+    ),
+    sortStrings(expectedEnumIds.map(() => "enum"))
+  );
+  assert.deepEqual(
+    sortStrings(
       traceView.nodes
         .filter((node) => node.kind === "stage" || node.kind === "final-stage")
         .map((node) => getDetailValue(node.details, "stage.id"))
@@ -240,6 +256,15 @@ export function assertExampleViewer(viewer: BusinessViewerSpec, example: Example
     domainStructureView.edges.length,
     collectExpectedDomainStructureEdgeCount(example)
   );
+  for (const edge of domainStructureView.edges) {
+    assert.equal(getDetailValue(edge.details, "relation.kind"), edge.kind);
+
+    if (edge.cardinality) {
+      assert.equal(getDetailValue(edge.details, "relation.cardinality"), edge.cardinality);
+    } else {
+      assert.equal(getOptionalDetailValue(edge.details, "relation.cardinality"), undefined);
+    }
+  }
 
   for (const aggregateId of example.aggregateIds) {
     const entityNode = mustFind(

@@ -27,7 +27,7 @@
       "relation.label": "当前关系节点或边代表的业务关系语义。",
       "relation.kind": "关系的类别，例如 binding、transition、advance、association、composition、reference。",
       "object.id": "领域结构视图中对象节点的标识，用于区分实体、值对象、枚举等结构元素。",
-      "object.role": "领域结构视图里对象节点的类别，例如 entity、value-object、enum。",
+      "object.role": "领域结构视图里对象节点的 canonical role，例如 aggregate 或 enum。",
       "object.fields": "对象包含的字段清单，以及字段类型、约束和结构目标。",
       "object.relations": "对象声明的结构关系清单。",
       "object.referenced_by": "哪些字段或关系会指向当前对象。",
@@ -1933,7 +1933,7 @@
             {
               "semanticKey": "object.role",
               "label": "Role",
-              "value": "entity"
+              "value": "aggregate"
             },
             {
               "semanticKey": "object.fields",
@@ -1980,7 +1980,7 @@
             {
               "semanticKey": "object.role",
               "label": "Role",
-              "value": "entity"
+              "value": "aggregate"
             },
             {
               "semanticKey": "object.fields",

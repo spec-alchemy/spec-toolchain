@@ -770,7 +770,7 @@ function buildDomainStructureView(context: ViewerContext): ViewerViewSpec {
         ...entityBox,
         details: [
           detail(context, "object.id", object.id),
-          detail(context, "object.role", "entity"),
+          detail(context, "object.role", object.role),
           detail(context, "object.fields", formatDomainFields(object.fields, object)),
           detail(context, "object.relations", formatDomainRelations(object.relations ?? [])),
           detail(
@@ -810,7 +810,7 @@ function buildDomainStructureView(context: ViewerContext): ViewerViewSpec {
         ...enumBox,
         details: [
           detail(context, "object.id", object.id),
-          detail(context, "object.role", "enum"),
+          detail(context, "object.role", object.role),
           detail(context, "enum.values", formatList(object.values)),
           detail(
             context,

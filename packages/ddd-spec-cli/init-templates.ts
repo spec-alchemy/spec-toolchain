@@ -84,7 +84,7 @@ object.id:
   description: The identifier of the structural object node shown in the domain structure view.
 object.role:
   label: Role
-  description: The structural category shown for the object node, such as entity, value-object, or enum.
+  description: The canonical object role shown for the object node, such as aggregate or enum.
 object.fields:
   label: Fields
   description: The object fields, including their types, requirements, and structural targets.

@@ -95,7 +95,7 @@
       },
       "object.role": {
         "label": "Role",
-        "description": "领域结构视图里对象节点的类别，例如 entity、value-object、enum。"
+        "description": "领域结构视图里对象节点的 canonical role，例如 aggregate 或 enum。"
       },
       "object.fields": {
         "label": "Fields",
