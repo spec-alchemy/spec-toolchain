@@ -10,6 +10,7 @@ after each iteration and it's included in prompts for context.
 - Viewer semantic vocabulary is duplicated intentionally across fixture/example `canonical/vocabulary/viewer-detail-semantics.yaml` files and `packages/ddd-spec-cli/init-templates.ts`; new semantic keys should be added to both sources in the same change.
 - During the staged vNext reset, keep schema-preview inputs under `canonical-vnext/` and isolated schema assets under `packages/ddd-spec-core/schema/vnext/` so current `canonical/`-bound repo gates can keep passing until the vNext loader lands.
 - When introducing a new canonical version, keep legacy loaders version-locked and add a separate version-dispatch loader for mixed repos; do not back-adapt vNext inputs into legacy `domain.*` shapes just to satisfy old call sites.
+- When vNext validation needs to feed later IR or CLI layers, collect structured diagnostics (`code`, `path`, `message`) first and layer the throwing validator on top, rather than forcing downstream code to parse error strings.
 
 ---
 
@@ -102,4 +103,19 @@ after each iteration and it's included in prompts for context.
     - A version-dispatch loader (`loadCanonicalSpec`) is the clean seam for staged model resets: old repo flows stay on their strict loader, while vNext can expose new concepts as first-class arrays with no compatibility projection.
   - Gotchas encountered
     - `Array.isArray()` did not narrow `string | readonly string[]` cleanly enough for the repo TypeScript build in `resolveVnextCollectionPaths`; using a `typeof reference === "string"` branch fixed the static error without changing runtime behavior.
+---
+
+## 2026-03-27 - knowledge-alchemy-app-v2-29t
+- Implemented structured vNext semantic diagnostics in `packages/ddd-spec-core/vnext-semantic-validation.ts`, covering context ownership, scenario owner/step topology, scenario-to-message linkage, aggregate lifecycle trigger and emit consistency, message ownership ambiguity, and policy trigger/outcome/target checks.
+- Kept `validateBusinessSpecSemantics()` compatible by formatting collected diagnostics into a thrown error, while exposing reusable vNext diagnostic output for later analysis-layer consumers.
+- Added happy-path and failure-path coverage in `packages/ddd-spec-core/vnext-loader.test.ts` for clean diagnostics, missing ownership, broken scenario linkage/topology, invalid aggregate trigger references, and policies without explicit outcome.
+- Files changed:
+  - `packages/ddd-spec-core/vnext-semantic-validation.ts`
+  - `packages/ddd-spec-core/vnext-loader.test.ts`
+  - `.ralph-tui/progress.md`
+- **Learnings:**
+  - Patterns discovered
+    - vNext semantic rules are easier to grow when each rule emits a stable `code/path/message` diagnostic and only the outer validation API decides how to surface failure text.
+  - Gotchas encountered
+    - Breaking a scenario `next` reference can legitimately surface as “multiple entry steps” instead of “unreachable final step”, because the orphaned downstream step becomes a new root once the incoming edge disappears.
 ---
