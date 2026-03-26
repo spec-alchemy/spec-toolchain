@@ -2,6 +2,7 @@ import type {
   AggregateObjectSpec,
   AggregateSpec,
   BusinessSpec,
+  LoadedBusinessSpec,
   EntityObjectSpec,
   FieldRefKind,
   FieldRefSpec,
@@ -17,11 +18,13 @@ import {
   hasObjectFields,
   isEntityObjectSpec,
   isEnumObjectSpec,
+  isVnextBusinessSpec,
   isValueObjectSpec,
   OBJECT_ROLES,
   RELATION_CARDINALITIES,
   RELATION_KINDS
 } from "./spec.js";
+import { validateVnextBusinessSpecSemantics } from "./vnext-semantic-validation.js";
 
 interface CompositionEdge {
   sourceObjectId: string;
@@ -29,7 +32,16 @@ interface CompositionEdge {
   sourceLabel: string;
 }
 
-export function validateBusinessSpecSemantics(spec: BusinessSpec): void {
+export function validateBusinessSpecSemantics(spec: LoadedBusinessSpec): void {
+  if (isVnextBusinessSpec(spec)) {
+    validateVnextBusinessSpecSemantics(spec);
+    return;
+  }
+
+  validateLegacyBusinessSpecSemantics(spec);
+}
+
+function validateLegacyBusinessSpecSemantics(spec: BusinessSpec): void {
   const objectMap = asMap(spec.domain.objects, "id", "object");
   const commandMap = asMap(spec.domain.commands, "type", "command");
   const eventMap = asMap(spec.domain.events, "type", "event");
