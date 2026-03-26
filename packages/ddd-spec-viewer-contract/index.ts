@@ -10,6 +10,7 @@ export type ViewerViewKind =
 export type ViewerNodeKind =
   | "process-group"
   | "aggregate-group"
+  | "type-group"
   | "stage"
   | "final-stage"
   | "aggregate-state"

@@ -12,9 +12,14 @@ export function Legend() {
       borderColor: VIEWER_NODE_COLOR_BY_KIND["process-group"]
     },
     {
-      label: "Aggregate Group",
+      label: "Aggregate",
       className: "kind-aggregate-group",
       borderColor: VIEWER_NODE_COLOR_BY_KIND["aggregate-group"]
+    },
+    {
+      label: "Shared Types",
+      className: "kind-type-group",
+      borderColor: VIEWER_NODE_COLOR_BY_KIND["type-group"]
     },
     { label: "Relation", className: "kind-relation", borderColor: VIEWER_RELATION_COLOR },
     { label: "Stage", className: "kind-stage", borderColor: VIEWER_NODE_COLOR_BY_KIND.stage },

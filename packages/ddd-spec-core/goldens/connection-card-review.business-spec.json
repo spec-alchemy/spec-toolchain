@@ -57,6 +57,22 @@
         "label": "Lifecycle",
         "description": "该聚合定义的全部生命周期状态集合。"
       },
+      "aggregate.root_object": {
+        "label": "Root object",
+        "description": "这个聚合的根对象，也就是定义边界和生命周期的核心对象。"
+      },
+      "aggregate.owned_objects": {
+        "label": "Owned objects",
+        "description": "通过 composition 归属于该聚合边界内部的值对象或嵌套结构对象。"
+      },
+      "aggregate.shared_types": {
+        "label": "Shared types",
+        "description": "该聚合会引用、但并不拥有的共享枚举或共享类型对象。"
+      },
+      "aggregate.external_dependencies": {
+        "label": "External dependencies",
+        "description": "该聚合显式引用的、位于边界之外的外部对象。"
+      },
       "aggregate.referenced_by_stages": {
         "label": "Referenced by stages",
         "description": "哪些流程阶段会绑定或引用当前聚合或状态。"
@@ -112,6 +128,14 @@
       "enum.values": {
         "label": "Values",
         "description": "枚举对象允许的取值集合。"
+      },
+      "domain.shared_types": {
+        "label": "Shared types",
+        "description": "shared-types 泳道中收纳的共享枚举或跨聚合共享类型对象。"
+      },
+      "domain.shared_type_consumers": {
+        "label": "Used by",
+        "description": "当前有哪些对象或字段在消费 shared-types 泳道中的共享类型。"
       },
       "relation.cardinality": {
         "label": "Cardinality",

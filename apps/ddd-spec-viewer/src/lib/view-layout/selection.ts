@@ -2,6 +2,7 @@ import type {
   FlowNodeData,
   ViewerDetailItem
 } from "../../types";
+import { getNodeKindLabel } from "../view-labels";
 
 const REDUNDANT_RELATION_DETAIL_KEYS = new Set(["relation.label", "relation.kind"]);
 
@@ -14,7 +15,7 @@ export function selectionFromNodeData(data: FlowNodeData): {
   const type =
     data.kind === "relation"
       ? `${data.relationKind ?? "relation"} relation`
-      : data.kind;
+      : getNodeKindLabel(data.kind);
 
   return {
     type,

@@ -29,14 +29,30 @@ export function buildElkGraph(projectedGraph: ProjectedViewGraph): ElkNode {
       "elk.hierarchyHandling": "INCLUDE_CHILDREN",
       "elk.spacing.nodeNode": "48",
       "elk.layered.spacing.nodeNodeBetweenLayers": "80",
-      "elk.spacing.edgeNode": "28"
+      "elk.spacing.edgeNode": "28",
+      "org.eclipse.elk.edgeLabels.placement": "CENTER",
+      "org.eclipse.elk.edgeLabels.inline": "false",
+      "org.eclipse.elk.spacing.edgeLabel": "14",
+      "org.eclipse.elk.layered.edgeLabels.sideSelection": "ALWAYS_UP",
+      "org.eclipse.elk.layered.edgeLabels.centerLabelPlacementStrategy": "MEDIAN_LAYER"
     },
     children: buildElkChildren("__root__", childIdsByParentId, nodeById),
     edges: projectedGraph.edges.map(
       (edge): ElkExtendedEdge => ({
         id: edge.id,
         sources: [edge.source],
-        targets: [edge.target]
+        targets: [edge.target],
+        labels:
+          edge.renderLabel && edge.labelWidth && edge.labelHeight
+            ? [
+                {
+                  id: `${edge.id}:label`,
+                  text: edge.label,
+                  width: edge.labelWidth,
+                  height: edge.labelHeight
+                }
+              ]
+            : undefined
       })
     )
   };

@@ -11,6 +11,7 @@ declare module "elkjs/lib/elk-api.js" {
 
   export interface ElkGraphElement {
     id?: string;
+    labels?: ElkLabel[];
     layoutOptions?: LayoutOptions;
   }
 
@@ -30,6 +31,10 @@ declare module "elkjs/lib/elk-api.js" {
     id: string;
     children?: ElkNode[];
     edges?: ElkExtendedEdge[];
+  }
+
+  export interface ElkLabel extends ElkShape {
+    text?: string;
   }
 
   export interface ElkEdge extends ElkGraphElement {

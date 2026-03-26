@@ -10,6 +10,7 @@ export const VIEWER_FALLBACK_NODE_COLOR = "#8d5c2f";
 export const VIEWER_NODE_COLOR_BY_KIND = {
   "process-group": "#d7bb74",
   "aggregate-group": "#8aac91",
+  "type-group": "#b89449",
   stage: "#7d9fc4",
   "final-stage": "#cf8d76",
   "aggregate-state": "#6f9f79",

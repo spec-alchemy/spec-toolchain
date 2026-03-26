@@ -43,6 +43,10 @@ test("domain structure groups aggregate-owned nodes and humanizes structure labe
     domainStructureView.nodes,
     (node) => node.kind === "enum" && getDetailValue(node.details, "object.id") === "ConnectionStatus"
   );
+  const sharedTypesGroup = mustFind(
+    domainStructureView.nodes,
+    (node) => node.kind === "type-group" && node.label === "Shared Types"
+  );
   const cardContentNode = mustFind(
     domainStructureView.nodes,
     (node) =>
@@ -82,10 +86,15 @@ test("domain structure groups aggregate-owned nodes and humanizes structure labe
   );
 
   assert.equal(connectionNode.parentId, "domain-structure:aggregate:Connection");
+  assert.equal(connectionNode.label, "Connection");
   assert.equal(getDetailValue(connectionNode.details, "object.role"), "entity");
   assert.equal(connectionNode.summary, "5 field(s), 1 relation(s)");
-  assert.equal(connectionStatusNode.parentId, undefined);
+  assert.equal(sharedTypesGroup.summary, "2 enum(s), 2 consumer(s)");
+  assert.equal(connectionStatusNode.parentId, "domain-structure:group:shared-types");
+  assert.equal(connectionStatusNode.subtitle, "lifecycle type for Connection");
+  assert.equal(connectionStatusNode.summary, "3 value(s), 1 consumer(s)");
   assert.equal(getDetailValue(connectionStatusNode.details, "object.role"), "enum");
+  assert.equal(getDetailValue(sharedTypesGroup.details, "domain.shared_types"), "ConnectionStatus, CardStatus");
   assert.equal(cardNode.summary, "4 field(s), 3 relation(s)");
   assert.equal(cardContentNode.parentId, "domain-structure:aggregate:Card");
   assert.equal(getDetailValue(cardContentNode.details, "object.role"), "value-object");
@@ -93,6 +102,13 @@ test("domain structure groups aggregate-owned nodes and humanizes structure labe
   assert.equal(cardWordingNode.parentId, "domain-structure:aggregate:Card");
   assert.equal(getDetailValue(cardWordingNode.details, "object.role"), "value-object");
   assert.equal(cardWordingNode.summary, "2 field(s), 0 relation(s)");
+  assert.equal(
+    mustFind(
+      domainStructureView.nodes,
+      (node) => node.kind === "aggregate-group" && getDetailValue(node.details, "aggregate.id") === "Card"
+    ).summary,
+    "root + 2 owned object(s), 1 shared type(s), 1 external reference(s)"
+  );
   assert.equal(sourceConnectionEdge.label, "connection id");
   assert.equal(getDetailValue(sourceConnectionEdge.details, "relation.kind"), "reference");
   assert.equal(sourceConnectionEdge.cardinality, "1");

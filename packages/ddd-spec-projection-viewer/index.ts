@@ -77,6 +77,17 @@ interface DomainStructureEdgeModel {
   description?: string;
 }
 
+interface DomainStructureAggregatePresentation {
+  rootObjectId: string;
+  ownedObjectIds: readonly string[];
+  sharedTypeIds: readonly string[];
+  externalDependencyIds: readonly string[];
+  externalDependencyRefs: readonly string[];
+  summary: string;
+}
+
+const DOMAIN_SHARED_TYPES_GROUP_ID = "domain-structure:group:shared-types";
+
 export function buildBusinessViewerSpec(
   spec: BusinessSpec,
   graph: BusinessGraph
@@ -713,31 +724,37 @@ function buildDomainStructureView(context: ViewerContext): ViewerViewSpec {
   for (const [aggregateId, objectIds] of ownedObjectIdsByAggregateId.entries()) {
     const objectSpec = mustGetAggregateObjectSpec(context.objectById, aggregateId);
     const groupedObjectIds = objectIds.filter((objectId) => objectId !== aggregateId);
-    const summary = `${objectIds.length} object(s)`;
+    const presentation = createDomainStructureAggregatePresentation(
+      context,
+      aggregateId,
+      objectIds
+    );
     const groupBox = measureGroupNodeBox(
       DIMENSIONS.aggregateGroup,
-      objectSpec.title,
-      `aggregate ${aggregateId}`,
-      summary
+      `${objectSpec.title} Aggregate`,
+      `root ${aggregateId}`,
+      presentation.summary
     );
 
     nodes.push({
       id: toDomainStructureAggregateGroupId(aggregateId),
       kind: "aggregate-group",
-      label: objectSpec.title,
-      subtitle: `aggregate ${aggregateId}`,
-      summary,
+      label: `${objectSpec.title} Aggregate`,
+      subtitle: `root ${aggregateId}`,
+      summary: presentation.summary,
       ...groupBox,
       details: [
         detail(context, "aggregate.id", aggregateId),
-        detail(context, "aggregate.lifecycle_field", objectSpec.lifecycleField),
-        detail(context, "aggregate.lifecycle", formatList(objectSpec.lifecycle)),
-        detail(context, "object.fields", formatDomainFields(objectSpec.fields, objectSpec)),
+        detail(context, "aggregate.root_object", presentation.rootObjectId),
+        detail(context, "aggregate.owned_objects", formatList(presentation.ownedObjectIds)),
+        detail(context, "aggregate.shared_types", formatList(presentation.sharedTypeIds)),
         detail(
           context,
-          "object.relations",
-          formatDomainRelations(objectSpec.relations ?? [])
+          "aggregate.external_dependencies",
+          formatList(presentation.externalDependencyRefs)
         ),
+        detail(context, "aggregate.lifecycle_field", objectSpec.lifecycleField),
+        detail(context, "aggregate.lifecycle", formatList(objectSpec.lifecycle)),
         detail(
           context,
           "object.referenced_by",
@@ -749,6 +766,41 @@ function buildDomainStructureView(context: ViewerContext): ViewerViewSpec {
     for (const objectId of groupedObjectIds) {
       aggregateOwnerByObjectId.set(objectId, aggregateId);
     }
+  }
+
+  const sharedTypeIds = context.spec.domain.objects
+    .filter(isEnumObjectSpec)
+    .map((object) => object.id)
+    .filter((objectId) => !aggregateOwnerByObjectId.has(objectId));
+
+  if (sharedTypeIds.length > 0) {
+    const sharedTypesSummary = `${sharedTypeIds.length} enum(s), ${countSharedTypeConsumers(
+      context,
+      sharedTypeIds
+    )} consumer(s)`;
+    const sharedTypesBox = measureGroupNodeBox(
+      DIMENSIONS.aggregateGroup,
+      "Shared Types",
+      "shared domain enums",
+      sharedTypesSummary
+    );
+
+    nodes.push({
+      id: DOMAIN_SHARED_TYPES_GROUP_ID,
+      kind: "type-group",
+      label: "Shared Types",
+      subtitle: "shared domain enums",
+      summary: sharedTypesSummary,
+      ...sharedTypesBox,
+      details: [
+        detail(context, "domain.shared_types", formatList(sharedTypeIds)),
+        detail(
+          context,
+          "domain.shared_type_consumers",
+          formatList(formatSharedTypeConsumers(context, sharedTypeIds))
+        )
+      ]
+    });
   }
 
   for (const object of context.spec.domain.objects) {
@@ -839,22 +891,26 @@ function buildDomainStructureView(context: ViewerContext): ViewerViewSpec {
       const enumBox = measureLeafNodeBox(
         DIMENSIONS.domainEnum,
         object.title,
-        object.id,
-        `${object.values.length} value(s)`
+        getEnumSubtitle(context, object),
+        getEnumSummary(context, object)
       );
 
       nodes.push({
         id: toDomainStructureObjectId(object.id),
         kind: "enum",
         label: object.title,
-        subtitle: object.id,
-        summary: `${object.values.length} value(s)`,
+        subtitle: getEnumSubtitle(context, object),
+        summary: getEnumSummary(context, object),
         ...(aggregateOwnerByObjectId.has(object.id)
           ? {
               parentId: toDomainStructureAggregateGroupId(
                 mustGet(aggregateOwnerByObjectId, object.id, "aggregate owner")
               )
             }
+          : sharedTypeIds.length > 0
+            ? {
+                parentId: DOMAIN_SHARED_TYPES_GROUP_ID
+              }
           : {}),
         ...enumBox,
         details: [
@@ -879,7 +935,7 @@ function buildDomainStructureView(context: ViewerContext): ViewerViewSpec {
     kind: "domain-structure",
     title: "Domain Structure",
     description:
-      "Shows domain objects grouped by aggregate boundaries where possible, with normalized association, composition, and reference edges.",
+      "Shows aggregate roots with owned objects, plus a dedicated shared-types lane for enums and other cross-aggregate structure references.",
     nodes,
     edges: context.domainStructureEdges.map((edge) =>
       toViewerDomainStructureEdge(context, edge)
@@ -1226,6 +1282,168 @@ function toDomainStructureFieldEdgeKey(
   targetObjectId: string
 ): string {
   return `${kind}:${fieldId}:${targetObjectId}`;
+}
+
+function createDomainStructureAggregatePresentation(
+  context: ViewerContext,
+  aggregateId: string,
+  objectIds: readonly string[]
+): DomainStructureAggregatePresentation {
+  const ownedObjectIds = objectIds.filter((objectId) => objectId !== aggregateId);
+  const memberObjectIds = new Set(objectIds);
+  const sharedTypeIds = unique(
+    context.domainStructureEdges
+      .filter(
+        (edge) =>
+          memberObjectIds.has(edge.sourceObjectId) &&
+          !memberObjectIds.has(edge.targetObjectId) &&
+          isEnumObjectSpec(mustGet(context.objectById, edge.targetObjectId, "object"))
+      )
+      .map((edge) => edge.targetObjectId)
+  );
+  const externalDependencyIds = unique(
+    context.domainStructureEdges
+      .filter(
+        (edge) =>
+          memberObjectIds.has(edge.sourceObjectId) &&
+          !memberObjectIds.has(edge.targetObjectId) &&
+          !sharedTypeIds.includes(edge.targetObjectId)
+      )
+      .map((edge) => edge.targetObjectId)
+  );
+  const externalDependencyRefs = unique(
+    context.domainStructureEdges
+      .filter(
+        (edge) =>
+          memberObjectIds.has(edge.sourceObjectId) &&
+          !memberObjectIds.has(edge.targetObjectId) &&
+          !sharedTypeIds.includes(edge.targetObjectId)
+      )
+      .map((edge) => formatAggregateDependencyRef(edge))
+  );
+
+  return {
+    rootObjectId: aggregateId,
+    ownedObjectIds,
+    sharedTypeIds,
+    externalDependencyIds,
+    externalDependencyRefs,
+    summary: formatAggregateSummary({
+      ownedObjectCount: ownedObjectIds.length,
+      sharedTypeCount: sharedTypeIds.length,
+      externalDependencyCount: externalDependencyIds.length
+    })
+  };
+}
+
+function formatAggregateSummary(input: {
+  ownedObjectCount: number;
+  sharedTypeCount: number;
+  externalDependencyCount: number;
+}): string {
+  const fragments = [
+    input.ownedObjectCount > 0
+      ? `root + ${input.ownedObjectCount} owned object(s)`
+      : "root only"
+  ];
+
+  if (input.sharedTypeCount > 0) {
+    fragments.push(`${input.sharedTypeCount} shared type(s)`);
+  }
+
+  if (input.externalDependencyCount > 0) {
+    fragments.push(`${input.externalDependencyCount} external reference(s)`);
+  }
+
+  return fragments.join(", ");
+}
+
+function formatAggregateDependencyRef(edge: DomainStructureEdgeModel): string {
+  const fieldSuffix = edge.fieldId ? ` via ${edge.fieldId}` : "";
+
+  return `${edge.targetObjectId} [${edge.kind}${fieldSuffix}]`;
+}
+
+function getEnumSubtitle(
+  context: ViewerContext,
+  object: Extract<ObjectSpec, { role: "enum" }>
+): string {
+  const lifecycleAggregateId = findLifecycleAggregateIdForEnum(context, object.id);
+
+  if (lifecycleAggregateId) {
+    return `lifecycle type for ${lifecycleAggregateId}`;
+  }
+
+  return object.id;
+}
+
+function getEnumSummary(
+  context: ViewerContext,
+  object: Extract<ObjectSpec, { role: "enum" }>
+): string {
+  const consumerCount = countSharedTypeConsumers(context, [object.id]);
+
+  return consumerCount > 0
+    ? `${object.values.length} value(s), ${consumerCount} consumer(s)`
+    : `${object.values.length} value(s)`;
+}
+
+function countSharedTypeConsumers(
+  context: ViewerContext,
+  sharedTypeIds: readonly string[]
+): number {
+  return unique(
+    context.domainStructureEdges
+      .filter((edge) => sharedTypeIds.includes(edge.targetObjectId))
+      .map((edge) => edge.sourceObjectId)
+  ).length;
+}
+
+function formatSharedTypeConsumers(
+  context: ViewerContext,
+  sharedTypeIds: readonly string[]
+): readonly string[] {
+  return sharedTypeIds.flatMap((objectId) =>
+    (context.incomingStructureRefsByObjectId.get(objectId) ?? []).map(
+      (value) => `${objectId}: ${value}`
+    )
+  );
+}
+
+function findLifecycleAggregateIdForEnum(
+  context: ViewerContext,
+  enumObjectId: string
+): string | undefined {
+  const matchingAggregateIds = context.spec.domain.aggregates
+    .map((aggregate) => aggregate.objectId)
+    .filter((aggregateId) => isLifecycleEnumForAggregate(context, aggregateId, enumObjectId));
+
+  return matchingAggregateIds.length === 1 ? matchingAggregateIds[0] : undefined;
+}
+
+function isLifecycleEnumForAggregate(
+  context: ViewerContext,
+  aggregateId: string,
+  enumObjectId: string
+): boolean {
+  const object = mustGetAggregateObjectSpec(context.objectById, aggregateId);
+  const lifecycleField = object.fields.find((field) => field.id === object.lifecycleField);
+
+  if (!lifecycleField?.ref || lifecycleField.ref.kind !== "enum") {
+    return false;
+  }
+
+  if (lifecycleField.ref.objectId !== enumObjectId) {
+    return false;
+  }
+
+  const enumObject = mustGet(context.objectById, enumObjectId, "object");
+
+  return (
+    isEnumObjectSpec(enumObject) &&
+    enumObject.values.length === object.lifecycle.length &&
+    enumObject.values.every((value, index) => value === object.lifecycle[index])
+  );
 }
 
 function toAggregateStateKey(objectId: string, stateId: string): string {

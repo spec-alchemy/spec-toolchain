@@ -4,6 +4,7 @@ import {
 import type { ElkEdgeSection, ElkExtendedEdge, ElkNode } from "elkjs/lib/elk-api.js";
 import type {
   FlowEdge,
+  FlowEdgeData,
   FlowNode,
   FlowPathPoint,
   ViewerEdgeKind
@@ -34,7 +35,6 @@ export function mapLayoutedGraphToFlow(
         id: edge.id,
         source: edge.source,
         target: edge.target,
-        label: edge.label,
         type: "viewerEdge",
         animated: edge.kind === "binding",
         selectable: true,
@@ -52,7 +52,11 @@ export function mapLayoutedGraphToFlow(
         },
         data: {
           kind: edge.kind,
+          label: edge.label,
           pathPoints: collectEdgePathPoints(layoutedEdge, containerOffsetById),
+          labelLayout: collectEdgeLabelLayout(layoutedEdge, containerOffsetById),
+          summary: edge.summary,
+          showInlineLabel: edge.renderLabel,
           details: edge.details
         }
       } satisfies FlowEdge;
@@ -176,6 +180,29 @@ function collectEdgePathPoints(
   }
 
   return points;
+}
+
+function collectEdgeLabelLayout(
+  edge: ElkExtendedEdge,
+  containerOffsetById: ReadonlyMap<string, FlowPathPoint>
+): FlowEdgeData["labelLayout"] {
+  const label = edge.labels?.[0];
+
+  if (!label || label.x === undefined || label.y === undefined) {
+    return undefined;
+  }
+
+  const containerOffset =
+    edge.container && edge.container !== "root"
+      ? mustGet(containerOffsetById, edge.container, "edge container")
+      : { x: 0, y: 0 };
+
+  return {
+    x: label.x + containerOffset.x,
+    y: label.y + containerOffset.y,
+    width: label.width ?? 0,
+    height: label.height ?? 0
+  };
 }
 
 function translatePathPoint(

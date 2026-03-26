@@ -119,6 +119,42 @@
   background: var(--event-surface);
 }
 
+.viewer-edge-label {
+  position: absolute;
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  padding: 4px 7px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  box-shadow: var(--card-shadow-soft);
+  box-sizing: border-box;
+  pointer-events: all;
+  text-align: center;
+  background: rgba(255, 253, 248, 0.985);
+  cursor: pointer;
+  z-index: 6;
+}
+
+.react-flow__edgelabel-renderer {
+  z-index: 20;
+}
+
+.viewer-edge-label__text {
+  color: var(--text);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.viewer-edge-label__summary {
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+
 .node-card__body {
   display: flex;
   flex-direction: column;
@@ -164,6 +200,11 @@
 .kind-aggregate-group {
   border-color: var(--aggregate-border);
   background: var(--aggregate-surface);
+}
+
+.kind-type-group {
+  border-color: var(--command-border);
+  background: var(--command-surface);
 }
 
 .kind-relation {

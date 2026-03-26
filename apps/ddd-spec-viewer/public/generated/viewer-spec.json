@@ -18,6 +18,10 @@
       "stage.outcome": "当流程走到终局阶段时，对业务结果的简短说明。",
       "aggregate.lifecycle_field": "对象上承载生命周期状态的字段名。",
       "aggregate.lifecycle": "该聚合定义的全部生命周期状态集合。",
+      "aggregate.root_object": "这个聚合的根对象，也就是定义边界和生命周期的核心对象。",
+      "aggregate.owned_objects": "通过 composition 归属于该聚合边界内部的值对象或嵌套结构对象。",
+      "aggregate.shared_types": "该聚合会引用、但并不拥有的共享枚举或共享类型对象。",
+      "aggregate.external_dependencies": "该聚合显式引用的、位于边界之外的外部对象。",
       "aggregate.referenced_by_stages": "哪些流程阶段会绑定或引用当前聚合或状态。",
       "aggregate.state.emitted_events": "在当前状态完成某次转移后会发出的事件集合。",
       "aggregate.state.bound_by_stages": "哪些流程阶段明确绑定到了当前聚合状态。",
@@ -32,6 +36,8 @@
       "object.relations": "对象上显式声明、且不由具体字段承载的结构关系清单。",
       "object.referenced_by": "哪些字段或关系会指向当前对象。",
       "enum.values": "枚举对象允许的取值集合。",
+      "domain.shared_types": "shared-types 泳道中收纳的共享枚举或跨聚合共享类型对象。",
+      "domain.shared_type_consumers": "当前有哪些对象或字段在消费 shared-types 泳道中的共享类型。",
       "relation.cardinality": "关系允许的数量约束，例如 1、0..1、0..n、1..n。",
       "relation.description": "对关系业务语义的补充说明。",
       "relation.field": "若关系由某个字段承载，这里记录该字段标识。",
@@ -1829,22 +1835,42 @@
       "id": "domain-structure",
       "kind": "domain-structure",
       "title": "Domain Structure",
-      "description": "Shows domain objects grouped by aggregate boundaries where possible, with normalized association, composition, and reference edges.",
+      "description": "Shows aggregate roots with owned objects, plus a dedicated shared-types lane for enums and other cross-aggregate structure references.",
       "nodes": [
         {
           "id": "domain-structure:aggregate:Connection",
           "kind": "aggregate-group",
-          "label": "Connection",
-          "subtitle": "aggregate Connection",
-          "summary": "1 object(s)",
+          "label": "Connection Aggregate",
+          "subtitle": "root Connection",
+          "summary": "root only, 1 shared type(s)",
           "width": 280,
-          "height": 184,
-          "headerHeight": 112,
+          "height": 195,
+          "headerHeight": 123,
           "details": [
             {
               "semanticKey": "aggregate.id",
               "label": "Aggregate",
               "value": "Connection"
+            },
+            {
+              "semanticKey": "aggregate.root_object",
+              "label": "Root object",
+              "value": "Connection"
+            },
+            {
+              "semanticKey": "aggregate.owned_objects",
+              "label": "Owned objects",
+              "value": "none"
+            },
+            {
+              "semanticKey": "aggregate.shared_types",
+              "label": "Shared types",
+              "value": "ConnectionStatus"
+            },
+            {
+              "semanticKey": "aggregate.external_dependencies",
+              "label": "External dependencies",
+              "value": "none"
             },
             {
               "semanticKey": "aggregate.lifecycle_field",
@@ -1857,16 +1883,6 @@
               "value": "suggested, confirmed, archived"
             },
             {
-              "semanticKey": "object.fields",
-              "label": "Fields",
-              "value": "connectionId [uuid, required, scalar]: 连接唯一标识。\nsourceId [uuid, required, scalar]: 源节点 ID。\ntargetId [uuid, required, scalar]: 目标节点 ID。\ninsight [text, required, scalar]: 连接的核心洞察。\nstatus [ConnectionStatus, required, enum -> ConnectionStatus]: 连接生命周期字段。"
-            },
-            {
-              "semanticKey": "object.relations",
-              "label": "Explicit Relations",
-              "value": "none"
-            },
-            {
               "semanticKey": "object.referenced_by",
               "label": "Referenced by",
               "value": "Card.connectionId [reference]"
@@ -1876,17 +1892,37 @@
         {
           "id": "domain-structure:aggregate:Card",
           "kind": "aggregate-group",
-          "label": "Card",
-          "subtitle": "aggregate Card",
-          "summary": "3 object(s)",
+          "label": "Card Aggregate",
+          "subtitle": "root Card",
+          "summary": "root + 2 owned object(s), 1 shared type(s), 1 external reference(s)",
           "width": 280,
-          "height": 184,
-          "headerHeight": 112,
+          "height": 211,
+          "headerHeight": 139,
           "details": [
             {
               "semanticKey": "aggregate.id",
               "label": "Aggregate",
               "value": "Card"
+            },
+            {
+              "semanticKey": "aggregate.root_object",
+              "label": "Root object",
+              "value": "Card"
+            },
+            {
+              "semanticKey": "aggregate.owned_objects",
+              "label": "Owned objects",
+              "value": "CardContent, CardWording"
+            },
+            {
+              "semanticKey": "aggregate.shared_types",
+              "label": "Shared types",
+              "value": "CardStatus"
+            },
+            {
+              "semanticKey": "aggregate.external_dependencies",
+              "label": "External dependencies",
+              "value": "Connection [reference via connectionId]"
             },
             {
               "semanticKey": "aggregate.lifecycle_field",
@@ -1899,19 +1935,31 @@
               "value": "suggested, accepted, archived"
             },
             {
-              "semanticKey": "object.fields",
-              "label": "Fields",
-              "value": "cardId [uuid, required, scalar]: 卡片唯一标识。\nconnectionId [uuid, required, reference -> Connection]: 来源连接 ID。\ncontent [CardContent, required, composition -> CardContent]: 卡片正文内容，由聚合内部的值对象承载。\nstatus [CardStatus, required, enum -> CardStatus]: 卡片生命周期字段。"
-            },
-            {
-              "semanticKey": "object.relations",
-              "label": "Explicit Relations",
-              "value": "none"
-            },
-            {
               "semanticKey": "object.referenced_by",
               "label": "Referenced by",
               "value": "none"
+            }
+          ]
+        },
+        {
+          "id": "domain-structure:group:shared-types",
+          "kind": "type-group",
+          "label": "Shared Types",
+          "subtitle": "shared domain enums",
+          "summary": "2 enum(s), 2 consumer(s)",
+          "width": 280,
+          "height": 184,
+          "headerHeight": 112,
+          "details": [
+            {
+              "semanticKey": "domain.shared_types",
+              "label": "Shared types",
+              "value": "ConnectionStatus, CardStatus"
+            },
+            {
+              "semanticKey": "domain.shared_type_consumers",
+              "label": "Used by",
+              "value": "ConnectionStatus: Connection.status [association], CardStatus: Card.status [association]"
             }
           ]
         },
@@ -2087,10 +2135,11 @@
           "id": "domain-structure:object:ConnectionStatus",
           "kind": "enum",
           "label": "Connection Status",
-          "subtitle": "ConnectionStatus",
-          "summary": "3 value(s)",
+          "subtitle": "lifecycle type for Connection",
+          "summary": "3 value(s), 1 consumer(s)",
+          "parentId": "domain-structure:group:shared-types",
           "width": 196,
-          "height": 123,
+          "height": 155,
           "details": [
             {
               "semanticKey": "object.id",
@@ -2118,10 +2167,11 @@
           "id": "domain-structure:object:CardStatus",
           "kind": "enum",
           "label": "Card Status",
-          "subtitle": "CardStatus",
-          "summary": "3 value(s)",
+          "subtitle": "lifecycle type for Card",
+          "summary": "3 value(s), 1 consumer(s)",
+          "parentId": "domain-structure:group:shared-types",
           "width": 196,
-          "height": 123,
+          "height": 155,
           "details": [
             {
               "semanticKey": "object.id",

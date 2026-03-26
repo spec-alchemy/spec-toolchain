@@ -34,9 +34,20 @@ export interface FlowPathPoint {
   y: number;
 }
 
+export interface FlowLabelLayout {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
 export interface FlowEdgeData extends Record<string, unknown> {
   kind: ViewerEdgeKind;
+  label: string;
   pathPoints: readonly FlowPathPoint[];
+  labelLayout?: FlowLabelLayout;
+  summary?: string;
+  showInlineLabel?: boolean;
   details: readonly ViewerDetailItem[];
 }
 

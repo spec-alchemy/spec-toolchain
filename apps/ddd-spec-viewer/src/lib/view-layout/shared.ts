@@ -31,6 +31,10 @@ export interface LayoutEdgeSpec {
   source: string;
   target: string;
   label: string;
+  labelWidth?: number;
+  labelHeight?: number;
+  summary?: string;
+  renderLabel?: boolean;
   details: readonly ViewerDetailItem[];
   isTerminalSegment: boolean;
 }

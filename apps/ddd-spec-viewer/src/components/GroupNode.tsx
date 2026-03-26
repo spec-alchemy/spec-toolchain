@@ -1,4 +1,5 @@
 import type { NodeProps } from "@xyflow/react";
+import { getNodeKindLabel } from "@/lib/view-labels";
 import type { CSSProperties } from "react";
 import { GROUP_HEADER_HEIGHT } from "../lib/viewer-constants";
 import type { FlowNode } from "../types";
@@ -15,7 +16,7 @@ export function GroupNode({ data }: NodeProps<FlowNode>) {
   return (
     <div className={`group-card kind-${data.kind}`} style={groupCardStyle}>
       <div className="group-card__header">
-        <span className="kind-pill">{data.kind.replace("-", " ")}</span>
+        <span className="kind-pill">{getNodeKindLabel(data.kind)}</span>
         <h3 className="node-label">{data.label}</h3>
         {data.subtitle ? <div className="node-subtitle">{data.subtitle}</div> : null}
         {data.summary ? <div className="node-summary">{data.summary}</div> : null}

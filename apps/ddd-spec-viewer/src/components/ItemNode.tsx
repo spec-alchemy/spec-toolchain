@@ -1,4 +1,5 @@
 import { Handle, Position, type NodeProps } from "@xyflow/react";
+import { getNodeKindLabel } from "@/lib/view-labels";
 import type { FlowNode } from "../types";
 
 const hiddenHandleStyle = {
@@ -21,7 +22,7 @@ export function ItemNode({ data }: NodeProps<FlowNode>) {
       />
       <div className={`node-card kind-${data.kind}`}>
         <div className="node-card__body">
-          <span className="kind-pill">{data.kind.replace("-", " ")}</span>
+          <span className="kind-pill">{getNodeKindLabel(data.kind)}</span>
           <h3 className="node-label">{data.label}</h3>
           {data.subtitle ? <div className="node-subtitle">{data.subtitle}</div> : null}
           {data.summary ? <div className="node-summary">{data.summary}</div> : null}

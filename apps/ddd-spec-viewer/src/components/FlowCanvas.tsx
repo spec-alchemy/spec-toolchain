@@ -6,11 +6,12 @@ import {
   ReactFlowProvider,
   type ReactFlowInstance
 } from "@xyflow/react";
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { GroupNode } from "@/components/GroupNode";
 import { ItemNode } from "@/components/ItemNode";
 import { RelationNode } from "@/components/RelationNode";
 import { ViewerEdge } from "@/components/ViewerEdge";
+import { FlowCanvasContextProvider } from "@/components/flow-canvas-context";
 import {
   getMiniMapNodeColor,
   VIEWER_GRID_COLOR
@@ -59,46 +60,56 @@ export function FlowCanvas({
     });
   }, [layoutedView]);
 
+  const handleEdgeActivate = useCallback((edge: Pick<FlowEdge, "id" | "data">) => {
+    onSelectSelection(
+      selectionFromEdgeData({
+        kind: edge.data?.kind,
+        label: edge.data?.label ?? edge.id,
+        details: edge.data?.details ?? []
+      })
+    );
+  }, [onSelectSelection]);
+
   return (
     <ReactFlowProvider>
-      <ReactFlow<FlowNode, FlowEdge>
-        nodes={layoutedView.nodes}
-        edges={layoutedView.edges}
-        nodeTypes={nodeTypes}
-        edgeTypes={edgeTypes}
-        nodesDraggable={false}
-        nodesConnectable={false}
-        elementsSelectable={true}
-        fitView={true}
-        minZoom={0.2}
-        maxZoom={1.6}
-        onInit={(instance) => {
-          reactFlowRef.current = instance;
-        }}
-        onNodeClick={(_, node) => {
-          onSelectSelection(selectionFromNodeData(node.data));
-        }}
-        onEdgeClick={(_, edge) => {
-          onSelectSelection(
-            selectionFromEdgeData({
-              kind: edge.data?.kind,
-              label: typeof edge.label === "string" ? edge.label : edge.id,
-              details: edge.data?.details ?? []
-            })
-          );
-        }}
-        onPaneClick={() => {
-          onSelectSelection(null);
+      <FlowCanvasContextProvider
+        value={{
+          activateEdgeSelection: handleEdgeActivate
         }}
       >
-        <Background gap={20} size={1} color={VIEWER_GRID_COLOR} />
-        <MiniMap
-          pannable={true}
-          zoomable={true}
-          nodeColor={(node) => getMiniMapNodeColor(node.data)}
-        />
-        <Controls />
-      </ReactFlow>
+        <ReactFlow<FlowNode, FlowEdge>
+          nodes={layoutedView.nodes}
+          edges={layoutedView.edges}
+          nodeTypes={nodeTypes}
+          edgeTypes={edgeTypes}
+          nodesDraggable={false}
+          nodesConnectable={false}
+          elementsSelectable={true}
+          fitView={true}
+          minZoom={0.2}
+          maxZoom={1.6}
+          onInit={(instance) => {
+            reactFlowRef.current = instance;
+          }}
+          onNodeClick={(_, node) => {
+            onSelectSelection(selectionFromNodeData(node.data));
+          }}
+          onEdgeClick={(_, edge) => {
+            handleEdgeActivate(edge);
+          }}
+          onPaneClick={() => {
+            onSelectSelection(null);
+          }}
+        >
+          <Background gap={20} size={1} color={VIEWER_GRID_COLOR} />
+          <MiniMap
+            pannable={true}
+            zoomable={true}
+            nodeColor={(node) => getMiniMapNodeColor(node.data)}
+          />
+          <Controls />
+        </ReactFlow>
+      </FlowCanvasContextProvider>
     </ReactFlowProvider>
   );
 }

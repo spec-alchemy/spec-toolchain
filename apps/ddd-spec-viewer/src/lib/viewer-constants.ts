@@ -3,3 +3,6 @@ export const GROUP_CHILD_TOP_GAP = 24;
 export const RELATION_NODE_CHARS_PER_LINE = 18;
 export const RELATION_NODE_MAX_WIDTH = 156;
 export const RELATION_NODE_MIN_WIDTH = 74;
+export const EDGE_LABEL_CHARS_PER_LINE = 18;
+export const EDGE_LABEL_MAX_WIDTH = 140;
+export const EDGE_LABEL_MIN_WIDTH = 64;

@@ -55,6 +55,18 @@ aggregate.lifecycle_field:
 aggregate.lifecycle:
   label: Lifecycle
   description: The full set of lifecycle states defined for the aggregate's object.
+aggregate.root_object:
+  label: Root object
+  description: The aggregate root object that defines the boundary and owns the lifecycle.
+aggregate.owned_objects:
+  label: Owned objects
+  description: The value objects or nested structure objects that belong inside the aggregate boundary by composition.
+aggregate.shared_types:
+  label: Shared types
+  description: The shared enum or type objects that the aggregate references without owning them.
+aggregate.external_dependencies:
+  label: External dependencies
+  description: The objects outside the aggregate boundary that this aggregate explicitly references.
 aggregate.referenced_by_stages:
   label: Referenced by stages
   description: The workflow stages that explicitly bind to this aggregate or one of its states.
@@ -97,6 +109,12 @@ object.referenced_by:
 enum.values:
   label: Values
   description: The allowed values declared by an enum object.
+domain.shared_types:
+  label: Shared types
+  description: The shared enum or cross-aggregate type objects collected into the shared-types lane.
+domain.shared_type_consumers:
+  label: Used by
+  description: The objects and fields that currently consume the shared types in the shared-types lane.
 relation.cardinality:
   label: Cardinality
   description: The quantity constraint carried by the relationship, such as 1, 0..1, 0..n, or 1..n.
