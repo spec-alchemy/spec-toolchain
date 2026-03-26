@@ -214,9 +214,9 @@ export default function App() {
           )}
         </Card>
 
-        <Card className="min-h-0 overflow-hidden" data-slot="sidebar-panel">
-          <ScrollArea className="h-full">
-            <aside className="space-y-4 p-4" data-component="viewer-sidebar">
+        <Card className="min-h-0 min-w-0 overflow-hidden" data-slot="sidebar-panel">
+          <ScrollArea className="h-full min-w-0">
+            <aside className="min-w-0 space-y-4 p-4" data-component="viewer-sidebar">
               <InspectorPanel
                 view={currentView as ViewerViewSpec | null}
                 selection={selection}

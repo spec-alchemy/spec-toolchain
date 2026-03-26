@@ -6,7 +6,7 @@ const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElemen
     <div
       ref={ref}
       className={cn(
-        "rounded-[20px] border border-border bg-card/90 text-card-foreground shadow-viewer backdrop-blur",
+        "min-w-0 rounded-[20px] border border-border bg-card/90 text-card-foreground shadow-viewer backdrop-blur",
         className
       )}
       data-component="card"
@@ -56,7 +56,7 @@ const CardContent = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDi
   ({ className, ...props }, ref) => (
     <div
       ref={ref}
-      className={cn("p-4 pt-0", className)}
+      className={cn("min-w-0 p-4 pt-0", className)}
       data-slot="card-content"
       {...props}
     />

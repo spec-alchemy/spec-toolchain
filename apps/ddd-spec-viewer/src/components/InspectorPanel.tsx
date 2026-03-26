@@ -17,14 +17,14 @@ export function InspectorPanel({
 }: InspectorPanelProps) {
   if (!view) {
     return (
-      <section className="space-y-2" data-component="inspector-panel" data-state="no-view">
+      <section className="min-w-0 space-y-2" data-component="inspector-panel" data-state="no-view">
         <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-muted-foreground">
           Status
         </p>
         <h2 className="text-base font-semibold tracking-[-0.02em] text-foreground">
           No View Loaded
         </h2>
-        <p className="text-[13px] leading-6 text-muted-foreground">
+        <p className="text-[13px] leading-6 text-muted-foreground [overflow-wrap:anywhere]">
           Load a viewer spec to inspect business topology.
         </p>
       </section>
@@ -34,28 +34,33 @@ export function InspectorPanel({
   if (!selection) {
     return (
       <section
-        className="space-y-3"
+        className="min-w-0 space-y-3"
         data-component="inspector-panel"
         data-state="no-selection"
       >
-        <div className="space-y-2" data-slot="selection-summary">
+        <div className="min-w-0 space-y-2" data-slot="selection-summary">
           <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-muted-foreground">
             Selection
           </p>
           <h2 className="text-base font-semibold tracking-[-0.02em] text-foreground">
             {view.title}
           </h2>
-          <p className="text-[13px] leading-6 text-muted-foreground">{view.description}</p>
+          <p className="text-[13px] leading-6 text-muted-foreground [overflow-wrap:anywhere]">
+            {view.description}
+          </p>
         </div>
-        <div className="grid gap-2" data-slot="detail-list">
+        <div className="grid min-w-0 gap-2" data-slot="detail-list">
           <Card
-            className="rounded-2xl border-border/80 bg-white/60 shadow-none backdrop-blur-0"
+            className="min-w-0 rounded-2xl border-border/80 bg-white/60 shadow-none backdrop-blur-0"
             data-component="inspector-detail-card"
             data-semantic-key="ui.how_to_read"
           >
-            <CardContent className="p-3">
-              <div className="mb-1.5 flex items-center gap-1.5" data-slot="card-header">
-                <span className="text-[11px] font-bold uppercase tracking-[0.04em] text-muted-foreground">
+            <CardContent className="min-w-0 p-3">
+              <div
+                className="mb-2.5 flex min-w-0 items-center gap-1.5 border-b border-border/50 pb-2"
+                data-slot="card-header"
+              >
+                <span className="min-w-0 text-[11px] font-bold uppercase tracking-[0.04em] text-muted-foreground [overflow-wrap:anywhere]">
                   How To Read
                 </span>
                 <InfoTooltip
@@ -63,7 +68,7 @@ export function InspectorPanel({
                   description={getInspectorDetailHelp("ui.how_to_read", semanticDetailHelp)}
                 />
               </div>
-              <div className="text-[13px] leading-6 text-foreground/90">
+              <div className="min-w-0 text-[13px] leading-6 text-foreground/90 [overflow-wrap:anywhere]">
                 Select a node or edge to inspect the business facts projected from canonical.
               </div>
             </CardContent>
@@ -75,34 +80,39 @@ export function InspectorPanel({
 
   return (
     <section
-      className="space-y-3"
+      className="min-w-0 space-y-3"
       data-component="inspector-panel"
       data-state="selection"
       data-selection-type={selection.type}
     >
-      <div className="space-y-2" data-slot="selection-summary">
+      <div className="min-w-0 space-y-2" data-slot="selection-summary">
         <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-muted-foreground">
           {selection.type}
         </p>
-        <h2 className="text-base font-semibold tracking-[-0.02em] text-foreground">
+        <h2 className="text-base font-semibold tracking-[-0.02em] text-foreground [overflow-wrap:anywhere]">
           {selection.label}
         </h2>
         {selection.summary ? (
-          <p className="text-[13px] leading-6 text-muted-foreground">{selection.summary}</p>
+          <p className="text-[13px] leading-6 text-muted-foreground [overflow-wrap:anywhere]">
+            {selection.summary}
+          </p>
         ) : null}
       </div>
-      <div className="grid gap-2" data-slot="detail-list">
+      <div className="grid min-w-0 gap-2" data-slot="detail-list">
         {selection.details.length > 0 ? (
           selection.details.map((item, index) => (
             <Card
-              className="rounded-2xl border-border/80 bg-white/60 shadow-none backdrop-blur-0"
+              className="min-w-0 rounded-2xl border-border/80 bg-white/60 shadow-none backdrop-blur-0"
               key={`${selection.type}-${item.semanticKey}-${index}`}
               data-component="inspector-detail-card"
               data-semantic-key={item.semanticKey}
             >
-              <CardContent className="p-3">
-                <div className="mb-1.5 flex items-center gap-1.5" data-slot="card-header">
-                  <span className="text-[11px] font-bold uppercase tracking-[0.04em] text-muted-foreground">
+              <CardContent className="min-w-0 p-3">
+                <div
+                  className="mb-2.5 flex min-w-0 items-center gap-1.5 border-b border-border/50 pb-2"
+                  data-slot="card-header"
+                >
+                  <span className="min-w-0 text-[11px] font-bold uppercase tracking-[0.04em] text-muted-foreground [overflow-wrap:anywhere]">
                     {item.label}
                   </span>
                   <InfoTooltip
@@ -116,13 +126,16 @@ export function InspectorPanel({
           ))
         ) : (
           <Card
-            className="rounded-2xl border-border/80 bg-white/60 shadow-none backdrop-blur-0"
+            className="min-w-0 rounded-2xl border-border/80 bg-white/60 shadow-none backdrop-blur-0"
             data-component="inspector-detail-card"
             data-semantic-key="ui.details"
           >
-            <CardContent className="p-3">
-              <div className="mb-1.5 flex items-center gap-1.5" data-slot="card-header">
-                <span className="text-[11px] font-bold uppercase tracking-[0.04em] text-muted-foreground">
+            <CardContent className="min-w-0 p-3">
+              <div
+                className="mb-2.5 flex min-w-0 items-center gap-1.5 border-b border-border/50 pb-2"
+                data-slot="card-header"
+              >
+                <span className="min-w-0 text-[11px] font-bold uppercase tracking-[0.04em] text-muted-foreground [overflow-wrap:anywhere]">
                   Details
                 </span>
                 <InfoTooltip
@@ -130,7 +143,9 @@ export function InspectorPanel({
                   description={getInspectorDetailHelp("ui.details", semanticDetailHelp)}
                 />
               </div>
-              <div className="text-[13px] leading-6 text-foreground/90">No details available.</div>
+              <div className="min-w-0 text-[13px] leading-6 text-foreground/90 [overflow-wrap:anywhere]">
+                No details available.
+              </div>
             </CardContent>
           </Card>
         )}
