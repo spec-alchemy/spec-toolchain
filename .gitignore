@@ -34,10 +34,13 @@ Thumbs.db
 # Local agent config
 .agents/
 .claude/
-.ralph-tui/
+.ralph-tui/*
+!.ralph-tui/progress.md
 
 # Project-specific excluded docs
-docs/
+docs/*
+!docs/ddd-spec/
+!docs/ddd-spec/**
 tasks/
 
 # DDD spec generated outputs
