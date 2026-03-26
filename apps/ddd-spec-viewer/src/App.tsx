@@ -10,7 +10,6 @@ import { FlowCanvas } from "@/components/FlowCanvas";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { InspectorPanel } from "@/components/InspectorPanel";
-import { Legend } from "@/components/Legend";
 import { ViewerEmptyState } from "@/components/shell/ViewerEmptyState";
 import { ViewerHeader } from "@/components/shell/ViewerHeader";
 import { layoutViewerView, type LayoutedView } from "@/lib/layout";
@@ -224,7 +223,6 @@ export default function App() {
                   viewerSpec?.detailHelp.semantic ?? EMPTY_SEMANTIC_DETAIL_HELP
                 }
               />
-              <Legend />
             </aside>
           </ScrollArea>
         </Card>
