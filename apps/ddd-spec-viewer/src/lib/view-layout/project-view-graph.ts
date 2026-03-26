@@ -187,11 +187,12 @@ function createRelationPresentation(
   const viewKind = getViewerViewKind(view);
 
   switch (edge.kind) {
-    case "binding":
-    case "accepts":
-    case "emits":
+    case "collaboration":
+    case "ownership":
+    case "message-flow":
+    case "coordination":
       return { label: edge.label };
-    case "transition": {
+    case "state-transition": {
       const [commandLabel, eventLabel] = edge.label.split(" / ");
 
       return {
@@ -199,9 +200,9 @@ function createRelationPresentation(
         summary: eventLabel
       };
     }
-    case "advance":
+    case "sequence":
       return {
-        label: viewKind === "trace" ? edge.label : shortenEventLabel(edge.label)
+        label: viewKind === "message-flow" ? edge.label : shortenEventLabel(edge.label)
       };
     case "association":
     case "composition":
@@ -213,8 +214,8 @@ function createRelationPresentation(
   }
 }
 
-function getViewerViewKind(view: ViewerViewSpec): ViewerViewKind | ViewerViewSpec["id"] {
-  return view.kind ?? view.id;
+function getViewerViewKind(view: ViewerViewSpec): ViewerViewKind {
+  return view.kind;
 }
 
 function shortenEventLabel(label: string): string {

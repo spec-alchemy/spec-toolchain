@@ -52,7 +52,7 @@ test("domain structure groups aggregate-owned nodes and humanizes structure labe
   );
   const sharedTypesGroup = mustFind(
     domainStructureView.nodes,
-    (node) => node.kind === "type-group" && node.label === "Shared Types"
+    (node) => node.kind === "shared-type-group" && node.label === "Shared Types"
   );
   const cardContentNode = mustFind(
     domainStructureView.nodes,
@@ -129,7 +129,7 @@ test("domain structure groups aggregate-owned nodes and humanizes structure labe
     mustFind(
       domainStructureView.nodes,
       (node) =>
-        node.kind === "aggregate-group" &&
+        node.kind === "aggregate" &&
         getTextDetailValue(node.details, "aggregate.id") === "Card"
     ).summary,
     "root + 2 owned object(s), 1 shared type(s), 1 external reference(s)"
@@ -145,97 +145,97 @@ test("domain structure groups aggregate-owned nodes and humanizes structure labe
   assert.equal(getTextDetailValue(cardStatusEdge.details, "relation.kind"), "association");
 });
 
-test("composition and lifecycle project structured collection details", async () => {
+test("primary views project vNext scenario, message, and lifecycle details", async () => {
   const spec = await loadBusinessSpec({
     entryPath: SPEC_ENTRY_PATH
   });
   const analysis = analyzeBusinessSpec(spec);
   const viewerSpec = buildBusinessViewerSpec(spec, analysis.graph);
-  const compositionView = mustFind(viewerSpec.views, (view) => view.id === "composition");
+  const contextMapView = mustFind(viewerSpec.views, (view) => view.id === "context-map");
+  const scenarioStoryView = mustFind(viewerSpec.views, (view) => view.id === "scenario-story");
+  const messageFlowView = mustFind(viewerSpec.views, (view) => view.id === "message-flow");
   const lifecycleView = mustFind(viewerSpec.views, (view) => view.id === "lifecycle");
-  const compositionProcessNode = mustFind(
-    compositionView.nodes,
+  const contextNode = mustFind(
+    contextMapView.nodes,
     (node) =>
-      node.kind === "process-group" &&
-      getTextDetailValue(node.details, "process.id") === "connectionCardReviewProcess"
+      node.kind === "context" &&
+      getTextDetailValue(node.details, "context.id") === "connection-card-review"
   );
-  const compositionStageNode = mustFind(
-    compositionView.nodes,
+  const scenarioNode = mustFind(
+    scenarioStoryView.nodes,
     (node) =>
-      node.kind === "stage" &&
-      getTextDetailValue(node.details, "stage.id") === "awaitingConnectionReview"
+      node.kind === "scenario" &&
+      getTextDetailValue(node.details, "scenario.id") === "connectionCardReviewProcess"
   );
-  const compositionAggregateNode = mustFind(
-    compositionView.nodes,
+  const scenarioStepNode = mustFind(
+    scenarioStoryView.nodes,
     (node) =>
-      node.kind === "aggregate-group" &&
-      getTextDetailValue(node.details, "aggregate.id") === "Connection"
+      node.kind === "scenario-step" &&
+      getTextDetailValue(node.details, "step.id") === "awaitingConnectionReview"
   );
-  const compositionStateNode = mustFind(
-    compositionView.nodes,
+  const messageCommandNode = mustFind(
+    messageFlowView.nodes,
     (node) =>
-      node.kind === "aggregate-state" &&
-      getTextDetailValue(node.details, "aggregate.id") === "Connection" &&
-      getTextDetailValue(node.details, "aggregate.state.id") === "suggested"
+      node.kind === "message" &&
+      getTextDetailValue(node.details, "message.kind") === "command" &&
+      getTextDetailValue(node.details, "message.type") === "confirmConnection"
+  );
+  const messageEventNode = mustFind(
+    messageFlowView.nodes,
+    (node) =>
+      node.kind === "message" &&
+      getTextDetailValue(node.details, "message.kind") === "event" &&
+      getTextDetailValue(node.details, "message.type") === "ConnectionConfirmed"
   );
   const lifecycleAggregateNode = mustFind(
     lifecycleView.nodes,
     (node) =>
-      node.kind === "aggregate-group" &&
+      node.kind === "aggregate" &&
       getTextDetailValue(node.details, "aggregate.id") === "Connection"
   );
   const lifecycleStateNode = mustFind(
     lifecycleView.nodes,
     (node) =>
-      node.kind === "aggregate-state" &&
+      node.kind === "lifecycle-state" &&
       getTextDetailValue(node.details, "aggregate.id") === "Connection" &&
       getTextDetailValue(node.details, "aggregate.state.id") === "suggested"
   );
   const lifecycleTransitionEdge = mustFind(
     lifecycleView.edges,
     (edge) =>
-      edge.kind === "transition" &&
+      edge.kind === "state-transition" &&
       getTextDetailValue(edge.details, "aggregate.id") === "Connection" &&
       getTextDetailValue(edge.details, "command.type") === "archiveConnection"
   );
 
   assert.deepEqual(
-    getTextListDetailValues(compositionProcessNode.details, "process.used_aggregates"),
+    getTextListDetailValues(contextNode.details, "context.owned_aggregates"),
     ["Connection", "Card"]
   );
   assert.deepEqual(
-    getTextListDetailValues(compositionProcessNode.details, "process.final_stages"),
+    getTextListDetailValues(contextNode.details, "context.scenarios"),
+    ["connectionCardReviewProcess"]
+  );
+  assert.deepEqual(
+    getTextListDetailValues(scenarioNode.details, "scenario.related_aggregates"),
+    ["Connection", "Card"]
+  );
+  assert.deepEqual(
+    getTextListDetailValues(scenarioNode.details, "scenario.final_steps"),
     ["closedConnectionArchived", "closedCardArchived", "closedCardAccepted"]
   );
   assert.deepEqual(
-    getTextListDetailValues(compositionStageNode.details, "behavior.accepted_commands"),
+    getTextListDetailValues(scenarioStepNode.details, "behavior.accepted_commands"),
     ["confirmConnection", "archiveConnection"]
   );
   assert.deepEqual(
-    getTextListDetailValues(compositionStageNode.details, "behavior.observed_events"),
+    getTextListDetailValues(scenarioStepNode.details, "behavior.observed_events"),
     ["ConnectionConfirmed", "ConnectionArchived"]
   );
-  assert.deepEqual(
-    getTextListDetailValues(compositionAggregateNode.details, "aggregate.lifecycle"),
-    ["suggested", "confirmed", "archived"]
-  );
-  assert.deepEqual(
-    getTextListDetailValues(compositionAggregateNode.details, "aggregate.referenced_by_stages"),
-    ["connectionCardReviewProcess.awaitingConnectionReview (等待连接审核)"]
-  );
-  assert.deepEqual(
-    getTextListDetailValues(compositionStateNode.details, "behavior.accepted_commands"),
-    ["confirmConnection", "archiveConnection"]
-  );
-  assert.deepEqual(
-    getTextListDetailValues(compositionStateNode.details, "aggregate.state.emitted_events"),
-    ["ConnectionConfirmed", "ConnectionArchived"]
-  );
-  assert.deepEqual(
-    getTextListDetailValues(compositionStateNode.details, "aggregate.state.bound_by_stages"),
-    ["connectionCardReviewProcess.awaitingConnectionReview (等待连接审核)"]
-  );
-
+  assert.equal(getTextDetailValue(messageCommandNode.details, "command.target_aggregate"), "Connection");
+  assert.equal(getTextDetailValue(messageEventNode.details, "event.source_aggregate"), "Connection");
+  assert.equal(getTextDetailValue(messageEventNode.details, "event.observed_by_step"), "yes");
+  assert.equal(getTextDetailValue(messageEventNode.details, "event.advances_to_step"), "awaitingCardReview");
   assert.deepEqual(
     getTextListDetailValues(lifecycleAggregateNode.details, "aggregate.lifecycle"),
     ["suggested", "confirmed", "archived"]

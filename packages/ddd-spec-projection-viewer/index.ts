@@ -36,6 +36,7 @@ import {
 } from "./viewer-semantic-help.js";
 
 const DIMENSIONS = {
+  contextGroup: { width: 360, minHeight: 240, charsPerLine: 32, minHeaderHeight: 116 },
   processGroup: { width: 320, minHeight: 220, charsPerLine: 28, minHeaderHeight: 112 },
   aggregateGroup: { width: 280, minHeight: 180, charsPerLine: 24, minHeaderHeight: 112 },
   stage: { width: 220, minHeight: 116, charsPerLine: 20 },
@@ -95,9 +96,10 @@ export function buildBusinessViewerSpec(
 ): BusinessViewerSpec {
   const context = createViewerContext(spec, graph);
   const views = [
-    buildCompositionView(context),
+    buildContextMapView(context),
+    buildScenarioStoryView(context),
+    buildMessageFlowView(context),
     buildLifecycleView(context),
-    buildTraceView(context),
     buildDomainStructureView(context)
   ];
 
@@ -131,16 +133,130 @@ function createViewerContext(spec: BusinessSpec, graph: BusinessGraph): ViewerCo
   };
 }
 
-function buildCompositionView(context: ViewerContext): ViewerViewSpec {
+function buildContextMapView(context: ViewerContext): ViewerViewSpec {
   const nodes: ViewerNodeSpec[] = [];
   const edges: ViewerEdgeSpec[] = [];
-  const aggregateGroupIds = new Set<string>();
-  const aggregateStateNodeIds = new Set<string>();
+  const contextId = toContextMapContextId(context.spec.id);
+  const aggregateIds = context.spec.domain.aggregates.map((aggregate) => aggregate.objectId);
+  const scenarioIds = context.spec.domain.processes.map((process) => process.id);
+  const contextSummary = `${aggregateIds.length} aggregate(s), ${scenarioIds.length} scenario(s)`;
+  const contextBox = measureGroupNodeBox(
+    DIMENSIONS.contextGroup,
+    context.spec.title,
+    context.spec.id,
+    contextSummary
+  );
+
+  nodes.push({
+    id: contextId,
+    kind: "context",
+    label: context.spec.title,
+    subtitle: context.spec.id,
+    summary: contextSummary,
+    ...contextBox,
+    details: [
+      detail(context, "context.id", context.spec.id),
+      detail(context, "context.owned_aggregates", formatTextList(aggregateIds)),
+      detail(context, "context.scenarios", formatTextList(scenarioIds))
+    ]
+  });
+
+  for (const aggregateGraph of context.graph.aggregates) {
+    const objectSpec = mustGetAggregateObjectSpec(context.objectById, aggregateGraph.objectId);
+    const aggregateSummary = `initial: ${aggregateGraph.initialState}`;
+    const aggregateBox = measureLeafNodeBox(
+      DIMENSIONS.aggregateGroup,
+      objectSpec.title,
+      aggregateGraph.objectId,
+      aggregateSummary
+    );
+
+    nodes.push({
+      id: toContextMapAggregateId(aggregateGraph.objectId),
+      kind: "aggregate",
+      label: objectSpec.title,
+      subtitle: aggregateGraph.objectId,
+      summary: aggregateSummary,
+      parentId: contextId,
+      ...aggregateBox,
+      details: [
+        detail(context, "aggregate.id", aggregateGraph.objectId),
+        detail(context, "aggregate.initial_state", aggregateGraph.initialState),
+        detail(context, "aggregate.lifecycle", formatTextList(objectSpec.lifecycle))
+      ]
+    });
+  }
 
   for (const processGraph of context.graph.processes) {
     const processSpec = mustGet(context.processSpecById, processGraph.processId, "process");
-    const processGroupId = toCompositionProcessGroupId(processGraph.processId);
     const usedAggregateIds = unique(
+      processGraph.stages
+        .filter((stage) => stage.aggregateObjectId)
+        .map((stage) => stage.aggregateObjectId as string)
+    );
+    const scenarioSummary = `initial: ${processGraph.initialStage}`;
+    const scenarioBox = measureLeafNodeBox(
+      DIMENSIONS.processGroup,
+      processSpec.title,
+      processGraph.processId,
+      scenarioSummary
+    );
+
+    nodes.push({
+      id: toContextMapScenarioId(processGraph.processId),
+      kind: "scenario",
+      label: processSpec.title,
+      subtitle: processGraph.processId,
+      summary: scenarioSummary,
+      parentId: contextId,
+      ...scenarioBox,
+      details: [
+        detail(context, "scenario.id", processGraph.processId),
+        detail(context, "scenario.initial_step", processGraph.initialStage),
+        detail(context, "scenario.final_steps", formatTextList(processGraph.finalStageIds)),
+        detail(context, "scenario.related_aggregates", formatTextList(usedAggregateIds))
+      ]
+    });
+
+    for (const aggregateId of usedAggregateIds) {
+      edges.push({
+        id: `context-map-collaboration:${processGraph.processId}:${aggregateId}`,
+        kind: "collaboration",
+        source: toContextMapScenarioId(processGraph.processId),
+        target: toContextMapAggregateId(aggregateId),
+        label: "uses",
+        details: [
+          detail(context, "scenario.id", processGraph.processId),
+          detail(context, "aggregate.id", aggregateId)
+        ]
+      });
+    }
+  }
+
+  return {
+    id: "context-map",
+    kind: "context-map",
+    navigation: {
+      tier: "primary",
+      order: 10,
+      default: true
+    },
+    title: "Context Map",
+    description:
+      "Shows the current bounded context envelope, the scenarios modeled inside it, and which aggregates each scenario collaborates with.",
+    nodes,
+    edges
+  };
+}
+
+function buildScenarioStoryView(context: ViewerContext): ViewerViewSpec {
+  const nodes: ViewerNodeSpec[] = [];
+  const edges: ViewerEdgeSpec[] = [];
+
+  for (const processGraph of context.graph.processes) {
+    const processSpec = mustGet(context.processSpecById, processGraph.processId, "process");
+    const processGroupId = toScenarioStoryScenarioId(processGraph.processId);
+    const relatedAggregateIds = unique(
       processGraph.stages
         .filter((stage) => stage.aggregateObjectId)
         .map((stage) => stage.aggregateObjectId as string)
@@ -155,18 +271,22 @@ function buildCompositionView(context: ViewerContext): ViewerViewSpec {
 
     nodes.push({
       id: processGroupId,
-      kind: "process-group",
+      kind: "scenario",
       label: processSpec.title,
       subtitle: processGraph.processId,
       summary: processSummary,
       ...processGroupBox,
       details: [
-        detail(context, "process.id", processGraph.processId),
-        detail(context, "process.initial_stage", processGraph.initialStage),
-        detail(context, "process.used_aggregates", formatTextList(usedAggregateIds)),
+        detail(context, "scenario.id", processGraph.processId),
+        detail(context, "scenario.initial_step", processGraph.initialStage),
         detail(
           context,
-          "process.final_stages",
+          "scenario.related_aggregates",
+          formatTextList(relatedAggregateIds)
+        ),
+        detail(
+          context,
+          "scenario.final_steps",
           formatTextList(processGraph.finalStageIds)
         )
       ]
@@ -176,12 +296,13 @@ function buildCompositionView(context: ViewerContext): ViewerViewSpec {
       const stageSpec = processSpec.stages[stageNode.stageId];
       const acceptedCommands = stageNode.acceptedCommands;
       const observedEvents = stageNode.observedEvents;
-      const stageSubtitle = stageNode.final
-        ? stageNode.stageId
-        : `${stageNode.aggregateObjectId}.${stageNode.aggregateStateId}`;
+      const stageSubtitle =
+        stageNode.aggregateObjectId && stageNode.aggregateStateId
+          ? `${stageNode.stageId} | ${stageNode.aggregateObjectId}.${stageNode.aggregateStateId}`
+          : stageNode.stageId;
       const stageSummary = stageNode.final
-        ? stageSpec.outcome
-        : `${acceptedCommands.length} command(s)`;
+        ? (stageSpec.outcome ?? "final outcome")
+        : `${acceptedCommands.length + observedEvents.length} message(s)`;
       const stageBox = measureLeafNodeBox(
         stageNode.final ? DIMENSIONS.finalStage : DIMENSIONS.stage,
         stageSpec.title,
@@ -190,20 +311,20 @@ function buildCompositionView(context: ViewerContext): ViewerViewSpec {
       );
 
       nodes.push({
-        id: toCompositionStageId(processGraph.processId, stageNode.stageId),
-        kind: stageNode.final ? "final-stage" : "stage",
+        id: toScenarioStoryStepId(processGraph.processId, stageNode.stageId),
+        kind: "scenario-step",
         label: stageSpec.title,
         subtitle: stageSubtitle,
         summary: stageSummary,
         parentId: processGroupId,
         ...stageBox,
         details: [
-          detail(context, "stage.id", stageNode.stageId),
-          detail(context, "stage.final", stageNode.final ? "yes" : "no"),
+          detail(context, "step.id", stageNode.stageId),
+          detail(context, "step.final", stageNode.final ? "yes" : "no"),
           ...(stageNode.aggregateObjectId && stageNode.aggregateStateId
             ? [
-                detail(context, "aggregate.id", stageNode.aggregateObjectId),
-                detail(context, "aggregate.state.id", stageNode.aggregateStateId)
+                detail(context, "step.bound_aggregate", stageNode.aggregateObjectId),
+                detail(context, "step.bound_state", stageNode.aggregateStateId)
               ]
             : []),
           detail(
@@ -216,143 +337,21 @@ function buildCompositionView(context: ViewerContext): ViewerViewSpec {
             "behavior.observed_events",
             formatTextList(observedEvents)
           ),
-          ...(stageSpec.outcome ? [detail(context, "stage.outcome", stageSpec.outcome)] : [])
-        ]
-      });
-
-      if (!stageNode.aggregateObjectId || !stageNode.aggregateStateId) {
-        continue;
-      }
-
-      const objectId = stageNode.aggregateObjectId;
-      const stateId = stageNode.aggregateStateId;
-      const aggregateGroupId = toCompositionAggregateGroupId(objectId);
-      const aggregateStateId = toCompositionAggregateStateId(objectId, stateId);
-
-      if (!aggregateGroupIds.has(aggregateGroupId)) {
-        const objectSpec = mustGetAggregateObjectSpec(context.objectById, objectId);
-        const lifecycleRefs = [...context.stageRefsByAggregateStateKey.entries()]
-          .filter(([key]) => key.startsWith(`${objectId}:`))
-          .flatMap(([, refs]) => refs);
-        const aggregateSummary = `${objectSpec.lifecycle.length} lifecycle state(s)`;
-        const aggregateGroupBox = measureGroupNodeBox(
-          DIMENSIONS.aggregateGroup,
-          objectSpec.title,
-          `aggregate ${objectId}`,
-          aggregateSummary
-        );
-
-        nodes.push({
-          id: aggregateGroupId,
-          kind: "aggregate-group",
-          label: objectSpec.title,
-          subtitle: `aggregate ${objectId}`,
-          summary: aggregateSummary,
-          ...aggregateGroupBox,
-          details: [
-            detail(context, "aggregate.id", objectId),
-            detail(context, "aggregate.lifecycle_field", objectSpec.lifecycleField),
-            detail(context, "aggregate.lifecycle", formatTextList(objectSpec.lifecycle)),
-            detail(
-              context,
-              "aggregate.referenced_by_stages",
-              formatTextList(unique(lifecycleRefs))
-            )
-          ]
-        });
-        aggregateGroupIds.add(aggregateGroupId);
-      }
-
-      if (!aggregateStateNodeIds.has(aggregateStateId)) {
-        const aggregateGraph = mustGet(
-          context.aggregateGraphByObjectId,
-          objectId,
-          "aggregate graph"
-        );
-        const stateGraph = mustFind(
-          aggregateGraph.states,
-          (state) => state.stateId === stateId,
-          `aggregate state ${objectId}.${stateId}`
-        );
-        const emittedEvents = mustGet(
-          context.aggregateSpecByObjectId,
-          objectId,
-          "aggregate spec"
-        ).states[stateId];
-        const aggregateStateSummary = stateGraph.terminal
-          ? "terminal"
-          : `${stateGraph.outgoingCommands.length} transition(s)`;
-        const aggregateStateBox = measureLeafNodeBox(
-          DIMENSIONS.aggregateState,
-          stateId,
-          objectId,
-          aggregateStateSummary
-        );
-
-        nodes.push({
-          id: aggregateStateId,
-          kind: "aggregate-state",
-          label: stateId,
-          subtitle: objectId,
-          summary: aggregateStateSummary,
-          parentId: aggregateGroupId,
-          ...aggregateStateBox,
-          details: [
-            detail(context, "aggregate.id", objectId),
-            detail(context, "aggregate.state.id", stateId),
-            detail(
-              context,
-              "behavior.accepted_commands",
-              formatTextList(stateGraph.outgoingCommands)
-            ),
-            detail(
-              context,
-              "aggregate.state.emitted_events",
-              formatTextList(
-                Object.values(emittedEvents.on ?? {}).map((transition) => transition.emit.type)
-              )
-            ),
-            detail(
-              context,
-              "aggregate.state.bound_by_stages",
-              formatTextList(
-                mustGet(
-                  context.stageRefsByAggregateStateKey,
-                  toAggregateStateKey(objectId, stateId),
-                  `stage refs for ${objectId}.${stateId}`
-                )
-              )
-            )
-          ]
-        });
-        aggregateStateNodeIds.add(aggregateStateId);
-      }
-
-      edges.push({
-        id: `composition-binding:${processGraph.processId}:${stageNode.stageId}:${objectId}:${stateId}`,
-        kind: "binding",
-        source: toCompositionStageId(processGraph.processId, stageNode.stageId),
-        target: aggregateStateId,
-        label: "binds",
-        details: [
-          detail(context, "process.id", processGraph.processId),
-          detail(context, "stage.id", stageNode.stageId),
-          detail(context, "aggregate.id", objectId),
-          detail(context, "aggregate.state.id", stateId)
+          ...(stageSpec.outcome ? [detail(context, "step.outcome", stageSpec.outcome)] : [])
         ]
       });
     }
 
     for (const advance of processGraph.advances) {
       edges.push({
-        id: `composition-advance:${processGraph.processId}:${advance.sourceStage}:${advance.eventType}`,
-        kind: "advance",
-        source: toCompositionStageId(processGraph.processId, advance.sourceStage),
-        target: toCompositionStageId(processGraph.processId, advance.targetStage),
+        id: `scenario-story-sequence:${processGraph.processId}:${advance.sourceStage}:${advance.eventType}`,
+        kind: "sequence",
+        source: toScenarioStoryStepId(processGraph.processId, advance.sourceStage),
+        target: toScenarioStoryStepId(processGraph.processId, advance.targetStage),
         label: advance.eventType,
         details: [
-          detail(context, "process.id", processGraph.processId),
-          detail(context, "event.type", advance.eventType),
+          detail(context, "scenario.id", processGraph.processId),
+          detail(context, "message.type", advance.eventType),
           detail(context, "relation.from", advance.sourceStage),
           detail(context, "relation.to", advance.targetStage)
         ]
@@ -361,11 +360,15 @@ function buildCompositionView(context: ViewerContext): ViewerViewSpec {
   }
 
   return {
-    id: "composition",
-    kind: "composition",
-    title: "Composition",
+    id: "scenario-story",
+    kind: "scenario-story",
+    navigation: {
+      tier: "primary",
+      order: 20
+    },
+    title: "Scenario Story",
     description:
-      "Shows process stages, aggregate reuse, and which aggregate state each non-final stage binds to.",
+      "Shows how each scenario advances step by step, including the message that moves the story from one step to the next.",
     nodes,
     edges
   };
@@ -393,7 +396,7 @@ function buildLifecycleView(context: ViewerContext): ViewerViewSpec {
 
     nodes.push({
       id: groupId,
-      kind: "aggregate-group",
+      kind: "aggregate",
       label: objectSpec.title,
       subtitle: aggregateGraph.objectId,
       summary: lifecycleSummary,
@@ -432,7 +435,7 @@ function buildLifecycleView(context: ViewerContext): ViewerViewSpec {
 
       nodes.push({
         id: toLifecycleStateId(aggregateGraph.objectId, stateNode.stateId),
-        kind: "aggregate-state",
+        kind: "lifecycle-state",
         label: stateNode.stateId,
         subtitle: lifecycleStateSubtitle,
         summary: lifecycleStateSummary,
@@ -461,7 +464,7 @@ function buildLifecycleView(context: ViewerContext): ViewerViewSpec {
 
       edges.push({
         id: `lifecycle-transition:${aggregateGraph.objectId}:${transition.sourceState}:${transition.commandType}`,
-        kind: "transition",
+        kind: "state-transition",
         source: toLifecycleStateId(aggregateGraph.objectId, transition.sourceState),
         target: toLifecycleStateId(aggregateGraph.objectId, transition.targetState),
         label: `${transition.commandType} / ${transition.eventType}`,
@@ -484,6 +487,10 @@ function buildLifecycleView(context: ViewerContext): ViewerViewSpec {
   return {
     id: "lifecycle",
     kind: "lifecycle",
+    navigation: {
+      tier: "primary",
+      order: 40
+    },
     title: "Lifecycle",
     description:
       "Shows aggregate lifecycle states and transitions, independent of process orchestration.",
@@ -492,7 +499,7 @@ function buildLifecycleView(context: ViewerContext): ViewerViewSpec {
   };
 }
 
-function buildTraceView(context: ViewerContext): ViewerViewSpec {
+function buildMessageFlowView(context: ViewerContext): ViewerViewSpec {
   const nodes: ViewerNodeSpec[] = [];
   const edges: ViewerEdgeSpec[] = [];
   const nodeIds = new Set<string>();
@@ -500,8 +507,13 @@ function buildTraceView(context: ViewerContext): ViewerViewSpec {
 
   for (const processGraph of context.graph.processes) {
     const processSpec = mustGet(context.processSpecById, processGraph.processId, "process");
-    const processGroupId = toTraceProcessGroupId(processGraph.processId);
-    const traceGroupSummary = "stage -> command -> event -> next stage";
+    const processGroupId = toMessageFlowScenarioId(processGraph.processId);
+    const relatedAggregateIds = unique(
+      processGraph.stages
+        .filter((stage) => stage.aggregateObjectId)
+        .map((stage) => stage.aggregateObjectId as string)
+    );
+    const traceGroupSummary = "step -> message -> message -> next step";
     const traceGroupBox = measureGroupNodeBox(
       DIMENSIONS.processGroup,
       processSpec.title,
@@ -511,25 +523,30 @@ function buildTraceView(context: ViewerContext): ViewerViewSpec {
 
     nodes.push({
       id: processGroupId,
-      kind: "process-group",
+      kind: "scenario",
       label: processSpec.title,
       subtitle: processGraph.processId,
       summary: traceGroupSummary,
       ...traceGroupBox,
       details: [
-        detail(context, "process.id", processGraph.processId),
-        detail(context, "process.initial_stage", processGraph.initialStage),
-        detail(context, "process.final_stages", formatList(processGraph.finalStageIds))
+        detail(context, "scenario.id", processGraph.processId),
+        detail(context, "scenario.initial_step", processGraph.initialStage),
+        detail(context, "scenario.final_steps", formatTextList(processGraph.finalStageIds)),
+        detail(
+          context,
+          "scenario.related_aggregates",
+          formatTextList(relatedAggregateIds)
+        )
       ]
     });
     nodeIds.add(processGroupId);
 
     for (const stageNode of processGraph.stages) {
       const stageSpec = processSpec.stages[stageNode.stageId];
-      const stageId = toTraceStageId(processGraph.processId, stageNode.stageId);
+      const stageId = toMessageFlowStepId(processGraph.processId, stageNode.stageId);
       const traceStageSummary = stageNode.final
-        ? stageSpec.outcome
-        : `${stageNode.acceptedCommands.length} command(s)`;
+        ? (stageSpec.outcome ?? "final outcome")
+        : `${stageNode.acceptedCommands.length} command(s), ${stageNode.observedEvents.length} event(s)`;
       const traceStageBox = measureLeafNodeBox(
         stageNode.final ? DIMENSIONS.finalStage : DIMENSIONS.stage,
         stageSpec.title,
@@ -540,27 +557,31 @@ function buildTraceView(context: ViewerContext): ViewerViewSpec {
       if (!nodeIds.has(stageId)) {
         nodes.push({
           id: stageId,
-          kind: stageNode.final ? "final-stage" : "stage",
+          kind: "scenario-step",
           label: stageSpec.title,
           subtitle: stageNode.stageId,
           summary: traceStageSummary,
           parentId: processGroupId,
           ...traceStageBox,
           details: [
-            detail(context, "stage.id", stageNode.stageId),
+            detail(context, "step.id", stageNode.stageId),
             ...(stageNode.aggregateObjectId && stageNode.aggregateStateId
               ? [
-                  detail(context, "aggregate.id", stageNode.aggregateObjectId),
-                  detail(context, "aggregate.state.id", stageNode.aggregateStateId)
+                  detail(context, "step.bound_aggregate", stageNode.aggregateObjectId),
+                  detail(context, "step.bound_state", stageNode.aggregateStateId)
                 ]
               : []),
             detail(
               context,
               "behavior.accepted_commands",
-              formatList(stageNode.acceptedCommands)
+              formatTextList(stageNode.acceptedCommands)
             ),
-            detail(context, "behavior.observed_events", formatList(stageNode.observedEvents)),
-            ...(stageSpec.outcome ? [detail(context, "stage.outcome", stageSpec.outcome)] : [])
+            detail(
+              context,
+              "behavior.observed_events",
+              formatTextList(stageNode.observedEvents)
+            ),
+            ...(stageSpec.outcome ? [detail(context, "step.outcome", stageSpec.outcome)] : [])
           ]
         });
         nodeIds.add(stageId);
@@ -576,37 +597,48 @@ function buildTraceView(context: ViewerContext): ViewerViewSpec {
       for (const [commandType, transition] of stateTransitions) {
         const commandSpec = mustGet(context.commandByType, commandType, "command");
         const eventSpec = mustGet(context.eventByType, transition.emit.type, "event");
-        const commandNodeId = toTraceCommandId(processGraph.processId, stageNode.stageId, commandType);
-        const eventNodeId = toTraceEventId(processGraph.processId, stageNode.stageId, transition.emit.type);
+        const commandNodeId = toMessageFlowCommandId(
+          processGraph.processId,
+          stageNode.stageId,
+          commandType
+        );
+        const eventNodeId = toMessageFlowEventId(
+          processGraph.processId,
+          stageNode.stageId,
+          transition.emit.type
+        );
         const targetStageId = stageSpec.advancesOn?.[transition.emit.type];
         const commandSubtitle = binding
           ? `${binding.aggregate.objectId}.${binding.stateId} -> ${transition.target}`
           : undefined;
-        const eventSummary = targetStageId ? `advances to ${targetStageId}` : "unhandled in process";
+        const eventSummary = targetStageId
+          ? `advances to ${targetStageId}`
+          : "unhandled in scenario";
         const commandBox = measureLeafNodeBox(
           DIMENSIONS.command,
           commandType,
-          commandSubtitle,
+          commandSubtitle ?? "command",
           commandSpec.description
         );
         const eventBox = measureLeafNodeBox(
           DIMENSIONS.event,
           transition.emit.type,
-          eventSpec.source,
+          "event",
           eventSummary
         );
 
         if (!nodeIds.has(commandNodeId)) {
           nodes.push({
             id: commandNodeId,
-            kind: "command",
+            kind: "message",
             label: commandType,
-            subtitle: commandSubtitle,
+            subtitle: commandSubtitle ?? "command",
             summary: commandSpec.description,
             parentId: processGroupId,
             ...commandBox,
             details: [
-              detail(context, "command.type", commandType),
+              detail(context, "message.kind", "command"),
+              detail(context, "message.type", commandType),
               detail(context, "command.target_aggregate", commandSpec.target),
               detail(
                 context,
@@ -639,14 +671,15 @@ function buildTraceView(context: ViewerContext): ViewerViewSpec {
         if (!nodeIds.has(eventNodeId)) {
           nodes.push({
             id: eventNodeId,
-            kind: "event",
+            kind: "message",
             label: transition.emit.type,
-            subtitle: eventSpec.source,
+            subtitle: "event",
             summary: eventSummary,
             parentId: processGroupId,
             ...eventBox,
             details: [
-              detail(context, "event.type", transition.emit.type),
+              detail(context, "message.kind", "event"),
+              detail(context, "message.type", transition.emit.type),
               detail(context, "event.source_aggregate", eventSpec.source),
               detail(
                 context,
@@ -657,9 +690,9 @@ function buildTraceView(context: ViewerContext): ViewerViewSpec {
                 )
               ),
               detail(context, "entity.description", eventSpec.description),
-              detail(context, "event.observed_by_stage", targetStageId ? "yes" : "no"),
+              detail(context, "event.observed_by_step", targetStageId ? "yes" : "no"),
               ...(targetStageId
-                ? [detail(context, "event.advances_to", targetStageId)]
+                ? [detail(context, "event.advances_to_step", targetStageId)]
                 : [])
             ]
           });
@@ -670,14 +703,15 @@ function buildTraceView(context: ViewerContext): ViewerViewSpec {
           edges,
           edgeIds,
           {
-            id: `trace-accepts:${processGraph.processId}:${stageNode.stageId}:${commandType}`,
-            kind: "accepts",
+            id: `message-flow-command:${processGraph.processId}:${stageNode.stageId}:${commandType}`,
+            kind: "message-flow",
             source: stageId,
             target: commandNodeId,
-            label: "accepts",
+            label: "issues",
             details: [
-              detail(context, "stage.id", stageNode.stageId),
-              detail(context, "command.type", commandType)
+              detail(context, "step.id", stageNode.stageId),
+              detail(context, "message.kind", "command"),
+              detail(context, "message.type", commandType)
             ]
           }
         );
@@ -686,8 +720,8 @@ function buildTraceView(context: ViewerContext): ViewerViewSpec {
           edges,
           edgeIds,
           {
-            id: `trace-emits:${processGraph.processId}:${stageNode.stageId}:${commandType}`,
-            kind: "emits",
+            id: `message-flow-event:${processGraph.processId}:${stageNode.stageId}:${commandType}`,
+            kind: "message-flow",
             source: commandNodeId,
             target: eventNodeId,
             label: "emits",
@@ -703,14 +737,15 @@ function buildTraceView(context: ViewerContext): ViewerViewSpec {
             edges,
             edgeIds,
             {
-              id: `trace-advance:${processGraph.processId}:${stageNode.stageId}:${transition.emit.type}`,
-              kind: "advance",
+              id: `message-flow-advance:${processGraph.processId}:${stageNode.stageId}:${transition.emit.type}`,
+              kind: "message-flow",
               source: eventNodeId,
-              target: toTraceStageId(processGraph.processId, targetStageId),
+              target: toMessageFlowStepId(processGraph.processId, targetStageId),
               label: "advances",
               details: [
-                detail(context, "event.type", transition.emit.type),
-                detail(context, "event.target_stage", targetStageId)
+                detail(context, "message.kind", "event"),
+                detail(context, "message.type", transition.emit.type),
+                detail(context, "relation.to", targetStageId)
               ]
             }
           );
@@ -720,11 +755,15 @@ function buildTraceView(context: ViewerContext): ViewerViewSpec {
   }
 
   return {
-    id: "trace",
-    kind: "trace",
-    title: "Trace",
+    id: "message-flow",
+    kind: "message-flow",
+    navigation: {
+      tier: "primary",
+      order: 30
+    },
+    title: "Message Flow / Trace",
     description:
-      "Shows how each stage accepts commands, which events those commands emit, and how events advance the process.",
+      "Shows how each scenario step issues commands, which events those commands emit, and where those events move the story next.",
     nodes,
     edges
   };
@@ -755,7 +794,7 @@ function buildDomainStructureView(context: ViewerContext): ViewerViewSpec {
 
     nodes.push({
       id: toDomainStructureAggregateGroupId(aggregateId),
-      kind: "aggregate-group",
+      kind: "aggregate",
       label: `${objectSpec.title} Aggregate`,
       subtitle: `root ${aggregateId}`,
       summary: presentation.summary,
@@ -804,7 +843,7 @@ function buildDomainStructureView(context: ViewerContext): ViewerViewSpec {
 
     nodes.push({
       id: DOMAIN_SHARED_TYPES_GROUP_ID,
-      kind: "type-group",
+      kind: "shared-type-group",
       label: "Shared Types",
       subtitle: "shared domain enums",
       summary: sharedTypesSummary,
@@ -950,7 +989,11 @@ function buildDomainStructureView(context: ViewerContext): ViewerViewSpec {
   return {
     id: "domain-structure",
     kind: "domain-structure",
-    title: "Domain Structure",
+    navigation: {
+      tier: "secondary",
+      order: 50
+    },
+    title: "Aggregate Boundary / Domain Structure",
     description:
       "Shows aggregate roots with owned objects, plus a dedicated shared-types lane for enums and other cross-aggregate structure references.",
     nodes,
@@ -1233,20 +1276,20 @@ function pushEdge(edges: ViewerEdgeSpec[], edgeIds: Set<string>, edge: ViewerEdg
   edgeIds.add(edge.id);
 }
 
-function toCompositionProcessGroupId(processId: string): string {
-  return `composition:process:${processId}`;
+function toContextMapContextId(contextId: string): string {
+  return `context-map:context:${contextId}`;
 }
 
-function toCompositionStageId(processId: string, stageId: string): string {
-  return `composition:process:${processId}:stage:${stageId}`;
+function toContextMapAggregateId(objectId: string): string {
+  return `context-map:aggregate:${objectId}`;
 }
 
-function toCompositionAggregateGroupId(objectId: string): string {
-  return `composition:aggregate:${objectId}`;
+function toContextMapScenarioId(processId: string): string {
+  return `context-map:scenario:${processId}`;
 }
 
-function toCompositionAggregateStateId(objectId: string, stateId: string): string {
-  return `composition:aggregate:${objectId}:state:${stateId}`;
+function toScenarioStoryScenarioId(processId: string): string {
+  return `scenario-story:scenario:${processId}`;
 }
 
 function toLifecycleAggregateGroupId(objectId: string): string {
@@ -1257,20 +1300,24 @@ function toLifecycleStateId(objectId: string, stateId: string): string {
   return `lifecycle:aggregate:${objectId}:state:${stateId}`;
 }
 
-function toTraceProcessGroupId(processId: string): string {
-  return `trace:process:${processId}`;
+function toScenarioStoryStepId(processId: string, stageId: string): string {
+  return `scenario-story:scenario:${processId}:step:${stageId}`;
 }
 
-function toTraceStageId(processId: string, stageId: string): string {
-  return `trace:process:${processId}:stage:${stageId}`;
+function toMessageFlowScenarioId(processId: string): string {
+  return `message-flow:scenario:${processId}`;
 }
 
-function toTraceCommandId(processId: string, stageId: string, commandType: string): string {
-  return `trace:process:${processId}:stage:${stageId}:command:${commandType}`;
+function toMessageFlowStepId(processId: string, stageId: string): string {
+  return `message-flow:scenario:${processId}:step:${stageId}`;
 }
 
-function toTraceEventId(processId: string, stageId: string, eventType: string): string {
-  return `trace:process:${processId}:stage:${stageId}:event:${eventType}`;
+function toMessageFlowCommandId(processId: string, stageId: string, commandType: string): string {
+  return `message-flow:scenario:${processId}:step:${stageId}:message:command:${commandType}`;
+}
+
+function toMessageFlowEventId(processId: string, stageId: string, eventType: string): string {
+  return `message-flow:scenario:${processId}:step:${stageId}:message:event:${eventType}`;
 }
 
 function toDomainStructureAggregateGroupId(objectId: string): string {

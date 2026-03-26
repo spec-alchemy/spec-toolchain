@@ -1,3 +1,51 @@
+context.id:
+  label: Context
+  description: 当前作为业务所有权边界展示的 bounded context。
+context.owned_aggregates:
+  label: Owned aggregates
+  description: 当前 context 边界内部建模的聚合集合。
+context.scenarios:
+  label: Scenarios
+  description: 当前 context 默认教学路径下的业务场景集合。
+scenario.id:
+  label: Scenario
+  description: 作为默认阅读主线的端到端业务场景。
+scenario.initial_step:
+  label: Initial step
+  description: 该场景在任何后续消息推进前首先进入的步骤。
+scenario.final_steps:
+  label: Final steps
+  description: 该场景允许收束到的终局步骤集合。
+scenario.related_aggregates:
+  label: Related aggregates
+  description: 场景推进过程中会触达或依赖的聚合集合。
+step.id:
+  label: Step
+  description: 场景故事中的单个业务步骤。
+step.final:
+  label: Final
+  description: 标记该步骤是否为终局业务结果，而不是继续推进中的工作步骤。
+step.bound_aggregate:
+  label: Bound aggregate
+  description: 若该步骤依赖生命周期约束，这里记录当前绑定的聚合。
+step.bound_state:
+  label: Bound state
+  description: 若该步骤依赖生命周期约束，这里记录当前绑定的聚合状态。
+step.outcome:
+  label: Outcome
+  description: 当场景走到终局步骤时，对业务结果的简短说明。
+message.kind:
+  label: Message kind
+  description: 当前消息的类别，例如 command 或 event。
+message.type:
+  label: Message
+  description: 当前视图中展示或讨论的业务消息类型。
+event.observed_by_step:
+  label: Observed by step
+  description: 当前事件是否被某个场景步骤显式监听以继续推进。
+event.advances_to_step:
+  label: Advances to step
+  description: 事件被观察到后，场景会推进到的下一个步骤。
 process.id:
   label: Process
   description: 当前业务流程的标识或名称，用来区分不同的流程编排。

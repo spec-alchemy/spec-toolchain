@@ -122,20 +122,26 @@ export function assertExampleAnalysis(
 }
 
 export function assertExampleViewer(viewer: BusinessViewerSpec, example: ExampleFixture): void {
-  assert.equal(viewer.viewerVersion, 2);
+  assert.equal(viewer.viewerVersion, 3);
   assert.equal(viewer.specId, example.id);
   assert.deepEqual(
     viewer.views.map((view) => view.id),
-    ["composition", "lifecycle", "trace", "domain-structure"]
+    ["context-map", "scenario-story", "message-flow", "lifecycle", "domain-structure"]
   );
   assert.deepEqual(
-    viewer.views.map((view) => view.kind ?? view.id),
-    ["composition", "lifecycle", "trace", "domain-structure"]
+    viewer.views.map((view) => view.kind),
+    ["context-map", "scenario-story", "message-flow", "lifecycle", "domain-structure"]
   );
+  assert.deepEqual(
+    viewer.views.map((view) => view.navigation.order),
+    [10, 20, 30, 40, 50]
+  );
+  assert.equal(viewer.views[0]?.navigation.default, true);
 
-  const compositionView = mustFind(viewer.views, (view) => view.id === "composition");
+  const contextMapView = mustFind(viewer.views, (view) => view.id === "context-map");
+  const scenarioStoryView = mustFind(viewer.views, (view) => view.id === "scenario-story");
+  const messageFlowView = mustFind(viewer.views, (view) => view.id === "message-flow");
   const lifecycleView = mustFind(viewer.views, (view) => view.id === "lifecycle");
-  const traceView = mustFind(viewer.views, (view) => view.id === "trace");
   const domainStructureView = mustFind(
     viewer.views,
     (view) => view.id === "domain-structure"
@@ -148,8 +154,8 @@ export function assertExampleViewer(viewer: BusinessViewerSpec, example: Example
 
   assert.deepEqual(
     sortStrings(
-      compositionView.nodes
-        .filter((node) => node.kind === "aggregate-group")
+      contextMapView.nodes
+        .filter((node) => node.kind === "aggregate")
         .map((node) => getDetailValue(node.details, "aggregate.id"))
     ),
     sortStrings(example.aggregateIds)
@@ -157,7 +163,7 @@ export function assertExampleViewer(viewer: BusinessViewerSpec, example: Example
   assert.deepEqual(
     sortStrings(
       lifecycleView.nodes
-        .filter((node) => node.kind === "aggregate-group")
+        .filter((node) => node.kind === "aggregate")
         .map((node) => getDetailValue(node.details, "aggregate.id"))
     ),
     sortStrings(example.aggregateIds)
@@ -165,10 +171,22 @@ export function assertExampleViewer(viewer: BusinessViewerSpec, example: Example
   assert.deepEqual(
     sortStrings(
       domainStructureView.nodes
-        .filter((node) => node.kind === "aggregate-group")
+        .filter((node) => node.kind === "aggregate")
         .map((node) => getDetailValue(node.details, "aggregate.id"))
     ),
     sortStrings(example.aggregateIds)
+  );
+  assert.equal(
+    contextMapView.nodes.filter((node) => node.kind === "context").length,
+    1
+  );
+  assert.deepEqual(
+    sortStrings(
+      contextMapView.nodes
+        .filter((node) => node.kind === "scenario")
+        .map((node) => getDetailValue(node.details, "scenario.id"))
+    ),
+    [example.processId]
   );
   assert.deepEqual(
     sortStrings(
@@ -204,35 +222,44 @@ export function assertExampleViewer(viewer: BusinessViewerSpec, example: Example
   );
   assert.deepEqual(
     sortStrings(
-      traceView.nodes
-        .filter((node) => node.kind === "stage" || node.kind === "final-stage")
-        .map((node) => getDetailValue(node.details, "stage.id"))
+      scenarioStoryView.nodes
+        .filter((node) => node.kind === "scenario-step")
+        .map((node) => getDetailValue(node.details, "step.id"))
     ),
     sortStrings(example.stageIds)
   );
   assert.deepEqual(
     sortStrings(
-      traceView.nodes
-        .filter((node) => node.kind === "final-stage")
-        .map((node) => getDetailValue(node.details, "stage.id"))
+      scenarioStoryView.nodes
+        .filter(
+          (node) =>
+            node.kind === "scenario-step" &&
+            getDetailValue(node.details, "step.final") === "yes"
+        )
+        .map((node) => getDetailValue(node.details, "step.id"))
     ),
     sortStrings(example.finalStageIds)
   );
   assert.deepEqual(
     sortStrings(
-      compositionView.edges
-        .filter((edge) => edge.kind === "advance")
-        .map((edge) => formatAdvanceFromDetails(edge, "relation.from", "event.type", "relation.to"))
+      scenarioStoryView.edges
+        .filter((edge) => edge.kind === "sequence")
+        .map((edge) => formatAdvanceFromDetails(edge, "relation.from", "message.type", "relation.to"))
     ),
     sortStrings(example.processAdvances.map(formatAdvance))
   );
   assert.deepEqual(
     sortStrings(
-      traceView.edges
-        .filter((edge) => edge.kind === "advance")
+      messageFlowView.edges
+        .filter(
+          (edge) =>
+            edge.kind === "message-flow" &&
+            edge.label === "advances" &&
+            hasDetailValue(edge.details, "relation.to")
+        )
         .map(
           (edge) =>
-            `${getDetailValue(edge.details, "event.type")}|${getDetailValue(edge.details, "event.target_stage")}`
+            `${getDetailValue(edge.details, "message.type")}|${getDetailValue(edge.details, "relation.to")}`
         )
     ),
     sortStrings(
@@ -1299,6 +1326,10 @@ function getDetailValue(details: readonly ViewerDetailItem[], semanticKey: strin
   }
 
   return detail.value.text;
+}
+
+function hasDetailValue(details: readonly ViewerDetailItem[], semanticKey: string): boolean {
+  return details.some((candidate) => candidate.semanticKey === semanticKey);
 }
 
 function getOptionalDetailValue(

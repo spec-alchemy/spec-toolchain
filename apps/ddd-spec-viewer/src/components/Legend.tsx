@@ -7,44 +7,66 @@ import {
 
 const LEGEND_ITEMS = [
   {
-    kind: "process-group",
-    label: "Process Group",
-    className: "kind-process-group",
-    borderColor: VIEWER_NODE_COLOR_BY_KIND["process-group"]
+    kind: "context",
+    label: "Context",
+    className: "kind-context",
+    borderColor: VIEWER_NODE_COLOR_BY_KIND.context
   },
   {
-    kind: "aggregate-group",
+    kind: "scenario",
+    label: "Scenario",
+    className: "kind-scenario",
+    borderColor: VIEWER_NODE_COLOR_BY_KIND.scenario
+  },
+  {
+    kind: "scenario-step",
+    label: "Scenario Step",
+    className: "kind-scenario-step",
+    borderColor: VIEWER_NODE_COLOR_BY_KIND["scenario-step"]
+  },
+  {
+    kind: "message",
+    label: "Message",
+    className: "kind-message",
+    borderColor: VIEWER_NODE_COLOR_BY_KIND.message
+  },
+  {
+    kind: "aggregate",
     label: "Aggregate",
-    className: "kind-aggregate-group",
-    borderColor: VIEWER_NODE_COLOR_BY_KIND["aggregate-group"]
+    className: "kind-aggregate",
+    borderColor: VIEWER_NODE_COLOR_BY_KIND.aggregate
   },
   {
-    kind: "type-group",
+    kind: "lifecycle-state",
+    label: "Lifecycle State",
+    className: "kind-lifecycle-state",
+    borderColor: VIEWER_NODE_COLOR_BY_KIND["lifecycle-state"]
+  },
+  {
+    kind: "shared-type-group",
     label: "Shared Types",
-    className: "kind-type-group",
-    borderColor: VIEWER_NODE_COLOR_BY_KIND["type-group"]
+    className: "kind-shared-type-group",
+    borderColor: VIEWER_NODE_COLOR_BY_KIND["shared-type-group"]
   },
   { kind: "relation", label: "Relation", className: "kind-relation", borderColor: VIEWER_RELATION_COLOR },
-  { kind: "stage", label: "Stage", className: "kind-stage", borderColor: VIEWER_NODE_COLOR_BY_KIND.stage },
   {
-    kind: "final-stage",
-    label: "Final Stage",
-    className: "kind-final-stage",
-    borderColor: VIEWER_NODE_COLOR_BY_KIND["final-stage"]
+    kind: "actor",
+    label: "Actor",
+    className: "kind-actor",
+    borderColor: VIEWER_NODE_COLOR_BY_KIND.actor
   },
   {
-    kind: "aggregate-state",
-    label: "Aggregate State",
-    className: "kind-aggregate-state",
-    borderColor: VIEWER_NODE_COLOR_BY_KIND["aggregate-state"]
+    kind: "system",
+    label: "System",
+    className: "kind-system",
+    borderColor: VIEWER_NODE_COLOR_BY_KIND.system
   },
   {
-    kind: "command",
-    label: "Command",
-    className: "kind-command",
-    borderColor: VIEWER_NODE_COLOR_BY_KIND.command
+    kind: "policy",
+    label: "Policy",
+    className: "kind-policy",
+    borderColor: VIEWER_NODE_COLOR_BY_KIND.policy
   },
-  { kind: "event", label: "Event", className: "kind-event", borderColor: VIEWER_NODE_COLOR_BY_KIND.event },
   {
     kind: "entity",
     label: "Entity",

@@ -1,17 +1,19 @@
 import type { FlowNodeKind } from "@/types";
 
 const NODE_KIND_LABELS: Readonly<Record<FlowNodeKind, string>> = {
-  "process-group": "process",
-  "aggregate-group": "aggregate",
-  "type-group": "shared types",
-  stage: "stage",
-  "final-stage": "final stage",
-  "aggregate-state": "aggregate state",
-  command: "command",
-  event: "event",
+  context: "context",
+  actor: "actor",
+  system: "system",
+  scenario: "scenario",
+  "scenario-step": "scenario step",
+  message: "message",
+  aggregate: "aggregate",
+  "lifecycle-state": "lifecycle state",
+  "shared-type-group": "shared types",
   entity: "entity",
   "value-object": "value object",
   enum: "enum",
+  policy: "policy",
   relation: "relation"
 };
 

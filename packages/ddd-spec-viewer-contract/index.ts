@@ -1,31 +1,43 @@
-export const BUSINESS_VIEWER_SPEC_VERSION = 2 as const;
+export const BUSINESS_VIEWER_SPEC_VERSION = 3 as const;
 
 export type ViewerViewKind =
-  | "composition"
+  | "context-map"
+  | "scenario-story"
+  | "message-flow"
   | "lifecycle"
-  | "trace"
   | "domain-structure"
-  | "context-map";
+  | "policy-saga";
+
+export type ViewerViewTier = "primary" | "secondary";
+
+export interface ViewerViewNavigationSpec {
+  tier: ViewerViewTier;
+  order: number;
+  default?: boolean;
+}
 
 export type ViewerNodeKind =
-  | "process-group"
-  | "aggregate-group"
-  | "type-group"
-  | "stage"
-  | "final-stage"
-  | "aggregate-state"
-  | "command"
-  | "event"
+  | "context"
+  | "actor"
+  | "system"
+  | "scenario"
+  | "scenario-step"
+  | "message"
+  | "aggregate"
+  | "lifecycle-state"
+  | "shared-type-group"
   | "entity"
   | "value-object"
-  | "enum";
+  | "enum"
+  | "policy";
 
 export type ViewerEdgeKind =
-  | "advance"
-  | "binding"
-  | "transition"
-  | "accepts"
-  | "emits"
+  | "collaboration"
+  | "ownership"
+  | "sequence"
+  | "message-flow"
+  | "state-transition"
+  | "coordination"
   | "association"
   | "composition"
   | "reference";
@@ -110,7 +122,8 @@ export interface ViewerEdgeSpec {
 
 export interface ViewerViewSpec {
   id: string;
-  kind?: ViewerViewKind;
+  kind: ViewerViewKind;
+  navigation: ViewerViewNavigationSpec;
   title: string;
   description: string;
   nodes: readonly ViewerNodeSpec[];

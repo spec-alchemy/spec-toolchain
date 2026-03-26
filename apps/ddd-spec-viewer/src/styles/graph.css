@@ -79,29 +79,34 @@
   overflow-wrap: anywhere;
 }
 
-.relation-kind-advance {
+.relation-kind-sequence {
   border-color: var(--event-border);
   background: var(--event-surface);
 }
 
-.relation-kind-binding {
+.relation-kind-collaboration {
   border-color: var(--binding-border);
   background: var(--relation-surface-gradient);
 }
 
-.relation-kind-transition {
+.relation-kind-state-transition {
   border-color: var(--state-border);
   background: var(--state-surface);
 }
 
-.relation-kind-accepts {
-  border-color: var(--command-border);
-  background: var(--command-surface);
-}
-
-.relation-kind-emits {
+.relation-kind-message-flow {
   border-color: var(--emits-border);
   background: var(--emits-surface);
+}
+
+.relation-kind-ownership {
+  border-color: var(--aggregate-border);
+  background: var(--aggregate-surface);
+}
+
+.relation-kind-coordination {
+  border-color: var(--command-border);
+  background: var(--command-surface);
 }
 
 .relation-kind-association {
@@ -192,17 +197,19 @@
   background: var(--kind-pill-surface);
 }
 
-.kind-process-group {
+.kind-context,
+.kind-scenario {
   border-color: var(--process-border);
   background: var(--process-surface);
 }
 
-.kind-aggregate-group {
+.kind-aggregate {
   border-color: var(--aggregate-border);
   background: var(--aggregate-surface);
 }
 
-.kind-type-group {
+.kind-shared-type-group,
+.kind-policy {
   border-color: var(--command-border);
   background: var(--command-surface);
 }
@@ -212,27 +219,23 @@
   background: var(--relation-surface-gradient);
 }
 
-.kind-stage {
+.kind-scenario-step,
+.kind-system {
   border-color: var(--stage-border);
   background: var(--stage-surface);
 }
 
-.kind-final-stage {
+.kind-actor {
   border-color: var(--final-stage-border);
   background: var(--final-stage-surface);
 }
 
-.kind-aggregate-state {
+.kind-lifecycle-state {
   border-color: var(--state-border);
   background: var(--state-surface);
 }
 
-.kind-command {
-  border-color: var(--command-border);
-  background: var(--command-surface);
-}
-
-.kind-event {
+.kind-message {
   border-color: var(--event-border);
   background: var(--event-surface);
 }

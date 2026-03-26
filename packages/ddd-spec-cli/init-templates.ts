@@ -16,7 +16,55 @@ export interface InitTemplateDefinition {
   files: readonly InitTemplateFile[];
 }
 
-const VIEWER_DETAIL_SEMANTICS_SOURCE = `process.id:
+const VIEWER_DETAIL_SEMANTICS_SOURCE = `context.id:
+  label: Context
+  description: The bounded context currently shown as the top-level business ownership boundary.
+context.owned_aggregates:
+  label: Owned aggregates
+  description: The aggregates currently modeled inside the context boundary.
+context.scenarios:
+  label: Scenarios
+  description: The scenarios currently taught as the default business stories for this context.
+scenario.id:
+  label: Scenario
+  description: The end-to-end business scenario that anchors the reader's default story path.
+scenario.initial_step:
+  label: Initial step
+  description: The first step where the scenario begins before any follow-up messages move it forward.
+scenario.final_steps:
+  label: Final steps
+  description: The valid endings of the scenario after the required business work is complete.
+scenario.related_aggregates:
+  label: Related aggregates
+  description: The aggregates that the scenario touches while its steps progress.
+step.id:
+  label: Step
+  description: A single business step inside the scenario story.
+step.final:
+  label: Final
+  description: Marks whether the step is a terminal business outcome instead of an active working step.
+step.bound_aggregate:
+  label: Bound aggregate
+  description: The aggregate that the step currently works against when lifecycle state matters.
+step.bound_state:
+  label: Bound state
+  description: The lifecycle state that contextualizes the current step.
+step.outcome:
+  label: Outcome
+  description: A short business result that explains how the scenario ended when it reached a final step.
+message.kind:
+  label: Message kind
+  description: The message category, such as command or event.
+message.type:
+  label: Message
+  description: The business message type currently being discussed or drawn in the view.
+event.observed_by_step:
+  label: Observed by step
+  description: Whether a scenario step explicitly listens to this event as the signal to continue.
+event.advances_to_step:
+  label: Advances to step
+  description: The next step reached after the event is observed.
+process.id:
   label: Process
   description: The business workflow you are modeling from its first stage to its closing outcomes.
 process.initial_stage:

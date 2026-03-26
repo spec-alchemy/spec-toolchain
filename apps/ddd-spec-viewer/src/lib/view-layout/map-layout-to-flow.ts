@@ -36,10 +36,10 @@ export function mapLayoutedGraphToFlow(
         source: edge.source,
         target: edge.target,
         type: "viewerEdge",
-        animated: edge.kind === "binding",
+        animated: edge.kind === "message-flow",
         selectable: true,
         markerEnd:
-          edge.kind === "binding" || !edge.isTerminalSegment
+          !edge.isTerminalSegment
             ? undefined
             : {
                 type: MarkerType.ArrowClosed,
@@ -48,7 +48,7 @@ export function mapLayoutedGraphToFlow(
         style: {
           stroke: VIEWER_EDGE_COLOR_BY_KIND[edge.kind],
           strokeDasharray: isDashedRelationKind(edge.kind) ? "6 5" : undefined,
-          strokeWidth: edge.kind === "binding" ? 1.6 : 2.2
+          strokeWidth: edge.kind === "collaboration" ? 1.6 : 2.2
         },
         data: {
           kind: edge.kind,
@@ -95,7 +95,7 @@ function walkLayoutedChildren(
       type:
         source.kind === "relation"
           ? "relationNode"
-          : source.kind.endsWith("group")
+          : source.headerHeight
             ? "groupNode"
             : "itemNode",
       position: {
@@ -229,5 +229,10 @@ function appendEdgePathPoint(
 }
 
 function isDashedRelationKind(kind: ViewerEdgeKind): boolean {
-  return kind === "binding" || kind === "association" || kind === "reference";
+  return (
+    kind === "collaboration" ||
+    kind === "ownership" ||
+    kind === "association" ||
+    kind === "reference"
+  );
 }

@@ -66,7 +66,7 @@ export default function App() {
       setSelectedViewId((current) =>
         nextSpec.views.some((view) => view.id === current)
           ? current
-          : (nextSpec.views[0]?.id ?? "")
+          : getDefaultViewId(nextSpec.views)
       );
       setErrorMessage(null);
 
@@ -116,7 +116,9 @@ export default function App() {
       return;
     }
 
-    const currentView = viewerSpec.views.find((view) => view.id === deferredViewId) ?? viewerSpec.views[0];
+    const currentView =
+      viewerSpec.views.find((view) => view.id === deferredViewId) ??
+      getDefaultView(viewerSpec.views);
 
     if (!currentView) {
       return;
@@ -169,7 +171,9 @@ export default function App() {
     };
   }, [specSource.isDefault]);
 
-  const currentView = viewerSpec?.views.find((view) => view.id === deferredViewId) ?? viewerSpec?.views[0] ?? null;
+  const currentView =
+    viewerSpec?.views.find((view) => view.id === deferredViewId) ??
+    (viewerSpec ? getDefaultView(viewerSpec.views) : null);
   const devSessionMessage = getViewerDevSessionMessage(devSessionStatus, {
     isDefaultSpecSource: specSource.isDefault
   });
@@ -233,4 +237,16 @@ export default function App() {
 
 function toErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : "Unknown error";
+}
+
+function getDefaultView(views: readonly ViewerViewSpec[]): ViewerViewSpec | null {
+  return (
+    views.find((view) => view.navigation.default) ??
+    [...views].sort((left, right) => left.navigation.order - right.navigation.order)[0] ??
+    null
+  );
+}
+
+function getDefaultViewId(views: readonly ViewerViewSpec[]): string {
+  return getDefaultView(views)?.id ?? "";
 }

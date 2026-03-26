@@ -21,31 +21,35 @@ function textDetailValue(text: string): ViewerDetailValue {
 }
 
 const RELATION_DETAILS: readonly ViewerDetailItem[] = [
-  { semanticKey: "relation.kind", label: "Relation Type", value: textDetailValue("composition") },
-  { semanticKey: "relation.label", label: "Relation", value: textDetailValue("card content") },
-  { semanticKey: "relation.from", label: "From", value: textDetailValue("Connection") },
-  { semanticKey: "relation.to", label: "To", value: textDetailValue("CardContent") }
+  { semanticKey: "relation.kind", label: "Relation Type", value: textDetailValue("sequence") },
+  { semanticKey: "relation.label", label: "Relation", value: textDetailValue("next") },
+  { semanticKey: "relation.from", label: "From", value: textDetailValue("Draft") },
+  { semanticKey: "relation.to", label: "To", value: textDetailValue("Approved") }
 ];
 
 test("relation node reuses edge details without injecting duplicate kind metadata", () => {
   const view: ViewerViewSpec = {
-    id: "composition",
-    kind: "composition",
-    title: "Composition",
+    id: "scenario-story",
+    kind: "scenario-story",
+    navigation: {
+      tier: "primary",
+      order: 20
+    },
+    title: "Scenario Story",
     description: "demo",
     nodes: [
       {
-        id: "domain-structure:object:Connection",
-        kind: "entity",
-        label: "Connection",
+        id: "scenario-story:scenario:approval:step:draft",
+        kind: "scenario-step",
+        label: "Draft",
         width: 200,
         height: 100,
         details: []
       },
       {
-        id: "domain-structure:object:CardContent",
-        kind: "value-object",
-        label: "Card Content",
+        id: "scenario-story:scenario:approval:step:approved",
+        kind: "scenario-step",
+        label: "Approved",
         width: 200,
         height: 100,
         details: []
@@ -53,11 +57,11 @@ test("relation node reuses edge details without injecting duplicate kind metadat
     ],
     edges: [
       {
-        id: "domain-structure:Connection:field:cardContent",
-        kind: "composition",
-        source: "domain-structure:object:Connection",
-        target: "domain-structure:object:CardContent",
-        label: "card content",
+        id: "scenario-story:approval:sequence:draft:approved",
+        kind: "sequence",
+        source: "scenario-story:scenario:approval:step:draft",
+        target: "scenario-story:scenario:approval:step:approved",
+        label: "ApprovalGranted",
         details: RELATION_DETAILS
       }
     ]
@@ -73,6 +77,10 @@ test("domain structure projects direct labeled edges without relation nodes", ()
   const view: ViewerViewSpec = {
     id: "domain-structure",
     kind: "domain-structure",
+    navigation: {
+      tier: "secondary",
+      order: 50
+    },
     title: "Domain Structure",
     description: "demo",
     nodes: [
@@ -118,6 +126,10 @@ test("domain structure direct edges use ELK label boxes instead of midpoint heur
   const view: ViewerViewSpec = {
     id: "domain-structure",
     kind: "domain-structure",
+    navigation: {
+      tier: "secondary",
+      order: 50
+    },
     title: "Domain Structure",
     description: "demo",
     nodes: [
@@ -198,13 +210,13 @@ test("domain structure direct edges use ELK label boxes instead of midpoint heur
 test("relation selections hide redundant label and kind details", () => {
   const relationSelection = selectionFromNodeData({
     kind: "relation",
-    relationKind: "composition",
-    label: "card content",
+    relationKind: "sequence",
+    label: "next",
     details: RELATION_DETAILS
   });
   const edgeSelection = selectionFromEdgeData({
-    kind: "composition",
-    label: "card content",
+    kind: "sequence",
+    label: "next",
     details: RELATION_DETAILS
   });
 
