@@ -1,4 +1,4 @@
-# DDD Spec Workflow vNext 正式设计稿
+# DDD Spec 产品设计
 
 ## 1. 文档定位
 
@@ -8,13 +8,14 @@
 
 - 后续 schema、analysis IR、viewer contract、projection、viewer UX、CLI 模板与文档 story，必须以本文件为唯一产品定义依据。
 - `ROADMAP.md` 保留为战略背景与分阶段路线；本文件负责给出可执行的产品语义与设计边界。
+- 默认零配置工作区固定为 `domain-model/`，默认入口固定为 `domain-model/index.yaml`。
 - 如果现有实现、历史文档或当前包结构与本文件冲突，以本文件为准。
 
 ## 2. 产品定义
 
 ### 2.1 北极星
 
-vNext 的目标产品是一个面向“业务理解 -> 边界梳理 -> 场景建模 -> 消息流澄清 -> 生命周期设计”的 DDD 建模工作台。
+当前目标产品是一个面向“业务理解 -> 边界梳理 -> 场景建模 -> 消息流澄清 -> 生命周期设计”的 DDD 建模工作台。
 
 它不是：
 
@@ -24,7 +25,7 @@ vNext 的目标产品是一个面向“业务理解 -> 边界梳理 -> 场景建
 
 ### 2.2 产品要解决的问题
 
-vNext 必须帮助团队高信号地回答以下问题：
+当前产品必须帮助团队高信号地回答以下问题：
 
 1. 系统里有哪些 bounded contexts、actors 与 external systems，它们如何协作？
 2. 一个核心业务场景是如何逐步推进的？
@@ -34,7 +35,7 @@ vNext 必须帮助团队高信号地回答以下问题：
 
 ### 2.3 明确决策
 
-以下决策在 vNext 中已经确定，不再回退：
+以下决策已经确定，不再回退：
 
 1. 不做向前兼容。
    说明：当前没有真实用户依赖旧模型；产品清晰度与建模质量优先于迁移成本。
@@ -42,10 +43,12 @@ vNext 必须帮助团队高信号地回答以下问题：
    说明：`composition` 不再作为一级产品概念、默认 authoring path、默认 viewer path 或教学入口。
 3. 公开包边界如需重定义，必须单独立项。
    说明：当前 `packages/ddd-spec-cli/`、公开包名 `@knowledge-alchemy/ddd-spec` 与 CLI 名 `ddd-spec` 仍是本轮实现与发布边界。默认工作区命名与版本重置不自动包含公开包重组、拆分或重命名；如需调整，必须另立 story / PRD 与 release plan。
+4. 默认工作区与版本重置必须和公开发布语义分轴处理。
+   说明：默认路径固定为 `domain-model/index.yaml`，当前 domain model schema version 与 viewer spec version 都从 `1` 重新起步，但这不等于 npm package semver reset。
 
 ## 3. 新的核心概念
 
-vNext 的 canonical model、analysis IR 与 viewer contract，必须围绕以下一等概念设计：
+当前产品的 shared domain model、analysis IR 与 viewer contract，必须围绕以下一等概念设计：
 
 | 概念 | 定义 | 为什么是一等公民 |
 |------|------|------------------|
@@ -132,17 +135,17 @@ CLI 模板、README、示例与 viewer 文案必须教授同一顺序：
 1. 只有当一级主图无法充分解释问题时，才进入二级扩展图。
 2. 二级扩展图必须引用一级主图中的概念，不得引入另一套并行语义。
 
-## 6. Canonical Model vNext
+## 6. Shared Domain Model
 
 ### 6.1 设计目标
 
-新的 canonical model 必须首先服务 4 张一级主图，其次再服务 2 张二级扩展图。
+新的 shared domain model 必须首先服务 4 张一级主图，其次再服务 2 张二级扩展图。
 
 它不应继续围绕旧的 `objects / commands / events / aggregates / processes` 目录心智展开。
 
 ### 6.2 必须表达的语义
 
-新的 canonical model 至少必须显式表达：
+新的 shared domain model 至少必须显式表达：
 
 1. contexts 及其 ownership
 2. actors 与 systems
@@ -154,7 +157,7 @@ CLI 模板、README、示例与 viewer 文案必须教授同一顺序：
 
 ### 6.3 结构原则
 
-新的 canonical model 必须满足以下原则：
+新的 shared domain model 必须满足以下原则：
 
 1. 视图不重复造语义，视图只投影共享语义。
 2. message 是跨视图共享的统一抽象，而不是分散在 command / event / query 各自旁路里。
@@ -162,13 +165,13 @@ CLI 模板、README、示例与 viewer 文案必须教授同一顺序：
 4. aggregate 只在需要时出现，不是默认起点。
 5. policy 只表达明确协调逻辑，不替代普通消息流。
 
-## 7. Analysis IR vNext
+## 7. Analysis IR
 
 ### 7.1 角色
 
 analysis IR 是所有目标视图的共享语义核心。
 
-它必须从 canonical model 归一化出一套稳定的分析对象，而不是让每张图各自重建一套 graph logic。
+它必须从 shared domain model 归一化出一套稳定的分析对象，而不是让每张图各自重建一套 graph logic。
 
 ### 7.2 必须产出的分析语义
 
@@ -183,7 +186,7 @@ analysis IR 至少必须提供：
 
 ### 7.3 必须支撑的验证与诊断
 
-vNext 的 validation / diagnostics 至少必须覆盖：
+当前产品的 validation / diagnostics 至少必须覆盖：
 
 1. orphan scenario
 2. scenario step without owner context
@@ -196,7 +199,7 @@ vNext 的 validation / diagnostics 至少必须覆盖：
 
 ## 8. Viewer Contract 与 Inspector 原则
 
-viewer contract 必须直接反映 vNext 的共享语义，而不是延续当前视图集合作为架构基线。
+viewer contract 必须直接反映当前产品的共享语义，而不是延续当前视图集合作为架构基线。
 
 设计要求：
 
@@ -239,14 +242,14 @@ viewer contract 必须直接反映 vNext 的共享语义，而不是延续当前
 本设计稿明确不包含以下目标：
 
 1. 保留旧 schema 兼容性
-2. 提供旧 canonical 自动迁移工具
+2. 提供旧工作区自动迁移工具
 3. 保留 `composition` 顶层视图地位
 4. 延续旧 graph model 作为总设计中心
 5. 让二级扩展图反向主导产品路径
 
 ## 12. 实施判定标准
 
-后续实现 story 应按以下标准判断是否符合 vNext：
+后续实现 story 应按以下标准判断是否符合当前产品设计：
 
 1. 是否强化了 4 张一级主图的默认路径？
 2. 是否保持了共享语义核心，而不是让单个视图偷建私有语义？
@@ -254,7 +257,7 @@ viewer contract 必须直接反映 vNext 的共享语义，而不是延续当前
 4. 是否继续坚持“不做向前兼容”的产品决策？
 5. 是否在不误伤当前公开发布边界的前提下推进实现，并把任何公开包边界调整单独立项？
 
-如果答案是否定的，该实现不应被视为 vNext 正确方向。
+如果答案是否定的，该实现不应被视为当前产品的正确方向。
 
 ---
 

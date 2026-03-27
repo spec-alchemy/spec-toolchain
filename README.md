@@ -2,7 +2,7 @@
 
 `@knowledge-alchemy/ddd-spec` currently ships a DDD modeling workbench: a zero-config CLI plus a packaged viewer that take teams from `Context Map` to `Scenario Story` to `Message Flow / Trace` to `Lifecycle`.
 
-In a consumer workspace, the default path is `domain-model/`: define the model, validate and build into `.ddd-spec/`, then open the local viewer to inspect the same four primary views. This repository is the private maintainer monorepo for that toolchain; the installed-package workflow below is the path ordinary users should follow in their own projects.
+In a consumer workspace, the default path is `domain-model/` and the default entry is `domain-model/index.yaml`: define the model, validate and build into `.ddd-spec/`, then open the local viewer to inspect the same four primary views. This repository is the private maintainer monorepo for that toolchain; the installed-package workflow below is the path ordinary users should follow in their own projects.
 
 ## Consumer Quick Start
 
@@ -51,9 +51,9 @@ npm exec ddd-spec viewer -- --port 4173
 
 ## What You Model
 
-The default domain model lives in `domain-model/`:
+The default domain model lives in `domain-model/`, with `domain-model/index.yaml` as the entry file:
 
-- `index.yaml`: the entry point that wires the domain model collections together
+- `index.yaml`: the default entry point that wires the domain model collections together
 - `contexts/`: bounded contexts and their relationships
 - `actors/`: people or roles that trigger business behavior
 - `systems/`: external systems that participate in flows
@@ -112,14 +112,14 @@ These commands resolve through [`apps/ddd-spec-viewer/ddd-spec.config.yaml`](./a
 
 `npm exec ddd-spec build` writes the default generated outputs into `.ddd-spec/`:
 
-- `.ddd-spec/artifacts/business-spec.json`: bundled canonical spec
+- `.ddd-spec/artifacts/business-spec.json`: bundled domain model spec
 - `.ddd-spec/artifacts/business-spec.analysis.json`: analysis output and diagnostics
 - `.ddd-spec/artifacts/viewer-spec.json`: viewer projection consumed by the packaged viewer
 - `.ddd-spec/generated/business-spec.generated.ts`: generated TypeScript source when TypeScript projection is enabled
 
 On the default path, the viewer artifact is the main generated product surface. TypeScript projection is not part of the zero-config starter yet, so `.ddd-spec/generated/business-spec.generated.ts` is intentionally absent for now.
 
-`npm exec ddd-spec dev` runs the initial validation/build, opens the packaged viewer automatically by default, and keeps rebuilding when canonical files change.
+`npm exec ddd-spec dev` runs the initial validation/build, opens the packaged viewer automatically by default, and keeps rebuilding when domain model files change.
 
 `npm exec ddd-spec viewer` rebuilds the workspace viewer artifact if needed and then serves the packaged viewer at `http://localhost:4173/` by default when you want the explicit one-shot flow instead.
 
@@ -143,6 +143,7 @@ The repo root stays `private: true` and should be read as maintainer infrastruct
 
 - The repo root stays `private: true`; it is the maintainer workspace shell, not the external product package.
 - [`packages/ddd-spec-cli/`](./packages/ddd-spec-cli/) is the single public npm package boundary, published under the current package name `@knowledge-alchemy/ddd-spec`.
+- The current domain model schema version and viewer spec version both reset to `1` on the product-contract axis.
 - The schema version reset and viewer spec version reset belong to product contract evolution, not npm package naming. This reset does not rename `@knowledge-alchemy/ddd-spec` or the `ddd-spec` CLI, and it does not imply a package semver reset.
 - The consumer README for installed-package usage lives at [`packages/ddd-spec-cli/README.md`](./packages/ddd-spec-cli/README.md).
 - [`apps/ddd-spec-viewer/`](./apps/ddd-spec-viewer/) remains private source. The shipped viewer is the static bundle emitted into `packages/ddd-spec-cli/dist/ddd-spec-cli/static/viewer/` during package build.
@@ -194,7 +195,7 @@ See [`RELEASING.md`](./RELEASING.md) for the full maintainer checklist and workf
 
 These items are maintainer backlog, not a public product promise:
 
-- Formalize public contract compatibility for the canonical schema, diagnostics, and viewer JSON, including a clearer deprecation and migration policy.
+- Formalize public contract compatibility for the domain model schema, diagnostics, and viewer JSON, including a clearer deprecation and migration policy.
 - Keep hardening install-mode and release-mode verification so tarball smoke, packaged viewer delivery, and release dry-runs stay trustworthy as the CLI evolves.
 - Expand downstream projection and integration guidance only after the current bundle, TypeScript, and viewer outputs remain stable across more consumer workspaces.
 - Evaluate viewer enhancements such as deep links, focused filtering, and relationship highlighting without breaking the current single-workspace default flow.
@@ -202,7 +203,7 @@ These items are maintainer backlog, not a public product promise:
 
 ## Repository Layout
 
-- [`packages/ddd-spec-core/`](./packages/ddd-spec-core/): canonical loading, schema validation, semantic validation, graph IR, and analysis
+- [`packages/ddd-spec-core/`](./packages/ddd-spec-core/): domain model loading, schema validation, semantic validation, graph IR, and analysis
 - [`packages/ddd-spec-cli/`](./packages/ddd-spec-cli/): the single external package boundary for `@knowledge-alchemy/ddd-spec`, including CLI commands, config loading, build orchestration, and viewer launch helpers
 - `packages/ddd-spec-cli/dist/ddd-spec-cli/static/viewer/`: packaged static viewer assets built from [`apps/ddd-spec-viewer/`](./apps/ddd-spec-viewer/) and shipped inside the public package output
 - [`packages/ddd-spec-projection-viewer/`](./packages/ddd-spec-projection-viewer/): private viewer JSON projection implementation

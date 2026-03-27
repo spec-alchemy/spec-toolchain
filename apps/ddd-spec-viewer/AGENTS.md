@@ -21,7 +21,7 @@
 
 ## Key Conventions
 - Treat `public/generated/viewer-spec.json` as generated input; regenerate it from the root repo-local example pipeline (`npm run repo:build`) instead of hand editing it.
-- The root maintainer scripts read [`ddd-spec.config.yaml`](./ddd-spec.config.yaml), not a repo-root `ddd-spec/canonical/`.
+- The root maintainer scripts read [`ddd-spec.config.yaml`](./ddd-spec.config.yaml), not a repo-root maintainer modeling tree.
 - [`ddd-spec.config.yaml`](./ddd-spec.config.yaml) is the tracked repo-local cross-context example path; if the default maintainer demo changes, update this config, the root docs, and config tests together.
 - Keep repeated viewer display tokens in shared constants under `src/lib/`.
 - Do not inline hex colors or other repeated presentation literals in React components; reuse `src/lib/viewer-colors.ts`.

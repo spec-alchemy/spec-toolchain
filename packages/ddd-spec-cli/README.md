@@ -1,9 +1,9 @@
 # `@knowledge-alchemy/ddd-spec`
 
 `@knowledge-alchemy/ddd-spec` is the external CLI package for the DDD modeling workbench.
-Zero-config is the default product path: run `ddd-spec init`, model under `domain-model/`, and let the CLI write build outputs into `.ddd-spec/`. Use `--config <path>` only when a workspace needs custom entry paths, output locations, or viewer sync targets.
+Zero-config is the default product path: run `ddd-spec init`, model under `domain-model/`, keep `domain-model/index.yaml` as the default entry, and let the CLI write build outputs into `.ddd-spec/`. Use `--config <path>` only when a workspace needs custom entry paths, output locations, or viewer sync targets.
 
-Package naming and versioning stay on a separate axis from schema contracts: this reset does not rename the package, does not rename the `ddd-spec` CLI command, and does not imply an npm semver reset just because schema or viewer contract versions change.
+Package naming and versioning stay on a separate axis from schema contracts: the current domain model schema version and viewer spec version both start at `1`, but this reset does not rename the package, does not rename the `ddd-spec` CLI command, and does not imply an npm semver reset just because schema or viewer contract versions change.
 
 ## Preferred Onboarding
 
@@ -16,7 +16,7 @@ npm exec ddd-spec init
 npm exec ddd-spec dev
 ```
 
-`init` creates a starter under `domain-model/` with one bounded context, one core scenario, one message flow, and one lifecycle. It also adds `.ddd-spec/` to `.gitignore` when needed.
+`init` creates a starter under `domain-model/`, with `domain-model/index.yaml` as the default entry, plus one bounded context, one core scenario, one message flow, and one lifecycle. It also adds `.ddd-spec/` to `.gitignore` when needed.
 
 The default zero-config build writes bundle, analysis, and viewer outputs into `.ddd-spec/`. TypeScript projection is not part of the default path yet, so the starter intentionally skips generated TypeScript output for now.
 

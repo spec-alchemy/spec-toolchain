@@ -6,7 +6,7 @@
 
 目前没有真实用户在使用这个产品，因此我们不需要做向前兼容。
 
-这意味着我们应该优先追求产品清晰度、建模质量和交付速度，而不是继续保留当前 schema、当前视图集合或当前 canonical 结构。
+这意味着我们应该优先追求产品清晰度、建模质量和交付速度，而不是继续保留当前 schema、当前视图集合或当前历史模型结构。
 
 ## 北极星目标
 
@@ -38,7 +38,7 @@
 2. 先场景，再聚合。
 3. 先消息流，再对象组合。
 4. 高 ROI 优先于历史连续性。
-5. 先 canonical model，再 projection，再 UI。
+5. 先 shared domain model，再 projection，再 UI。
 6. 除非现实情况变化，否则不做向前兼容。
 7. 不再对当前 `composition` 视图作为顶层产品概念继续投入。
 
@@ -63,7 +63,7 @@
 
 未来产品不应继续围绕当前 graph model 无限扩展。
 
-正确方向应当是：围绕产品真正要回答的业务问题，重新设计 canonical model。
+正确方向应当是：围绕产品真正要回答的业务问题，重新设计 shared domain model。
 
 ## 产品目标
 
@@ -99,11 +99,11 @@
 1. 团队把本路线图作为后续决策依据。
 2. 新工作以目标视图体系为判断标准，而不是以历史路径依赖为标准。
 
-### Phase 1：Canonical Model vNext
+### Phase 1：Shared Domain Model
 
-目标：定义一个可以直接支撑目标视图体系的新 canonical model。
+目标：定义一个可以直接支撑目标视图体系的新 shared domain model。
 
-新的 canonical model 应围绕以下概念展开：
+新的 shared domain model 应围绕以下概念展开：
 
 1. `contexts`
 2. `actors`
@@ -125,7 +125,7 @@
 退出条件：
 
 1. 定义出新的 schema version。
-2. 旧 canonical 布局不再被视为设计中心。
+2. 旧历史模型布局不再被视为设计中心。
 3. 所有一级主视图都能从新模型中自然推导出来。
 
 ### Phase 2：统一分析 IR
@@ -157,7 +157,7 @@
 1. 所有目标视图都可从同一个共享 IR 投影生成。
 2. diagnostics 与目标建模体系保持一致，而不再只围绕旧的 aggregate/process 模型。
 
-### Phase 3：Viewer Contract vNext
+### Phase 3：Viewer Contract
 
 目标：围绕目标产品重设计 viewer contract，而不是围绕当前视图集合做扩展。
 
@@ -275,7 +275,7 @@ UX 优先级：
 
 投资顺序应为：
 
-1. canonical model
+1. shared domain model
 2. analysis IR
 3. viewer contract
 4. projection
@@ -292,16 +292,16 @@ UX 优先级：
 这次产品重置明确不包括以下事项：
 
 1. 向前兼容
-2. 旧 canonical 文件迁移工具
+2. 旧工作区迁移工具
 3. 保留当前顶层视图集合
 4. 保留 `composition` 作为一等产品能力
 5. 把当前 graph model 当成最终设计中心
 
 ## 立即下一步
 
-在本路线图之后，第一个具体交付物应是一份正式的 vNext 产品设计稿，明确：
+在本路线图之后，第一个具体交付物应是一份正式的产品设计稿，明确：
 
-1. 新 canonical model
+1. 新 shared domain model
 2. 新 analysis IR
 3. 4 张一级主图的 contract
 4. 2 张二级扩展图的 contract

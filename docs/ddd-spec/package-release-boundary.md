@@ -8,7 +8,7 @@
 
 - 公开发布边界继续以 `packages/ddd-spec-cli/` -> `@knowledge-alchemy/ddd-spec` -> `ddd-spec` 为准。
 - schema version 与 viewer spec version 的重置，不自动推导为 npm package semver 重置。
-- 如果旧的 `vnext-product-design.md` 中关于“允许重定义公开包边界”的表述与本文件冲突，以本文件为准；旧文档只保留长期产品演化背景，不再代表本轮实现范围。
+- 如果 `product-design.md` 中关于长期演化空间的表述与本文件冲突，以本文件为准；本文件负责当前实现范围内的公开发布边界。
 
 ## 2. 已确定边界
 

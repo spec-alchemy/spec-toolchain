@@ -1,8 +1,8 @@
 # DDD Spec Viewer
 
-`apps/ddd-spec-viewer/` 是内部维护用的 React viewer source workspace，不是对外 npm package 边界，也不会以源码形式随 `@knowledge-alchemy/ddd-spec` 发布。真正随 `@knowledge-alchemy/ddd-spec` 发布的是构建出的静态 bundle：`packages/ddd-spec-cli/dist/ddd-spec-cli/static/viewer/`。
+`apps/ddd-spec-viewer/` 是内部维护用的 React viewer source workspace，不是对外 npm package 边界，也不会以源码形式随 `@knowledge-alchemy/ddd-spec` 发布。真正随 `@knowledge-alchemy/ddd-spec` 发布的是构建出的静态 bundle：`packages/ddd-spec-cli/dist/ddd-spec-cli/static/viewer/`。当前产品名与 CLI 名仍保留 `ddd-spec`；schema version 与 viewer spec version 已重置为 `1`，但这不影响公开包 semver。
 
-消费者安装和零配置说明请查看 [`../../packages/ddd-spec-cli/README.md`](../../packages/ddd-spec-cli/README.md)。本 README 只描述 monorepo maintainer 的 `scenarios/` 场景与 app-local 开发路径。
+消费者安装和零配置说明请查看 [`../../packages/ddd-spec-cli/README.md`](../../packages/ddd-spec-cli/README.md)。默认 consumer 入口是 `domain-model/index.yaml`。本 README 只描述 monorepo maintainer 的 repo-local 演示链路与 app-local 开发路径。
 
 ## 默认产品面
 
@@ -51,7 +51,7 @@ npm run dev --workspace=apps/ddd-spec-viewer
 npm run repo:viewer -- --host 0.0.0.0 --port 4173
 ```
 
-根目录 `repo:*` 命令现在默认指向仓库跟踪的 [`../../examples/cross-context/`](../../examples/cross-context/) cross-context 示例。
+根目录 `repo:*` 命令现在默认指向仓库跟踪的 [`../../examples/cross-context/`](../../examples/cross-context/) cross-context 示例，并通过 `domain-model/index.yaml` 进入同一条默认产品路径。
 如果你想直接运行等价的 example-specific config，而不是通过 app-local config 转发，可使用：
 
 ```bash
@@ -69,7 +69,7 @@ npm run repo:cli --workspace=packages/ddd-spec-cli -- viewer --config examples/c
 - 在 app-local 开发场景里，这份文件来自 `public/generated/viewer-spec.json`
 - 在 `ddd-spec viewer` 产品路径里，这个同一路径由 CLI server 动态映射到当前 workspace 的 viewer artifact
 - [`./ddd-spec.config.yaml`](./ddd-spec.config.yaml) 会继续把 viewer spec 同步到 `public/generated/viewer-spec.json`，供内部开发和静态构建使用
-- inspector 的业务语义 tooltip 来自 canonical vocabulary 生成出的 spec；只有 `How To Read` 这类纯 UI 引导文案保留在 app 本地
+- inspector 的业务语义 tooltip 来自 viewer spec 里的结构化 domain model 语义数据；只有 `How To Read` 这类纯 UI 引导文案保留在 app 本地
 
 如果不传额外参数，app 默认读取上述标准 source。
 如果想加载别的符合 contract 的 viewer JSON，可以使用 `?spec=...`：
