@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "vnext/canonical-index.schema.json",
-  "title": "vNext Canonical Index",
+  "$id": "domain-model/index.schema.json",
+  "title": "Domain Model Index",
   "type": "object",
   "additionalProperties": false,
   "required": ["version", "id", "title", "summary", "model"],

@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "vnext/aggregate.schema.json",
-  "title": "vNext Aggregate",
+  "$id": "domain-model/aggregate.schema.json",
+  "title": "Domain Model Aggregate",
   "type": "object",
   "additionalProperties": false,
   "required": [

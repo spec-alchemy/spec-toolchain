@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "vnext/message.schema.json",
-  "title": "vNext Message",
+  "$id": "domain-model/message.schema.json",
+  "title": "Domain Model Message",
   "type": "object",
   "additionalProperties": false,
   "required": [

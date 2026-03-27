@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "vnext/policy.schema.json",
-  "title": "vNext Policy",
+  "$id": "domain-model/policy.schema.json",
+  "title": "Domain Model Policy",
   "type": "object",
   "additionalProperties": false,
   "required": ["kind", "id", "title", "summary", "triggerMessages"],

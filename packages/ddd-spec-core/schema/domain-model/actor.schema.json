@@ -1,13 +1,13 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "vnext/system.schema.json",
-  "title": "vNext System",
+  "$id": "domain-model/actor.schema.json",
+  "title": "Domain Model Actor",
   "type": "object",
   "additionalProperties": false,
   "required": ["kind", "id", "title", "summary"],
   "properties": {
     "kind": {
-      "const": "system"
+      "const": "actor"
     },
     "id": {
       "$ref": "shared.schema.json#/$defs/identifier"
@@ -18,11 +18,8 @@
     "summary": {
       "$ref": "shared.schema.json#/$defs/summary"
     },
-    "boundary": {
-      "enum": ["internal", "external"]
-    },
-    "capabilities": {
-      "$ref": "shared.schema.json#/$defs/stringArray"
+    "actorType": {
+      "enum": ["person", "role", "team"]
     }
   }
 }

@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "vnext/scenario.schema.json",
-  "title": "vNext Scenario",
+  "$id": "domain-model/scenario.schema.json",
+  "title": "Domain Model Scenario",
   "type": "object",
   "additionalProperties": false,
   "required": ["kind", "id", "title", "summary", "goal", "ownerContext", "steps"],

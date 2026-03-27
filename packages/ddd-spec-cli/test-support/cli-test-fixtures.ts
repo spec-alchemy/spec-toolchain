@@ -11,8 +11,8 @@ function toAbsolutePath(relativePath: string): string {
 }
 
 export const CORE_SCHEMA_DIR_PATH = toAbsolutePath("../../ddd-spec-core/schema");
-export const DEFAULT_VNEXT_SCHEMA_PATH = toAbsolutePath(
-  "../../ddd-spec-core/schema/vnext/canonical-index.schema.json"
+export const DEFAULT_DOMAIN_MODEL_SCHEMA_PATH = toAbsolutePath(
+  "../../ddd-spec-core/schema/domain-model/index.schema.json"
 );
 export const REPO_VIEWER_ENTRY_PATH = toAbsolutePath(
   "../../../examples/vnext-cross-context/canonical-vnext/index.yaml"
@@ -21,7 +21,7 @@ export const CLI_DIST_ENTRY_PATH = toAbsolutePath("../dist/ddd-spec-cli/cli.js")
 export const CLI_DIST_INDEX_PATH = toAbsolutePath("../dist/ddd-spec-cli/index.js");
 export const CLI_DIST_SCHEMA_DIR_PATH = toAbsolutePath("../dist/ddd-spec-core/schema");
 export const CLI_DIST_SCHEMA_PATH = toAbsolutePath(
-  "../dist/ddd-spec-core/schema/vnext/canonical-index.schema.json"
+  "../dist/ddd-spec-core/schema/domain-model/index.schema.json"
 );
 export const CLI_DIST_VIEWER_DIR_PATH = toAbsolutePath("../dist/ddd-spec-cli/static/viewer");
 export const CLI_DIST_VIEWER_INDEX_PATH = toAbsolutePath(
@@ -37,17 +37,28 @@ export const REPO_VIEWER_CONFIG_PATH = toAbsolutePath(
 );
 export const WORKSPACE_SCHEMA_DIR_RELATIVE_PATH = ".vscode/ddd-spec/schema";
 export const SCHEMA_FILE_NAMES = [
-  "vnext/canonical-index.schema.json",
-  "vnext/context.schema.json",
-  "vnext/actor.schema.json",
-  "vnext/system.schema.json",
-  "vnext/scenario.schema.json",
-  "vnext/message.schema.json",
-  "vnext/aggregate.schema.json",
-  "vnext/policy.schema.json",
-  "vnext/shared.schema.json"
+  "domain-model/index.schema.json",
+  "domain-model/context.schema.json",
+  "domain-model/actor.schema.json",
+  "domain-model/system.schema.json",
+  "domain-model/scenario.schema.json",
+  "domain-model/message.schema.json",
+  "domain-model/aggregate.schema.json",
+  "domain-model/policy.schema.json",
+  "domain-model/shared.schema.json"
 ] as const;
 export const WORKSPACE_SCHEMA_FILE_NAMES = [
+  "domain-model/index.schema.json",
+  "domain-model/context.schema.json",
+  "domain-model/actor.schema.json",
+  "domain-model/system.schema.json",
+  "domain-model/scenario.schema.json",
+  "domain-model/message.schema.json",
+  "domain-model/aggregate.schema.json",
+  "domain-model/policy.schema.json",
+  "domain-model/shared.schema.json"
+] as const;
+export const LEGACY_WORKSPACE_SCHEMA_FILE_NAMES = [
   "vnext/canonical-index.schema.json",
   "vnext/context.schema.json",
   "vnext/actor.schema.json",

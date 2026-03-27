@@ -195,15 +195,53 @@ test("CLI init skips overlapping existing YAML schema globs", async () => {
     await assertGeneratedVsCodeWorkspaceConfig({
       rootPath: tempDir,
       skippedSchemaFiles: [
-        "vnext/canonical-index.schema.json",
-        "vnext/context.schema.json",
-        "vnext/actor.schema.json",
-        "vnext/system.schema.json",
-        "vnext/scenario.schema.json",
-        "vnext/message.schema.json",
-        "vnext/aggregate.schema.json",
-        "vnext/policy.schema.json"
+        "domain-model/index.schema.json",
+        "domain-model/context.schema.json",
+        "domain-model/actor.schema.json",
+        "domain-model/system.schema.json",
+        "domain-model/scenario.schema.json",
+        "domain-model/message.schema.json",
+        "domain-model/aggregate.schema.json",
+        "domain-model/policy.schema.json"
       ]
+    });
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
+
+test("CLI init replaces legacy vnext VS Code schema assets and mappings", async () => {
+  const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-init-vscode-legacy-schema-"));
+  const legacySchemaDirPath = join(tempDir, ".vscode", "ddd-spec", "schema", "vnext");
+  const settingsPath = join(tempDir, ".vscode", "settings.json");
+
+  try {
+    await mkdir(legacySchemaDirPath, { recursive: true });
+    await writeFile(
+      join(legacySchemaDirPath, "canonical-index.schema.json"),
+      "{\n  \"$id\": \"vnext/canonical-index.schema.json\"\n}\n",
+      "utf8"
+    );
+    await writeFile(
+      settingsPath,
+      JSON.stringify(
+        {
+          "yaml.schemas": {
+            "./.vscode/ddd-spec/schema/vnext/canonical-index.schema.json": [
+              "**/domain-model/index.yaml"
+            ]
+          }
+        },
+        null,
+        2
+      ).concat("\n"),
+      "utf8"
+    );
+
+    await runCliCommand(["init"], { cwd: tempDir });
+
+    await assertGeneratedVsCodeWorkspaceConfig({
+      rootPath: tempDir
     });
   } finally {
     await rm(tempDir, { recursive: true, force: true });

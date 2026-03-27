@@ -2,7 +2,7 @@ version: 1
 spec:
   entry: ../../examples/vnext-cross-context/canonical-vnext/index.yaml
 schema:
-  path: ../../packages/ddd-spec-core/schema/vnext/canonical-index.schema.json
+  path: ../../packages/ddd-spec-core/schema/domain-model/index.schema.json
 outputs:
   rootDir: ../../.ddd-spec/artifacts
   bundle: ../../.ddd-spec/artifacts/business-spec.json

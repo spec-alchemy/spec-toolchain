@@ -1,4 +1,4 @@
-import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import { dirname, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
@@ -34,6 +34,17 @@ const WORKSPACE_SCHEMA_DIR = [".vscode", "ddd-spec", "schema"] as const;
 const YAML_EXTENSION_RECOMMENDATION = "redhat.vscode-yaml";
 const DEFAULT_MODEL_DIR = "domain-model";
 const SCHEMA_FILE_NAMES = [
+  "domain-model/index.schema.json",
+  "domain-model/context.schema.json",
+  "domain-model/actor.schema.json",
+  "domain-model/system.schema.json",
+  "domain-model/scenario.schema.json",
+  "domain-model/message.schema.json",
+  "domain-model/aggregate.schema.json",
+  "domain-model/policy.schema.json",
+  "domain-model/shared.schema.json"
+] as const;
+const LEGACY_SCHEMA_FILE_NAMES = [
   "vnext/canonical-index.schema.json",
   "vnext/context.schema.json",
   "vnext/actor.schema.json",
@@ -46,35 +57,35 @@ const SCHEMA_FILE_NAMES = [
 ] as const;
 const SCHEMA_MAPPINGS = [
   {
-    schemaFile: "vnext/canonical-index.schema.json",
+    schemaFile: "domain-model/index.schema.json",
     globs: [`**/${DEFAULT_MODEL_DIR}/index.yaml`]
   },
   {
-    schemaFile: "vnext/context.schema.json",
+    schemaFile: "domain-model/context.schema.json",
     globs: [`**/${DEFAULT_MODEL_DIR}/contexts/*.context.yaml`]
   },
   {
-    schemaFile: "vnext/actor.schema.json",
+    schemaFile: "domain-model/actor.schema.json",
     globs: [`**/${DEFAULT_MODEL_DIR}/actors/*.actor.yaml`]
   },
   {
-    schemaFile: "vnext/system.schema.json",
+    schemaFile: "domain-model/system.schema.json",
     globs: [`**/${DEFAULT_MODEL_DIR}/systems/*.system.yaml`]
   },
   {
-    schemaFile: "vnext/scenario.schema.json",
+    schemaFile: "domain-model/scenario.schema.json",
     globs: [`**/${DEFAULT_MODEL_DIR}/scenarios/*.scenario.yaml`]
   },
   {
-    schemaFile: "vnext/message.schema.json",
+    schemaFile: "domain-model/message.schema.json",
     globs: [`**/${DEFAULT_MODEL_DIR}/messages/*.message.yaml`]
   },
   {
-    schemaFile: "vnext/aggregate.schema.json",
+    schemaFile: "domain-model/aggregate.schema.json",
     globs: [`**/${DEFAULT_MODEL_DIR}/aggregates/*.aggregate.yaml`]
   },
   {
-    schemaFile: "vnext/policy.schema.json",
+    schemaFile: "domain-model/policy.schema.json",
     globs: [`**/${DEFAULT_MODEL_DIR}/policies/*.policy.yaml`]
   }
 ] as const;
@@ -87,6 +98,9 @@ export async function ensureVsCodeWorkspaceConfig(
   const extensionsPath = resolve(rootPath, ".vscode", "extensions.json");
   const warnings: string[] = [];
   const schemaAssetsStatus = await ensureWorkspaceSchemaAssets(schemaDirPath);
+  const legacySchemaPaths = LEGACY_SCHEMA_FILE_NAMES.map((schemaFileName) =>
+    toWorkspaceRelativePath(rootPath, resolve(schemaDirPath, schemaFileName))
+  );
   const workspaceModelFilePaths = await collectWorkspaceModelFilePaths(rootPath);
   const desiredMappings = SCHEMA_MAPPINGS.map((mapping) => {
     const workspaceSchemaPath = toWorkspaceRelativePath(
@@ -105,6 +119,7 @@ export async function ensureVsCodeWorkspaceConfig(
   const settingsStatus = await ensureYamlSchemaSettings(
     settingsPath,
     desiredMappings,
+    legacySchemaPaths,
     warnings
   );
   const extensionsStatus = await ensureExtensionRecommendations(
@@ -127,6 +142,7 @@ export async function ensureVsCodeWorkspaceConfig(
 async function ensureYamlSchemaSettings(
   settingsPath: string,
   desiredMappings: readonly DesiredSchemaMapping[],
+  legacySchemaPaths: readonly string[],
   warnings: string[]
 ): Promise<ConfigWriteStatus> {
   const existing = await readJsoncObject(settingsPath, warnings);
@@ -149,6 +165,13 @@ async function ensureYamlSchemaSettings(
     ? { ...currentSchemaMappings }
     : {};
   let changed = false;
+
+  for (const legacySchemaPath of legacySchemaPaths) {
+    if (legacySchemaPath in mergedSchemas) {
+      delete mergedSchemas[legacySchemaPath];
+      changed = true;
+    }
+  }
 
   for (const mapping of desiredMappings) {
     const { globs: desiredGlobs, schemaPath, workspaceTargetPaths } = mapping;
@@ -450,6 +473,11 @@ type DesiredSchemaMapping = {
 
 async function ensureWorkspaceSchemaAssets(schemaDirPath: string): Promise<ConfigWriteStatus> {
   await mkdir(schemaDirPath, { recursive: true });
+  await Promise.all(
+    LEGACY_SCHEMA_FILE_NAMES.map((schemaFileName) =>
+      rm(resolve(schemaDirPath, schemaFileName), { force: true })
+    )
+  );
 
   const statuses = await Promise.all(
     SCHEMA_FILE_NAMES.map((schemaFileName) =>

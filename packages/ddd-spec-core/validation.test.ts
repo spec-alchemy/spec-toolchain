@@ -10,19 +10,19 @@ import {
   validateVnextCanonicalSchema
 } from "./index.js";
 import {
+  DOMAIN_MODEL_SCHEMA_PATH,
   VNEXT_MINIMAL_FIXTURE_ENTRY_PATH,
-  VNEXT_SCHEMA_PATH,
   cloneVnextBusinessSpec,
   loadVnextMinimalFixture
 } from "./test-fixtures.js";
 
-const VNEXT_SCHEMA_DIR_PATH = dirname(VNEXT_SCHEMA_PATH);
+const DOMAIN_MODEL_SCHEMA_DIR_PATH = dirname(DOMAIN_MODEL_SCHEMA_PATH);
 
 test("schema validation accepts the minimal vNext canonical fixture", async () => {
   await assert.doesNotReject(async () => {
     await validateVnextCanonicalSchema({
       entryPath: VNEXT_MINIMAL_FIXTURE_ENTRY_PATH,
-      schemaPath: VNEXT_SCHEMA_PATH
+      schemaPath: DOMAIN_MODEL_SCHEMA_PATH
     });
   });
 });
@@ -35,14 +35,14 @@ test("canonical index schema rejects malformed vNext index structure", async () 
 
   await assert.rejects(
     validateBusinessSpecSchema(index, {
-      schemaPath: VNEXT_SCHEMA_PATH
+      schemaPath: DOMAIN_MODEL_SCHEMA_PATH
     }),
     /Business spec schema validation failed:/
   );
 });
 
 test("standalone vNext canonical index schema rejects legacy domain keys", async () => {
-  const validate = await createVnextSchemaValidator("canonical-index.schema.json");
+  const validate = await createVnextSchemaValidator("index.schema.json");
   const legacyIndex = {
     version: 1,
     id: "legacy-domain-shape",
@@ -185,10 +185,10 @@ type AjvConstructor = new (options?: Record<string, unknown>) => {
 };
 
 async function createVnextSchemaValidator(schemaFileName: string): Promise<JsonSchemaValidator> {
-  const schemaPath = join(VNEXT_SCHEMA_DIR_PATH, schemaFileName);
+  const schemaPath = join(DOMAIN_MODEL_SCHEMA_DIR_PATH, schemaFileName);
   const [schemaSource, sharedSchemaSource] = await Promise.all([
     readFile(schemaPath, "utf8"),
-    readFile(join(VNEXT_SCHEMA_DIR_PATH, "shared.schema.json"), "utf8")
+    readFile(join(DOMAIN_MODEL_SCHEMA_DIR_PATH, "shared.schema.json"), "utf8")
   ]);
   const Ajv2020 = (await import("ajv/dist/2020.js")).default as unknown as AjvConstructor;
   const ajv = new Ajv2020({ allErrors: true, strict: false });

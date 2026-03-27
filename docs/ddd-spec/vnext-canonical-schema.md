@@ -102,14 +102,14 @@ model:
 
 vNext schema 文件当前位于：
 
-- [`/Users/tella/Development/knowledge-alchemy-app-v2/packages/ddd-spec-core/schema/vnext/canonical-index.schema.json`](../../packages/ddd-spec-core/schema/vnext/canonical-index.schema.json)
-- [`/Users/tella/Development/knowledge-alchemy-app-v2/packages/ddd-spec-core/schema/vnext/context.schema.json`](../../packages/ddd-spec-core/schema/vnext/context.schema.json)
-- [`/Users/tella/Development/knowledge-alchemy-app-v2/packages/ddd-spec-core/schema/vnext/actor.schema.json`](../../packages/ddd-spec-core/schema/vnext/actor.schema.json)
-- [`/Users/tella/Development/knowledge-alchemy-app-v2/packages/ddd-spec-core/schema/vnext/system.schema.json`](../../packages/ddd-spec-core/schema/vnext/system.schema.json)
-- [`/Users/tella/Development/knowledge-alchemy-app-v2/packages/ddd-spec-core/schema/vnext/scenario.schema.json`](../../packages/ddd-spec-core/schema/vnext/scenario.schema.json)
-- [`/Users/tella/Development/knowledge-alchemy-app-v2/packages/ddd-spec-core/schema/vnext/message.schema.json`](../../packages/ddd-spec-core/schema/vnext/message.schema.json)
-- [`/Users/tella/Development/knowledge-alchemy-app-v2/packages/ddd-spec-core/schema/vnext/aggregate.schema.json`](../../packages/ddd-spec-core/schema/vnext/aggregate.schema.json)
-- [`/Users/tella/Development/knowledge-alchemy-app-v2/packages/ddd-spec-core/schema/vnext/policy.schema.json`](../../packages/ddd-spec-core/schema/vnext/policy.schema.json)
+- [`/Users/tella/Development/knowledge-alchemy-app-v2/packages/ddd-spec-core/schema/domain-model/index.schema.json`](../../packages/ddd-spec-core/schema/domain-model/index.schema.json)
+- [`/Users/tella/Development/knowledge-alchemy-app-v2/packages/ddd-spec-core/schema/domain-model/context.schema.json`](../../packages/ddd-spec-core/schema/domain-model/context.schema.json)
+- [`/Users/tella/Development/knowledge-alchemy-app-v2/packages/ddd-spec-core/schema/domain-model/actor.schema.json`](../../packages/ddd-spec-core/schema/domain-model/actor.schema.json)
+- [`/Users/tella/Development/knowledge-alchemy-app-v2/packages/ddd-spec-core/schema/domain-model/system.schema.json`](../../packages/ddd-spec-core/schema/domain-model/system.schema.json)
+- [`/Users/tella/Development/knowledge-alchemy-app-v2/packages/ddd-spec-core/schema/domain-model/scenario.schema.json`](../../packages/ddd-spec-core/schema/domain-model/scenario.schema.json)
+- [`/Users/tella/Development/knowledge-alchemy-app-v2/packages/ddd-spec-core/schema/domain-model/message.schema.json`](../../packages/ddd-spec-core/schema/domain-model/message.schema.json)
+- [`/Users/tella/Development/knowledge-alchemy-app-v2/packages/ddd-spec-core/schema/domain-model/aggregate.schema.json`](../../packages/ddd-spec-core/schema/domain-model/aggregate.schema.json)
+- [`/Users/tella/Development/knowledge-alchemy-app-v2/packages/ddd-spec-core/schema/domain-model/policy.schema.json`](../../packages/ddd-spec-core/schema/domain-model/policy.schema.json)
 
 ---
 

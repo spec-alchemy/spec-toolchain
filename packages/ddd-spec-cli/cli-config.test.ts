@@ -7,7 +7,7 @@ import { buildUsageText, formatCliFailureOutput } from "./console.js";
 import { loadDddSpecConfig } from "./config.js";
 import { runCliCommand } from "./commands.js";
 import {
-  DEFAULT_VNEXT_SCHEMA_PATH,
+  DEFAULT_DOMAIN_MODEL_SCHEMA_PATH,
   REPO_ROOT_PATH,
   REPO_VIEWER_ENTRY_PATH,
   REPO_VIEWER_CONFIG_PATH
@@ -30,7 +30,7 @@ test("zero-config mode resolves domain-model and disables TypeScript by default"
     assert.equal(config.configPath, undefined);
     assert.equal(config.sourceDescription, "zero-config defaults");
     assert.equal(config.spec.entryPath, join(tempDir, "domain-model", "index.yaml"));
-    assert.equal(config.schema.path, DEFAULT_VNEXT_SCHEMA_PATH);
+    assert.equal(config.schema.path, DEFAULT_DOMAIN_MODEL_SCHEMA_PATH);
     assert.equal(config.outputs.rootDirPath, join(tempDir, ".ddd-spec", "artifacts"));
     assert.equal(config.outputs.bundlePath, join(tempDir, ".ddd-spec", "artifacts", "business-spec.json"));
     assert.equal(
@@ -81,7 +81,7 @@ test("zero-config dev shows an init hint when the domain model entry is missing"
   }
 });
 
-test("config mode defaults the schema path to the vNext canonical schema", async () => {
+test("config mode defaults the schema path to the domain model schema", async () => {
   const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-config-vnext-schema-"));
   const configPath = join(tempDir, "ddd-spec.config.yaml");
 
@@ -106,7 +106,7 @@ test("config mode defaults the schema path to the vNext canonical schema", async
     });
 
     assert.equal(config.mode, "config");
-    assert.equal(config.schema.path, DEFAULT_VNEXT_SCHEMA_PATH);
+    assert.equal(config.schema.path, DEFAULT_DOMAIN_MODEL_SCHEMA_PATH);
   } finally {
     await rm(tempDir, { recursive: true, force: true });
   }
@@ -247,7 +247,7 @@ test("repo viewer config resolves tracked vNext example outputs and sync targets
   assert.equal(config.mode, "config");
   assert.equal(config.sourceDescription, REPO_VIEWER_CONFIG_PATH);
   assert.equal(config.spec.entryPath, REPO_VIEWER_ENTRY_PATH);
-  assert.equal(config.schema.path, DEFAULT_VNEXT_SCHEMA_PATH);
+  assert.equal(config.schema.path, DEFAULT_DOMAIN_MODEL_SCHEMA_PATH);
   assert.equal(config.outputs.rootDirPath, join(REPO_ROOT_PATH, ".ddd-spec", "artifacts"));
   assert.equal(
     config.outputs.bundlePath,

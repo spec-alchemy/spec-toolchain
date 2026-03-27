@@ -3,8 +3,8 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import YAML from "yaml";
 
-export const DEFAULT_VNEXT_SCHEMA_PATH = fileURLToPath(
-  new URL("../ddd-spec-core/schema/vnext/canonical-index.schema.json", import.meta.url)
+export const DEFAULT_DOMAIN_MODEL_SCHEMA_PATH = fileURLToPath(
+  new URL("../ddd-spec-core/schema/domain-model/index.schema.json", import.meta.url)
 );
 export const ZERO_CONFIG_ENTRY_PATH = "domain-model/index.yaml";
 export const ZERO_CONFIG_ARTIFACTS_DIR = ".ddd-spec/artifacts";
@@ -145,7 +145,7 @@ export async function loadDddSpecConfig(
       path: resolveOptionalPath(
         configDir,
         requireOptionalString(schemaConfig, "path", configPath)
-      ) ?? DEFAULT_VNEXT_SCHEMA_PATH
+      ) ?? DEFAULT_DOMAIN_MODEL_SCHEMA_PATH
     },
     outputs: {
       rootDirPath,
@@ -218,7 +218,7 @@ async function loadZeroConfig(cwd: string): Promise<ResolvedDddSpecConfig> {
       entryPath
     },
     schema: {
-      path: DEFAULT_VNEXT_SCHEMA_PATH
+      path: DEFAULT_DOMAIN_MODEL_SCHEMA_PATH
     },
     outputs: {
       rootDirPath: artifactsDirPath,

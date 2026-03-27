@@ -17,6 +17,7 @@ import { isVnextBusinessSpec, loadCanonicalSpec } from "../../ddd-spec-core/inde
 import type { ViewerDevSessionStatus } from "../viewer-dev-session.js";
 import {
   CORE_SCHEMA_DIR_PATH,
+  LEGACY_WORKSPACE_SCHEMA_FILE_NAMES,
   type PackedCliTarball,
   REPO_ROOT_NODE_MODULES_PATH,
   REPO_ROOT_PATH,
@@ -380,6 +381,9 @@ export async function assertGeneratedVsCodeWorkspaceConfig(options: {
   for (const schemaFileName of WORKSPACE_SCHEMA_FILE_NAMES) {
     await access(join(schemaRootPath, schemaFileName));
   }
+  for (const legacySchemaFileName of LEGACY_WORKSPACE_SCHEMA_FILE_NAMES) {
+    await assert.rejects(access(join(schemaRootPath, legacySchemaFileName)), /ENOENT/);
+  }
 
   await assertSchemaAssetsMatchCore(schemaRootPath, WORKSPACE_SCHEMA_FILE_NAMES);
 
@@ -607,6 +611,7 @@ function assertHasExpectedYamlSchemaMappings(options: {
 }): void {
   const expectedMappings = buildExpectedYamlSchemaMappings();
   const skippedSchemaFiles = new Set(options.skippedSchemaFiles ?? []);
+  const schemaRootPrefix = `${toWorkspaceSchemaPath(options.rootPath, options.schemaRootPath)}/`;
 
   for (const [schemaFileName, expectedGlobs] of Object.entries(expectedMappings)) {
     if (skippedSchemaFiles.has(schemaFileName)) {
@@ -620,18 +625,36 @@ function assertHasExpectedYamlSchemaMappings(options: {
 
     assert.deepEqual(options.yamlSchemas[schemaPath], expectedGlobs);
   }
+
+  for (const schemaPath of Object.keys(options.yamlSchemas)) {
+    if (!schemaPath.startsWith(schemaRootPrefix)) {
+      continue;
+    }
+
+    assert.ok(
+      Object.keys(expectedMappings).some((schemaFileName) => {
+        const expectedSchemaPath = toWorkspaceSchemaPath(
+          options.rootPath,
+          join(options.schemaRootPath, schemaFileName)
+        );
+
+        return schemaPath === expectedSchemaPath;
+      }),
+      `Unexpected managed YAML schema mapping ${schemaPath}`
+    );
+  }
 }
 
 function buildExpectedYamlSchemaMappings(): Record<string, readonly string[]> {
   return {
-    "vnext/canonical-index.schema.json": ["**/domain-model/index.yaml"],
-    "vnext/context.schema.json": ["**/domain-model/contexts/*.context.yaml"],
-    "vnext/actor.schema.json": ["**/domain-model/actors/*.actor.yaml"],
-    "vnext/system.schema.json": ["**/domain-model/systems/*.system.yaml"],
-    "vnext/scenario.schema.json": ["**/domain-model/scenarios/*.scenario.yaml"],
-    "vnext/message.schema.json": ["**/domain-model/messages/*.message.yaml"],
-    "vnext/aggregate.schema.json": ["**/domain-model/aggregates/*.aggregate.yaml"],
-    "vnext/policy.schema.json": ["**/domain-model/policies/*.policy.yaml"]
+    "domain-model/index.schema.json": ["**/domain-model/index.yaml"],
+    "domain-model/context.schema.json": ["**/domain-model/contexts/*.context.yaml"],
+    "domain-model/actor.schema.json": ["**/domain-model/actors/*.actor.yaml"],
+    "domain-model/system.schema.json": ["**/domain-model/systems/*.system.yaml"],
+    "domain-model/scenario.schema.json": ["**/domain-model/scenarios/*.scenario.yaml"],
+    "domain-model/message.schema.json": ["**/domain-model/messages/*.message.yaml"],
+    "domain-model/aggregate.schema.json": ["**/domain-model/aggregates/*.aggregate.yaml"],
+    "domain-model/policy.schema.json": ["**/domain-model/policies/*.policy.yaml"]
   };
 }
 

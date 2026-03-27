@@ -4,8 +4,8 @@ import {
   type VnextBusinessSpec
 } from "./index.js";
 
-export const VNEXT_SCHEMA_PATH = fileURLToPath(
-  new URL("./schema/vnext/canonical-index.schema.json", import.meta.url)
+export const DOMAIN_MODEL_SCHEMA_PATH = fileURLToPath(
+  new URL("./schema/domain-model/index.schema.json", import.meta.url)
 );
 
 export const VNEXT_MINIMAL_FIXTURE_ENTRY_PATH = fileURLToPath(

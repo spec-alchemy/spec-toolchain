@@ -6,7 +6,7 @@ import {
   validateVnextCanonicalSchema
 } from "../ddd-spec-core/index.js";
 import { logArtifact, logInfo } from "./console.js";
-import { DEFAULT_VNEXT_SCHEMA_PATH } from "./config.js";
+import { DEFAULT_DOMAIN_MODEL_SCHEMA_PATH } from "./config.js";
 import { ensureVsCodeWorkspaceConfig } from "./editor-config.js";
 import {
   getInitScaffoldRelativePaths,
@@ -122,7 +122,7 @@ async function validateGeneratedSkeleton(entryPath: string): Promise<void> {
 
   await validateVnextCanonicalSchema({
     entryPath,
-    schemaPath: DEFAULT_VNEXT_SCHEMA_PATH
+    schemaPath: DEFAULT_DOMAIN_MODEL_SCHEMA_PATH
   });
   validateBusinessSpecSemantics(spec);
 }
