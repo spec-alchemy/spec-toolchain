@@ -1,5 +1,5 @@
 {
-  "viewerVersion": 3,
+  "viewerVersion": 1,
   "specId": "order-settlement-vnext",
   "title": "Order Settlement vNext",
   "summary": "Cross-context vNext example centered on command, event, and query flow across orders and payments.",

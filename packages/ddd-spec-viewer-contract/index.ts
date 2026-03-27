@@ -1,4 +1,4 @@
-export const BUSINESS_VIEWER_SPEC_VERSION = 3 as const;
+export const BUSINESS_VIEWER_SPEC_VERSION = 1 as const;
 
 export type ViewerViewKind =
   | "context-map"

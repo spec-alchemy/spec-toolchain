@@ -143,6 +143,7 @@ test("CLI validate and build succeed in zero-config mode with standard vNext out
     ) as BusinessViewerSpec;
 
     assert.equal(bundle.version, 3);
+    assert.equal(viewer.viewerVersion, 1);
     assert.equal(bundle.id, "approval-flow-vnext");
     assert.equal(analysis.summary.errorCount, 0);
     assertPrimaryViewOrder(viewer, [
@@ -188,6 +189,7 @@ test("CLI viewer rebuilds the zero-config viewer artifact and launches the packa
       await readFile(join(tempDir, ".ddd-spec", "artifacts", "viewer-spec.json"), "utf8")
     ) as BusinessViewerSpec;
 
+    assert.equal(viewer.viewerVersion, 1);
     assertPrimaryViewOrder(viewer, [
       "context-map",
       "scenario-story",
@@ -231,6 +233,7 @@ test("CLI viewer rebuilds the explicit-config viewer artifact and launches the p
       await readFile(join(tempDir, "artifacts", "business-viewer", "viewer-spec.json"), "utf8")
     ) as BusinessViewerSpec;
 
+    assert.equal(viewer.viewerVersion, 1);
     assertPrimaryViewOrder(viewer, [
       "context-map",
       "scenario-story",
@@ -272,6 +275,7 @@ test("CLI dev rebuilds the zero-config viewer artifact and enables browser auto-
       await readFile(join(tempDir, ".ddd-spec", "artifacts", "viewer-spec.json"), "utf8")
     ) as BusinessViewerSpec;
 
+    assert.equal(viewer.viewerVersion, 1);
     assertPrimaryViewOrder(viewer, [
       "context-map",
       "scenario-story",
@@ -315,6 +319,7 @@ test("CLI build supports version 3 canonicals when viewer projection is enabled 
     ) as BusinessViewerSpec;
 
     assert.equal(bundle.version, 3);
+    assert.equal(viewer.viewerVersion, 1);
     assert.equal(analysis.summary.errorCount, 0);
     assertPrimaryViewOrder(viewer, [
       "context-map",
@@ -371,6 +376,7 @@ test("CLI viewer supports version 3 canonicals through the packaged viewer path"
       )
     ) as BusinessViewerSpec;
 
+    assert.equal(viewer.viewerVersion, 1);
     assert.equal(viewer.views.some((view) => view.id === "message-flow"), true);
     assert.equal(JSON.stringify(viewer).includes("\"payment-authorized\""), true);
   } finally {

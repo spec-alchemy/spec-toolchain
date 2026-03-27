@@ -82,6 +82,7 @@ test("npm pack smoke test installs the tarball and runs zero-config init plus bu
     ) as BusinessViewerSpec;
 
     assert.equal(bundle.version, 3);
+    assert.equal(viewer.viewerVersion, 1);
     assert.equal(bundle.id, "approval-flow-vnext");
     assert.equal(analysis.summary.errorCount, 0);
     assertPrimaryViewOrder(viewer, [
@@ -138,6 +139,7 @@ test("npm pack smoke test installs the tarball and runs build with --config on a
     ) as BusinessViewerSpec;
 
     assert.equal(bundle.version, 3);
+    assert.equal(viewer.viewerVersion, 1);
     assertPrimaryViewOrder(viewer, [
       "context-map",
       "scenario-story",
@@ -208,6 +210,8 @@ test("npm pack smoke test installs the tarball and serves packaged viewer assets
       await readFile(join(consumerRootPath, ".ddd-spec", "artifacts", "viewer-spec.json"), "utf8")
     ) as BusinessViewerSpec;
 
+    assert.equal(viewer.viewerVersion, 1);
+    assert.equal(builtViewer.viewerVersion, 1);
     assert.deepEqual(viewer, builtViewer);
     assertPrimaryViewOrder(viewer, [
       "context-map",

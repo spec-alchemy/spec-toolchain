@@ -13,6 +13,7 @@ import type {
   ViewerDetailValue,
   ViewerFieldDetailValue
 } from "../ddd-spec-viewer-contract/index.js";
+import { BUSINESS_VIEWER_SPEC_VERSION } from "../ddd-spec-viewer-contract/index.js";
 import { buildVnextViewerSpec } from "./index.js";
 
 test("vNext viewer projection matches the checked-in cross-context artifact", async () => {
@@ -23,6 +24,7 @@ test("vNext viewer projection matches the checked-in cross-context artifact", as
     await readFile(VNEXT_CROSS_CONTEXT_VIEWER_GOLDEN_PATH, "utf8")
   );
 
+  assert.equal(actualViewerSpec.viewerVersion, BUSINESS_VIEWER_SPEC_VERSION);
   assert.deepStrictEqual(actualViewerSpec, expectedViewerSpec);
 });
 

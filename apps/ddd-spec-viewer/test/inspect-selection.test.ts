@@ -7,6 +7,7 @@ import { InspectorPanel } from "../src/components/InspectorPanel";
 import { ViewerEmptyState } from "../src/components/shell/ViewerEmptyState";
 import { ViewerHeader } from "../src/components/shell/ViewerHeader";
 import { TooltipProvider } from "../src/components/ui/tooltip";
+import { loadViewerSpec } from "../src/lib/load-viewer-spec";
 import { activateSelectableEdge } from "../src/lib/view-layout/edge-activation";
 import { buildElkGraph } from "../src/lib/view-layout/build-elk-graph";
 import { getViewerNavigationExperience } from "../src/lib/view-experience";
@@ -39,7 +40,7 @@ const RELATION_DETAILS: readonly ViewerDetailItem[] = [
 ];
 
 const DEMO_VIEWER_SPEC: BusinessViewerSpec = {
-  viewerVersion: 3,
+  viewerVersion: 1,
   specId: "demo",
   title: "Demo Workspace",
   summary: "Demo summary",
@@ -85,6 +86,79 @@ const DEMO_VIEWER_SPEC: BusinessViewerSpec = {
     })
   ]
 };
+
+test("viewer spec loader accepts version 1 payloads", async (t) => {
+  const originalFetch = globalThis.fetch;
+
+  t.after(() => {
+    globalThis.fetch = originalFetch;
+  });
+
+  globalThis.fetch = async () =>
+    new Response(
+      JSON.stringify({
+        viewerVersion: 1,
+        specId: "demo",
+        title: "Demo Workspace",
+        summary: "Demo summary",
+        detailHelp: {
+          semantic: {}
+        },
+        views: []
+      }),
+      {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json"
+        }
+      }
+    );
+
+  const spec = await loadViewerSpec({
+    url: new URL("https://example.com/generated/viewer-spec.json"),
+    label: "generated/viewer-spec.json",
+    isDefault: true
+  });
+
+  assert.equal(spec.viewerVersion, 1);
+});
+
+test("viewer spec loader rejects unsupported viewer versions with the reset expectation", async (t) => {
+  const originalFetch = globalThis.fetch;
+
+  t.after(() => {
+    globalThis.fetch = originalFetch;
+  });
+
+  globalThis.fetch = async () =>
+    new Response(
+      JSON.stringify({
+        viewerVersion: 3,
+        specId: "legacy-demo",
+        title: "Legacy Demo",
+        summary: "Legacy summary",
+        detailHelp: {
+          semantic: {}
+        },
+        views: []
+      }),
+      {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json"
+        }
+      }
+    );
+
+  await assert.rejects(
+    loadViewerSpec({
+      url: new URL("https://example.com/generated/viewer-spec.json"),
+      label: "generated/viewer-spec.json",
+      isDefault: true
+    }),
+    /Unsupported viewer spec version 3; expected 1/
+  );
+});
 
 test("relation node reuses edge details without injecting duplicate kind metadata", () => {
   const view: ViewerViewSpec = {

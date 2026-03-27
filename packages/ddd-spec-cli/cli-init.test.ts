@@ -30,6 +30,7 @@ test("CLI init creates the default vNext starter and build emits the primary vie
     const viewer = JSON.parse(
       await readFile(join(tempDir, ".ddd-spec", "artifacts", "viewer-spec.json"), "utf8")
     ) as {
+      viewerVersion: number;
       views: Array<{ id: string }>;
     };
 
@@ -37,6 +38,7 @@ test("CLI init creates the default vNext starter and build emits the primary vie
     const settingsSource = await readFile(join(tempDir, ".vscode", "settings.json"), "utf8");
 
     assert.equal(bundle.version, 3);
+    assert.equal(viewer.viewerVersion, 1);
     assert.equal(bundle.id, "approval-flow-vnext");
     assert.deepEqual(
       viewer.views.slice(0, 4).map((view) => view.id),
