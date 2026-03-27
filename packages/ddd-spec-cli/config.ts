@@ -6,6 +6,9 @@ import YAML from "yaml";
 export const DEFAULT_SCHEMA_PATH = fileURLToPath(
   new URL("../ddd-spec-core/schema/business-spec.schema.json", import.meta.url)
 );
+export const DEFAULT_VNEXT_SCHEMA_PATH = fileURLToPath(
+  new URL("../ddd-spec-core/schema/vnext/canonical-index.schema.json", import.meta.url)
+);
 export const ZERO_CONFIG_ENTRY_PATH = "ddd-spec/canonical/index.yaml";
 export const ZERO_CONFIG_ARTIFACTS_DIR = ".ddd-spec/artifacts";
 export const ZERO_CONFIG_GENERATED_DIR = ".ddd-spec/generated";

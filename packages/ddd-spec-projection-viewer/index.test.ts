@@ -3,15 +3,17 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 import {
+  analyzeVnextBusinessSpec,
   analyzeBusinessSpec,
   loadBusinessSpec
 } from "../ddd-spec-core/index.js";
+import { loadVnextCrossContextFixture } from "../ddd-spec-core/test-fixtures.js";
 import type {
   ViewerDetailItem,
   ViewerDetailValue,
   ViewerFieldDetailValue
 } from "../ddd-spec-viewer-contract/index.js";
-import { buildBusinessViewerSpec } from "./index.js";
+import { buildBusinessViewerSpec, buildVnextViewerSpec } from "./index.js";
 
 const SPEC_ENTRY_PATH = fileURLToPath(
   new URL("../../test/fixtures/connection-card-review/canonical/index.yaml", import.meta.url)
@@ -265,6 +267,86 @@ test("primary views project vNext scenario, message, and lifecycle details", asy
       }
     ]
   );
+});
+
+test("vNext viewer projection renders cross-context message flow and query details", async () => {
+  const spec = await loadVnextCrossContextFixture();
+  const analysis = analyzeVnextBusinessSpec(spec);
+  const viewerSpec = buildVnextViewerSpec(spec, analysis);
+  const messageFlowView = mustFind(viewerSpec.views, (view) => view.id === "message-flow");
+  const scenarioStoryView = mustFind(viewerSpec.views, (view) => view.id === "scenario-story");
+  const lifecycleView = mustFind(viewerSpec.views, (view) => view.id === "lifecycle");
+  const paymentAuthorizedNode = mustFind(
+    messageFlowView.nodes,
+    (node) =>
+      node.kind === "message" &&
+      getTextDetailValue(node.details, "message.type") === "payment-authorized"
+  );
+  const fetchLedgerStatusNode = mustFind(
+    messageFlowView.nodes,
+    (node) =>
+      node.kind === "message" &&
+      getTextDetailValue(node.details, "message.type") === "fetch-ledger-status"
+  );
+  const orderSubmittedTargetEdge = mustFind(
+    messageFlowView.edges,
+    (edge) =>
+      edge.kind === "message-flow" &&
+      edge.label === "target" &&
+      getTextDetailValue(edge.details, "message.type") === "order-submitted" &&
+      getTextDetailValue(edge.details, "relation.to") === "context:payments"
+  );
+  const queryStepEdge = mustFind(
+    messageFlowView.edges,
+    (edge) =>
+      edge.kind === "message-flow" &&
+      edge.label === "asks" &&
+      getTextDetailValue(edge.details, "message.type") === "fetch-ledger-status" &&
+      getTextDetailValue(edge.details, "step.id") === "reconcile-order"
+  );
+  const crossContextScenarioEdge = mustFind(
+    scenarioStoryView.edges,
+    (edge) =>
+      edge.kind === "sequence" &&
+      getTextDetailValue(edge.details, "relation.from") === "await-payment-authorization" &&
+      getTextDetailValue(edge.details, "relation.to") === "reconcile-order"
+  );
+  const orderAggregateNode = mustFind(
+    lifecycleView.nodes,
+    (node) =>
+      node.kind === "aggregate" &&
+      getTextDetailValue(node.details, "aggregate.id") === "order"
+  );
+  const confirmTransitionEdge = mustFind(
+    lifecycleView.edges,
+    (edge) =>
+      edge.kind === "state-transition" &&
+      getTextDetailValue(edge.details, "aggregate.id") === "order" &&
+      getTextDetailValue(edge.details, "transition.trigger_message") === "ledger-status-fetched"
+  );
+
+  assert.deepEqual(
+    viewerSpec.views.map((view) => view.id),
+    ["context-map", "scenario-story", "message-flow", "lifecycle"]
+  );
+  assert.equal(getTextDetailValue(paymentAuthorizedNode.details, "message.kind"), "event");
+  assert.equal(
+    getTextDetailValue(paymentAuthorizedNode.details, "message.crosses_context_boundary"),
+    "yes"
+  );
+  assert.equal(getTextDetailValue(fetchLedgerStatusNode.details, "message.kind"), "query");
+  assert.equal(getTextDetailValue(fetchLedgerStatusNode.details, "message.channel"), "sync");
+  assert.equal(orderSubmittedTargetEdge.target, "message-flow:context:payments");
+  assert.equal(
+    queryStepEdge.source,
+    "message-flow:scenario:order-settlement-flow:step:reconcile-order"
+  );
+  assert.equal(crossContextScenarioEdge.label, "payment-authorized");
+  assert.deepEqual(
+    getTextListDetailValues(orderAggregateNode.details, "aggregate.accepted_messages"),
+    ["submit-order", "ledger-status-fetched"]
+  );
+  assert.equal(getTextDetailValue(confirmTransitionEdge.details, "relation.to"), "confirmed");
 });
 
 function mustFind<Value>(

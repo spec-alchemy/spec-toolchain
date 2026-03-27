@@ -17,6 +17,7 @@ import {
 } from "./index.js";
 import {
   VNEXT_MINIMAL_FIXTURE_ENTRY_PATH,
+  loadVnextCrossContextFixture,
   loadVnextMinimalFixture
 } from "./test-fixtures.js";
 
@@ -231,6 +232,65 @@ test("vnext analysis IR exposes unified primary-view projections and policy coor
   );
   assert.deepEqual(notificationPolicy.targetSystemIds, ["notification-hub"]);
   assert.deepEqual(notificationPolicy.relatedContextIds, ["approvals"]);
+});
+
+test("vnext cross-context example exposes command, event, and query message flow across contexts", async () => {
+  const spec = await loadVnextCrossContextFixture();
+  const analysis = analyzeVnextBusinessSpec(spec);
+  const scenarioStory = projectVnextScenarioStory(analysis.ir);
+  const messageFlow = projectVnextMessageFlow(analysis.ir);
+  const lifecycle = projectVnextLifecycle(analysis.ir);
+
+  const settlementScenario = mustFind(
+    scenarioStory,
+    (scenario) => scenario.id === "order-settlement-flow"
+  );
+  const orderSubmitted = mustFind(
+    messageFlow,
+    (message) => message.id === "order-submitted"
+  );
+  const paymentAuthorized = mustFind(
+    messageFlow,
+    (message) => message.id === "payment-authorized"
+  );
+  const fetchLedgerStatus = mustFind(
+    messageFlow,
+    (message) => message.id === "fetch-ledger-status"
+  );
+  const ledgerStatusFetched = mustFind(
+    messageFlow,
+    (message) => message.id === "ledger-status-fetched"
+  );
+  const orderLifecycle = mustFind(
+    lifecycle,
+    (aggregate) => aggregate.id === "order"
+  );
+
+  assert.deepEqual(analysis.diagnostics, []);
+  assert.deepEqual(settlementScenario.participatingContextIds, ["orders", "payments"]);
+  assert.deepEqual(settlementScenario.entryStepIds, ["capture-order"]);
+  assert.deepEqual(settlementScenario.finalStepIds, ["order-confirmed"]);
+  assert.equal(orderSubmitted.messageKind, "event");
+  assert.equal(orderSubmitted.crossesContextBoundary, true);
+  assert.deepEqual(orderSubmitted.producerContextIds, ["orders"]);
+  assert.deepEqual(orderSubmitted.consumerContextIds, ["payments"]);
+  assert.equal(paymentAuthorized.messageKind, "event");
+  assert.equal(paymentAuthorized.crossesContextBoundary, true);
+  assert.deepEqual(paymentAuthorized.producerContextIds, ["payments"]);
+  assert.deepEqual(paymentAuthorized.consumerContextIds, ["orders"]);
+  assert.equal(fetchLedgerStatus.messageKind, "query");
+  assert.equal(fetchLedgerStatus.channel, "sync");
+  assert.equal(fetchLedgerStatus.crossesContextBoundary, false);
+  assert.deepEqual(
+    fetchLedgerStatus.consumers.map((consumer) => `${consumer.kind}:${consumer.id}`),
+    ["system:ledger-gateway"]
+  );
+  assert.deepEqual(
+    ledgerStatusFetched.stepLinks.map((link) => `${link.direction}:${link.scenarioId}.${link.stepId}`),
+    ["incoming:order-settlement-flow.order-confirmed"]
+  );
+  assert.deepEqual(orderLifecycle.acceptedMessageIds, ["submit-order", "ledger-status-fetched"]);
+  assert.deepEqual(orderLifecycle.reachableStateIds, ["draft", "submitted", "confirmed"]);
 });
 
 test("vnext semantic validation reports missing context ownership", async () => {

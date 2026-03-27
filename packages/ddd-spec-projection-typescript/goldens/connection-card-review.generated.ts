@@ -274,6 +274,182 @@ export const businessSpec = {
       "event.target_stage": {
         "label": "Target stage",
         "description": "事件推进后到达的目标阶段。"
+      },
+      "context.owners": {
+        "label": "Owners",
+        "description": "对当前 context 负业务责任的团队、角色或组织。"
+      },
+      "context.responsibilities": {
+        "label": "Responsibilities",
+        "description": "当前 context 明确承担的业务职责集合。"
+      },
+      "context.related_actors": {
+        "label": "Actors",
+        "description": "会在当前 context 边界内发起或参与步骤的 actor 集合。"
+      },
+      "context.related_systems": {
+        "label": "Systems",
+        "description": "当前 context 会协作、依赖或调用的系统集合。"
+      },
+      "context.relationships": {
+        "label": "Relationships",
+        "description": "当前 context 显式声明的外部协作或依赖关系。"
+      },
+      "actor.type": {
+        "label": "Actor type",
+        "description": "当前 actor 的参与者类型，例如 person、role 或 team。"
+      },
+      "actor.contexts": {
+        "label": "Contexts",
+        "description": "当前 actor 参与过步骤的 context 集合。"
+      },
+      "actor.scenarios": {
+        "label": "Scenarios",
+        "description": "当前 actor 参与过的场景集合。"
+      },
+      "actor.scenario_steps": {
+        "label": "Scenario steps",
+        "description": "当前 actor 在哪些场景步骤中显式参与。"
+      },
+      "system.boundary": {
+        "label": "Boundary",
+        "description": "当前系统属于内部能力还是外部依赖。"
+      },
+      "system.capabilities": {
+        "label": "Capabilities",
+        "description": "当前系统向业务建模显式提供的能力集合。"
+      },
+      "system.contexts": {
+        "label": "Contexts",
+        "description": "当前系统与哪些业务 context 存在依赖或消息协作。"
+      },
+      "system.dependencies": {
+        "label": "Dependencies",
+        "description": "当前系统被哪些 context、message 或 policy 以何种方式引用。"
+      },
+      "scenario.goal": {
+        "label": "Goal",
+        "description": "该场景试图达成的业务目标。"
+      },
+      "scenario.owner_context": {
+        "label": "Owner context",
+        "description": "拥有该场景主叙事和业务责任的 context。"
+      },
+      "scenario.participating_contexts": {
+        "label": "Participating contexts",
+        "description": "该场景推进过程中会触达的 context 集合。"
+      },
+      "scenario.actors": {
+        "label": "Actors",
+        "description": "在该场景步骤中出现过的 actor 集合。"
+      },
+      "scenario.systems": {
+        "label": "Systems",
+        "description": "在该场景步骤中出现过的系统集合。"
+      },
+      "step.context": {
+        "label": "Context",
+        "description": "当前步骤所属的业务 context。"
+      },
+      "step.actor": {
+        "label": "Actor",
+        "description": "当前步骤由哪个 actor 发起或主导。"
+      },
+      "step.system": {
+        "label": "System",
+        "description": "当前步骤直接接触或调用的系统。"
+      },
+      "step.entry": {
+        "label": "Entry",
+        "description": "标记该步骤是否为场景入口。"
+      },
+      "step.incoming_messages": {
+        "label": "Incoming messages",
+        "description": "当前步骤会接收或观察的消息集合。"
+      },
+      "step.outgoing_messages": {
+        "label": "Outgoing messages",
+        "description": "当前步骤会发出、触发或请求的消息集合。"
+      },
+      "message.channel": {
+        "label": "Channel",
+        "description": "当前消息预期通过 sync 或 async 方式传递。"
+      },
+      "message.endpoints": {
+        "label": "Endpoints",
+        "description": "当前消息的 source、target 以及它们所在的 context。"
+      },
+      "message.crosses_context_boundary": {
+        "label": "Crosses context boundary",
+        "description": "当前消息是否跨越多个业务 context。"
+      },
+      "message.step_links": {
+        "label": "Scenario links",
+        "description": "当前消息与哪些场景步骤存在 incoming 或 outgoing 绑定。"
+      },
+      "message.payload_fields": {
+        "label": "Payload fields",
+        "description": "当前消息契约中的 payload 字段，以及每个字段的语义说明。"
+      },
+      "aggregate.context": {
+        "label": "Context",
+        "description": "拥有该 aggregate 生命周期的业务 context。"
+      },
+      "aggregate.accepted_messages": {
+        "label": "Accepted messages",
+        "description": "驱动该 aggregate 生命周期转移的消息集合。"
+      },
+      "aggregate.emitted_messages": {
+        "label": "Emitted messages",
+        "description": "该 aggregate 在转移过程中会发出的消息集合。"
+      },
+      "aggregate.reachable_states": {
+        "label": "Reachable states",
+        "description": "可从初始状态通过合法转移到达的状态集合。"
+      },
+      "aggregate.unreachable_states": {
+        "label": "Unreachable states",
+        "description": "当前生命周期里尚不可达的状态集合。"
+      },
+      "aggregate.state.outgoing_messages": {
+        "label": "Outgoing messages",
+        "description": "从当前状态出发可能触发的生命周期转移所发出的消息集合。"
+      },
+      "transition.trigger_message": {
+        "label": "Trigger message",
+        "description": "触发当前生命周期转移的消息。"
+      },
+      "transition.emitted_messages": {
+        "label": "Emitted messages",
+        "description": "当前生命周期转移会额外发出的消息集合。"
+      },
+      "policy.id": {
+        "label": "Policy",
+        "description": "当前协调策略或 saga 的标识。"
+      },
+      "policy.context": {
+        "label": "Context",
+        "description": "当前 policy 所属或声明的业务 context。"
+      },
+      "policy.trigger_messages": {
+        "label": "Trigger messages",
+        "description": "会触发该 policy 运行的消息集合。"
+      },
+      "policy.emitted_messages": {
+        "label": "Emitted messages",
+        "description": "该 policy 继续向外发出的消息集合。"
+      },
+      "policy.target_systems": {
+        "label": "Target systems",
+        "description": "该 policy 会调用或协调的目标系统。"
+      },
+      "policy.related_contexts": {
+        "label": "Related contexts",
+        "description": "该 policy 触达或协调到的 context 集合。"
+      },
+      "policy.coordinates": {
+        "label": "Coordinates",
+        "description": "该 policy 显式协调的业务资源集合。"
       }
     }
   },

@@ -1,7 +1,13 @@
-import type { AnalysisDiagnostic } from "../ddd-spec-core/graph-analysis.js";
 import { getSupportedInitTemplateIds } from "./init-templates.js";
 
 const PREFIX = "[ddd-spec]";
+
+interface CliDiagnostic {
+  severity: string;
+  code: string;
+  path: string;
+  message: string;
+}
 
 export function logInfo(message: string): void {
   console.log(prefixMessageLines(message));
@@ -15,11 +21,11 @@ export function logArtifact(label: string, outputPath: string): void {
   console.log(`${PREFIX} ${label} -> ${outputPath}`);
 }
 
-export function logWarningDiagnostic(diagnostic: AnalysisDiagnostic): void {
+export function logWarningDiagnostic(diagnostic: CliDiagnostic): void {
   console.warn(formatDiagnostic(diagnostic));
 }
 
-export function formatDiagnostic(diagnostic: AnalysisDiagnostic): string {
+export function formatDiagnostic(diagnostic: CliDiagnostic): string {
   return `${PREFIX} [${diagnostic.severity}] ${diagnostic.code} ${diagnostic.path}: ${diagnostic.message}`;
 }
 

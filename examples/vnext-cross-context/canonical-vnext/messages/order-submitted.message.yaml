@@ -1,0 +1,17 @@
+kind: message
+id: order-submitted
+title: Order Submitted
+summary: Async event telling the payments context that a submitted order is ready for authorization.
+messageKind: event
+channel: async
+producers:
+  - kind: aggregate
+    id: order
+consumers:
+  - kind: context
+    id: payments
+payload:
+  - id: order-id
+    type: uuid
+    required: true
+    description: Order identifier routed into the payments context.

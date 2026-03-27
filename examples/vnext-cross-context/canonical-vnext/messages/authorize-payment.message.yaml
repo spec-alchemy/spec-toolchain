@@ -1,0 +1,17 @@
+kind: message
+id: authorize-payment
+title: Authorize Payment
+summary: Command asking the payments aggregate to authorize settlement for the submitted order.
+messageKind: command
+channel: sync
+producers:
+  - kind: context
+    id: payments
+consumers:
+  - kind: aggregate
+    id: payment
+payload:
+  - id: order-id
+    type: uuid
+    required: true
+    description: Correlates the payment authorization with the submitted order.

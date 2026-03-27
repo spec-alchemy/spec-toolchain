@@ -10,6 +10,7 @@ after each iteration and it's included in prompts for context.
 - Viewer semantic vocabulary is duplicated intentionally across fixture/example `canonical/vocabulary/viewer-detail-semantics.yaml` files and `packages/ddd-spec-cli/init-templates.ts`; new semantic keys should be added to both sources in the same change.
 - During the staged vNext reset, keep schema-preview inputs under `canonical-vnext/` and isolated schema assets under `packages/ddd-spec-core/schema/vnext/` so current `canonical/`-bound repo gates can keep passing until the vNext loader lands.
 - When introducing a new canonical version, keep legacy loaders version-locked and add a separate version-dispatch loader for mixed repos; do not back-adapt vNext inputs into legacy `domain.*` shapes just to satisfy old call sites.
+- For vNext CLI/schema gates, validate raw `canonical-vnext` index plus collection files against the vNext schema set; do not validate the loaded `VnextBusinessSpec` bundle against legacy `canonical-index.schema.json`.
 - When vNext validation needs to feed later IR or CLI layers, collect structured diagnostics (`code`, `path`, `message`) first and layer the throwing validator on top, rather than forcing downstream code to parse error strings.
 - For vNext modeling, keep one analysis layer as the source of truth for normalization, view projections, and diagnostics; compatibility wrappers such as `vnext-semantic-validation.ts` should delegate instead of re-encoding rules.
 
@@ -138,4 +139,52 @@ after each iteration and it's included in prompts for context.
     - A shared vNext analysis IR stays practical if it carries both normalized topology and stable source paths, so projection code and diagnostics can share one dataset without losing precise error locations.
   - Gotchas encountered
     - `shnote`’s `node` subcommand is not a transparent pass-through in this environment; wrapping `node ...` inside `shnote run "..."` was the reliable way to keep command annotations while running focused tests.
+---
+
+## 2026-03-27 - knowledge-alchemy-app-v2-ch9
+- Implemented vNext `Message Flow / Trace` end-to-end by adding a dedicated vNext viewer projection path that emits `message-flow` alongside the other vNext views, preserving message type, source, target, owning context, scenario sequencing, and inspector-ready detail data.
+- Added a cross-context vNext example under `examples/vnext-cross-context/` that exercises command, event, and query hops across contexts, and updated CLI/runtime wiring so version-dispatch loading, viewer generation, and packaged viewer verification work against `version: 3` inputs.
+- Fixed vNext schema validation at the CLI boundary so repo gates validate raw `canonical-vnext` index and collection files rather than mis-validating the loaded `VnextBusinessSpec` bundle against legacy index rules; refreshed duplicated semantic vocab sources and checked-in goldens accordingly.
+- Files changed:
+  - `packages/ddd-spec-cli/commands.ts`
+  - `packages/ddd-spec-cli/config.ts`
+  - `packages/ddd-spec-cli/console.ts`
+  - `packages/ddd-spec-cli/init-templates.ts`
+  - `packages/ddd-spec-cli/cli-runtime.test.ts`
+  - `packages/ddd-spec-core/schema-validation.ts`
+  - `packages/ddd-spec-core/test-fixtures.ts`
+  - `packages/ddd-spec-core/vnext-loader.test.ts`
+  - `packages/ddd-spec-projection-viewer/index.ts`
+  - `packages/ddd-spec-projection-viewer/vnext.ts`
+  - `packages/ddd-spec-projection-viewer/index.test.ts`
+  - `examples/vnext-cross-context/ddd-spec.config.yaml`
+  - `examples/vnext-cross-context/canonical-vnext/index.yaml`
+  - `examples/vnext-cross-context/canonical-vnext/actors/customer.actor.yaml`
+  - `examples/vnext-cross-context/canonical-vnext/systems/ledger-gateway.system.yaml`
+  - `examples/vnext-cross-context/canonical-vnext/contexts/orders.context.yaml`
+  - `examples/vnext-cross-context/canonical-vnext/contexts/payments.context.yaml`
+  - `examples/vnext-cross-context/canonical-vnext/scenarios/order-settlement-flow.scenario.yaml`
+  - `examples/vnext-cross-context/canonical-vnext/messages/submit-order.message.yaml`
+  - `examples/vnext-cross-context/canonical-vnext/messages/order-submitted.message.yaml`
+  - `examples/vnext-cross-context/canonical-vnext/messages/authorize-payment.message.yaml`
+  - `examples/vnext-cross-context/canonical-vnext/messages/payment-authorized.message.yaml`
+  - `examples/vnext-cross-context/canonical-vnext/messages/fetch-ledger-status.message.yaml`
+  - `examples/vnext-cross-context/canonical-vnext/messages/ledger-status-fetched.message.yaml`
+  - `examples/vnext-cross-context/canonical-vnext/aggregates/order.aggregate.yaml`
+  - `examples/vnext-cross-context/canonical-vnext/aggregates/payment.aggregate.yaml`
+  - `scenarios/connection-card-review/canonical/vocabulary/viewer-detail-semantics.yaml`
+  - `test/fixtures/connection-card-review/canonical/vocabulary/viewer-detail-semantics.yaml`
+  - `examples/content-moderation/canonical/vocabulary/viewer-detail-semantics.yaml`
+  - `examples/order-payment/canonical/vocabulary/viewer-detail-semantics.yaml`
+  - `packages/ddd-spec-core/goldens/connection-card-review.business-spec.json`
+  - `packages/ddd-spec-projection-typescript/goldens/connection-card-review.generated.ts`
+  - `packages/ddd-spec-projection-viewer/goldens/connection-card-review.viewer-spec.json`
+  - `apps/ddd-spec-viewer/public/generated/viewer-spec.json`
+- **Learnings:**
+  - Patterns discovered
+    - The vNext viewer path stays maintainable when legacy and vNext projection builders remain separate, with CLI/viewer entrypoints dispatching by canonical version instead of teaching old projection code new schema semantics.
+    - Message detail semantics are effectively part of the public viewer contract, so adding new message-flow inspector keys requires the fixture/example vocabulary YAMLs and `packages/ddd-spec-cli/init-templates.ts` to move in the same patch.
+  - Gotchas encountered
+    - The CLI's previous schema-validation path was validating the post-load vNext bundle against the legacy canonical index schema, which produced the wrong failure mode; validating raw source files fixed repo gates without weakening legacy validation.
+    - TypeScript projection is still legacy-only, so vNext example configs need to disable it explicitly until a separate vNext projection path exists.
 ---

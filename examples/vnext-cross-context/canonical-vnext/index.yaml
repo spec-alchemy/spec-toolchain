@@ -1,0 +1,12 @@
+version: 3
+id: order-settlement-vnext
+title: Order Settlement vNext
+summary: Cross-context vNext example centered on command, event, and query flow across orders and payments.
+model:
+  contexts: ./contexts
+  actors: ./actors
+  systems: ./systems
+  scenarios: ./scenarios
+  messages: ./messages
+  aggregates: ./aggregates
+  policies: ./policies

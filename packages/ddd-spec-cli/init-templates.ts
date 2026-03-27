@@ -217,6 +217,138 @@ event.advances_to:
 event.target_stage:
   label: Target stage
   description: The destination stage reached when the process advances on this event.
+context.owners:
+  label: Owners
+  description: The teams, roles, or groups that own the current bounded context.
+context.responsibilities:
+  label: Responsibilities
+  description: The explicit business responsibilities carried by the current bounded context.
+context.related_actors:
+  label: Actors
+  description: The actors that participate in steps inside the current context.
+context.related_systems:
+  label: Systems
+  description: The systems that the current context collaborates with through dependencies or messages.
+context.relationships:
+  label: Relationships
+  description: The explicit external relationships declared by the current context.
+actor.type:
+  label: Actor type
+  description: The participant type for the current actor, such as person, role, or team.
+actor.contexts:
+  label: Contexts
+  description: The contexts where the current actor participates in scenario steps.
+actor.scenarios:
+  label: Scenarios
+  description: The scenarios where the current actor participates.
+actor.scenario_steps:
+  label: Scenario steps
+  description: The concrete scenario steps where the current actor appears.
+system.boundary:
+  label: Boundary
+  description: Whether the current system is modeled as an internal capability or an external dependency.
+system.capabilities:
+  label: Capabilities
+  description: The explicit capabilities exposed by the current system.
+system.contexts:
+  label: Contexts
+  description: The contexts that depend on or collaborate with the current system.
+system.dependencies:
+  label: Dependencies
+  description: The scenario, message, or policy references that point at the current system.
+scenario.goal:
+  label: Goal
+  description: The business goal that the current scenario is trying to achieve.
+scenario.owner_context:
+  label: Owner context
+  description: The bounded context that owns the primary story of the current scenario.
+scenario.participating_contexts:
+  label: Participating contexts
+  description: The contexts touched by the current scenario from start to finish.
+scenario.actors:
+  label: Actors
+  description: The actors that appear in the current scenario.
+scenario.systems:
+  label: Systems
+  description: The systems that appear in the current scenario.
+step.context:
+  label: Context
+  description: The bounded context where the current scenario step takes place.
+step.actor:
+  label: Actor
+  description: The actor who initiates or leads the current step.
+step.system:
+  label: System
+  description: The system that the current step directly touches.
+step.entry:
+  label: Entry
+  description: Whether the current step is the entry point of the scenario.
+step.incoming_messages:
+  label: Incoming messages
+  description: The messages that the current step receives or observes.
+step.outgoing_messages:
+  label: Outgoing messages
+  description: The messages that the current step emits, requests, or triggers.
+message.channel:
+  label: Channel
+  description: Whether the current message is expected to travel synchronously or asynchronously.
+message.endpoints:
+  label: Endpoints
+  description: The current message sources, targets, and their owning contexts.
+message.crosses_context_boundary:
+  label: Crosses context boundary
+  description: Whether the current message crosses more than one bounded context.
+message.step_links:
+  label: Scenario links
+  description: The scenario steps that reference the current message as incoming or outgoing.
+message.payload_fields:
+  label: Payload fields
+  description: The payload contract fields carried by the current message.
+aggregate.context:
+  label: Context
+  description: The bounded context that owns the current aggregate lifecycle.
+aggregate.accepted_messages:
+  label: Accepted messages
+  description: The messages that can trigger lifecycle transitions for the current aggregate.
+aggregate.emitted_messages:
+  label: Emitted messages
+  description: The messages emitted by the current aggregate during lifecycle transitions.
+aggregate.reachable_states:
+  label: Reachable states
+  description: The lifecycle states that can be reached from the initial state.
+aggregate.unreachable_states:
+  label: Unreachable states
+  description: The lifecycle states that are currently unreachable from the initial state.
+aggregate.state.outgoing_messages:
+  label: Outgoing messages
+  description: The messages emitted by transitions that leave the current lifecycle state.
+transition.trigger_message:
+  label: Trigger message
+  description: The message that causes the current lifecycle transition.
+transition.emitted_messages:
+  label: Emitted messages
+  description: The follow-up messages emitted by the current lifecycle transition.
+policy.id:
+  label: Policy
+  description: The identifier for the current policy or saga.
+policy.context:
+  label: Context
+  description: The bounded context that owns or declares the current policy.
+policy.trigger_messages:
+  label: Trigger messages
+  description: The messages that trigger the current policy.
+policy.emitted_messages:
+  label: Emitted messages
+  description: The messages emitted after the current policy reacts.
+policy.target_systems:
+  label: Target systems
+  description: The external or internal systems coordinated by the current policy.
+policy.related_contexts:
+  label: Related contexts
+  description: The bounded contexts touched by the current policy.
+policy.coordinates:
+  label: Coordinates
+  description: The resources explicitly coordinated by the current policy.
 `;
 
 const SHARED_TEMPLATE_FILES = [

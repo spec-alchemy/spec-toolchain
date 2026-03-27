@@ -3,7 +3,12 @@ import { access, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import test from "node:test";
-import type { BusinessSpec, BusinessSpecAnalysis } from "../ddd-spec-core/index.js";
+import { fileURLToPath } from "node:url";
+import type {
+  BusinessSpec,
+  BusinessSpecAnalysis,
+  VnextBusinessSpecAnalysis
+} from "../ddd-spec-core/index.js";
 import type { BusinessViewerSpec } from "../ddd-spec-viewer-contract/index.js";
 import { runCliCommand } from "./commands.js";
 import type { LaunchViewerOptions } from "./viewer.js";
@@ -21,6 +26,10 @@ import {
   writeExampleConfig
 } from "./test-support/cli-test-helpers.js";
 import YAML from "yaml";
+
+const VNEXT_CROSS_CONTEXT_ENTRY_PATH = fileURLToPath(
+  new URL("../../examples/vnext-cross-context/canonical-vnext/index.yaml", import.meta.url)
+);
 
 test("CLI build syncs viewer spec to configured sync targets", async () => {
   const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-config-sync-targets-"));
@@ -283,6 +292,118 @@ test("CLI dev rebuilds the zero-config viewer artifact and enables browser auto-
     ) as BusinessViewerSpec;
 
     assertExampleViewer(viewer, ZERO_CONFIG_FIXTURE);
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
+
+test("CLI build supports version 3 canonicals when viewer projection is enabled without TypeScript output", async () => {
+  const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-vnext-build-"));
+  const configPath = join(tempDir, "ddd-spec.config.yaml");
+
+  try {
+    await writeFile(
+      configPath,
+      YAML.stringify({
+        version: 1,
+        spec: {
+          entry: VNEXT_CROSS_CONTEXT_ENTRY_PATH
+        },
+        outputs: {
+          rootDir: "./artifacts"
+        },
+        projections: {
+          viewer: true,
+          typescript: false
+        }
+      }),
+      "utf8"
+    );
+
+    await runCliCommand(["build", "--config", configPath], {
+      cwd: tempDir
+    });
+
+    const bundle = JSON.parse(
+      await readFile(join(tempDir, "artifacts", "business-spec.json"), "utf8")
+    ) as BusinessSpec & { version: 3 };
+    const analysis = JSON.parse(
+      await readFile(join(tempDir, "artifacts", "business-spec.analysis.json"), "utf8")
+    ) as VnextBusinessSpecAnalysis;
+    const viewer = JSON.parse(
+      await readFile(
+        join(tempDir, "artifacts", "business-viewer", "viewer-spec.json"),
+        "utf8"
+      )
+    ) as BusinessViewerSpec;
+
+    assert.equal(bundle.version, 3);
+    assert.equal(analysis.summary.errorCount, 0);
+    assert.deepEqual(
+      viewer.views.map((view) => view.id),
+      ["context-map", "scenario-story", "message-flow", "lifecycle"]
+    );
+    assert.equal(JSON.stringify(viewer).includes("\"fetch-ledger-status\""), true);
+    await assert.rejects(
+      access(join(tempDir, "artifacts", "business-spec.generated.ts")),
+      /ENOENT/
+    );
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
+
+test("CLI viewer supports version 3 canonicals through the packaged viewer path", async () => {
+  const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-vnext-viewer-"));
+  const configPath = join(tempDir, "ddd-spec.config.yaml");
+  let launchOptions: LaunchViewerOptions | undefined;
+
+  try {
+    await writeFile(
+      configPath,
+      YAML.stringify({
+        version: 1,
+        spec: {
+          entry: VNEXT_CROSS_CONTEXT_ENTRY_PATH
+        },
+        outputs: {
+          rootDir: "./artifacts"
+        },
+        projections: {
+          viewer: true,
+          typescript: false
+        }
+      }),
+      "utf8"
+    );
+
+    await runCliCommand(["viewer", "--config", configPath, "--", "--port", "0"], {
+      cwd: tempDir,
+      viewerCommandHooks: {
+        launchViewer: async (options) => {
+          launchOptions = options;
+        }
+      }
+    });
+
+    assert.ok(launchOptions);
+    assert.equal(launchOptions.assetDirPath, CLI_DIST_VIEWER_DIR_PATH);
+    assert.equal(
+      launchOptions.viewerSpecPath,
+      join(tempDir, "artifacts", "business-viewer", "viewer-spec.json")
+    );
+    assert.equal(launchOptions.port, 0);
+    assert.equal(launchOptions.openBrowser, false);
+
+    const viewer = JSON.parse(
+      await readFile(
+        join(tempDir, "artifacts", "business-viewer", "viewer-spec.json"),
+        "utf8"
+      )
+    ) as BusinessViewerSpec;
+
+    assert.equal(viewer.views.some((view) => view.id === "message-flow"), true);
+    assert.equal(JSON.stringify(viewer).includes("\"payment-authorized\""), true);
   } finally {
     await rm(tempDir, { recursive: true, force: true });
   }

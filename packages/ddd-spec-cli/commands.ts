@@ -1,12 +1,19 @@
 import {
   analyzeBusinessSpec,
-  loadBusinessSpec,
-  type BusinessSpec,
+  analyzeVnextBusinessSpec,
+  isVnextBusinessSpec,
+  loadCanonicalSpec,
   type BusinessSpecAnalysis,
+  type LoadedBusinessSpec,
+  type VnextBusinessSpecAnalysis,
   validateBusinessSpecSchema,
+  validateVnextCanonicalSchema,
   validateBusinessSpecSemantics
 } from "../ddd-spec-core/index.js";
-import { buildBusinessViewerSpec } from "../ddd-spec-projection-viewer/index.js";
+import {
+  buildBusinessViewerSpec,
+  buildVnextViewerSpec
+} from "../ddd-spec-projection-viewer/index.js";
 import { buildBusinessSpecTypescriptSource } from "../ddd-spec-projection-typescript/index.js";
 import {
   removeOutputPath,
@@ -14,6 +21,7 @@ import {
   writeTextArtifact
 } from "./artifact-io.js";
 import { buildUsageText, formatDiagnostic, logArtifact, logInfo, logWarningDiagnostic } from "./console.js";
+import { DEFAULT_SCHEMA_PATH, DEFAULT_VNEXT_SCHEMA_PATH } from "./config.js";
 import { loadDddSpecConfig } from "./config.js";
 import { startDddSpecDevSession } from "./dev.js";
 import { initDddSpec } from "./init.js";
@@ -44,8 +52,10 @@ export interface RunCliCommandOptions {
 }
 
 interface LoadedSpecContext {
-  spec: BusinessSpec;
+  spec: LoadedBusinessSpec;
 }
+
+type LoadedSpecAnalysis = BusinessSpecAnalysis | VnextBusinessSpecAnalysis;
 
 export async function runCliCommand(
   argv: readonly string[],
@@ -132,16 +142,16 @@ async function runBundleCommand(
 
 async function runAnalyzeCommand(
   config: Awaited<ReturnType<typeof loadDddSpecConfig>>
-): Promise<BusinessSpecAnalysis> {
+): Promise<LoadedSpecAnalysis> {
   const { spec } = await runValidateCommand(config);
-  const analysis = analyzeBusinessSpec(spec);
+  const analysis = analyzeSpec(spec);
   const analysisPath = requireOutputPath(config.outputs.analysisPath, "outputs.analysis");
 
   await writeJsonArtifact(analysisPath, analysis);
   emitAnalysisDiagnostics(analysis);
   assertNoAnalysisErrors(analysis);
   logArtifact("wrote analysis", analysisPath);
-  logInfo(`analysis passed with ${analysis.summary.warningCount} warning(s)`);
+  logInfo(formatAnalysisSuccessMessage(analysis));
 
   return analysis;
 }
@@ -155,14 +165,14 @@ async function runBuildCommand(
   await writeJsonArtifact(bundlePath, loadedSpec.spec);
   logArtifact("bundled canonical spec", bundlePath);
 
-  const analysis = analyzeBusinessSpec(loadedSpec.spec);
+  const analysis = analyzeSpec(loadedSpec.spec);
   const analysisPath = requireOutputPath(config.outputs.analysisPath, "outputs.analysis");
 
   await writeJsonArtifact(analysisPath, analysis);
   emitAnalysisDiagnostics(analysis);
   assertNoAnalysisErrors(analysis);
   logArtifact("wrote analysis", analysisPath);
-  logInfo(`analysis passed with ${analysis.summary.warningCount} warning(s)`);
+  logInfo(formatAnalysisSuccessMessage(analysis));
 
   if (config.projections.typescript) {
     await generateTypescriptSpec(config, loadedSpec.spec);
@@ -183,7 +193,7 @@ async function runGenerateViewerCommand(
   assertProjectionEnabled(config, "viewer");
 
   const loadedSpec = await runValidateCommand(config);
-  const analysis = analyzeBusinessSpec(loadedSpec.spec);
+  const analysis = analyzeSpec(loadedSpec.spec);
 
   emitAnalysisDiagnostics(analysis);
   assertNoAnalysisErrors(analysis);
@@ -228,12 +238,23 @@ async function runDevCommand(
 async function loadValidatedSpec(
   config: Awaited<ReturnType<typeof loadDddSpecConfig>>
 ): Promise<LoadedSpecContext> {
-  const spec = await loadBusinessSpec({
+  const spec = await loadCanonicalSpec({
     entryPath: config.spec.entryPath,
     validateSemantics: false
   });
 
-  await validateBusinessSpecSchema(spec, { schemaPath: config.schema.path });
+  const schemaPath = resolveSchemaPath(spec, config.schema.path);
+
+  if (isVnextBusinessSpec(spec)) {
+    await validateVnextCanonicalSchema({
+      entryPath: config.spec.entryPath,
+      schemaPath
+    });
+  } else {
+    await validateBusinessSpecSchema(spec, {
+      schemaPath
+    });
+  }
   validateBusinessSpecSemantics(spec);
 
   return {
@@ -243,8 +264,14 @@ async function loadValidatedSpec(
 
 async function generateTypescriptSpec(
   config: Awaited<ReturnType<typeof loadDddSpecConfig>>,
-  spec: BusinessSpec
+  spec: LoadedBusinessSpec
 ): Promise<void> {
+  if (isVnextBusinessSpec(spec)) {
+    throw new Error(
+      "TypeScript projection is not implemented for version 3 canonicals yet. Disable projections.typescript for this config before running build or generate typescript."
+    );
+  }
+
   const typescriptPath = requireOutputPath(
     config.outputs.typescriptPath,
     "outputs.typescript"
@@ -259,11 +286,13 @@ async function generateTypescriptSpec(
 
 async function generateViewerSpec(
   config: Awaited<ReturnType<typeof loadDddSpecConfig>>,
-  spec: BusinessSpec,
-  analysis: BusinessSpecAnalysis
+  spec: LoadedBusinessSpec,
+  analysis: LoadedSpecAnalysis
 ): Promise<void> {
   const viewerPath = requireOutputPath(config.outputs.viewerPath, "outputs.viewer");
-  const viewerSpec = buildBusinessViewerSpec(spec, analysis.graph);
+  const viewerSpec = isVnextBusinessSpec(spec)
+    ? buildVnextViewerSpec(spec, ensureVnextAnalysis(analysis))
+    : buildBusinessViewerSpec(spec, ensureLegacyAnalysis(analysis).graph);
 
   await writeJsonArtifact(viewerPath, viewerSpec);
   logArtifact("generated viewer spec", viewerPath);
@@ -420,7 +449,11 @@ function parseCommand(positionals: readonly string[]): CliCommand | undefined {
   }
 }
 
-function emitAnalysisDiagnostics(analysis: BusinessSpecAnalysis): void {
+function emitAnalysisDiagnostics(analysis: LoadedSpecAnalysis): void {
+  if (!("warningCount" in analysis.summary)) {
+    return;
+  }
+
   for (const diagnostic of analysis.diagnostics) {
     if (diagnostic.severity === "warning") {
       logWarningDiagnostic(diagnostic);
@@ -428,7 +461,7 @@ function emitAnalysisDiagnostics(analysis: BusinessSpecAnalysis): void {
   }
 }
 
-function assertNoAnalysisErrors(analysis: BusinessSpecAnalysis): void {
+function assertNoAnalysisErrors(analysis: LoadedSpecAnalysis): void {
   const errorDiagnostics = analysis.diagnostics.filter(
     (diagnostic) => diagnostic.severity === "error"
   );
@@ -455,4 +488,49 @@ function requireOutputPath(outputPath: string | undefined, configKey: string): s
 
 function uniqueDefined(values: readonly (string | undefined)[]): string[] {
   return [...new Set(values.filter((value): value is string => Boolean(value)))];
+}
+
+function analyzeSpec(spec: LoadedBusinessSpec): LoadedSpecAnalysis {
+  return isVnextBusinessSpec(spec)
+    ? analyzeVnextBusinessSpec(spec)
+    : analyzeBusinessSpec(spec);
+}
+
+function resolveSchemaPath(
+  spec: LoadedBusinessSpec,
+  configuredSchemaPath: string
+): string {
+  if (isVnextBusinessSpec(spec) && configuredSchemaPath === DEFAULT_SCHEMA_PATH) {
+    return DEFAULT_VNEXT_SCHEMA_PATH;
+  }
+
+  return configuredSchemaPath;
+}
+
+function ensureLegacyAnalysis(
+  analysis: LoadedSpecAnalysis
+): BusinessSpecAnalysis {
+  if ("graph" in analysis) {
+    return analysis;
+  }
+
+  throw new Error("Expected legacy graph-based analysis for version 2 canonical");
+}
+
+function ensureVnextAnalysis(
+  analysis: LoadedSpecAnalysis
+): VnextBusinessSpecAnalysis {
+  if ("ir" in analysis) {
+    return analysis;
+  }
+
+  throw new Error("Expected vNext analysis IR for version 3 canonical");
+}
+
+function formatAnalysisSuccessMessage(analysis: LoadedSpecAnalysis): string {
+  if ("warningCount" in analysis.summary) {
+    return `analysis passed with ${analysis.summary.warningCount} warning(s)`;
+  }
+
+  return `analysis passed with ${analysis.summary.errorCount} error(s)`;
 }

@@ -18,6 +18,10 @@ export const VNEXT_MINIMAL_FIXTURE_ENTRY_PATH = fileURLToPath(
   new URL("../../examples/vnext-minimal/canonical-vnext/index.yaml", import.meta.url)
 );
 
+export const VNEXT_CROSS_CONTEXT_FIXTURE_ENTRY_PATH = fileURLToPath(
+  new URL("../../examples/vnext-cross-context/canonical-vnext/index.yaml", import.meta.url)
+);
+
 export const BUNDLE_GOLDEN_PATH = fileURLToPath(
   new URL("./goldens/connection-card-review.business-spec.json", import.meta.url)
 );
@@ -35,6 +39,12 @@ export async function loadConnectionCardReviewFixture(): Promise<BusinessSpec> {
 export async function loadVnextMinimalFixture(): Promise<VnextBusinessSpec> {
   return loadVnextBusinessSpec({
     entryPath: VNEXT_MINIMAL_FIXTURE_ENTRY_PATH
+  });
+}
+
+export async function loadVnextCrossContextFixture(): Promise<VnextBusinessSpec> {
+  return loadVnextBusinessSpec({
+    entryPath: VNEXT_CROSS_CONTEXT_FIXTURE_ENTRY_PATH
   });
 }
 

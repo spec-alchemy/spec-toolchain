@@ -1,0 +1,8 @@
+version: 1
+spec:
+  entry: ./canonical-vnext/index.yaml
+outputs:
+  rootDir: ./artifacts
+projections:
+  viewer: true
+  typescript: false

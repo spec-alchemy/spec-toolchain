@@ -35,6 +35,8 @@ import {
   getViewerDetailSemantic
 } from "./viewer-semantic-help.js";
 
+export { buildVnextViewerSpec } from "./vnext.js";
+
 const DIMENSIONS = {
   contextGroup: { width: 360, minHeight: 240, charsPerLine: 32, minHeaderHeight: 116 },
   processGroup: { width: 320, minHeight: 220, charsPerLine: 28, minHeaderHeight: 112 },
