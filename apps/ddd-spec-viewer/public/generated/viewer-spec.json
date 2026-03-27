@@ -1,8 +1,8 @@
 {
   "viewerVersion": 1,
-  "specId": "order-settlement-vnext",
-  "title": "Order Settlement vNext",
-  "summary": "Cross-context vNext example centered on command, event, and query flow across orders and payments.",
+  "specId": "order-settlement",
+  "title": "Order Settlement",
+  "summary": "Cross-context domain model example centered on command, event, and query flow across orders and payments.",
   "detailHelp": {
     "semantic": {
       "context.id": "当前作为业务所有权边界展示的 bounded context。",

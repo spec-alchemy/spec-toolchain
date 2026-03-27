@@ -9,23 +9,23 @@ export const DOMAIN_MODEL_SCHEMA_PATH = fileURLToPath(
 );
 
 export const VNEXT_MINIMAL_FIXTURE_ENTRY_PATH = fileURLToPath(
-  new URL("../../examples/vnext-minimal/canonical-vnext/index.yaml", import.meta.url)
+  new URL("../../examples/minimal/domain-model/index.yaml", import.meta.url)
 );
 
 export const VNEXT_CROSS_CONTEXT_FIXTURE_ENTRY_PATH = fileURLToPath(
-  new URL("../../examples/vnext-cross-context/canonical-vnext/index.yaml", import.meta.url)
+  new URL("../../examples/cross-context/domain-model/index.yaml", import.meta.url)
 );
 
 export const VNEXT_CROSS_CONTEXT_BUNDLE_GOLDEN_PATH = fileURLToPath(
-  new URL("../../examples/vnext-cross-context/artifacts/business-spec.json", import.meta.url)
+  new URL("../../examples/cross-context/artifacts/business-spec.json", import.meta.url)
 );
 
 export const VNEXT_CROSS_CONTEXT_ANALYSIS_GOLDEN_PATH = fileURLToPath(
-  new URL("../../examples/vnext-cross-context/artifacts/business-spec.analysis.json", import.meta.url)
+  new URL("../../examples/cross-context/artifacts/business-spec.analysis.json", import.meta.url)
 );
 
 export const VNEXT_CROSS_CONTEXT_VIEWER_GOLDEN_PATH = fileURLToPath(
-  new URL("../../examples/vnext-cross-context/artifacts/business-viewer/viewer-spec.json", import.meta.url)
+  new URL("../../examples/cross-context/artifacts/business-viewer/viewer-spec.json", import.meta.url)
 );
 
 export async function loadVnextMinimalFixture(): Promise<VnextBusinessSpec> {

@@ -1,7 +1,7 @@
 # `@knowledge-alchemy/ddd-spec`
 
 `@knowledge-alchemy/ddd-spec` is the external CLI package for the DDD modeling workbench.
-Zero-config is the default product path: run `ddd-spec init`, model under `ddd-spec/canonical-vnext/`, and let the CLI write build outputs into `.ddd-spec/`. Use `--config <path>` only when a workspace needs custom entry paths, output locations, or viewer sync targets.
+Zero-config is the default product path: run `ddd-spec init`, model under `domain-model/`, and let the CLI write build outputs into `.ddd-spec/`. Use `--config <path>` only when a workspace needs custom entry paths, output locations, or viewer sync targets.
 
 Package naming and versioning stay on a separate axis from schema contracts: this reset does not rename the package, does not rename the `ddd-spec` CLI command, and does not imply an npm semver reset just because schema or viewer contract versions change.
 
@@ -12,19 +12,19 @@ Start here for a normal consumer workspace. The preferred path is `install -> in
 ```sh
 npm install --save-dev @knowledge-alchemy/ddd-spec
 npm exec ddd-spec init
-# edit the generated vNext starter in ddd-spec/canonical-vnext/
+# edit the generated starter in domain-model/
 npm exec ddd-spec dev
 ```
 
-`init` creates a vNext starter under `ddd-spec/canonical-vnext/` with one bounded context, one core scenario, one message flow, and one lifecycle. It also adds `.ddd-spec/` to `.gitignore` when needed.
+`init` creates a starter under `domain-model/` with one bounded context, one core scenario, one message flow, and one lifecycle. It also adds `.ddd-spec/` to `.gitignore` when needed.
 
-The default zero-config build writes bundle, analysis, and viewer outputs into `.ddd-spec/`. TypeScript projection is not part of the default vNext path yet, so the starter intentionally skips generated TypeScript output for now.
+The default zero-config build writes bundle, analysis, and viewer outputs into `.ddd-spec/`. TypeScript projection is not part of the default path yet, so the starter intentionally skips generated TypeScript output for now.
 
 The `dev` command is the recommended iteration loop. It runs the initial validation/build, starts the packaged viewer server, opens the browser automatically by default, and keeps watching canonical inputs so edits trigger rebuilds without restarting the session. After each successful rebuild, the already-open viewer automatically reloads the current workspace viewer spec. If a rebuild fails, the terminal tells you what broke, keeps the watcher alive, and the viewer keeps showing the last successful result with an in-app warning until the next build passes.
 
 ## What `init` Teaches
 
-The default starter is intentionally aligned to the vNext product story:
+The default starter is intentionally aligned to the current product story:
 
 - `contexts/`, `actors/`, and `systems/` define the `Context Map`
 - `scenarios/` defines the `Scenario Story`
@@ -101,7 +101,7 @@ The published package supports these commands:
 
 ## Advanced `--config` Workflow
 
-Use `--config <path>` when you want an explicit config file instead of the default `ddd-spec/canonical-vnext/index.yaml` and `.ddd-spec/` layout.
+Use `--config <path>` when you want an explicit config file instead of the default `domain-model/index.yaml` and `.ddd-spec/` layout.
 
 ```sh
 npm exec ddd-spec validate --config ./ddd-spec.config.yaml

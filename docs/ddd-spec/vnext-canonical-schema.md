@@ -88,15 +88,15 @@ model:
 
 ## 6. Repo 内的最小样例
 
-当前 repo 用以下路径承载最小 vNext canonical 结构：
+当前 repo 用以下路径承载最小 maintainer 样例：
 
-- [`/Users/tella/Development/knowledge-alchemy-app-v2/examples/vnext-minimal/canonical-vnext/index.yaml`](../../examples/vnext-minimal/canonical-vnext/index.yaml)
+- [`/Users/tella/Development/knowledge-alchemy-app-v2/examples/minimal/domain-model/index.yaml`](../../examples/minimal/domain-model/index.yaml)
 
-该样例放在 `canonical-vnext/` 下，用于代表当前唯一受支持的 canonical 结构。原因是：
+该样例现在放在 `domain-model/` 下，用于承载当前 repo-private 默认建模路径。原因是：
 
-1. repo 级 `repo:*` 命令已经固定走 vNext loader 与 vNext schema。
-2. 当前项目明确不做向前兼容，repo-local dogfood 只维护 `canonical-vnext/`。
-3. 后续 story 需要扩展的应是 vNext 建模能力，而不是恢复旧 `canonical/` 兼容层。
+1. repo 级 `repo:*` 命令已经固定走当前 loader 与 schema。
+2. 当前项目明确不做向前兼容，repo-local dogfood 只维护 `domain-model/`。
+3. 后续 story 需要扩展的应是当前 domain model 建模能力，而不是恢复旧 `canonical/` 兼容层。
 
 ## 7. Schema 资源位置
 

@@ -16,7 +16,7 @@ import type { LaunchViewerOptions } from "./viewer.js";
 import YAML from "yaml";
 
 const VNEXT_CROSS_CONTEXT_ENTRY_PATH = fileURLToPath(
-  new URL("../../examples/vnext-cross-context/canonical-vnext/index.yaml", import.meta.url)
+  new URL("../../examples/cross-context/domain-model/index.yaml", import.meta.url)
 );
 
 function assertPrimaryViewOrder(
@@ -144,7 +144,7 @@ test("CLI validate and build succeed in zero-config mode with the reset domain m
 
     assert.equal(bundle.version, 1);
     assert.equal(viewer.viewerVersion, 1);
-    assert.equal(bundle.id, "approval-flow-vnext");
+    assert.equal(bundle.id, "approval-flow");
     assert.equal(analysis.summary.errorCount, 0);
     assertPrimaryViewOrder(viewer, [
       "context-map",

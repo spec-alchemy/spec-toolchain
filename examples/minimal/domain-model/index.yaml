@@ -1,7 +1,7 @@
 version: 1
-id: order-settlement-vnext
-title: Order Settlement vNext
-summary: Cross-context vNext example centered on command, event, and query flow across orders and payments.
+id: approval-flow
+title: Approval Flow
+summary: Minimal domain model example centered on context, scenario, message flow, lifecycle, and a follow-up policy.
 model:
   contexts: ./contexts
   actors: ./actors

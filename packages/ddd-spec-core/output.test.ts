@@ -8,7 +8,7 @@ import {
   loadVnextCrossContextFixture
 } from "./test-fixtures.js";
 
-test("vNext cross-context bundle output matches the checked-in artifact", async () => {
+test("cross-context example bundle output matches the checked-in artifact", async () => {
   const spec = await loadVnextCrossContextFixture();
   const actualBundleSource = `${JSON.stringify(spec, null, 2)}\n`;
   const expectedBundleSource = await readFile(VNEXT_CROSS_CONTEXT_BUNDLE_GOLDEN_PATH, "utf8");
@@ -16,7 +16,7 @@ test("vNext cross-context bundle output matches the checked-in artifact", async 
   assert.strictEqual(actualBundleSource, expectedBundleSource);
 });
 
-test("vNext cross-context analysis output matches the checked-in artifact", async () => {
+test("cross-context example analysis output matches the checked-in artifact", async () => {
   const spec = await loadVnextCrossContextFixture();
   const analysis = analyzeVnextBusinessSpec(spec);
   const actualAnalysisSource = `${JSON.stringify(analysis, null, 2)}\n`;

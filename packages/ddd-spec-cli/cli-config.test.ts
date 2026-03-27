@@ -239,7 +239,7 @@ test("CLI failure output preserves an existing init hint without duplicating gui
   assert.equal(countMatches(output, "Run `ddd-spec init`"), 1);
 });
 
-test("repo viewer config resolves tracked vNext example outputs and sync targets", async () => {
+test("repo viewer config resolves tracked cross-context example outputs and sync targets", async () => {
   const config = await loadDddSpecConfig({
     configPath: REPO_VIEWER_CONFIG_PATH
   });

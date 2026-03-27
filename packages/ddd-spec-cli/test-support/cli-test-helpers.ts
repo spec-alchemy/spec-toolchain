@@ -28,10 +28,10 @@ import {
 
 export async function copyVnextCanonicalToZeroConfigRoot(
   targetRootPath: string,
-  exampleId: "vnext-minimal" | "vnext-cross-context" = "vnext-minimal"
+  exampleId: "minimal" | "cross-context" = "minimal"
 ): Promise<void> {
   await cp(
-    resolve(REPO_ROOT_PATH, "examples", exampleId, "canonical-vnext"),
+    resolve(REPO_ROOT_PATH, "examples", exampleId, "domain-model"),
     join(targetRootPath, "domain-model"),
     { recursive: true }
   );

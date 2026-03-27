@@ -7,11 +7,11 @@
 ## Maintainer Commands
 | Task | Command |
 |------|---------|
-| Validate repo vNext example flow | `npm run repo:validate` |
-| Build repo vNext example outputs | `npm run repo:build` |
+| Validate repo example flow | `npm run repo:validate` |
+| Build repo example outputs | `npm run repo:build` |
 | Run package regressions | `npm run pkg:test` |
 | Verify packaged CLI + viewer workspace | `npm run verify` |
-| Launch packaged viewer vNext example flow | `npm run repo:viewer` |
+| Launch packaged viewer example flow | `npm run repo:viewer` |
 | Run viewer Vite dev server | `npm run dev --workspace=apps/ddd-spec-viewer` |
 | Build viewer workspace | `npm run build --workspace=apps/ddd-spec-viewer` |
 
@@ -34,10 +34,10 @@
 ## Key Conventions
 - Root package is a private maintainer workspace; the only public npm boundary is [`packages/ddd-spec-cli/`](./packages/ddd-spec-cli/)
 - Root `repo:*` scripts always target [`apps/ddd-spec-viewer/ddd-spec.config.yaml`](./apps/ddd-spec-viewer/ddd-spec.config.yaml); do not add repo-root `ddd-spec/canonical/`
-- The root viewer config now targets the tracked [`examples/vnext-cross-context/`](./examples/vnext-cross-context/) `canonical-vnext/` input; keep repo-local maintainer docs and tests aligned with that default path
-- [`examples/`](./examples/) are the only maintained repo-local dogfood inputs; prefer `canonical-vnext/` examples when adding or updating maintainer coverage
+- The root viewer config now targets the tracked [`examples/cross-context/`](./examples/cross-context/) `domain-model/` input; keep repo-local maintainer docs and tests aligned with that default path
+- [`examples/`](./examples/) are the only maintained repo-local dogfood inputs; prefer `domain-model/` examples when adding or updating maintainer coverage
 - No legacy v2 compatibility requirement: remove `canonical/`, `objects/commands/events/processes`, and related legacy tests/goldens instead of preserving them
-- Do not reintroduce a repo-root [`scenarios/`](./scenarios/) tree; keep maintainer inputs under [`examples/`](./examples/) `canonical-vnext/`
+- Do not reintroduce a repo-root [`scenarios/`](./scenarios/) tree; keep maintainer inputs under [`examples/`](./examples/) `domain-model/`
 - [`apps/ddd-spec-viewer/`](./apps/ddd-spec-viewer/) is private source; the shipped viewer is the built bundle under `packages/ddd-spec-cli/dist/ddd-spec-cli/static/viewer/`
 - Follow the viewer UI DOM debug contract in [`apps/ddd-spec-viewer/AGENTS.md`](./apps/ddd-spec-viewer/AGENTS.md) when editing that app.
 - [`examples/`](./examples/) and [`docs/ddd-spec/`](./docs/ddd-spec/) are repo-only maintainer assets and are not published in the product tarball

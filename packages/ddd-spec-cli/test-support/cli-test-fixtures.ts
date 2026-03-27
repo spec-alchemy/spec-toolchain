@@ -15,7 +15,7 @@ export const DEFAULT_DOMAIN_MODEL_SCHEMA_PATH = toAbsolutePath(
   "../../ddd-spec-core/schema/domain-model/index.schema.json"
 );
 export const REPO_VIEWER_ENTRY_PATH = toAbsolutePath(
-  "../../../examples/vnext-cross-context/canonical-vnext/index.yaml"
+  "../../../examples/cross-context/domain-model/index.yaml"
 );
 export const CLI_DIST_ENTRY_PATH = toAbsolutePath("../dist/ddd-spec-cli/cli.js");
 export const CLI_DIST_INDEX_PATH = toAbsolutePath("../dist/ddd-spec-cli/index.js");

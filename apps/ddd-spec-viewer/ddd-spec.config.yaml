@@ -1,6 +1,6 @@
 version: 1
 spec:
-  entry: ../../examples/vnext-cross-context/canonical-vnext/index.yaml
+  entry: ../../examples/cross-context/domain-model/index.yaml
 schema:
   path: ../../packages/ddd-spec-core/schema/domain-model/index.schema.json
 outputs:

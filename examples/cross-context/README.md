@@ -1,6 +1,6 @@
-# vNext Cross-Context Example
+# Cross-Context Example
 
-`examples/vnext-cross-context/` is the repo's full vNext example for the default product path.
+`examples/cross-context/` is the repo's full cross-context example for the default maintainer demo path.
 
 It is designed to show all four primary views in one example:
 
@@ -11,12 +11,12 @@ It is designed to show all four primary views in one example:
 
 ## Files To Read
 
-- [`./canonical-vnext/index.yaml`](./canonical-vnext/index.yaml)
-- [`./canonical-vnext/contexts/orders.context.yaml`](./canonical-vnext/contexts/orders.context.yaml)
-- [`./canonical-vnext/contexts/payments.context.yaml`](./canonical-vnext/contexts/payments.context.yaml)
-- [`./canonical-vnext/scenarios/order-settlement-flow.scenario.yaml`](./canonical-vnext/scenarios/order-settlement-flow.scenario.yaml)
-- [`./canonical-vnext/messages/`](./canonical-vnext/messages/)
-- [`./canonical-vnext/aggregates/`](./canonical-vnext/aggregates/)
+- [`./domain-model/index.yaml`](./domain-model/index.yaml)
+- [`./domain-model/contexts/orders.context.yaml`](./domain-model/contexts/orders.context.yaml)
+- [`./domain-model/contexts/payments.context.yaml`](./domain-model/contexts/payments.context.yaml)
+- [`./domain-model/scenarios/order-settlement-flow.scenario.yaml`](./domain-model/scenarios/order-settlement-flow.scenario.yaml)
+- [`./domain-model/messages/`](./domain-model/messages/)
+- [`./domain-model/aggregates/`](./domain-model/aggregates/)
 
 ## Repo-Local Demo
 
@@ -39,7 +39,7 @@ If you want this example to emit example-local artifacts under [`./artifacts/`](
 
 ```sh
 npm run build --workspace=packages/ddd-spec-cli
-npm run repo:cli --workspace=packages/ddd-spec-cli -- validate --config examples/vnext-cross-context/ddd-spec.config.yaml
-npm run repo:cli --workspace=packages/ddd-spec-cli -- build --config examples/vnext-cross-context/ddd-spec.config.yaml
-npm run repo:cli --workspace=packages/ddd-spec-cli -- viewer --config examples/vnext-cross-context/ddd-spec.config.yaml -- --port 4173
+npm run repo:cli --workspace=packages/ddd-spec-cli -- validate --config examples/cross-context/ddd-spec.config.yaml
+npm run repo:cli --workspace=packages/ddd-spec-cli -- build --config examples/cross-context/ddd-spec.config.yaml
+npm run repo:cli --workspace=packages/ddd-spec-cli -- viewer --config examples/cross-context/ddd-spec.config.yaml -- --port 4173
 ```

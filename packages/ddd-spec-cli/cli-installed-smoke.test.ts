@@ -97,7 +97,7 @@ test("npm pack smoke test installs the tarball and runs zero-config init plus bu
   }
 });
 
-test("npm pack smoke test installs the tarball and runs build with --config on a vNext example", async () => {
+test("npm pack smoke test installs the tarball and runs build with --config on the cross-context example", async () => {
   const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-pack-smoke-config-"));
   const consumerRootPath = join(tempDir, "consumer");
   const configPath = join(consumerRootPath, "ddd-spec.config.yaml");
