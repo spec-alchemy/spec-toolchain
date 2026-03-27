@@ -1,6 +1,5 @@
 import {
   analyzeVnextBusinessSpec,
-  isVnextBusinessSpec,
   loadCanonicalSpec,
   type VnextBusinessSpec,
   type VnextBusinessSpecAnalysis,
@@ -223,12 +222,6 @@ async function loadValidatedSpec(
     entryPath: config.spec.entryPath,
     validateSemantics: false
   });
-
-  if (!isVnextBusinessSpec(spec)) {
-    throw new Error(
-      `Legacy version 2 canonicals are no longer supported by ddd-spec CLI. Migrate ${config.spec.entryPath} to a version 3 canonical-vnext workspace before running this command.`
-    );
-  }
 
   await validateVnextCanonicalSchema({
     entryPath: config.spec.entryPath,

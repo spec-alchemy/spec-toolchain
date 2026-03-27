@@ -25,11 +25,11 @@
 - `vnext-canonical-schema.md` 是 vNext canonical schema version、目录布局与最小文件职责的实现依据。
 - vNext 明确不做向前兼容，不以当前 canonical schema、当前 graph analysis、当前 viewer 视图集合作为设计约束。
 - vNext canonical 已正式定义为 `version: 3`，并以 `contexts / actors / systems / scenarios / messages / aggregates / policies` 为顶层概念。
-- 旧的 `objects / commands / events / aggregates / processes` 只代表仍在运行中的 `v2` runtime，不再代表 vNext 设计中心。
+- 旧的 `objects / commands / events / aggregates / processes` 只代表已移除的 v2 历史模型，不再代表 vNext 设计中心。
 - `composition` 退出一级主视图，不再作为默认用户路径或默认建模入口。
 - 产品默认路径固定为：`Context Map -> Scenario Story -> Message Flow / Trace -> Lifecycle`。
 - `Aggregate Boundary / Domain Structure` 与 `Policy / Saga` 是二级扩展图，只在一级路径已经成立后再引入。
-- repo 级 maintainer 默认门禁与 viewer 演示入口应指向仓库跟踪的 vNext 示例，而不是 legacy scenario。
+- repo 级 maintainer 默认门禁与 viewer 演示入口应始终指向仓库跟踪的 vNext 示例。
 - 当前公开 npm 包边界不是 vNext 设计约束；如有必要，后续 story 可以重定义公开包边界。
 
 ## 4. 对后续 Story 的约束

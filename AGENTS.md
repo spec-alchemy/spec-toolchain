@@ -35,9 +35,12 @@
 - Root package is a private maintainer workspace; the only public npm boundary is [`packages/ddd-spec-cli/`](./packages/ddd-spec-cli/)
 - Root `repo:*` scripts always target [`apps/ddd-spec-viewer/ddd-spec.config.yaml`](./apps/ddd-spec-viewer/ddd-spec.config.yaml); do not add repo-root `ddd-spec/canonical/`
 - The root viewer config now targets the tracked [`examples/vnext-cross-context/`](./examples/vnext-cross-context/) `canonical-vnext/` input; keep repo-local maintainer docs and tests aligned with that default path
+- [`examples/`](./examples/) are the only maintained repo-local dogfood inputs; prefer `canonical-vnext/` examples when adding or updating maintainer coverage
+- No legacy v2 compatibility requirement: remove `canonical/`, `objects/commands/events/processes`, and related legacy tests/goldens instead of preserving them
+- Do not reintroduce a repo-root [`scenarios/`](./scenarios/) tree; keep maintainer inputs under [`examples/`](./examples/) `canonical-vnext/`
 - [`apps/ddd-spec-viewer/`](./apps/ddd-spec-viewer/) is private source; the shipped viewer is the built bundle under `packages/ddd-spec-cli/dist/ddd-spec-cli/static/viewer/`
 - Follow the viewer UI DOM debug contract in [`apps/ddd-spec-viewer/AGENTS.md`](./apps/ddd-spec-viewer/AGENTS.md) when editing that app.
-- [`scenarios/`](./scenarios/), [`examples/`](./examples/), [`test/fixtures/`](./test/fixtures/), and [`docs/ddd-spec/`](./docs/ddd-spec/) are repo-only inputs/docs and are not published in the product tarball
+- [`examples/`](./examples/) and [`docs/ddd-spec/`](./docs/ddd-spec/) are repo-only maintainer assets and are not published in the product tarball
 - Put reusable modeling logic in [`packages/ddd-spec-core/`](./packages/ddd-spec-core/); keep the rest of `packages/*` private unless the package boundary intentionally changes
 - Do not hand edit generated files under `.ddd-spec/artifacts/`, `.ddd-spec/generated/`, or `apps/ddd-spec-viewer/public/generated/`
 - `.beads/` and `.ralph-tui/` are personal local tool directories in this repo context; do not add or re-track files from them.

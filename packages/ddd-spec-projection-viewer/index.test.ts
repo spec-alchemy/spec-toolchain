@@ -1,272 +1,29 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
-import { fileURLToPath } from "node:url";
 import {
-  analyzeVnextBusinessSpec,
-  analyzeBusinessSpec,
-  loadBusinessSpec
+  analyzeVnextBusinessSpec
 } from "../ddd-spec-core/index.js";
-import { loadVnextCrossContextFixture } from "../ddd-spec-core/test-fixtures.js";
+import {
+  VNEXT_CROSS_CONTEXT_VIEWER_GOLDEN_PATH,
+  loadVnextCrossContextFixture
+} from "../ddd-spec-core/test-fixtures.js";
 import type {
   ViewerDetailItem,
   ViewerDetailValue,
   ViewerFieldDetailValue
 } from "../ddd-spec-viewer-contract/index.js";
-import { buildBusinessViewerSpec, buildVnextViewerSpec } from "./index.js";
+import { buildVnextViewerSpec } from "./index.js";
 
-const SPEC_ENTRY_PATH = fileURLToPath(
-  new URL("../../test/fixtures/connection-card-review/canonical/index.yaml", import.meta.url)
-);
-const VIEWER_SPEC_GOLDEN_PATH = fileURLToPath(
-  new URL("./goldens/connection-card-review.viewer-spec.json", import.meta.url)
-);
-
-test("viewer projection matches the checked-in golden snapshot", async () => {
-  const spec = await loadBusinessSpec({
-    entryPath: SPEC_ENTRY_PATH
-  });
-  const analysis = analyzeBusinessSpec(spec);
-  const actualViewerSpec = buildBusinessViewerSpec(spec, analysis.graph);
+test("vNext viewer projection matches the checked-in cross-context artifact", async () => {
+  const spec = await loadVnextCrossContextFixture();
+  const analysis = analyzeVnextBusinessSpec(spec);
+  const actualViewerSpec = buildVnextViewerSpec(spec, analysis);
   const expectedViewerSpec = JSON.parse(
-    await readFile(VIEWER_SPEC_GOLDEN_PATH, "utf8")
+    await readFile(VNEXT_CROSS_CONTEXT_VIEWER_GOLDEN_PATH, "utf8")
   );
 
   assert.deepStrictEqual(actualViewerSpec, expectedViewerSpec);
-});
-
-test("domain structure groups aggregate-owned nodes and humanizes structure labels", async () => {
-  const spec = await loadBusinessSpec({
-    entryPath: SPEC_ENTRY_PATH
-  });
-  const analysis = analyzeBusinessSpec(spec);
-  const viewerSpec = buildBusinessViewerSpec(spec, analysis.graph);
-  const domainStructureView = mustFind(viewerSpec.views, (view) => view.id === "domain-structure");
-  const connectionNode = mustFind(
-    domainStructureView.nodes,
-    (node) => node.kind === "entity" && getTextDetailValue(node.details, "object.id") === "Connection"
-  );
-  const connectionStatusNode = mustFind(
-    domainStructureView.nodes,
-    (node) =>
-      node.kind === "enum" &&
-      getTextDetailValue(node.details, "object.id") === "ConnectionStatus"
-  );
-  const sharedTypesGroup = mustFind(
-    domainStructureView.nodes,
-    (node) => node.kind === "shared-type-group" && node.label === "Shared Types"
-  );
-  const cardContentNode = mustFind(
-    domainStructureView.nodes,
-    (node) =>
-      node.kind === "value-object" &&
-      getTextDetailValue(node.details, "object.id") === "CardContent"
-  );
-  const cardNode = mustFind(
-    domainStructureView.nodes,
-    (node) => node.kind === "entity" && getTextDetailValue(node.details, "object.id") === "Card"
-  );
-  const cardWordingNode = mustFind(
-    domainStructureView.nodes,
-    (node) =>
-      node.kind === "value-object" &&
-      getTextDetailValue(node.details, "object.id") === "CardWording"
-  );
-  const sourceConnectionEdge = mustFind(
-    domainStructureView.edges,
-    (edge) =>
-      edge.kind === "reference" &&
-      getTextDetailValue(edge.details, "relation.from") === "Card" &&
-      getTextDetailValue(edge.details, "relation.field") === "connectionId" &&
-      getTextDetailValue(edge.details, "relation.to") === "Connection"
-  );
-  const cardContentEdge = mustFind(
-    domainStructureView.edges,
-    (edge) =>
-      edge.kind === "composition" &&
-      getTextDetailValue(edge.details, "relation.from") === "Card" &&
-      getTextDetailValue(edge.details, "relation.field") === "content" &&
-      getTextDetailValue(edge.details, "relation.to") === "CardContent"
-  );
-  const cardStatusEdge = mustFind(
-    domainStructureView.edges,
-    (edge) =>
-      edge.kind === "association" &&
-      getTextDetailValue(edge.details, "relation.from") === "Card" &&
-      getTextDetailValue(edge.details, "relation.to") === "CardStatus"
-  );
-  const cardFields = getListDetailItems(cardNode.details, "object.fields");
-  const connectionIdField = getFieldDetail(cardFields, "connectionId");
-  const statusField = getFieldDetail(cardFields, "status");
-
-  assert.equal(connectionNode.parentId, "domain-structure:aggregate:Connection");
-  assert.equal(connectionNode.label, "Connection");
-  assert.equal(getTextDetailValue(connectionNode.details, "object.role"), "entity");
-  assert.equal(connectionNode.summary, "5 field(s), 1 relation(s)");
-  assert.equal(sharedTypesGroup.summary, "2 enum(s), 2 consumer(s)");
-  assert.equal(connectionStatusNode.parentId, "domain-structure:group:shared-types");
-  assert.equal(connectionStatusNode.subtitle, "lifecycle type for Connection");
-  assert.equal(connectionStatusNode.summary, "3 value(s), 1 consumer(s)");
-  assert.equal(getTextDetailValue(connectionStatusNode.details, "object.role"), "enum");
-  assert.equal(
-    getTextDetailValue(sharedTypesGroup.details, "domain.shared_types"),
-    "ConnectionStatus, CardStatus"
-  );
-  assert.equal(cardNode.summary, "4 field(s), 3 relation(s)");
-  assert.equal(cardContentNode.parentId, "domain-structure:aggregate:Card");
-  assert.equal(getTextDetailValue(cardContentNode.details, "object.role"), "value-object");
-  assert.equal(cardContentNode.summary, "2 field(s), 1 relation(s)");
-  assert.equal(cardWordingNode.parentId, "domain-structure:aggregate:Card");
-  assert.equal(getTextDetailValue(cardWordingNode.details, "object.role"), "value-object");
-  assert.equal(cardWordingNode.summary, "2 field(s), 0 relation(s)");
-  assert.equal(connectionIdField.fieldType, "uuid");
-  assert.equal(connectionIdField.required, true);
-  assert.equal(connectionIdField.relation?.kind, "reference");
-  assert.equal(connectionIdField.relation?.target, "Connection");
-  assert.equal(statusField.fieldType, "CardStatus");
-  assert.equal(statusField.required, true);
-  assert.equal(statusField.relation?.kind, "enum");
-  assert.equal(statusField.relation?.target, "CardStatus");
-  assert.equal(
-    mustFind(
-      domainStructureView.nodes,
-      (node) =>
-        node.kind === "aggregate" &&
-        getTextDetailValue(node.details, "aggregate.id") === "Card"
-    ).summary,
-    "root + 2 owned object(s), 1 shared type(s), 1 external reference(s)"
-  );
-  assert.equal(sourceConnectionEdge.label, "connection id");
-  assert.equal(getTextDetailValue(sourceConnectionEdge.details, "relation.kind"), "reference");
-  assert.equal(sourceConnectionEdge.cardinality, "1");
-  assert.equal(getTextDetailValue(sourceConnectionEdge.details, "relation.cardinality"), "1");
-  assert.equal(cardContentEdge.label, "content");
-  assert.equal(getTextDetailValue(cardContentEdge.details, "relation.kind"), "composition");
-  assert.equal(cardContentEdge.cardinality, "1");
-  assert.equal(cardStatusEdge.label, "status");
-  assert.equal(getTextDetailValue(cardStatusEdge.details, "relation.kind"), "association");
-});
-
-test("primary views project vNext scenario, message, and lifecycle details", async () => {
-  const spec = await loadBusinessSpec({
-    entryPath: SPEC_ENTRY_PATH
-  });
-  const analysis = analyzeBusinessSpec(spec);
-  const viewerSpec = buildBusinessViewerSpec(spec, analysis.graph);
-  const contextMapView = mustFind(viewerSpec.views, (view) => view.id === "context-map");
-  const scenarioStoryView = mustFind(viewerSpec.views, (view) => view.id === "scenario-story");
-  const messageFlowView = mustFind(viewerSpec.views, (view) => view.id === "message-flow");
-  const lifecycleView = mustFind(viewerSpec.views, (view) => view.id === "lifecycle");
-  const contextNode = mustFind(
-    contextMapView.nodes,
-    (node) =>
-      node.kind === "context" &&
-      getTextDetailValue(node.details, "context.id") === "connection-card-review"
-  );
-  const scenarioNode = mustFind(
-    scenarioStoryView.nodes,
-    (node) =>
-      node.kind === "scenario" &&
-      getTextDetailValue(node.details, "scenario.id") === "connectionCardReviewProcess"
-  );
-  const scenarioStepNode = mustFind(
-    scenarioStoryView.nodes,
-    (node) =>
-      node.kind === "scenario-step" &&
-      getTextDetailValue(node.details, "step.id") === "awaitingConnectionReview"
-  );
-  const messageCommandNode = mustFind(
-    messageFlowView.nodes,
-    (node) =>
-      node.kind === "message" &&
-      getTextDetailValue(node.details, "message.kind") === "command" &&
-      getTextDetailValue(node.details, "message.type") === "confirmConnection"
-  );
-  const messageEventNode = mustFind(
-    messageFlowView.nodes,
-    (node) =>
-      node.kind === "message" &&
-      getTextDetailValue(node.details, "message.kind") === "event" &&
-      getTextDetailValue(node.details, "message.type") === "ConnectionConfirmed"
-  );
-  const lifecycleAggregateNode = mustFind(
-    lifecycleView.nodes,
-    (node) =>
-      node.kind === "aggregate" &&
-      getTextDetailValue(node.details, "aggregate.id") === "Connection"
-  );
-  const lifecycleStateNode = mustFind(
-    lifecycleView.nodes,
-    (node) =>
-      node.kind === "lifecycle-state" &&
-      getTextDetailValue(node.details, "aggregate.id") === "Connection" &&
-      getTextDetailValue(node.details, "aggregate.state.id") === "suggested"
-  );
-  const lifecycleTransitionEdge = mustFind(
-    lifecycleView.edges,
-    (edge) =>
-      edge.kind === "state-transition" &&
-      getTextDetailValue(edge.details, "aggregate.id") === "Connection" &&
-      getTextDetailValue(edge.details, "command.type") === "archiveConnection"
-  );
-
-  assert.deepEqual(
-    getTextListDetailValues(contextNode.details, "context.owned_aggregates"),
-    ["Connection", "Card"]
-  );
-  assert.deepEqual(
-    getTextListDetailValues(contextNode.details, "context.scenarios"),
-    ["connectionCardReviewProcess"]
-  );
-  assert.deepEqual(
-    getTextListDetailValues(scenarioNode.details, "scenario.related_aggregates"),
-    ["Connection", "Card"]
-  );
-  assert.deepEqual(
-    getTextListDetailValues(scenarioNode.details, "scenario.final_steps"),
-    ["closedConnectionArchived", "closedCardArchived", "closedCardAccepted"]
-  );
-  assert.deepEqual(
-    getTextListDetailValues(scenarioStepNode.details, "behavior.accepted_commands"),
-    ["confirmConnection", "archiveConnection"]
-  );
-  assert.deepEqual(
-    getTextListDetailValues(scenarioStepNode.details, "behavior.observed_events"),
-    ["ConnectionConfirmed", "ConnectionArchived"]
-  );
-  assert.equal(getTextDetailValue(messageCommandNode.details, "command.target_aggregate"), "Connection");
-  assert.equal(getTextDetailValue(messageEventNode.details, "event.source_aggregate"), "Connection");
-  assert.equal(getTextDetailValue(messageEventNode.details, "event.observed_by_step"), "yes");
-  assert.equal(getTextDetailValue(messageEventNode.details, "event.advances_to_step"), "awaitingCardReview");
-  assert.deepEqual(
-    getTextListDetailValues(lifecycleAggregateNode.details, "aggregate.lifecycle"),
-    ["suggested", "confirmed", "archived"]
-  );
-  assert.deepEqual(
-    getTextListDetailValues(lifecycleAggregateNode.details, "behavior.accepted_commands"),
-    ["confirmConnection", "archiveConnection"]
-  );
-  assert.deepEqual(
-    getTextListDetailValues(lifecycleStateNode.details, "aggregate.state.outgoing_commands"),
-    ["confirmConnection", "archiveConnection"]
-  );
-  assert.deepEqual(
-    getTextListDetailValues(lifecycleStateNode.details, "aggregate.referenced_by_stages"),
-    ["connectionCardReviewProcess.awaitingConnectionReview (等待连接审核)"]
-  );
-  assert.deepEqual(
-    getRecordListDetailEntries(lifecycleTransitionEdge.details, "transition.payload_mapping"),
-    [
-      {
-        Field: "connectionId",
-        From: "$command.connectionId"
-      },
-      {
-        Field: "reason",
-        From: "$command.reason"
-      }
-    ]
-  );
 });
 
 test("vNext viewer projection renders cross-context message flow and query details", async () => {
@@ -422,105 +179,84 @@ function mustFind<Value>(
   const value = values.find(predicate);
 
   if (!value) {
-    throw new Error("Expected value to exist");
+    throw new Error("Expected a matching value.");
   }
 
   return value;
 }
 
-function getDetail(
+function getTextDetailValue(
   details: readonly ViewerDetailItem[],
   semanticKey: string
-): ViewerDetailItem {
-  const detail = details.find((candidate) => candidate.semanticKey === semanticKey);
+): string {
+  const detail = mustFind(details, (item) => item.semanticKey === semanticKey);
 
-  if (!detail) {
-    throw new Error(`Expected detail ${semanticKey}`);
-  }
-
-  return detail;
-}
-
-function getTextDetailValue(details: readonly ViewerDetailItem[], semanticKey: string): string {
-  const detail = getDetail(details, semanticKey);
-
-  assert.equal(detail.value.kind, "text");
-
-  return detail.value.text;
-}
-
-function getListDetailItems(
-  details: readonly ViewerDetailItem[],
-  semanticKey: string
-): readonly ViewerDetailValue[] {
-  const detail = getDetail(details, semanticKey);
-
-  assert.equal(detail.value.kind, "list");
-
-  return detail.value.items;
+  return getTextValue(detail.value);
 }
 
 function getTextListDetailValues(
   details: readonly ViewerDetailItem[],
   semanticKey: string
 ): readonly string[] {
-  return getListDetailItems(details, semanticKey).map((item, index) => {
-    assert.equal(item.kind, "text", `Expected text item ${semanticKey}[${index}]`);
+  const detail = mustFind(details, (item) => item.semanticKey === semanticKey);
 
-    return item.text;
-  });
+  if (detail.value.kind !== "list") {
+    throw new Error(`Expected ${semanticKey} to be a list detail.`);
+  }
+
+  return detail.value.items.map((item) => getTextValue(item));
 }
 
 function getRecordListDetailEntries(
   details: readonly ViewerDetailItem[],
   semanticKey: string
-): readonly Readonly<Record<string, string>>[] {
-  return getListDetailItems(details, semanticKey).map((item, index) => {
-    assert.equal(item.kind, "record", `Expected record item ${semanticKey}[${index}]`);
+): readonly Record<string, string>[] {
+  const detail = mustFind(details, (item) => item.semanticKey === semanticKey);
 
-    return Object.fromEntries(
-      item.entries.map((entry) => {
-        assert.equal(
-          entry.value.kind,
-          "text",
-          `Expected text entry ${semanticKey}[${index}].${entry.label}`
-        );
+  if (detail.value.kind !== "list") {
+    throw new Error(`Expected ${semanticKey} to be a list detail.`);
+  }
 
-        return [entry.label, entry.value.text];
-      })
-    );
-  });
+  return detail.value.items.map((item) => getRecordEntries(item));
 }
 
 function getRecordDetailEntries(
   details: readonly ViewerDetailItem[],
   semanticKey: string
-): Readonly<Record<string, string>> {
-  const detail = getDetail(details, semanticKey);
+): Record<string, string> {
+  const detail = mustFind(details, (item) => item.semanticKey === semanticKey);
 
-  assert.equal(detail.value.kind, "record");
+  return getRecordEntries(detail.value);
+}
+
+function getRecordEntries(value: ViewerDetailValue): Record<string, string> {
+  if (value.kind !== "record") {
+    throw new Error("Expected a record detail value.");
+  }
 
   return Object.fromEntries(
-    detail.value.entries.map((entry) => {
-      assert.equal(entry.value.kind, "text", `Expected text entry ${semanticKey}.${entry.label}`);
-
-      return [entry.label, entry.value.text];
-    })
+    value.entries.map((entry) => [entry.label, getTextValue(entry.value)])
   );
 }
 
-function getFieldDetail(
-  details: readonly ViewerDetailValue[],
-  fieldName: string
-): ViewerFieldDetailValue {
-  const detail = details.find(
-    (candidate): candidate is ViewerFieldDetailValue =>
-      candidate.kind === "field" && candidate.name === fieldName
-  );
-
-  if (!detail) {
-    throw new Error(`Expected field detail ${fieldName}`);
+function getTextValue(value: ViewerDetailValue): string {
+  if (value.kind === "text") {
+    return value.text;
   }
 
-  return detail;
+  if (value.kind === "field") {
+    return getFieldText(value);
+  }
+
+  throw new Error(`Expected a text-like detail value, received ${value.kind}.`);
+}
+
+function getFieldText(field: ViewerFieldDetailValue): string {
+  const parts = [field.fieldType];
+
+  if (field.required) {
+    parts.push("required");
+  }
+
+  return parts.join(" ");
 }

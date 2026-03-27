@@ -1,9 +1,0 @@
-kind: command
-type: confirmConnection
-target: Connection
-description: 将建议连接确认成正式连接。
-payload:
-  fields:
-    - id: connectionId
-      type: uuid
-      required: true

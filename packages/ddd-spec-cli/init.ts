@@ -1,7 +1,6 @@
 import { access, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import {
-  isVnextBusinessSpec,
   loadCanonicalSpec,
   validateBusinessSpecSemantics,
   validateVnextCanonicalSchema
@@ -120,10 +119,6 @@ async function validateGeneratedSkeleton(entryPath: string): Promise<void> {
     entryPath,
     validateSemantics: false
   });
-
-  if (!isVnextBusinessSpec(spec)) {
-    throw new Error("Expected the init scaffold to stay on version 3 canonical-vnext.");
-  }
 
   await validateVnextCanonicalSchema({
     entryPath,

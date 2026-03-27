@@ -4,7 +4,6 @@ import type { ErrorObject } from "ajv";
 import YAML from "yaml";
 import {
   loadVnextCanonicalIndexSpec,
-  type LoadedBusinessSpec,
   type VnextCollectionRef
 } from "./spec.js";
 
@@ -64,7 +63,7 @@ const VNEXT_COLLECTION_VALIDATION = {
 const validatorBySchemaPath = new Map<string, Promise<JsonSchemaValidator>>();
 
 export async function validateBusinessSpecSchema(
-  spec: LoadedBusinessSpec | unknown,
+  spec: unknown,
   options: ValidateBusinessSpecSchemaOptions
 ): Promise<void> {
   const validate = await getSchemaValidator(options.schemaPath);

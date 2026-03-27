@@ -145,7 +145,7 @@ The repo root stays `private: true` and should be read as maintainer infrastruct
 - [`packages/ddd-spec-cli/`](./packages/ddd-spec-cli/) is the single public npm package boundary, published under the current package name `@knowledge-alchemy/ddd-spec`.
 - The consumer README for installed-package usage lives at [`packages/ddd-spec-cli/README.md`](./packages/ddd-spec-cli/README.md).
 - [`apps/ddd-spec-viewer/`](./apps/ddd-spec-viewer/) remains private source. The shipped viewer is the static bundle emitted into `packages/ddd-spec-cli/dist/ddd-spec-cli/static/viewer/` during package build.
-- [`scenarios/`](./scenarios/), [`examples/`](./examples/), [`test/fixtures/`](./test/fixtures/), and [`docs/ddd-spec/`](./docs/ddd-spec/) are repo-only maintainer scenario, example, and regression materials. They do not ship in the published tarball.
+- [`examples/`](./examples/) and [`docs/ddd-spec/`](./docs/ddd-spec/) are repo-only maintainer example and design materials. They do not ship in the published tarball.
 - All other workspace packages remain private implementation units behind the CLI package boundary.
 
 ## Maintainer Workflow
@@ -206,10 +206,8 @@ These items are maintainer backlog, not a public product promise:
 - [`packages/ddd-spec-projection-typescript/`](./packages/ddd-spec-projection-typescript/): private TypeScript projection implementation
 - [`packages/ddd-spec-viewer-contract/`](./packages/ddd-spec-viewer-contract/): private shared viewer contract types
 - [`apps/ddd-spec-viewer/`](./apps/ddd-spec-viewer/): private React viewer source used for repo-local example validation and packaged bundle generation
-- [`scenarios/connection-card-review/`](./scenarios/connection-card-review/): legacy repo-local canonical input kept for regression pressure around the version-2 loader and projections; not published
 - [`examples/vnext-minimal/`](./examples/vnext-minimal/): minimal repo-owned vNext example that mirrors the zero-config starter; not published
 - [`examples/vnext-cross-context/`](./examples/vnext-cross-context/): full cross-context vNext example for the default four-view product story; not published
-- [`test/fixtures/connection-card-review/`](./test/fixtures/connection-card-review/): shared canonical fixture used by automated regression tests only; not published
 - [`docs/ddd-spec/`](./docs/ddd-spec/): tracked maintainer notes and supporting internals; not published
 - [`./.ddd-spec/artifacts/`](./.ddd-spec/artifacts/): generated bundle, analysis, and viewer outputs
 - [`./.ddd-spec/generated/`](./.ddd-spec/generated/): generated TypeScript outputs

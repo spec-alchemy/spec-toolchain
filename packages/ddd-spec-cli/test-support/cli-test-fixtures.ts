@@ -14,9 +14,6 @@ export const CORE_SCHEMA_DIR_PATH = toAbsolutePath("../../ddd-spec-core/schema")
 export const DEFAULT_VNEXT_SCHEMA_PATH = toAbsolutePath(
   "../../ddd-spec-core/schema/vnext/canonical-index.schema.json"
 );
-export const CONNECTION_CARD_REVIEW_FIXTURE_ENTRY_PATH = toAbsolutePath(
-  "../../../test/fixtures/connection-card-review/canonical/index.yaml"
-);
 export const REPO_VIEWER_ENTRY_PATH = toAbsolutePath(
   "../../../examples/vnext-cross-context/canonical-vnext/index.yaml"
 );
@@ -24,7 +21,7 @@ export const CLI_DIST_ENTRY_PATH = toAbsolutePath("../dist/ddd-spec-cli/cli.js")
 export const CLI_DIST_INDEX_PATH = toAbsolutePath("../dist/ddd-spec-cli/index.js");
 export const CLI_DIST_SCHEMA_DIR_PATH = toAbsolutePath("../dist/ddd-spec-core/schema");
 export const CLI_DIST_SCHEMA_PATH = toAbsolutePath(
-  "../dist/ddd-spec-core/schema/business-spec.schema.json"
+  "../dist/ddd-spec-core/schema/vnext/canonical-index.schema.json"
 );
 export const CLI_DIST_VIEWER_DIR_PATH = toAbsolutePath("../dist/ddd-spec-cli/static/viewer");
 export const CLI_DIST_VIEWER_INDEX_PATH = toAbsolutePath(
@@ -40,14 +37,6 @@ export const REPO_VIEWER_CONFIG_PATH = toAbsolutePath(
 );
 export const WORKSPACE_SCHEMA_DIR_RELATIVE_PATH = ".vscode/ddd-spec/schema";
 export const SCHEMA_FILE_NAMES = [
-  "business-spec.schema.json",
-  "canonical-index.schema.json",
-  "object.schema.json",
-  "command.schema.json",
-  "event.schema.json",
-  "aggregate.schema.json",
-  "process.schema.json",
-  "viewer-detail-semantics.schema.json",
   "vnext/canonical-index.schema.json",
   "vnext/context.schema.json",
   "vnext/actor.schema.json",

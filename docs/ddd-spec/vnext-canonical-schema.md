@@ -8,7 +8,7 @@
 
 - `version: 3` 是 vNext canonical 的正式 schema version。
 - `contexts / actors / systems / scenarios / messages / aggregates / policies` 是 vNext 的顶层建模概念。
-- 旧的 `objects / commands / events / aggregates / processes` 只代表当前 `v2` runtime 的历史实现，不再代表 vNext 的设计中心。
+- 旧的 `objects / commands / events / aggregates / processes` 只代表已移除的 v2 历史实现，不再代表 vNext 的设计中心。
 
 如果后续 loader、validation、IR 或 CLI 模板实现与本文件冲突，以本文件为准。
 
@@ -92,11 +92,11 @@ model:
 
 - [`/Users/tella/Development/knowledge-alchemy-app-v2/examples/vnext-minimal/canonical-vnext/index.yaml`](../../examples/vnext-minimal/canonical-vnext/index.yaml)
 
-该样例故意放在 `canonical-vnext/` 下，而不是当前产品仍在使用的 `canonical/` 下。原因是：
+该样例放在 `canonical-vnext/` 下，用于代表当前唯一受支持的 canonical 结构。原因是：
 
-1. 当前 repo 级 `repo:*` 命令仍绑定旧 `v2` loader。
-2. 本 story 的目标是先钉住 schema 与目录布局，而不是提前引入兼容层。
-3. 后续 loader story 可以在不回退本 schema 定义的前提下，把运行时入口切换到 vNext。
+1. repo 级 `repo:*` 命令已经固定走 vNext loader 与 vNext schema。
+2. 当前项目明确不做向前兼容，repo-local dogfood 只维护 `canonical-vnext/`。
+3. 后续 story 需要扩展的应是 vNext 建模能力，而不是恢复旧 `canonical/` 兼容层。
 
 ## 7. Schema 资源位置
 

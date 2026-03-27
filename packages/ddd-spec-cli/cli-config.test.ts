@@ -7,7 +7,6 @@ import { buildUsageText, formatCliFailureOutput } from "./console.js";
 import { loadDddSpecConfig } from "./config.js";
 import { runCliCommand } from "./commands.js";
 import {
-  CONNECTION_CARD_REVIEW_FIXTURE_ENTRY_PATH,
   DEFAULT_VNEXT_SCHEMA_PATH,
   REPO_ROOT_PATH,
   REPO_VIEWER_ENTRY_PATH,
@@ -113,24 +112,37 @@ test("config mode defaults the schema path to the vNext canonical schema", async
   }
 });
 
-test("CLI validate rejects legacy version 2 canonicals in config mode", async () => {
-  const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-config-legacy-reject-"));
+test("CLI validate rejects unsupported version 2 canonicals in config mode", async () => {
+  const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-config-unsupported-version-"));
   const configPath = join(tempDir, "ddd-spec.config.yaml");
+  const legacyEntryPath = join(tempDir, "legacy-index.yaml");
 
   try {
+    await writeFile(
+      legacyEntryPath,
+      [
+        "version: 2",
+        "id: legacy-spec",
+        "title: Legacy Spec",
+        "summary: Should be rejected.",
+        "domain: {}"
+      ].join("\n").concat("\n"),
+      "utf8"
+    );
+
     await writeFile(
       configPath,
       [
         "version: 1",
         "spec:",
-        `  entry: ${JSON.stringify(CONNECTION_CARD_REVIEW_FIXTURE_ENTRY_PATH)}`
+        `  entry: ${JSON.stringify(legacyEntryPath)}`
       ].join("\n").concat("\n"),
       "utf8"
     );
 
     await assert.rejects(
       runCliCommand(["validate", "--config", configPath], { cwd: tempDir }),
-      /Legacy version 2 canonicals are no longer supported by ddd-spec CLI\./
+      /ddd-spec only supports version 3 canonical-vnext workspaces/
     );
   } finally {
     await rm(tempDir, { recursive: true, force: true });

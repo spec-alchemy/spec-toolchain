@@ -1,8 +1,0 @@
-kind: object
-id: CardStatus
-title: Card Status
-role: enum
-values:
-  - suggested
-  - accepted
-  - archived

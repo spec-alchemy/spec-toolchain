@@ -1,10 +1,12 @@
 import assert from "node:assert/strict";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { join } from "node:path";
+import { tmpdir } from "node:os";
 import test from "node:test";
 import {
   analyzeVnextBusinessSpec,
   analyzeVnextBusinessSpecSemantics,
   isVnextBusinessSpec,
-  loadBusinessSpec,
   loadCanonicalSpec,
   loadVnextBusinessSpec,
   projectVnextContextMap,
@@ -79,14 +81,33 @@ test("generic canonical loader dispatches version 3 without legacy adaptation", 
   assert.equal(spec.messages.find((message) => message.id === "send-approval-notification")?.producers[0].kind, "policy");
 });
 
-test("legacy v2 loader refuses version 3 canonicals instead of adapting them", async () => {
-  await assert.rejects(
-    loadBusinessSpec({
-      entryPath: VNEXT_MINIMAL_FIXTURE_ENTRY_PATH,
-      validateSemantics: false
-    }),
-    /loadBusinessSpec expected version 2 canonical index/
-  );
+test("generic canonical loader rejects version 2 canonicals", async () => {
+  const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-legacy-version-"));
+  const entryPath = join(tempDir, "index.yaml");
+
+  try {
+    await writeFile(
+      entryPath,
+      [
+        "version: 2",
+        "id: legacy-spec",
+        "title: Legacy Spec",
+        "summary: Should be rejected.",
+        "domain: {}"
+      ].join("\n").concat("\n"),
+      "utf8"
+    );
+
+    await assert.rejects(
+      loadCanonicalSpec({
+        entryPath,
+        validateSemantics: false
+      }),
+      /ddd-spec only supports version 3 canonical-vnext workspaces/
+    );
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
 });
 
 test("vnext semantic diagnostics expose a clean happy path result", async () => {
