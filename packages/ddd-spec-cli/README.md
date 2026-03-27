@@ -1,6 +1,6 @@
 # `@knowledge-alchemy/ddd-spec`
 
-`@knowledge-alchemy/ddd-spec` is the external CLI package for the DDD spec workflow.
+`@knowledge-alchemy/ddd-spec` is the external CLI package for the DDD modeling workbench.
 Zero-config is the default product path: run `ddd-spec init`, model under `ddd-spec/canonical-vnext/`, and let the CLI write build outputs into `.ddd-spec/`. Use `--config <path>` only when a workspace needs custom entry paths, output locations, or viewer sync targets.
 
 ## Preferred Onboarding
@@ -19,6 +19,57 @@ npm exec ddd-spec dev
 The default zero-config build writes bundle, analysis, and viewer outputs into `.ddd-spec/`. TypeScript projection is still version-2-only, so the vNext starter intentionally skips generated TypeScript output until that projection path lands.
 
 The `dev` command is the recommended iteration loop. It runs the initial validation/build, starts the packaged viewer server, opens the browser automatically by default, and keeps watching canonical inputs so edits trigger rebuilds without restarting the session. After each successful rebuild, the already-open viewer automatically reloads the current workspace viewer spec. If a rebuild fails, the terminal tells you what broke, keeps the watcher alive, and the viewer keeps showing the last successful result with an in-app warning until the next build passes.
+
+## What `init` Teaches
+
+The default starter is intentionally aligned to the vNext product story:
+
+- `contexts/`, `actors/`, and `systems/` define the `Context Map`
+- `scenarios/` defines the `Scenario Story`
+- `messages/` defines the `Message Flow / Trace`
+- `aggregates/` adds `Lifecycle` detail only where state complexity is real
+- `policies/` remains available for secondary `Policy / Saga` expansion
+
+The default teaching order is `boundaries -> scenario -> message flow -> lifecycle`. The package no longer treats aggregate/process modeling as the primary onboarding story.
+
+## Default Viewer Surface
+
+The packaged viewer default surface is the four primary product views:
+
+- `Context Map`
+- `Scenario Story`
+- `Message Flow / Trace`
+- `Lifecycle`
+
+Secondary views stay available when the primary path is no longer enough:
+
+- `Aggregate Boundary / Domain Structure`
+- `Policy / Saga`
+
+## Init To Viewer Demo
+
+For the normal zero-config path:
+
+```sh
+npm install --save-dev @knowledge-alchemy/ddd-spec
+npm exec ddd-spec init
+npm exec ddd-spec dev
+```
+
+For the explicit one-shot path:
+
+```sh
+npm exec ddd-spec validate
+npm exec ddd-spec build
+npm exec ddd-spec viewer -- --port 4173
+```
+
+After a successful build, open the packaged viewer and walk the primary product path in this order:
+
+1. `Context Map`
+2. `Scenario Story`
+3. `Message Flow / Trace`
+4. `Lifecycle`
 
 ## Step-by-Step Alternative
 
@@ -55,6 +106,8 @@ Supported packaged templates:
 - `default`: the same vNext approval starter created by `ddd-spec init`
 - `minimal`: the smallest valid legacy scaffold with one object, command, event, aggregate, and process
 - `order-payment`: a legacy example-style order and payment workflow
+
+`minimal` and `order-payment` remain legacy compatibility templates. They are not the default product path and they do not redefine the vNext primary-view teaching order.
 
 Example commands:
 

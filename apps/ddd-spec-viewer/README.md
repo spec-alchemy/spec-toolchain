@@ -4,6 +4,22 @@
 
 消费者安装和零配置说明请查看 [`../../packages/ddd-spec-cli/README.md`](../../packages/ddd-spec-cli/README.md)。本 README 只描述 monorepo maintainer 的 `scenarios/` 场景与 app-local 开发路径。
 
+## 默认产品面
+
+viewer 的默认产品面是 4 张一级主图，顺序与产品默认路径保持一致：
+
+- `Context Map`
+- `Scenario Story`
+- `Message Flow / Trace`
+- `Lifecycle`
+
+只有当一级主图不足以解释问题时，才进入二级扩展图：
+
+- `Aggregate Boundary / Domain Structure`
+- `Policy / Saga`
+
+无论是 README、demo 命令还是 app-local 验证路径，都不应再把这个产品表述成 aggregate/process viewer。
+
 ## Maintainer Usage
 
 维护入口推荐直接在仓库根目录运行：
@@ -34,6 +50,16 @@ npm run dev --workspace=apps/ddd-spec-viewer
 ```bash
 npm run repo:viewer -- --host 0.0.0.0 --port 4173
 ```
+
+如果要验证仓库里的完整 vNext 示例，不要依赖根目录 `repo:viewer`。它固定绑定到 repo 内置 legacy scenario。应改用 example-specific config：
+
+```bash
+npm run build --workspace=packages/ddd-spec-cli
+npm run repo:cli --workspace=packages/ddd-spec-cli -- build --config examples/vnext-cross-context/ddd-spec.config.yaml
+npm run repo:cli --workspace=packages/ddd-spec-cli -- viewer --config examples/vnext-cross-context/ddd-spec.config.yaml -- --port 4173
+```
+
+这条路径会直接打开 `examples/vnext-cross-context/` 对应的 packaged viewer 演示，适合核对 4 张一级主图是否完整串起来。
 
 ## Data Loading
 

@@ -1,8 +1,8 @@
-# DDD Spec Workflow Monorepo
+# DDD Spec vNext Modeling Workbench Monorepo
 
-`@knowledge-alchemy/ddd-spec` is an installable CLI for DDD-style business modeling. In a consumer workspace, you write YAML under `ddd-spec/canonical/`, validate the model, build generated outputs into `.ddd-spec/`, and open a local viewer to inspect the result.
+`@knowledge-alchemy/ddd-spec` currently ships a DDD modeling workbench: a zero-config CLI plus a packaged viewer that take teams from `Context Map` to `Scenario Story` to `Message Flow / Trace` to `Lifecycle`.
 
-This repository is also the private maintainer monorepo for that toolchain. The repo root hosts the npm workspace graph, maintainer scripts, release docs, and repo-local scenario inputs; the installed-package workflow below is the path ordinary users should follow in their own projects.
+In a consumer workspace, the default path is `ddd-spec/canonical-vnext/`: define the model, validate and build into `.ddd-spec/`, then open the local viewer to inspect the same four primary views. This repository is the private maintainer monorepo for that toolchain; the installed-package workflow below is the path ordinary users should follow in their own projects.
 
 ## Consumer Quick Start
 
@@ -14,29 +14,30 @@ Install the package into your workspace:
 npm install --save-dev @knowledge-alchemy/ddd-spec
 ```
 
-Initialize the teaching approval workflow:
+Initialize the default vNext starter:
 
 ```sh
 npm exec ddd-spec init
 ```
 
-That creates a modeling tree with a teaching-oriented approval workflow:
+That creates a modeling tree under `ddd-spec/canonical-vnext/`:
 
 ```text
-ddd-spec/canonical/
+ddd-spec/canonical-vnext/
   index.yaml
-  objects/
-  commands/
-  events/
+  contexts/
+  actors/
+  systems/
+  scenarios/
+  messages/
   aggregates/
-  processes/
-  vocabulary/
+  policies/
 ```
 
 The standard day-to-day workflow is:
 
 ```sh
-# edit ddd-spec/canonical/
+# edit ddd-spec/canonical-vnext/
 npm exec ddd-spec dev
 ```
 
@@ -48,22 +49,64 @@ npm exec ddd-spec build
 npm exec ddd-spec viewer -- --port 4173
 ```
 
-## What You Edit
+## What You Model
 
-The model lives in `ddd-spec/canonical/`:
+The vNext model lives in `ddd-spec/canonical-vnext/`:
 
-- `index.yaml`: the canonical entry point that wires the domain together
-- `objects/`: business entities and their fields
-- `commands/`: business intents or actions
-- `events/`: domain facts emitted by behavior
-- `aggregates/`: state transitions, accepted commands, and emitted events
-- `processes/`: cross-aggregate flow orchestration
-- `vocabulary/`: viewer-facing labels and semantic descriptions
+- `index.yaml`: the canonical entry point that wires the vNext collections together
+- `contexts/`: bounded contexts and their relationships
+- `actors/`: people or roles that trigger business behavior
+- `systems/`: external systems that participate in flows
+- `scenarios/`: ordered business stories and step sequences
+- `messages/`: commands, events, and queries that connect the story
+- `aggregates/`: lifecycle-bearing boundaries inside a context
+- `policies/`: explicit coordination rules for follow-up behavior
+
+The default authoring order is the same one taught by the product:
+
+1. define context boundaries, actors, and systems
+2. model one core scenario story
+3. attach the message flow to that scenario
+4. add lifecycle detail only where state complexity is real
+
+## What You See
+
+The packaged viewer default surface is the four primary views:
+
+- `Context Map`
+- `Scenario Story`
+- `Message Flow / Trace`
+- `Lifecycle`
+
+The viewer also keeps two secondary expansions available when needed:
+
+- `Aggregate Boundary / Domain Structure`
+- `Policy / Saga`
 
 If you want concrete examples before starting from scratch, inspect:
 
-- [`examples/order-payment/canonical/index.yaml`](./examples/order-payment/canonical/index.yaml)
-- [`examples/content-moderation/canonical/index.yaml`](./examples/content-moderation/canonical/index.yaml)
+- [`examples/vnext-minimal/canonical-vnext/index.yaml`](./examples/vnext-minimal/canonical-vnext/index.yaml): the smallest repo-owned vNext example and the closest match to `ddd-spec init`
+- [`examples/vnext-cross-context/README.md`](./examples/vnext-cross-context/README.md): a fuller cross-context example that walks all four primary views end to end
+
+## Init To Viewer Demo
+
+For the normal installed-package demo, the product path remains:
+
+```sh
+npm install --save-dev @knowledge-alchemy/ddd-spec
+npm exec ddd-spec init
+npm exec ddd-spec dev
+```
+
+For a repo-local demonstration against the tracked vNext example, use the packaged CLI with the example-specific config instead of the root `repo:viewer` script:
+
+```sh
+npm run build --workspace=packages/ddd-spec-cli
+npm run repo:cli --workspace=packages/ddd-spec-cli -- build --config examples/vnext-cross-context/ddd-spec.config.yaml
+npm run repo:cli --workspace=packages/ddd-spec-cli -- viewer --config examples/vnext-cross-context/ddd-spec.config.yaml -- --port 4173
+```
+
+`npm run repo:viewer` stays pinned to the repo's legacy maintainer scenario for regression coverage; it is not the canonical vNext example walkthrough.
 
 ## What You Get
 
@@ -72,7 +115,9 @@ If you want concrete examples before starting from scratch, inspect:
 - `.ddd-spec/artifacts/business-spec.json`: bundled canonical spec
 - `.ddd-spec/artifacts/business-spec.analysis.json`: analysis output and diagnostics
 - `.ddd-spec/artifacts/viewer-spec.json`: viewer projection consumed by the packaged viewer
-- `.ddd-spec/generated/business-spec.generated.ts`: generated TypeScript source
+- `.ddd-spec/generated/business-spec.generated.ts`: generated TypeScript source when TypeScript projection is enabled
+
+On the default vNext path, the viewer artifact is the main generated product surface. TypeScript projection is still version-2-only, so the zero-config vNext starter does not emit `.ddd-spec/generated/business-spec.generated.ts` until a vNext TypeScript projection lands.
 
 `npm exec ddd-spec dev` runs the initial validation/build, opens the packaged viewer automatically by default, and keeps rebuilding when canonical files change.
 
@@ -97,7 +142,7 @@ The repo root stays `private: true` and should be read as maintainer infrastruct
 ## Package Boundary
 
 - The repo root stays `private: true`; it is the maintainer workspace shell, not the external product package.
-- [`packages/ddd-spec-cli/`](./packages/ddd-spec-cli/) is the single public npm package boundary, published under the working name `@knowledge-alchemy/ddd-spec`.
+- [`packages/ddd-spec-cli/`](./packages/ddd-spec-cli/) is the single public npm package boundary, published under the current package name `@knowledge-alchemy/ddd-spec`.
 - The consumer README for installed-package usage lives at [`packages/ddd-spec-cli/README.md`](./packages/ddd-spec-cli/README.md).
 - [`apps/ddd-spec-viewer/`](./apps/ddd-spec-viewer/) remains private source. The shipped viewer is the static bundle emitted into `packages/ddd-spec-cli/dist/ddd-spec-cli/static/viewer/` during package build.
 - [`scenarios/`](./scenarios/), [`examples/`](./examples/), [`test/fixtures/`](./test/fixtures/), and [`docs/ddd-spec/`](./docs/ddd-spec/) are repo-only maintainer scenario, example, and regression materials. They do not ship in the published tarball.
@@ -162,8 +207,10 @@ These items are maintainer backlog, not a public product promise:
 - [`packages/ddd-spec-viewer-contract/`](./packages/ddd-spec-viewer-contract/): private shared viewer contract types
 - [`apps/ddd-spec-viewer/`](./apps/ddd-spec-viewer/): private React viewer source used for scenario validation and packaged bundle generation
 - [`scenarios/connection-card-review/`](./scenarios/connection-card-review/): repo-local maintainer canonical input used for packaged viewer scenario validation; not published
-- [`examples/order-payment/`](./examples/order-payment/): self-contained example domain for regression pressure testing; not published
-- [`examples/content-moderation/`](./examples/content-moderation/): second self-contained example domain for cross-domain pressure testing; not published
+- [`examples/vnext-minimal/`](./examples/vnext-minimal/): minimal repo-owned vNext example that mirrors the zero-config starter; not published
+- [`examples/vnext-cross-context/`](./examples/vnext-cross-context/): full cross-context vNext example for the default four-view product story; not published
+- [`examples/order-payment/`](./examples/order-payment/): legacy example domain kept for regression pressure testing; not published
+- [`examples/content-moderation/`](./examples/content-moderation/): second legacy example domain kept for cross-domain regression pressure testing; not published
 - [`test/fixtures/connection-card-review/`](./test/fixtures/connection-card-review/): shared canonical fixture used by automated regression tests only; not published
 - [`docs/ddd-spec/`](./docs/ddd-spec/): tracked maintainer notes and supporting internals; not published
 - [`./.ddd-spec/artifacts/`](./.ddd-spec/artifacts/): generated bundle, analysis, and viewer outputs
@@ -171,7 +218,7 @@ These items are maintainer backlog, not a public product promise:
 
 ## Consumer Note
 
-Consumer usage belongs to [`packages/ddd-spec-cli/README.md`](./packages/ddd-spec-cli/README.md): start with zero-config `ddd-spec init`, `ddd-spec/canonical/index.yaml`, and standard `.ddd-spec/` outputs. Use `--config <path>` only as an advanced consumer path when a workspace needs custom layout. This repo root keeps the maintainer workflow only.
+Consumer usage belongs to [`packages/ddd-spec-cli/README.md`](./packages/ddd-spec-cli/README.md): start with zero-config `ddd-spec init`, model under `ddd-spec/canonical-vnext/`, and let the viewer walk through `Context Map`, `Scenario Story`, `Message Flow / Trace`, and `Lifecycle`. Use `--config <path>` only as an advanced consumer path when a workspace needs custom layout. This repo root keeps the maintainer workflow only.
 
 ## Further Reading
 

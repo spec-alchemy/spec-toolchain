@@ -15,6 +15,7 @@ after each iteration and it's included in prompts for context.
 - For vNext modeling, keep one analysis layer as the source of truth for normalization, view projections, and diagnostics; compatibility wrappers such as `vnext-semantic-validation.ts` should delegate instead of re-encoding rules.
 - For vNext lifecycle work, keep all aggregates in the shared analysis IR and filter lifecycle-only visibility in `projectVnextLifecycle()` via explicit aggregate metadata such as `lifecycleComplexity`, so context/message views retain full aggregate coverage.
 - For packaged vNext viewer verification, do not rely on root `repo:viewer`; it is pinned to the repo's legacy scenario config. Launch the packaged viewer against an example-specific vNext config such as `examples/vnext-cross-context/ddd-spec.config.yaml` when you need browser-facing evidence for vNext views.
+- User-facing docs should teach the same default product path as the vNext viewer (`Context Map -> Scenario Story -> Message Flow / Trace -> Lifecycle`) and point repo-local walkthroughs at the tracked vNext example rather than the legacy `repo:viewer` maintainer flow.
 - For vNext Context Map relationship semantics, keep upstream/downstream and integration metadata as optional structured fields on `contexts[].relationships[]`, carry them through the shared analysis IR, and reuse the existing `context.relationships` detail contract for both node and edge inspectors instead of inventing edge-only semantics.
 - When the default zero-config path moves to `canonical-vnext/`, keep CLI zero-config loading version-dispatched with a legacy `canonical/` fallback until the explicit legacy init templates and package smoke fixtures are retired.
 - When package-level `node --import tsx --test ...` commands execute `apps/ddd-spec-viewer` tests from another workspace, run the app test files in a second invocation with `TSX_TSCONFIG_PATH=../../apps/ddd-spec-viewer/tsconfig.json` so `@/` aliases resolve against the viewer app's own tsconfig.
@@ -294,4 +295,20 @@ after each iteration and it's included in prompts for context.
     - CLI package tests can keep importing viewer app test files as long as the app-specific tsconfig is supplied explicitly for the app test invocation.
   - Gotchas encountered
     - Direct browser automation remains sandbox-constrained on this machine: both the system Chrome binary and a temporary Playwright Chromium failed with Mach-port / process-permission errors, so packaged-viewer verification had to stop at server launch plus served `generated/viewer-spec.json` evidence after the UI behavior was otherwise locked by SSR tests.
+---
+## 2026-03-27 - knowledge-alchemy-app-v2-7un
+- Rewrote the root README, package README, and viewer maintainer README so the product is described as a vNext DDD modeling workbench centered on `Context Map`, `Scenario Story`, `Message Flow / Trace`, and `Lifecycle`, rather than as an aggregate/process viewer.
+- Added `examples/vnext-cross-context/README.md` as the repo-owned walkthrough for the full vNext example, including the example-specific `validate -> build -> viewer` commands required to demonstrate the packaged viewer path.
+- Verified the new demo instructions against the live example config and re-ran all repo gates: `npm run repo:validate`, `npm run repo:build`, `npm run pkg:test`, and `npm run verify`.
+- Files changed:
+  - `README.md`
+  - `packages/ddd-spec-cli/README.md`
+  - `apps/ddd-spec-viewer/README.md`
+  - `examples/vnext-cross-context/README.md`
+  - `.ralph-tui/progress.md`
+- **Learnings:**
+  - Patterns discovered
+    - User-facing entry docs stay aligned when every surface teaches the same four-view path and links one tracked vNext example for repo-local verification.
+  - Gotchas encountered
+    - The root `repo:viewer` command remains intentionally pinned to the legacy maintainer scenario, so any vNext walkthrough has to use `examples/vnext-cross-context/ddd-spec.config.yaml` explicitly.
 ---
