@@ -30,7 +30,7 @@ npm run repo:viewer
 
 这条命令会：
 
-1. 读取 [`./ddd-spec.config.yaml`](./ddd-spec.config.yaml)，从仓库内置 scenario 生成仓库根目录下最新的 `./.ddd-spec` artifacts
+1. 读取 [`./ddd-spec.config.yaml`](./ddd-spec.config.yaml)，从仓库跟踪的 vNext example 生成仓库根目录下最新的 `./.ddd-spec` artifacts
 2. 启动 CLI 内置的本地静态服务器，直接使用打包进 `@knowledge-alchemy/ddd-spec` 的 viewer 资产
 3. 通过同源 `/generated/viewer-spec.json` 提供仓库根目录下的 `./.ddd-spec/artifacts/viewer-spec.json`
 
@@ -51,7 +51,8 @@ npm run dev --workspace=apps/ddd-spec-viewer
 npm run repo:viewer -- --host 0.0.0.0 --port 4173
 ```
 
-如果要验证仓库里的完整 vNext 示例，不要依赖根目录 `repo:viewer`。它固定绑定到 repo 内置 legacy scenario。应改用 example-specific config：
+根目录 `repo:*` 命令现在默认指向仓库跟踪的 [`../../examples/vnext-cross-context/`](../../examples/vnext-cross-context/) vNext 示例。
+如果你想直接运行等价的 example-specific config，而不是通过 app-local config 转发，可使用：
 
 ```bash
 npm run build --workspace=packages/ddd-spec-cli
@@ -59,7 +60,7 @@ npm run repo:cli --workspace=packages/ddd-spec-cli -- build --config examples/vn
 npm run repo:cli --workspace=packages/ddd-spec-cli -- viewer --config examples/vnext-cross-context/ddd-spec.config.yaml -- --port 4173
 ```
 
-这条路径会直接打开 `examples/vnext-cross-context/` 对应的 packaged viewer 演示，适合核对 4 张一级主图是否完整串起来。
+这两条路径都会打开 `examples/vnext-cross-context/` 对应的 packaged viewer 演示，适合核对 4 张一级主图是否完整串起来。
 
 ## Data Loading
 

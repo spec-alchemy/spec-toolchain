@@ -14,7 +14,7 @@ after each iteration and it's included in prompts for context.
 - When vNext validation needs to feed later IR or CLI layers, collect structured diagnostics (`code`, `path`, `message`) first and layer the throwing validator on top, rather than forcing downstream code to parse error strings.
 - For vNext modeling, keep one analysis layer as the source of truth for normalization, view projections, and diagnostics; compatibility wrappers such as `vnext-semantic-validation.ts` should delegate instead of re-encoding rules.
 - For vNext lifecycle work, keep all aggregates in the shared analysis IR and filter lifecycle-only visibility in `projectVnextLifecycle()` via explicit aggregate metadata such as `lifecycleComplexity`, so context/message views retain full aggregate coverage.
-- For packaged vNext viewer verification, do not rely on root `repo:viewer`; it is pinned to the repo's legacy scenario config. Launch the packaged viewer against an example-specific vNext config such as `examples/vnext-cross-context/ddd-spec.config.yaml` when you need browser-facing evidence for vNext views.
+- The root `repo:*` maintainer flow now routes through `apps/ddd-spec-viewer/ddd-spec.config.yaml` and the tracked `examples/vnext-cross-context/` vNext example; if that default demo changes, update the config, root/viewer docs, config tests, and synced fallback viewer spec together.
 - User-facing docs should teach the same default product path as the vNext viewer (`Context Map -> Scenario Story -> Message Flow / Trace -> Lifecycle`) and point repo-local walkthroughs at the tracked vNext example rather than the legacy `repo:viewer` maintainer flow.
 - For vNext Context Map relationship semantics, keep upstream/downstream and integration metadata as optional structured fields on `contexts[].relationships[]`, carry them through the shared analysis IR, and reuse the existing `context.relationships` detail contract for both node and edge inspectors instead of inventing edge-only semantics.
 - When the default zero-config path moves to `canonical-vnext/`, keep CLI zero-config loading version-dispatched with a legacy `canonical/` fallback until the explicit legacy init templates and package smoke fixtures are retired.
@@ -311,4 +311,26 @@ after each iteration and it's included in prompts for context.
     - User-facing entry docs stay aligned when every surface teaches the same four-view path and links one tracked vNext example for repo-local verification.
   - Gotchas encountered
     - The root `repo:viewer` command remains intentionally pinned to the legacy maintainer scenario, so any vNext walkthrough has to use `examples/vnext-cross-context/ddd-spec.config.yaml` explicitly.
+---
+## 2026-03-27 - knowledge-alchemy-app-v2-1hb
+- Repointed the root `repo:*` maintainer gate from the legacy `connection-card-review` scenario to the tracked `examples/vnext-cross-context/` vNext example by updating `apps/ddd-spec-viewer/ddd-spec.config.yaml`, disabling repo-level TypeScript projection there, and refreshing the synced fallback viewer spec.
+- Rewrote the root/viewer/example maintainer docs plus both `AGENTS.md` files so the default repo-local demo and quality-gate language consistently describe the four-view vNext path instead of a legacy scenario handoff.
+- Updated CLI config test coverage for the new repo entrypoint and re-ran `npm run repo:validate`, `npm run repo:build`, `npm run pkg:test`, and `npm run verify`.
+- Files changed:
+  - `AGENTS.md`
+  - `README.md`
+  - `apps/ddd-spec-viewer/AGENTS.md`
+  - `apps/ddd-spec-viewer/README.md`
+  - `apps/ddd-spec-viewer/ddd-spec.config.yaml`
+  - `apps/ddd-spec-viewer/public/generated/viewer-spec.json`
+  - `docs/ddd-spec/README.md`
+  - `examples/vnext-cross-context/README.md`
+  - `packages/ddd-spec-cli/cli-config.test.ts`
+  - `packages/ddd-spec-cli/test-support/cli-test-fixtures.ts`
+  - `.ralph-tui/progress.md`
+- **Learnings:**
+  - Patterns discovered
+    - When the repo-owned default demo moves, the durable seam is the app-local `ddd-spec.config.yaml`; keeping that file, the root docs, the AGENTS docs, the config test, and `public/generated/viewer-spec.json` in one patch prevents the maintainer experience from drifting back to a legacy path.
+  - Gotchas encountered
+    - The legacy example artifacts were already current enough that rebuilding them produced no net diff; the real stale product surface was the root maintainer config and the synced viewer fallback asset, not the checked-in legacy example outputs.
 ---

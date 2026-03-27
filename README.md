@@ -98,15 +98,15 @@ npm exec ddd-spec init
 npm exec ddd-spec dev
 ```
 
-For a repo-local demonstration against the tracked vNext example, use the packaged CLI with the example-specific config instead of the root `repo:viewer` script:
+For a repo-local demonstration against the tracked vNext example, use the root maintainer scripts:
 
 ```sh
-npm run build --workspace=packages/ddd-spec-cli
-npm run repo:cli --workspace=packages/ddd-spec-cli -- build --config examples/vnext-cross-context/ddd-spec.config.yaml
-npm run repo:cli --workspace=packages/ddd-spec-cli -- viewer --config examples/vnext-cross-context/ddd-spec.config.yaml -- --port 4173
+npm run repo:validate
+npm run repo:build
+npm run repo:viewer -- --port 4173
 ```
 
-`npm run repo:viewer` stays pinned to the repo's legacy maintainer scenario for regression coverage; it is not the canonical vNext example walkthrough.
+These commands resolve through [`apps/ddd-spec-viewer/ddd-spec.config.yaml`](./apps/ddd-spec-viewer/ddd-spec.config.yaml), which now points at the tracked [`examples/vnext-cross-context/`](./examples/vnext-cross-context/) canonical-vNext input while still syncing the app fallback asset into [`apps/ddd-spec-viewer/public/generated/viewer-spec.json`](./apps/ddd-spec-viewer/public/generated/viewer-spec.json).
 
 ## What You Get
 
@@ -152,20 +152,20 @@ The repo root stays `private: true` and should be read as maintainer infrastruct
 
 | Task | Command |
 |------|---------|
-| Validate repo-local scenario flow | `npm run repo:validate` |
-| Build repo-local scenario outputs | `npm run repo:build` |
+| Validate repo-local vNext example flow | `npm run repo:validate` |
+| Build repo-local vNext example outputs | `npm run repo:build` |
 | Run package regressions | `npm run pkg:test` |
 | Verify packaged CLI and viewer workspace | `npm run verify` |
-| Launch packaged viewer against the repo scenario input | `npm run repo:viewer` |
+| Launch packaged viewer against the tracked repo example | `npm run repo:viewer` |
 | Run the viewer Vite dev server | `npm run dev --workspace=apps/ddd-spec-viewer` |
 | Build the viewer workspace only | `npm run build --workspace=apps/ddd-spec-viewer` |
 
-The root `repo:*` scripts target [`apps/ddd-spec-viewer/ddd-spec.config.yaml`](./apps/ddd-spec-viewer/ddd-spec.config.yaml). That repo-local config builds the dedicated [`scenarios/connection-card-review/`](./scenarios/connection-card-review/) input into `./.ddd-spec/` and syncs the internal app fallback asset into [`apps/ddd-spec-viewer/public/generated/viewer-spec.json`](./apps/ddd-spec-viewer/public/generated/viewer-spec.json).
-These root scripts are maintainer workflows for repo-local scenario validation and regression around the public package boundary, not consumer install instructions. `npm run pkg:test` exercises the packaged CLI contract, while `npm run verify` adds the private viewer workspace build on top.
+The root `repo:*` scripts target [`apps/ddd-spec-viewer/ddd-spec.config.yaml`](./apps/ddd-spec-viewer/ddd-spec.config.yaml). That repo-local config builds the tracked [`examples/vnext-cross-context/`](./examples/vnext-cross-context/) input into `./.ddd-spec/` and syncs the internal app fallback asset into [`apps/ddd-spec-viewer/public/generated/viewer-spec.json`](./apps/ddd-spec-viewer/public/generated/viewer-spec.json).
+These root scripts are maintainer workflows for repo-local example validation and regression around the public package boundary, not consumer install instructions. `npm run pkg:test` exercises the packaged CLI contract, while `npm run verify` adds the private viewer workspace build on top.
 
 ## Viewer Delivery
 
-`npm run repo:viewer` builds the public package, regenerates the repo-local viewer artifact through the explicit config above, and then launches the packaged CLI viewer server. That server serves the bundled SPA plus the current workspace viewer output at `/generated/viewer-spec.json`, so the same frontend path works for install-mode product usage and repo-local maintainer scenario validation.
+`npm run repo:viewer` builds the public package, regenerates the repo-local viewer artifact through the explicit config above, and then launches the packaged CLI viewer server. That server serves the bundled SPA plus the current workspace viewer output at `/generated/viewer-spec.json`, so the same frontend path works for install-mode product usage and repo-local maintainer example validation.
 
 `npm run dev --workspace=apps/ddd-spec-viewer` stays separate on purpose. It is the private Vite development path for [`apps/ddd-spec-viewer/`](./apps/ddd-spec-viewer/), and it reads [`apps/ddd-spec-viewer/public/generated/viewer-spec.json`](./apps/ddd-spec-viewer/public/generated/viewer-spec.json) after a repo-local `npm run repo:build`.
 
@@ -205,8 +205,8 @@ These items are maintainer backlog, not a public product promise:
 - [`packages/ddd-spec-projection-viewer/`](./packages/ddd-spec-projection-viewer/): private viewer JSON projection implementation
 - [`packages/ddd-spec-projection-typescript/`](./packages/ddd-spec-projection-typescript/): private TypeScript projection implementation
 - [`packages/ddd-spec-viewer-contract/`](./packages/ddd-spec-viewer-contract/): private shared viewer contract types
-- [`apps/ddd-spec-viewer/`](./apps/ddd-spec-viewer/): private React viewer source used for scenario validation and packaged bundle generation
-- [`scenarios/connection-card-review/`](./scenarios/connection-card-review/): repo-local maintainer canonical input used for packaged viewer scenario validation; not published
+- [`apps/ddd-spec-viewer/`](./apps/ddd-spec-viewer/): private React viewer source used for repo-local example validation and packaged bundle generation
+- [`scenarios/connection-card-review/`](./scenarios/connection-card-review/): legacy repo-local canonical input kept for regression pressure around the version-2 loader and projections; not published
 - [`examples/vnext-minimal/`](./examples/vnext-minimal/): minimal repo-owned vNext example that mirrors the zero-config starter; not published
 - [`examples/vnext-cross-context/`](./examples/vnext-cross-context/): full cross-context vNext example for the default four-view product story; not published
 - [`examples/order-payment/`](./examples/order-payment/): legacy example domain kept for regression pressure testing; not published

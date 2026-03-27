@@ -264,8 +264,8 @@ export const CORE_SCHEMA_DIR_PATH = toAbsolutePath("../../ddd-spec-core/schema")
 export const CONNECTION_CARD_REVIEW_FIXTURE_ENTRY_PATH = toAbsolutePath(
   "../../../test/fixtures/connection-card-review/canonical/index.yaml"
 );
-export const REPO_SCENARIO_ENTRY_PATH = toAbsolutePath(
-  "../../../scenarios/connection-card-review/canonical/index.yaml"
+export const REPO_VIEWER_ENTRY_PATH = toAbsolutePath(
+  "../../../examples/vnext-cross-context/canonical-vnext/index.yaml"
 );
 export const CLI_DIST_ENTRY_PATH = toAbsolutePath("../dist/ddd-spec-cli/cli.js");
 export const CLI_DIST_INDEX_PATH = toAbsolutePath("../dist/ddd-spec-cli/index.js");

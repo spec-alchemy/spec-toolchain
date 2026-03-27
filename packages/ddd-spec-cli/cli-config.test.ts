@@ -11,7 +11,7 @@ import {
   DEFAULT_VNEXT_SCHEMA_PATH,
   EXAMPLE_FIXTURES,
   REPO_ROOT_PATH,
-  REPO_SCENARIO_ENTRY_PATH,
+  REPO_VIEWER_ENTRY_PATH,
   REPO_VIEWER_CONFIG_PATH,
   ZERO_CONFIG_FIXTURE
 } from "./test-support/cli-test-fixtures.js";
@@ -178,14 +178,15 @@ test("CLI failure output preserves an existing init hint without duplicating gui
   assert.equal(countMatches(output, "Run `ddd-spec init`"), 1);
 });
 
-test("repo viewer config resolves scenario-backed outputs and sync targets", async () => {
+test("repo viewer config resolves tracked vNext example outputs and sync targets", async () => {
   const config = await loadDddSpecConfig({
     configPath: REPO_VIEWER_CONFIG_PATH
   });
 
   assert.equal(config.mode, "config");
   assert.equal(config.sourceDescription, REPO_VIEWER_CONFIG_PATH);
-  assert.equal(config.spec.entryPath, REPO_SCENARIO_ENTRY_PATH);
+  assert.equal(config.spec.entryPath, REPO_VIEWER_ENTRY_PATH);
+  assert.equal(config.schema.path, DEFAULT_VNEXT_SCHEMA_PATH);
   assert.equal(config.outputs.rootDirPath, join(REPO_ROOT_PATH, ".ddd-spec", "artifacts"));
   assert.equal(
     config.outputs.bundlePath,
@@ -203,6 +204,8 @@ test("repo viewer config resolves scenario-backed outputs and sync targets", asy
     config.outputs.typescriptPath,
     join(REPO_ROOT_PATH, ".ddd-spec", "generated", "business-spec.generated.ts")
   );
+  assert.equal(config.projections.viewer, true);
+  assert.equal(config.projections.typescript, false);
   assert.deepEqual(config.viewer.syncTargetPaths, [
     join(REPO_ROOT_PATH, "apps", "ddd-spec-viewer", "public", "generated", "viewer-spec.json")
   ]);

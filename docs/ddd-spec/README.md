@@ -29,6 +29,7 @@
 - `composition` 退出一级主视图，不再作为默认用户路径或默认建模入口。
 - 产品默认路径固定为：`Context Map -> Scenario Story -> Message Flow / Trace -> Lifecycle`。
 - `Aggregate Boundary / Domain Structure` 与 `Policy / Saga` 是二级扩展图，只在一级路径已经成立后再引入。
+- repo 级 maintainer 默认门禁与 viewer 演示入口应指向仓库跟踪的 vNext 示例，而不是 legacy scenario。
 - 当前公开 npm 包边界不是 vNext 设计约束；如有必要，后续 story 可以重定义公开包边界。
 
 ## 4. 对后续 Story 的约束

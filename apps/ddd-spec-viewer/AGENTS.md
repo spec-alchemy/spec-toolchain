@@ -20,8 +20,9 @@
 - AI commits MUST include `Co-Authored-By: Codex <codex@openai.com>`
 
 ## Key Conventions
-- Treat `public/generated/viewer-spec.json` as generated input; regenerate it from the root repo-local scenario pipeline (`npm run repo:build`) instead of hand editing it.
+- Treat `public/generated/viewer-spec.json` as generated input; regenerate it from the root repo-local example pipeline (`npm run repo:build`) instead of hand editing it.
 - The root maintainer scripts read [`ddd-spec.config.yaml`](./ddd-spec.config.yaml), not a repo-root `ddd-spec/canonical/`.
+- [`ddd-spec.config.yaml`](./ddd-spec.config.yaml) is the tracked repo-local vNext example path; if the default maintainer demo changes, update this config, the root docs, and config tests together.
 - Keep repeated viewer display tokens in shared constants under `src/lib/`.
 - Do not inline hex colors or other repeated presentation literals in React components; reuse `src/lib/viewer-colors.ts`.
 - Reuse the shared viewer color mappings for MiniMap, legend items, and flow edge styling.
