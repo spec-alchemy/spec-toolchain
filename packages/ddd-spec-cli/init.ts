@@ -1,12 +1,14 @@
 import { access, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import {
-  loadBusinessSpec,
+  isVnextBusinessSpec,
+  loadCanonicalSpec,
   validateBusinessSpecSchema,
-  validateBusinessSpecSemantics
+  validateBusinessSpecSemantics,
+  validateVnextCanonicalSchema
 } from "../ddd-spec-core/index.js";
 import { logArtifact, logInfo } from "./console.js";
-import { DEFAULT_SCHEMA_PATH, ZERO_CONFIG_ENTRY_PATH } from "./config.js";
+import { DEFAULT_SCHEMA_PATH, DEFAULT_VNEXT_SCHEMA_PATH } from "./config.js";
 import { ensureVsCodeWorkspaceConfig } from "./editor-config.js";
 import {
   DEFAULT_INIT_TEMPLATE_ID,
@@ -44,9 +46,9 @@ export async function initDddSpec(
 ): Promise<void> {
   const cwd = resolve(options.cwd ?? process.cwd());
   const template = getInitTemplate(options.templateId ?? DEFAULT_INIT_TEMPLATE_ID);
-  const entryPath = resolve(cwd, ZERO_CONFIG_ENTRY_PATH);
+  const entryPath = resolve(cwd, template.entryPath);
 
-  await assertNoExistingScaffold(cwd);
+  await assertNoExistingScaffold(cwd, template);
   await createTemplateDirectories(cwd, template);
 
   let gitignoreStatus: "created" | "updated" | "unchanged";
@@ -64,9 +66,7 @@ export async function initDddSpec(
   }
 
   logArtifact("created canonical entry", entryPath);
-  logInfo(
-    `created ${template.label} under ${resolve(cwd, ZERO_CONFIG_CANONICAL_DIR)}`
-  );
+  logInfo(`created ${template.label} under ${resolve(cwd, template.scaffoldDir)}`);
 
   if (gitignoreStatus === "created") {
     logArtifact("created .gitignore", resolve(cwd, ".gitignore"));
@@ -79,16 +79,19 @@ export async function initDddSpec(
   await configureVsCodeWorkspace(cwd);
 
   logInfo(
-    "next: edit ddd-spec/canonical/ and run `ddd-spec dev` for the live rebuild loop plus packaged viewer"
+    `next: edit ${template.scaffoldDir}/ and run \`ddd-spec dev\` for the live rebuild loop plus packaged viewer`
   );
   logInfo(
     "alternative: run `ddd-spec validate`, then `ddd-spec build`, then `ddd-spec viewer` when you want one-shot steps"
   );
 }
 
-async function assertNoExistingScaffold(cwd: string): Promise<void> {
+async function assertNoExistingScaffold(
+  cwd: string,
+  template: InitTemplateDefinition
+): Promise<void> {
   const existingFile = await findExistingScaffoldFile(cwd);
-  const entryPath = resolve(cwd, ZERO_CONFIG_ENTRY_PATH);
+  const entryPath = resolve(cwd, template.entryPath);
 
   if (!existingFile) {
     return;
@@ -129,14 +132,21 @@ async function createTemplateDirectories(
 }
 
 async function validateGeneratedSkeleton(entryPath: string): Promise<void> {
-  const spec = await loadBusinessSpec({
+  const spec = await loadCanonicalSpec({
     entryPath,
     validateSemantics: false
   });
 
-  await validateBusinessSpecSchema(spec, {
-    schemaPath: DEFAULT_SCHEMA_PATH
-  });
+  if (isVnextBusinessSpec(spec)) {
+    await validateVnextCanonicalSchema({
+      entryPath,
+      schemaPath: DEFAULT_VNEXT_SCHEMA_PATH
+    });
+  } else {
+    await validateBusinessSpecSchema(spec, {
+      schemaPath: DEFAULT_SCHEMA_PATH
+    });
+  }
   validateBusinessSpecSemantics(spec);
 }
 

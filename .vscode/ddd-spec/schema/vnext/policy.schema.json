@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "vnext/policy.schema.json",
+  "title": "vNext Policy",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["kind", "id", "title", "summary", "triggerMessages"],
+  "properties": {
+    "kind": {
+      "const": "policy"
+    },
+    "id": {
+      "$ref": "shared.schema.json#/$defs/identifier"
+    },
+    "title": {
+      "$ref": "shared.schema.json#/$defs/nonEmptyString"
+    },
+    "summary": {
+      "$ref": "shared.schema.json#/$defs/summary"
+    },
+    "context": {
+      "$ref": "shared.schema.json#/$defs/identifier"
+    },
+    "triggerMessages": {
+      "$ref": "shared.schema.json#/$defs/identifierArray"
+    },
+    "emittedMessages": {
+      "$ref": "shared.schema.json#/$defs/identifierArray"
+    },
+    "targetSystems": {
+      "$ref": "shared.schema.json#/$defs/identifierArray"
+    },
+    "coordinates": {
+      "type": "array",
+      "items": {
+        "$ref": "shared.schema.json#/$defs/resourceRef"
+      }
+    }
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "vnext/message.schema.json",
+  "title": "vNext Message",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "kind",
+    "id",
+    "title",
+    "summary",
+    "messageKind",
+    "producers",
+    "consumers"
+  ],
+  "properties": {
+    "kind": {
+      "const": "message"
+    },
+    "id": {
+      "$ref": "shared.schema.json#/$defs/identifier"
+    },
+    "title": {
+      "$ref": "shared.schema.json#/$defs/nonEmptyString"
+    },
+    "summary": {
+      "$ref": "shared.schema.json#/$defs/summary"
+    },
+    "messageKind": {
+      "enum": ["command", "event", "query"]
+    },
+    "channel": {
+      "enum": ["sync", "async"]
+    },
+    "producers": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "shared.schema.json#/$defs/resourceRef"
+      }
+    },
+    "consumers": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "shared.schema.json#/$defs/resourceRef"
+      }
+    },
+    "payload": {
+      "type": "array",
+      "items": {
+        "$ref": "shared.schema.json#/$defs/payloadField"
+      }
+    }
+  }
+}

@@ -16,6 +16,7 @@ after each iteration and it's included in prompts for context.
 - For vNext lifecycle work, keep all aggregates in the shared analysis IR and filter lifecycle-only visibility in `projectVnextLifecycle()` via explicit aggregate metadata such as `lifecycleComplexity`, so context/message views retain full aggregate coverage.
 - For packaged vNext viewer verification, do not rely on root `repo:viewer`; it is pinned to the repo's legacy scenario config. Launch the packaged viewer against an example-specific vNext config such as `examples/vnext-cross-context/ddd-spec.config.yaml` when you need browser-facing evidence for vNext views.
 - For vNext Context Map relationship semantics, keep upstream/downstream and integration metadata as optional structured fields on `contexts[].relationships[]`, carry them through the shared analysis IR, and reuse the existing `context.relationships` detail contract for both node and edge inspectors instead of inventing edge-only semantics.
+- When the default zero-config path moves to `canonical-vnext/`, keep CLI zero-config loading version-dispatched with a legacy `canonical/` fallback until the explicit legacy init templates and package smoke fixtures are retired.
 
 ---
 
@@ -245,4 +246,30 @@ after each iteration and it's included in prompts for context.
     - Context Map inspector requirements are best met by enriching canonical relationship records with optional structured metadata and letting projection reuse the same record/list detail contract for context nodes and relationship edges.
   - Gotchas encountered
     - In this environment, the practical packaged-viewer verification path is to launch the example-specific viewer server and fetch the served `generated/viewer-spec.json`; full interactive browser inspection is still constrained by the sandbox.
+---
+## 2026-03-27 - knowledge-alchemy-app-v2-rfi
+- Rewrote the default `ddd-spec init` scaffold to emit a vNext `ddd-spec/canonical-vnext/` starter centered on one bounded context, one scenario story, one message flow, one aggregate lifecycle, and one follow-up policy instead of the old aggregate-first object graph tutorial.
+- Switched zero-config CLI resolution to prefer `canonical-vnext` while keeping a legacy `canonical` fallback for explicit legacy templates, disabled zero-config TypeScript generation for vNext canonicals, and updated init/help/README text plus VS Code schema asset syncing to match the new product path.
+- Extended CLI/package tests and maintainer workspace schema assets so default vNext init, legacy fallback templates, packaged dist smoke tests, and repo-level YAML tooling all pass under the mixed-version setup.
+- Files changed:
+  - `packages/ddd-spec-cli/init-templates.ts`
+  - `packages/ddd-spec-cli/init.ts`
+  - `packages/ddd-spec-cli/config.ts`
+  - `packages/ddd-spec-cli/console.ts`
+  - `packages/ddd-spec-cli/editor-config.ts`
+  - `packages/ddd-spec-cli/README.md`
+  - `packages/ddd-spec-cli/cli-config.test.ts`
+  - `packages/ddd-spec-cli/cli-init.test.ts`
+  - `packages/ddd-spec-cli/cli-installed-smoke.test.ts`
+  - `packages/ddd-spec-cli/cli-packaging.test.ts`
+  - `packages/ddd-spec-cli/test-support/cli-test-fixtures.ts`
+  - `packages/ddd-spec-cli/test-support/cli-test-helpers.ts`
+  - `.vscode/settings.json`
+  - `.vscode/ddd-spec/schema/vnext/`
+  - `.ralph-tui/progress.md`
+- **Learnings:**
+  - Patterns discovered
+    - Moving zero-config to vNext is safest when the CLI prefers `canonical-vnext/` but still falls back to `canonical/`, because packaged legacy templates and smoke fixtures otherwise fail before they can be migrated.
+  - Gotchas encountered
+    - Packaged CLI smoke tests exercise built `dist` artifacts rather than source files, so template-path changes must be reflected in packaging tests and accompanied by a fresh package build before those tests become meaningful.
 ---

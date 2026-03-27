@@ -1,7 +1,8 @@
 import { dirname } from "node:path";
-import { ZERO_CONFIG_ENTRY_PATH } from "./config.js";
+import { LEGACY_ZERO_CONFIG_ENTRY_PATH, ZERO_CONFIG_ENTRY_PATH } from "./config.js";
 
 export const ZERO_CONFIG_CANONICAL_DIR = "ddd-spec/canonical";
+export const DEFAULT_ZERO_CONFIG_CANONICAL_DIR = "ddd-spec/canonical-vnext";
 export const DEFAULT_INIT_TEMPLATE_ID = "default";
 
 interface InitTemplateFile {
@@ -13,6 +14,8 @@ export interface InitTemplateDefinition {
   id: string;
   label: string;
   description: string;
+  entryPath: string;
+  scaffoldDir: string;
   files: readonly InitTemplateFile[];
 }
 
@@ -361,301 +364,274 @@ const SHARED_TEMPLATE_FILES = [
 const INIT_TEMPLATE_DEFINITIONS = [
   {
     id: DEFAULT_INIT_TEMPLATE_ID,
-    label: "teaching approval workflow",
-    description: "Recommended first-time scaffold with a teaching-oriented approval workflow.",
+    label: "vNext approval starter",
+    description:
+      "Recommended first-time scaffold with one context, one scenario, one message flow, and one lifecycle.",
+    entryPath: ZERO_CONFIG_ENTRY_PATH,
+    scaffoldDir: DEFAULT_ZERO_CONFIG_CANONICAL_DIR,
     files: [
       {
         relativePath: ZERO_CONFIG_ENTRY_PATH,
-        source: `version: 2
-id: approval-workflow
-title: Approval Request Workflow
-summary: Teaching template showing how a request moves from draft to review, then closes as approved or rejected.
-vocabulary:
-  viewerDetails: ./vocabulary/viewer-detail-semantics.yaml
-domain:
-  objects:
-    - ./objects/approval-request.object.yaml
-    - ./objects/approval-request-status.object.yaml
-  commands:
-    - ./commands/submit-approval-request.command.yaml
-    - ./commands/approve-request.command.yaml
-    - ./commands/reject-request.command.yaml
-  events:
-    - ./events/approval-request-submitted.event.yaml
-    - ./events/approval-request-approved.event.yaml
-    - ./events/approval-request-rejected.event.yaml
-  aggregates:
-    - ./aggregates/approval-request.aggregate.yaml
-  processes:
-    - ./processes/approval-request-workflow.process.yaml
-`
-      },
-      ...SHARED_TEMPLATE_FILES,
-      {
-        relativePath: `${ZERO_CONFIG_CANONICAL_DIR}/objects/approval-request.object.yaml`,
-        source: `kind: object
-id: ApprovalRequest
-title: Approval Request
-role: entity
-lifecycleField: status
-lifecycle:
-  - draft
-  - submitted
-  - approved
-  - rejected
-fields:
-  - id: requestId
-    type: uuid
-    required: true
-    description: Stable identifier carried through every command and event in the workflow.
-  - id: requestTitle
-    type: text
-    required: true
-    description: Human-readable title that tells approvers what decision they are being asked to make.
-  - id: requestedBy
-    type: uuid
-    required: true
-    description: Actor who created the request and supplied the initial business context.
-  - id: approverId
-    type: uuid
-    required: false
-    description: Approver assigned when the request leaves draft and enters review.
-  - id: decisionNotes
-    type: text
-    required: false
-    description: Optional rationale captured with the final approval or rejection decision.
-  - id: status
-    type: ApprovalRequestStatus
-    required: true
-    ref:
-      kind: enum
-      objectId: ApprovalRequestStatus
-    description: Lifecycle field mirrored by the aggregate states and the workflow stages.
+        source: `version: 3
+id: approval-flow-vnext
+title: Approval Flow Starter
+summary: Starter model showing how one bounded context, one scenario, one message flow, and one lifecycle fit together.
+model:
+  contexts: ./contexts
+  actors: ./actors
+  systems: ./systems
+  scenarios: ./scenarios
+  messages: ./messages
+  aggregates: ./aggregates
+  policies: ./policies
 `
       },
       {
-        relativePath: `${ZERO_CONFIG_CANONICAL_DIR}/objects/approval-request-status.object.yaml`,
-        source: `kind: object
-id: ApprovalRequestStatus
-title: Approval Request Status
-role: enum
-values:
-  - draft
-  - submitted
-  - approved
-  - rejected
+        relativePath: `${DEFAULT_ZERO_CONFIG_CANONICAL_DIR}/contexts/approvals.context.yaml`,
+        source: `kind: context
+id: approvals
+title: Approvals
+summary: Owns the approval request lifecycle and the core decision flow.
+owners:
+  - approvals-team
+responsibilities:
+  - Receive approval requests
+  - Track review state
+  - Publish approval outcomes
+relationships:
+  - id: notify-requester
+    kind: notifies
+    target:
+      kind: system
+      id: notification-hub
+    description: Uses the notification hub to deliver requester-facing messages after the approval finishes.
 `
       },
       {
-        relativePath: `${ZERO_CONFIG_CANONICAL_DIR}/commands/submit-approval-request.command.yaml`,
-        source: `kind: command
-type: submitApprovalRequest
-target: ApprovalRequest
-description: Move a draft approval request into review once the requester has provided the context an approver needs.
-payload:
-  fields:
-    - id: requestId
-      type: uuid
-      required: true
-      description: Links the submission back to the draft approval request.
-    - id: requestTitle
-      type: text
-      required: true
-      description: Names the change, spend, or policy decision that needs approval.
-    - id: requestedBy
-      type: uuid
-      required: true
-      description: Identifies who is asking for the approval.
-    - id: approverId
-      type: uuid
-      required: true
-      description: Assigns the approver who will make the decision in the next stage.
+        relativePath: `${DEFAULT_ZERO_CONFIG_CANONICAL_DIR}/actors/requester.actor.yaml`,
+        source: `kind: actor
+id: requester
+title: Requester
+summary: Starts an approval request and waits for the final decision.
+actorType: role
 `
       },
       {
-        relativePath: `${ZERO_CONFIG_CANONICAL_DIR}/commands/approve-request.command.yaml`,
-        source: `kind: command
-type: approveRequest
-target: ApprovalRequest
-description: Accept the request and optionally capture notes that explain why the decision was approved.
-payload:
-  fields:
-    - id: requestId
-      type: uuid
-      required: true
-      description: Identifies the approval request being accepted.
-    - id: approvedBy
-      type: uuid
-      required: true
-      description: Records which approver accepted the request.
-    - id: decisionNotes
-      type: text
-      required: false
-      description: Optional implementation notes that provide extra approval context.
+        relativePath: `${DEFAULT_ZERO_CONFIG_CANONICAL_DIR}/actors/approver.actor.yaml`,
+        source: `kind: actor
+id: approver
+title: Approver
+summary: Reviews the submitted request and records the business decision.
+actorType: role
 `
       },
       {
-        relativePath: `${ZERO_CONFIG_CANONICAL_DIR}/commands/reject-request.command.yaml`,
-        source: `kind: command
-type: rejectRequest
-target: ApprovalRequest
-description: Reject the request and require a rationale so future readers can understand the modeled branch.
-payload:
-  fields:
-    - id: requestId
-      type: uuid
-      required: true
-      description: Identifies the approval request being rejected.
-    - id: rejectedBy
-      type: uuid
-      required: true
-      description: Records which approver rejected the request.
-    - id: decisionNotes
-      type: text
-      required: true
-      description: Captures the reason the request could not proceed.
+        relativePath: `${DEFAULT_ZERO_CONFIG_CANONICAL_DIR}/systems/notification-hub.system.yaml`,
+        source: `kind: system
+id: notification-hub
+title: Notification Hub
+summary: External system that sends the final approval update back to the requester.
+boundary: external
+capabilities:
+  - Send requester notifications
 `
       },
       {
-        relativePath: `${ZERO_CONFIG_CANONICAL_DIR}/events/approval-request-submitted.event.yaml`,
-        source: `kind: event
-type: ApprovalRequestSubmitted
-source: ApprovalRequest
-description: The request has left draft and is now waiting for an approver to make the next decision.
-payload:
-  fields:
-    - id: requestId
-      type: uuid
-      required: true
-      description: Identifies the approval request that is now under review.
-    - id: requestTitle
-      type: text
-      required: true
-      description: Repeats the request title so the review stage keeps its business context.
-    - id: requestedBy
-      type: uuid
-      required: true
-      description: Carries forward who submitted the request.
-    - id: approverId
-      type: uuid
-      required: true
-      description: Identifies the approver expected to make the decision.
-`
-      },
-      {
-        relativePath: `${ZERO_CONFIG_CANONICAL_DIR}/events/approval-request-approved.event.yaml`,
-        source: `kind: event
-type: ApprovalRequestApproved
-source: ApprovalRequest
-description: The approver accepted the request, so the workflow can close on its approved outcome.
-payload:
-  fields:
-    - id: requestId
-      type: uuid
-      required: true
-      description: Identifies the approval request that was approved.
-    - id: approvedBy
-      type: uuid
-      required: true
-      description: Records the approver who made the positive decision.
-    - id: decisionNotes
-      type: text
-      required: false
-      description: Optional notes that explain implementation guidance after approval.
-`
-      },
-      {
-        relativePath: `${ZERO_CONFIG_CANONICAL_DIR}/events/approval-request-rejected.event.yaml`,
-        source: `kind: event
-type: ApprovalRequestRejected
-source: ApprovalRequest
-description: The approver rejected the request, so the workflow closes on its rejected outcome.
-payload:
-  fields:
-    - id: requestId
-      type: uuid
-      required: true
-      description: Identifies the approval request that was rejected.
-    - id: rejectedBy
-      type: uuid
-      required: true
-      description: Records the approver who rejected the request.
-    - id: decisionNotes
-      type: text
-      required: true
-      description: Preserves the rationale for the rejection path.
-`
-      },
-      {
-        relativePath: `${ZERO_CONFIG_CANONICAL_DIR}/aggregates/approval-request.aggregate.yaml`,
-        source: `kind: aggregate
-objectId: ApprovalRequest
-initial: draft
-states:
-  draft:
-    on:
-      submitApprovalRequest:
-        target: submitted
-        emit:
-          type: ApprovalRequestSubmitted
-          payloadFrom:
-            requestId: $command.requestId
-            requestTitle: $command.requestTitle
-            requestedBy: $command.requestedBy
-            approverId: $command.approverId
-  submitted:
-    on:
-      approveRequest:
-        target: approved
-        emit:
-          type: ApprovalRequestApproved
-          payloadFrom:
-            requestId: $command.requestId
-            approvedBy: $command.approvedBy
-            decisionNotes: $command.decisionNotes
-      rejectRequest:
-        target: rejected
-        emit:
-          type: ApprovalRequestRejected
-          payloadFrom:
-            requestId: $command.requestId
-            rejectedBy: $command.rejectedBy
-            decisionNotes: $command.decisionNotes
-  approved: {}
-  rejected: {}
-`
-      },
-      {
-        relativePath: `${ZERO_CONFIG_CANONICAL_DIR}/processes/approval-request-workflow.process.yaml`,
-        source: `kind: process
-id: approvalRequestWorkflow
-title: Approval Request Workflow
-uses:
-  aggregates:
-    approval: ApprovalRequest
-initialStage: draftingRequest
-stages:
-  draftingRequest:
-    title: Drafting request
-    aggregate: approval
-    state: draft
-    advancesOn:
-      ApprovalRequestSubmitted: awaitingDecision
-  awaitingDecision:
-    title: Awaiting approval decision
-    aggregate: approval
-    state: submitted
-    advancesOn:
-      ApprovalRequestApproved: closedApproved
-      ApprovalRequestRejected: closedRejected
-  closedApproved:
+        relativePath: `${DEFAULT_ZERO_CONFIG_CANONICAL_DIR}/scenarios/approval-request-flow.scenario.yaml`,
+        source: `kind: scenario
+id: approval-request-flow
+title: Approval Request Flow
+summary: Core business story from submission through approval and requester notification.
+goal: Get an approval request from draft to approved and notify the requester.
+ownerContext: approvals
+steps:
+  - id: draft-request
+    title: Draft request
+    context: approvals
+    actor: requester
+    outgoingMessages:
+      - submit-approval-request
+    next:
+      - awaiting-review
+  - id: awaiting-review
+    title: Review request
+    context: approvals
+    actor: approver
+    incomingMessages:
+      - approval-request-submitted
+    outgoingMessages:
+      - approve-request
+    next:
+      - request-approved
+  - id: request-approved
     title: Request approved
+    context: approvals
+    incomingMessages:
+      - approval-request-approved
     final: true
-    outcome: requestApproved
-  closedRejected:
-    title: Request rejected
-    final: true
-    outcome: requestRejected
+    outcome: request-approved
+`
+      },
+      {
+        relativePath: `${DEFAULT_ZERO_CONFIG_CANONICAL_DIR}/messages/submit-approval-request.message.yaml`,
+        source: `kind: message
+id: submit-approval-request
+title: Submit Approval Request
+summary: Command asking the approvals context to move a drafted request into review.
+messageKind: command
+channel: sync
+producers:
+  - kind: actor
+    id: requester
+consumers:
+  - kind: aggregate
+    id: approval-request
+payload:
+  - id: request-id
+    type: uuid
+    required: true
+  - id: request-title
+    type: text
+    required: true
+`
+      },
+      {
+        relativePath: `${DEFAULT_ZERO_CONFIG_CANONICAL_DIR}/messages/approval-request-submitted.message.yaml`,
+        source: `kind: message
+id: approval-request-submitted
+title: Approval Request Submitted
+summary: Event recording that the request left draft and is now awaiting review.
+messageKind: event
+channel: async
+producers:
+  - kind: aggregate
+    id: approval-request
+consumers:
+  - kind: scenario
+    id: approval-request-flow
+payload:
+  - id: request-id
+    type: uuid
+    required: true
+`
+      },
+      {
+        relativePath: `${DEFAULT_ZERO_CONFIG_CANONICAL_DIR}/messages/approve-request.message.yaml`,
+        source: `kind: message
+id: approve-request
+title: Approve Request
+summary: Command asking the aggregate to close the request with an approved decision.
+messageKind: command
+channel: sync
+producers:
+  - kind: actor
+    id: approver
+consumers:
+  - kind: aggregate
+    id: approval-request
+payload:
+  - id: request-id
+    type: uuid
+    required: true
+  - id: approver-id
+    type: uuid
+    required: true
+`
+      },
+      {
+        relativePath: `${DEFAULT_ZERO_CONFIG_CANONICAL_DIR}/messages/approval-request-approved.message.yaml`,
+        source: `kind: message
+id: approval-request-approved
+title: Approval Request Approved
+summary: Event recording that the approval decision has completed successfully.
+messageKind: event
+channel: async
+producers:
+  - kind: aggregate
+    id: approval-request
+consumers:
+  - kind: scenario
+    id: approval-request-flow
+  - kind: policy
+    id: notify-requester-after-approval
+payload:
+  - id: request-id
+    type: uuid
+    required: true
+  - id: approver-id
+    type: uuid
+    required: true
+`
+      },
+      {
+        relativePath: `${DEFAULT_ZERO_CONFIG_CANONICAL_DIR}/messages/send-approval-notification.message.yaml`,
+        source: `kind: message
+id: send-approval-notification
+title: Send Approval Notification
+summary: Command asking the external notification hub to notify the requester after approval.
+messageKind: command
+channel: async
+producers:
+  - kind: policy
+    id: notify-requester-after-approval
+consumers:
+  - kind: system
+    id: notification-hub
+payload:
+  - id: request-id
+    type: uuid
+    required: true
+  - id: requester-id
+    type: uuid
+    required: true
+`
+      },
+      {
+        relativePath: `${DEFAULT_ZERO_CONFIG_CANONICAL_DIR}/aggregates/approval-request.aggregate.yaml`,
+        source: `kind: aggregate
+id: approval-request
+title: Approval Request
+summary: Controls the approval lifecycle from draft through submitted to approved.
+context: approvals
+lifecycleComplexity: true
+states:
+  - draft
+  - submitted
+  - approved
+initialState: draft
+transitions:
+  - id: submit-request
+    from: draft
+    to: submitted
+    onMessage: submit-approval-request
+    emits:
+      - approval-request-submitted
+  - id: approve-request
+    from: submitted
+    to: approved
+    onMessage: approve-request
+    emits:
+      - approval-request-approved
+`
+      },
+      {
+        relativePath: `${DEFAULT_ZERO_CONFIG_CANONICAL_DIR}/policies/notify-requester-after-approval.policy.yaml`,
+        source: `kind: policy
+id: notify-requester-after-approval
+title: Notify Requester After Approval
+summary: Sends a requester-facing notification after the approval outcome is finalized.
+context: approvals
+triggerMessages:
+  - approval-request-approved
+emittedMessages:
+  - send-approval-notification
+targetSystems:
+  - notification-hub
+coordinates:
+  - kind: aggregate
+    id: approval-request
+  - kind: system
+    id: notification-hub
 `
       }
     ]
@@ -664,9 +640,11 @@ stages:
     id: "minimal",
     label: "minimal starter scaffold",
     description: "Smallest valid scaffold for advanced users who want to shape the model themselves.",
+    entryPath: LEGACY_ZERO_CONFIG_ENTRY_PATH,
+    scaffoldDir: ZERO_CONFIG_CANONICAL_DIR,
     files: [
       {
-        relativePath: ZERO_CONFIG_ENTRY_PATH,
+        relativePath: LEGACY_ZERO_CONFIG_ENTRY_PATH,
         source: `version: 2
 id: minimal-domain
 title: Minimal Domain Skeleton
@@ -794,9 +772,11 @@ stages:
     id: "order-payment",
     label: "order-payment example scaffold",
     description: "Example-style scaffold with separate order and payment aggregates.",
+    entryPath: LEGACY_ZERO_CONFIG_ENTRY_PATH,
+    scaffoldDir: ZERO_CONFIG_CANONICAL_DIR,
     files: [
       {
-        relativePath: ZERO_CONFIG_ENTRY_PATH,
+        relativePath: LEGACY_ZERO_CONFIG_ENTRY_PATH,
         source: `version: 2
 id: order-payment
 title: Order Submission and Payment Workflow

@@ -66,7 +66,7 @@ test("CLI dist entry runs without tsx or repo source entrypoints", async () => {
       { cwd: tempDir }
     );
 
-    await access(join(tempDir, "ddd-spec", "canonical", "index.yaml"));
+    await access(join(tempDir, "ddd-spec", "canonical-vnext", "index.yaml"));
     await assertGeneratedVsCodeWorkspaceConfig({
       rootPath: tempDir
     });

@@ -56,12 +56,6 @@ test("npm pack smoke test installs the tarball and runs zero-config init plus bu
 
     assert.match(gitignoreSource, /^\.ddd-spec\/$/m);
 
-    await rm(join(consumerRootPath, "ddd-spec", "canonical"), {
-      recursive: true,
-      force: true
-    });
-    await copyExampleCanonicalToZeroConfigRoot(consumerRootPath, ZERO_CONFIG_FIXTURE.id);
-
     await runCommand(
       process.execPath,
       [installedCliEntryPath, "build"],
@@ -72,21 +66,38 @@ test("npm pack smoke test installs the tarball and runs zero-config init plus bu
 
     const bundle = JSON.parse(
       await readFile(join(consumerRootPath, ".ddd-spec", "artifacts", "business-spec.json"), "utf8")
-    ) as BusinessSpec;
+    ) as {
+      version: number;
+      id: string;
+    };
     const analysis = JSON.parse(
       await readFile(
         join(consumerRootPath, ".ddd-spec", "artifacts", "business-spec.analysis.json"),
         "utf8"
       )
-    ) as BusinessSpecAnalysis;
+    ) as {
+      summary: {
+        errorCount: number;
+      };
+    };
     const viewer = JSON.parse(
       await readFile(join(consumerRootPath, ".ddd-spec", "artifacts", "viewer-spec.json"), "utf8")
-    ) as BusinessViewerSpec;
+    ) as {
+      views: Array<{ id: string }>;
+    };
 
-    assertExampleBundle(bundle, ZERO_CONFIG_FIXTURE);
-    assertExampleAnalysis(analysis, ZERO_CONFIG_FIXTURE);
-    assertExampleViewer(viewer, ZERO_CONFIG_FIXTURE);
-    await access(join(consumerRootPath, ".ddd-spec", "generated", "business-spec.generated.ts"));
+    assert.equal(bundle.version, 3);
+    assert.equal(bundle.id, "approval-flow-vnext");
+    assert.equal(analysis.summary.errorCount, 0);
+    assert.deepEqual(
+      viewer.views.slice(0, 4).map((view) => view.id),
+      ["context-map", "scenario-story", "message-flow", "lifecycle"]
+    );
+    assert.ok(viewer.views.some((view) => view.id === "policy-saga"));
+    await assert.rejects(
+      access(join(consumerRootPath, ".ddd-spec", "generated", "business-spec.generated.ts")),
+      /ENOENT/
+    );
   } finally {
     await rm(tempDir, { recursive: true, force: true });
   }

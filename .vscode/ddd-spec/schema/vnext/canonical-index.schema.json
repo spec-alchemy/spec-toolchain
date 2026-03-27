@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "vnext/canonical-index.schema.json",
+  "title": "vNext Canonical Index",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "id", "title", "summary", "model"],
+  "properties": {
+    "version": {
+      "const": 3
+    },
+    "id": {
+      "$ref": "shared.schema.json#/$defs/identifier"
+    },
+    "title": {
+      "$ref": "shared.schema.json#/$defs/nonEmptyString"
+    },
+    "summary": {
+      "$ref": "shared.schema.json#/$defs/summary"
+    },
+    "model": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contexts",
+        "actors",
+        "systems",
+        "scenarios",
+        "messages",
+        "aggregates",
+        "policies"
+      ],
+      "properties": {
+        "contexts": {
+          "$ref": "shared.schema.json#/$defs/collectionRef"
+        },
+        "actors": {
+          "$ref": "shared.schema.json#/$defs/collectionRef"
+        },
+        "systems": {
+          "$ref": "shared.schema.json#/$defs/collectionRef"
+        },
+        "scenarios": {
+          "$ref": "shared.schema.json#/$defs/collectionRef"
+        },
+        "messages": {
+          "$ref": "shared.schema.json#/$defs/collectionRef"
+        },
+        "aggregates": {
+          "$ref": "shared.schema.json#/$defs/collectionRef"
+        },
+        "policies": {
+          "$ref": "shared.schema.json#/$defs/collectionRef"
+        }
+      }
+    }
+  }
+}

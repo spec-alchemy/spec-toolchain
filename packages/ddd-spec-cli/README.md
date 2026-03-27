@@ -1,7 +1,7 @@
 # `@knowledge-alchemy/ddd-spec`
 
 `@knowledge-alchemy/ddd-spec` is the external CLI package for the DDD spec workflow.
-Zero-config is the default product path: run `ddd-spec init`, model under `ddd-spec/canonical/`, and let the CLI write build outputs into `.ddd-spec/`. Use `--config <path>` only when a workspace needs custom entry paths, output locations, or viewer sync targets.
+Zero-config is the default product path: run `ddd-spec init`, model under `ddd-spec/canonical-vnext/`, and let the CLI write build outputs into `.ddd-spec/`. Use `--config <path>` only when a workspace needs custom entry paths, output locations, or viewer sync targets.
 
 ## Preferred Onboarding
 
@@ -10,11 +10,13 @@ Start here for a normal consumer workspace. The preferred path is `install -> in
 ```sh
 npm install --save-dev @knowledge-alchemy/ddd-spec
 npm exec ddd-spec init
-# edit the generated approval workflow in ddd-spec/canonical/
+# edit the generated vNext starter in ddd-spec/canonical-vnext/
 npm exec ddd-spec dev
 ```
 
-`init` creates a teaching-oriented approval workflow under `ddd-spec/canonical/` for consumer workspaces and adds `.ddd-spec/` to `.gitignore` when needed. That no-argument path remains the recommended first-time experience.
+`init` creates a vNext starter under `ddd-spec/canonical-vnext/` with one bounded context, one core scenario, one message flow, and one lifecycle. It also adds `.ddd-spec/` to `.gitignore` when needed. That no-argument path remains the recommended first-time experience.
+
+The default zero-config build writes bundle, analysis, and viewer outputs into `.ddd-spec/`. TypeScript projection is still version-2-only, so the vNext starter intentionally skips generated TypeScript output until that projection path lands.
 
 The `dev` command is the recommended iteration loop. It runs the initial validation/build, starts the packaged viewer server, opens the browser automatically by default, and keeps watching canonical inputs so edits trigger rebuilds without restarting the session. After each successful rebuild, the already-open viewer automatically reloads the current workspace viewer spec. If a rebuild fails, the terminal tells you what broke, keeps the watcher alive, and the viewer keeps showing the last successful result with an in-app warning until the next build passes.
 
@@ -50,9 +52,9 @@ Most users should keep using plain `ddd-spec init`. Advanced users can opt into 
 
 Supported packaged templates:
 
-- `default`: the same teaching-oriented approval workflow created by `ddd-spec init`
-- `minimal`: the smallest valid scaffold with one object, command, event, aggregate, and process
-- `order-payment`: an example-style order and payment workflow
+- `default`: the same vNext approval starter created by `ddd-spec init`
+- `minimal`: the smallest valid legacy scaffold with one object, command, event, aggregate, and process
+- `order-payment`: a legacy example-style order and payment workflow
 
 Example commands:
 
@@ -64,7 +66,7 @@ npm exec ddd-spec init --template order-payment
 
 ## Advanced `--config` Workflow
 
-Use `--config <path>` when you want an explicit config file instead of the default `ddd-spec/canonical/index.yaml` and `.ddd-spec/` layout. `init` still defaults to zero-config, and explicit template selection is a separate advanced path for choosing packaged starter scaffolds.
+Use `--config <path>` when you want an explicit config file instead of the default `ddd-spec/canonical-vnext/index.yaml` and `.ddd-spec/` layout. `init` still defaults to zero-config, and explicit template selection is a separate advanced path for choosing packaged starter scaffolds.
 
 ```sh
 npm exec ddd-spec validate --config ./ddd-spec.config.yaml

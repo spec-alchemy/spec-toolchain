@@ -22,7 +22,8 @@ import type {
 import {
   hasObjectFields,
   isEntityObjectSpec,
-  loadBusinessSpec
+  isVnextBusinessSpec,
+  loadCanonicalSpec
 } from "../../ddd-spec-core/index.js";
 import type {
   BusinessViewerSpec,
@@ -369,6 +370,17 @@ export async function copyExampleCanonicalToZeroConfigRoot(
   );
 }
 
+export async function copyVnextCanonicalToZeroConfigRoot(
+  targetRootPath: string,
+  exampleId: "vnext-minimal" | "vnext-cross-context" = "vnext-minimal"
+): Promise<void> {
+  await cp(
+    resolve(REPO_ROOT_PATH, "examples", exampleId, "canonical-vnext"),
+    join(targetRootPath, "ddd-spec", "canonical-vnext"),
+    { recursive: true }
+  );
+}
+
 function assertExampleFieldStructure(
   bundle: BusinessSpec,
   expectation: ExampleFieldStructureExpectation
@@ -677,27 +689,34 @@ export async function assertGeneratedInitSkeleton(
   rootPath: string,
   templateId: InitTemplateId = "default"
 ): Promise<void> {
-  const canonicalRootPath = join(rootPath, "ddd-spec", "canonical");
+  const canonicalRootPathByTemplate: Record<InitTemplateId, string> = {
+    default: join(rootPath, "ddd-spec", "canonical-vnext"),
+    minimal: join(rootPath, "ddd-spec", "canonical"),
+    "order-payment": join(rootPath, "ddd-spec", "canonical")
+  };
+  const canonicalRootPath = canonicalRootPathByTemplate[templateId];
   const requiredPathsByTemplate: Record<InitTemplateId, readonly string[]> = {
     default: [
       join(canonicalRootPath, "index.yaml"),
-      join(canonicalRootPath, "objects"),
-      join(canonicalRootPath, "commands"),
-      join(canonicalRootPath, "events"),
+      join(canonicalRootPath, "contexts"),
+      join(canonicalRootPath, "actors"),
+      join(canonicalRootPath, "systems"),
+      join(canonicalRootPath, "scenarios"),
+      join(canonicalRootPath, "messages"),
       join(canonicalRootPath, "aggregates"),
-      join(canonicalRootPath, "processes"),
-      join(canonicalRootPath, "vocabulary"),
-      join(canonicalRootPath, "objects", "approval-request.object.yaml"),
-      join(canonicalRootPath, "objects", "approval-request-status.object.yaml"),
-      join(canonicalRootPath, "commands", "submit-approval-request.command.yaml"),
-      join(canonicalRootPath, "commands", "approve-request.command.yaml"),
-      join(canonicalRootPath, "commands", "reject-request.command.yaml"),
-      join(canonicalRootPath, "events", "approval-request-submitted.event.yaml"),
-      join(canonicalRootPath, "events", "approval-request-approved.event.yaml"),
-      join(canonicalRootPath, "events", "approval-request-rejected.event.yaml"),
+      join(canonicalRootPath, "policies"),
+      join(canonicalRootPath, "contexts", "approvals.context.yaml"),
+      join(canonicalRootPath, "actors", "requester.actor.yaml"),
+      join(canonicalRootPath, "actors", "approver.actor.yaml"),
+      join(canonicalRootPath, "systems", "notification-hub.system.yaml"),
+      join(canonicalRootPath, "scenarios", "approval-request-flow.scenario.yaml"),
+      join(canonicalRootPath, "messages", "submit-approval-request.message.yaml"),
+      join(canonicalRootPath, "messages", "approval-request-submitted.message.yaml"),
+      join(canonicalRootPath, "messages", "approve-request.message.yaml"),
+      join(canonicalRootPath, "messages", "approval-request-approved.message.yaml"),
+      join(canonicalRootPath, "messages", "send-approval-notification.message.yaml"),
       join(canonicalRootPath, "aggregates", "approval-request.aggregate.yaml"),
-      join(canonicalRootPath, "processes", "approval-request-workflow.process.yaml"),
-      join(canonicalRootPath, "vocabulary", "viewer-detail-semantics.yaml")
+      join(canonicalRootPath, "policies", "notify-requester-after-approval.policy.yaml")
     ],
     minimal: [
       join(canonicalRootPath, "index.yaml"),
@@ -742,67 +761,77 @@ export async function assertGeneratedInitSkeleton(
     await access(path);
   }
 
-  const spec = await loadBusinessSpec({
+  const spec = await loadCanonicalSpec({
     entryPath: join(canonicalRootPath, "index.yaml"),
     validateSemantics: false
   });
 
   switch (templateId) {
     case "default": {
-      const approvalObject = mustFind(spec.domain.objects, (object) => object.id === "ApprovalRequest");
-      const approvalProcess = spec.domain.processes[0];
-      const approvalStatus = mustFind(
-        spec.domain.objects,
-        (object) => object.id === "ApprovalRequestStatus"
+      if (!isVnextBusinessSpec(spec)) {
+        throw new Error("Expected the default init scaffold to load as a vNext canonical");
+      }
+
+      const approvalsContext = mustFind(spec.contexts, (context) => context.id === "approvals");
+      const scenario = mustFind(spec.scenarios, (candidate) => candidate.id === "approval-request-flow");
+      const aggregate = mustFind(spec.aggregates, (candidate) => candidate.id === "approval-request");
+      const policy = mustFind(
+        spec.policies,
+        (candidate) => candidate.id === "notify-requester-after-approval"
       );
 
-      assert.equal(spec.id, "approval-workflow");
-      assert.deepEqual(spec.domain.objects.map((object) => object.id), [
-        "ApprovalRequest",
-        "ApprovalRequestStatus"
+      assert.equal(spec.id, "approval-flow-vnext");
+      assert.deepEqual(spec.contexts.map((context) => context.id), ["approvals"]);
+      assert.deepEqual(
+        sortStrings(spec.actors.map((actor) => actor.id)),
+        sortStrings(["requester", "approver"])
+      );
+      assert.deepEqual(spec.systems.map((system) => system.id), ["notification-hub"]);
+      assert.deepEqual(spec.scenarios.map((candidate) => candidate.id), ["approval-request-flow"]);
+      assert.deepEqual(
+        sortStrings(spec.messages.map((message) => message.id)),
+        sortStrings([
+          "submit-approval-request",
+          "approval-request-submitted",
+          "approve-request",
+          "approval-request-approved",
+          "send-approval-notification"
+        ])
+      );
+      assert.deepEqual(spec.aggregates.map((candidate) => candidate.id), ["approval-request"]);
+      assert.deepEqual(spec.policies.map((candidate) => candidate.id), [
+        "notify-requester-after-approval"
       ]);
+      assert.equal(approvalsContext.relationships?.[0]?.target.kind, "system");
+      assert.equal(approvalsContext.relationships?.[0]?.target.id, "notification-hub");
+      assert.equal(scenario.ownerContext, "approvals");
       assert.deepEqual(
-        spec.domain.commands.map((command) => command.type),
-        ["submitApprovalRequest", "approveRequest", "rejectRequest"]
+        scenario.steps.map((step) => step.id),
+        ["draft-request", "awaiting-review", "request-approved"]
       );
+      assert.deepEqual(scenario.steps[0]?.outgoingMessages, ["submit-approval-request"]);
+      assert.deepEqual(scenario.steps[1]?.incomingMessages, ["approval-request-submitted"]);
+      assert.deepEqual(scenario.steps[1]?.outgoingMessages, ["approve-request"]);
+      assert.equal(scenario.steps[2]?.final, true);
+      assert.equal(scenario.steps[2]?.outcome, "request-approved");
+      assert.equal(aggregate.context, "approvals");
+      assert.equal(aggregate.lifecycleComplexity, true);
+      assert.deepEqual(aggregate.states, ["draft", "submitted", "approved"]);
+      assert.equal(aggregate.initialState, "draft");
       assert.deepEqual(
-        spec.domain.events.map((event) => event.type),
-        ["ApprovalRequestSubmitted", "ApprovalRequestApproved", "ApprovalRequestRejected"]
+        aggregate.transitions.map((transition) => transition.onMessage),
+        ["submit-approval-request", "approve-request"]
       );
-      assert.ok(isEntityObjectSpec(approvalObject));
-      assert.equal(approvalObject.role, "entity");
-      assert.equal(approvalObject.lifecycleField, "status");
-      assert.deepEqual(approvalObject.lifecycle, ["draft", "submitted", "approved", "rejected"]);
-      assert.deepEqual(approvalObject.fields.at(-1), {
-        id: "status",
-        type: "ApprovalRequestStatus",
-        required: true,
-        ref: {
-          kind: "enum",
-          objectId: "ApprovalRequestStatus"
-        },
-        description: "Lifecycle field mirrored by the aggregate states and the workflow stages."
-      });
-      assert.ok(!hasObjectFields(approvalStatus));
-      assert.equal(approvalStatus.role, "enum");
-      assert.deepEqual(approvalStatus.values, ["draft", "submitted", "approved", "rejected"]);
-      assert.equal(approvalProcess.id, "approvalRequestWorkflow");
-      assert.equal(approvalProcess.initialStage, "draftingRequest");
-      assert.deepEqual(approvalProcess.uses.aggregates, {
-        approval: "ApprovalRequest"
-      });
-      assert.deepEqual(approvalProcess.stages.draftingRequest.advancesOn, {
-        ApprovalRequestSubmitted: "awaitingDecision"
-      });
-      assert.deepEqual(approvalProcess.stages.awaitingDecision.advancesOn, {
-        ApprovalRequestApproved: "closedApproved",
-        ApprovalRequestRejected: "closedRejected"
-      });
-      assert.equal(approvalProcess.stages.closedApproved.outcome, "requestApproved");
-      assert.equal(approvalProcess.stages.closedRejected.outcome, "requestRejected");
+      assert.deepEqual(policy.triggerMessages, ["approval-request-approved"]);
+      assert.deepEqual(policy.emittedMessages, ["send-approval-notification"]);
+      assert.deepEqual(policy.targetSystems, ["notification-hub"]);
       return;
     }
     case "minimal": {
+      if (isVnextBusinessSpec(spec)) {
+        throw new Error("Expected the minimal init scaffold to stay on the legacy canonical path");
+      }
+
       const minimalObject = mustFind(spec.domain.objects, (object) => object.id === "ExampleRecord");
       const minimalAggregate = spec.domain.aggregates[0];
       const minimalProcess = spec.domain.processes[0];
@@ -870,6 +899,12 @@ export async function assertGeneratedInitSkeleton(
       return;
     }
     case "order-payment": {
+      if (isVnextBusinessSpec(spec)) {
+        throw new Error(
+          "Expected the order-payment init scaffold to stay on the legacy canonical path"
+        );
+      }
+
       const orderProcess = spec.domain.processes[0];
       const orderObject = mustFind(spec.domain.objects, (object) => object.id === "Order");
       const paymentObject = mustFind(spec.domain.objects, (object) => object.id === "Payment");
@@ -1449,7 +1484,15 @@ function buildExpectedYamlSchemaMappings(): Record<string, readonly string[]> {
     "event.schema.json": ["**/canonical/events/*.event.yaml"],
     "aggregate.schema.json": ["**/canonical/aggregates/*.aggregate.yaml"],
     "process.schema.json": ["**/canonical/processes/*.process.yaml"],
-    "viewer-detail-semantics.schema.json": ["**/canonical/vocabulary/*.yaml"]
+    "viewer-detail-semantics.schema.json": ["**/canonical/vocabulary/*.yaml"],
+    "vnext/canonical-index.schema.json": ["**/canonical-vnext/index.yaml"],
+    "vnext/context.schema.json": ["**/canonical-vnext/contexts/*.context.yaml"],
+    "vnext/actor.schema.json": ["**/canonical-vnext/actors/*.actor.yaml"],
+    "vnext/system.schema.json": ["**/canonical-vnext/systems/*.system.yaml"],
+    "vnext/scenario.schema.json": ["**/canonical-vnext/scenarios/*.scenario.yaml"],
+    "vnext/message.schema.json": ["**/canonical-vnext/messages/*.message.yaml"],
+    "vnext/aggregate.schema.json": ["**/canonical-vnext/aggregates/*.aggregate.yaml"],
+    "vnext/policy.schema.json": ["**/canonical-vnext/policies/*.policy.yaml"]
   };
 }
 

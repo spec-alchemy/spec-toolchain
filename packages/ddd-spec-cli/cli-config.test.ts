@@ -8,6 +8,7 @@ import { loadDddSpecConfig } from "./config.js";
 import { runCliCommand } from "./commands.js";
 import {
   DEFAULT_SCHEMA_PATH,
+  DEFAULT_VNEXT_SCHEMA_PATH,
   EXAMPLE_FIXTURES,
   REPO_ROOT_PATH,
   REPO_SCENARIO_ENTRY_PATH,
@@ -16,6 +17,7 @@ import {
 } from "./test-support/cli-test-fixtures.js";
 import {
   copyExampleCanonicalToZeroConfigRoot,
+  copyVnextCanonicalToZeroConfigRoot,
   countMatches
 } from "./test-support/cli-test-helpers.js";
 
@@ -73,6 +75,30 @@ test("zero-config mode resolves the canonical entry and standard outputs from cw
   }
 });
 
+test("zero-config mode prefers canonical-vnext and disables TypeScript by default", async () => {
+  const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-zero-config-vnext-resolve-"));
+
+  try {
+    await copyVnextCanonicalToZeroConfigRoot(tempDir);
+
+    const config = await loadDddSpecConfig({
+      cwd: tempDir
+    });
+
+    assert.equal(config.mode, "zero-config");
+    assert.equal(config.spec.entryPath, join(tempDir, "ddd-spec", "canonical-vnext", "index.yaml"));
+    assert.equal(config.schema.path, DEFAULT_VNEXT_SCHEMA_PATH);
+    assert.equal(config.projections.viewer, true);
+    assert.equal(config.projections.typescript, false);
+    assert.equal(
+      config.outputs.typescriptPath,
+      join(tempDir, ".ddd-spec", "generated", "business-spec.generated.ts")
+    );
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
+
 test("zero-config validate shows an init hint when the canonical entry is missing", async () => {
   const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-zero-config-missing-"));
 
@@ -82,7 +108,7 @@ test("zero-config validate shows an init hint when the canonical entry is missin
       (error: unknown) =>
         error instanceof Error &&
         error.message.includes("Run `ddd-spec init`") &&
-        error.message.includes(join(tempDir, "ddd-spec", "canonical", "index.yaml"))
+        error.message.includes(join(tempDir, "ddd-spec", "canonical-vnext", "index.yaml"))
     );
   } finally {
     await rm(tempDir, { recursive: true, force: true });
@@ -98,7 +124,7 @@ test("zero-config dev shows an init hint when the canonical entry is missing", a
       (error: unknown) =>
         error instanceof Error &&
         error.message.includes("Run `ddd-spec init`") &&
-        error.message.includes(join(tempDir, "ddd-spec", "canonical", "index.yaml"))
+        error.message.includes(join(tempDir, "ddd-spec", "canonical-vnext", "index.yaml"))
     );
   } finally {
     await rm(tempDir, { recursive: true, force: true });
@@ -118,6 +144,7 @@ test("CLI help lists the primary commands and entry points", () => {
   assert.match(usageText, /\border-payment\b/);
   assert.match(usageText, /\n  generate-viewer \[--config <path>\]\n/);
   assert.match(usageText, /generate-typescript \[--config <path>\]$/);
+  assert.match(usageText, /ddd-spec\/canonical-vnext/);
   assert.doesNotMatch(usageText, /\n  generate viewer\n/);
   assert.doesNotMatch(usageText, /\n  generate typescript\n/);
 });
@@ -144,7 +171,7 @@ test("CLI failure output preserves an existing init hint without duplicating gui
   const output = formatCliFailureOutput(
     ["validate"],
     new Error(
-      "No canonical spec found at /tmp/example/ddd-spec/canonical/index.yaml. Run `ddd-spec init` to create ddd-spec/canonical/index.yaml before running this command."
+      "No canonical spec found at /tmp/example/ddd-spec/canonical-vnext/index.yaml. Run `ddd-spec init` to create ddd-spec/canonical-vnext/index.yaml before running this command."
     )
   );
 

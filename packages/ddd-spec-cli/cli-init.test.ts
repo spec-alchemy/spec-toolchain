@@ -3,14 +3,7 @@ import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { tmpdir } from "node:os";
 import test from "node:test";
-import {
-  loadBusinessSpec,
-  validateBusinessSpecSchema
-} from "../ddd-spec-core/index.js";
 import { runCliCommand } from "./commands.js";
-import {
-  DEFAULT_SCHEMA_PATH
-} from "./test-support/cli-test-fixtures.js";
 import {
   assertGeneratedInitSkeleton,
   assertGeneratedVsCodeWorkspaceConfig,
@@ -18,27 +11,42 @@ import {
   parseJsoncObject
 } from "./test-support/cli-test-helpers.js";
 
-test("CLI init creates a teaching approval workflow that validate accepts", async () => {
+test("CLI init creates the default vNext starter and build emits the primary viewer graphs", async () => {
   const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-init-"));
 
   try {
     await runCliCommand(["init"], { cwd: tempDir });
 
     await assertGeneratedInitSkeleton(tempDir);
-
-    const spec = await loadBusinessSpec({
-      entryPath: join(tempDir, "ddd-spec", "canonical", "index.yaml"),
-      validateSemantics: false
-    });
-
-    await validateBusinessSpecSchema(spec, {
-      schemaPath: DEFAULT_SCHEMA_PATH
-    });
     await runCliCommand(["validate"], { cwd: tempDir });
+    await runCliCommand(["build"], { cwd: tempDir });
+
+    const bundle = JSON.parse(
+      await readFile(join(tempDir, ".ddd-spec", "artifacts", "business-spec.json"), "utf8")
+    ) as {
+      version: number;
+      id: string;
+    };
+    const viewer = JSON.parse(
+      await readFile(join(tempDir, ".ddd-spec", "artifacts", "viewer-spec.json"), "utf8")
+    ) as {
+      views: Array<{ id: string }>;
+    };
 
     const gitignoreSource = await readFile(join(tempDir, ".gitignore"), "utf8");
     const settingsSource = await readFile(join(tempDir, ".vscode", "settings.json"), "utf8");
 
+    assert.equal(bundle.version, 3);
+    assert.equal(bundle.id, "approval-flow-vnext");
+    assert.deepEqual(
+      viewer.views.slice(0, 4).map((view) => view.id),
+      ["context-map", "scenario-story", "message-flow", "lifecycle"]
+    );
+    assert.ok(viewer.views.some((view) => view.id === "policy-saga"));
+    await assert.rejects(
+      readFile(join(tempDir, ".ddd-spec", "generated", "business-spec.generated.ts"), "utf8"),
+      /ENOENT/
+    );
     assert.match(gitignoreSource, /^\.ddd-spec\/$/m);
     assert.doesNotMatch(settingsSource, /node_modules/);
     await assertGeneratedVsCodeWorkspaceConfig({
@@ -56,7 +64,13 @@ test("CLI init supports explicitly selecting the default template", async () => 
     await runCliCommand(["init", "--template", "default"], { cwd: tempDir });
 
     await assertGeneratedInitSkeleton(tempDir, "default");
-    await runCliCommand(["validate"], { cwd: tempDir });
+    await runCliCommand(["build"], { cwd: tempDir });
+
+    const bundle = JSON.parse(
+      await readFile(join(tempDir, ".ddd-spec", "artifacts", "business-spec.json"), "utf8")
+    ) as { version: number };
+
+    assert.equal(bundle.version, 3);
   } finally {
     await rm(tempDir, { recursive: true, force: true });
   }
@@ -164,7 +178,7 @@ test("CLI init appends .ddd-spec/ to an existing .gitignore", async () => {
   try {
     await writeFile(gitignorePath, "node_modules/", "utf8");
 
-    await runCliCommand(["init"], { cwd: tempDir });
+    await runCliCommand(["init", "--template", "minimal"], { cwd: tempDir });
 
     const gitignoreSource = await readFile(gitignorePath, "utf8");
 
@@ -296,11 +310,11 @@ test("CLI init skips overlapping existing YAML schema globs", async () => {
 
 test("CLI init refuses to overwrite an existing canonical index", async () => {
   const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-init-existing-"));
-  const entryPath = join(tempDir, "ddd-spec", "canonical", "index.yaml");
-  const existingSource = "version: 2\n";
+  const entryPath = join(tempDir, "ddd-spec", "canonical-vnext", "index.yaml");
+  const existingSource = "version: 3\n";
 
   try {
-    await mkdir(join(tempDir, "ddd-spec", "canonical"), { recursive: true });
+    await mkdir(join(tempDir, "ddd-spec", "canonical-vnext"), { recursive: true });
     await writeFile(entryPath, existingSource, "utf8");
 
     await assert.rejects(

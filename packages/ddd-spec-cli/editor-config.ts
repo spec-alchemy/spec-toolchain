@@ -40,7 +40,16 @@ const SCHEMA_FILE_NAMES = [
   "event.schema.json",
   "aggregate.schema.json",
   "process.schema.json",
-  "viewer-detail-semantics.schema.json"
+  "viewer-detail-semantics.schema.json",
+  "vnext/canonical-index.schema.json",
+  "vnext/context.schema.json",
+  "vnext/actor.schema.json",
+  "vnext/system.schema.json",
+  "vnext/scenario.schema.json",
+  "vnext/message.schema.json",
+  "vnext/aggregate.schema.json",
+  "vnext/policy.schema.json",
+  "vnext/shared.schema.json"
 ] as const;
 const SCHEMA_MAPPINGS = [
   {
@@ -70,6 +79,38 @@ const SCHEMA_MAPPINGS = [
   {
     schemaFile: "viewer-detail-semantics.schema.json",
     globs: ["**/canonical/vocabulary/*.yaml"]
+  },
+  {
+    schemaFile: "vnext/canonical-index.schema.json",
+    globs: ["**/canonical-vnext/index.yaml"]
+  },
+  {
+    schemaFile: "vnext/context.schema.json",
+    globs: ["**/canonical-vnext/contexts/*.context.yaml"]
+  },
+  {
+    schemaFile: "vnext/actor.schema.json",
+    globs: ["**/canonical-vnext/actors/*.actor.yaml"]
+  },
+  {
+    schemaFile: "vnext/system.schema.json",
+    globs: ["**/canonical-vnext/systems/*.system.yaml"]
+  },
+  {
+    schemaFile: "vnext/scenario.schema.json",
+    globs: ["**/canonical-vnext/scenarios/*.scenario.yaml"]
+  },
+  {
+    schemaFile: "vnext/message.schema.json",
+    globs: ["**/canonical-vnext/messages/*.message.yaml"]
+  },
+  {
+    schemaFile: "vnext/aggregate.schema.json",
+    globs: ["**/canonical-vnext/aggregates/*.aggregate.yaml"]
+  },
+  {
+    schemaFile: "vnext/policy.schema.json",
+    globs: ["**/canonical-vnext/policies/*.policy.yaml"]
   }
 ] as const;
 
@@ -463,6 +504,8 @@ async function syncSchemaAsset(options: {
 }): Promise<Exclude<ConfigWriteStatus, "skipped">> {
   const source = await readFile(options.sourcePath, "utf8");
 
+  await mkdir(dirname(options.targetPath), { recursive: true });
+
   try {
     const existing = await readFile(options.targetPath, "utf8");
 
@@ -497,8 +540,13 @@ function combineStatuses(
 }
 
 async function collectWorkspaceCanonicalFilePaths(rootPath: string): Promise<string[]> {
-  const canonicalRootPath = resolve(rootPath, "ddd-spec", "canonical");
-  const absolutePaths = await listFilesRecursively(canonicalRootPath);
+  const canonicalRootPaths = [
+    resolve(rootPath, "ddd-spec", "canonical"),
+    resolve(rootPath, "ddd-spec", "canonical-vnext")
+  ];
+  const absolutePaths = (
+    await Promise.all(canonicalRootPaths.map((canonicalRootPath) => listFilesRecursively(canonicalRootPath)))
+  ).flat();
 
   return absolutePaths.map((absolutePath) => toWorkspaceMatchPath(rootPath, absolutePath));
 }

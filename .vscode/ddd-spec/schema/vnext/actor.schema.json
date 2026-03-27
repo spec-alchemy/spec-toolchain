@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "vnext/actor.schema.json",
+  "title": "vNext Actor",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["kind", "id", "title", "summary"],
+  "properties": {
+    "kind": {
+      "const": "actor"
+    },
+    "id": {
+      "$ref": "shared.schema.json#/$defs/identifier"
+    },
+    "title": {
+      "$ref": "shared.schema.json#/$defs/nonEmptyString"
+    },
+    "summary": {
+      "$ref": "shared.schema.json#/$defs/summary"
+    },
+    "actorType": {
+      "enum": ["person", "role", "team"]
+    }
+  }
+}

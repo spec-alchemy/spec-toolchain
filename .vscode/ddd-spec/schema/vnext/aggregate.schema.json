@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "vnext/aggregate.schema.json",
+  "title": "vNext Aggregate",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "kind",
+    "id",
+    "title",
+    "summary",
+    "context",
+    "states",
+    "initialState",
+    "transitions"
+  ],
+  "properties": {
+    "kind": {
+      "const": "aggregate"
+    },
+    "id": {
+      "$ref": "shared.schema.json#/$defs/identifier"
+    },
+    "title": {
+      "$ref": "shared.schema.json#/$defs/nonEmptyString"
+    },
+    "summary": {
+      "$ref": "shared.schema.json#/$defs/summary"
+    },
+    "context": {
+      "$ref": "shared.schema.json#/$defs/identifier"
+    },
+    "lifecycleComplexity": {
+      "type": "boolean"
+    },
+    "states": {
+      "$ref": "shared.schema.json#/$defs/identifierArray"
+    },
+    "initialState": {
+      "$ref": "shared.schema.json#/$defs/identifier"
+    },
+    "transitions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/transitionSpec"
+      }
+    }
+  },
+  "$defs": {
+    "transitionSpec": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "from", "to", "onMessage"],
+      "properties": {
+        "id": {
+          "$ref": "shared.schema.json#/$defs/identifier"
+        },
+        "from": {
+          "$ref": "shared.schema.json#/$defs/identifier"
+        },
+        "to": {
+          "$ref": "shared.schema.json#/$defs/identifier"
+        },
+        "onMessage": {
+          "$ref": "shared.schema.json#/$defs/identifier"
+        },
+        "emits": {
+          "$ref": "shared.schema.json#/$defs/identifierArray"
+        }
+      }
+    }
+  }
+}
