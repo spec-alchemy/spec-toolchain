@@ -82,6 +82,43 @@ test("zero-config dev shows an init hint when the domain model entry is missing"
   }
 });
 
+test("zero-config ignores the removed canonical-vnext default workspace path", async () => {
+  const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-zero-config-legacy-default-"));
+  const legacyEntryPath = join(tempDir, "ddd-spec", "canonical-vnext", "index.yaml");
+
+  try {
+    await mkdir(join(tempDir, "ddd-spec", "canonical-vnext"), { recursive: true });
+    await writeFile(
+      legacyEntryPath,
+      [
+        "version: 1",
+        "id: legacy-default",
+        "title: Legacy Default",
+        "summary: Old zero-config path should not be treated as the current default.",
+        "model:",
+        "  contexts: ./contexts",
+        "  actors: ./actors",
+        "  systems: ./systems",
+        "  scenarios: ./scenarios",
+        "  messages: ./messages",
+        "  aggregates: ./aggregates",
+        "  policies: ./policies"
+      ].join("\n").concat("\n"),
+      "utf8"
+    );
+
+    await assert.rejects(
+      runCliCommand(["validate"], { cwd: tempDir }),
+      (error: unknown) =>
+        error instanceof Error &&
+        error.message.includes(join(tempDir, "domain-model", "index.yaml")) &&
+        !error.message.includes("canonical-vnext")
+    );
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
+
 test("config mode defaults the schema path to the domain model schema", async () => {
   const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-config-vnext-schema-"));
   const configPath = join(tempDir, "ddd-spec.config.yaml");
