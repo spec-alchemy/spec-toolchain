@@ -40,8 +40,8 @@ vNext 必须帮助团队高信号地回答以下问题：
    说明：当前没有真实用户依赖旧模型；产品清晰度与建模质量优先于迁移成本。
 2. 移除 `composition` 一级视图。
    说明：`composition` 不再作为一级产品概念、默认 authoring path、默认 viewer path 或教学入口。
-3. 允许重定义公开包边界。
-   说明：当前 `packages/ddd-spec-cli/` 的公开边界只代表现状，不代表 vNext 的最终对外产品边界。后续实现可以基于新产品定义重组、拆分、合并或重命名公开包，只要最终外部产品边界清晰且一致。
+3. 公开包边界如需重定义，必须单独立项。
+   说明：当前 `packages/ddd-spec-cli/`、公开包名 `@knowledge-alchemy/ddd-spec` 与 CLI 名 `ddd-spec` 仍是本轮实现与发布边界。默认工作区命名与版本重置不自动包含公开包重组、拆分或重命名；如需调整，必须另立 story / PRD 与 release plan。
 
 ## 3. 新的核心概念
 
@@ -224,15 +224,15 @@ viewer contract 必须直接反映 vNext 的共享语义，而不是延续当前
 
 ## 10. 包边界策略
 
-vNext 实现阶段允许重定义公开包边界。
+当前实现与 release strategy 固定沿用 `packages/ddd-spec-cli/` -> `@knowledge-alchemy/ddd-spec` -> `ddd-spec` 这一公开边界。
 
 这意味着：
 
-1. 当前 monorepo 中哪些包公开、哪些包私有，不是产品定义的一部分。
-2. 后续 story 可以为了清晰的产品边界、职责分离或分发方式，调整 `packages/*` 的可见性与对外契约。
-3. “当前只有一个公开包”不能成为阻止 schema、IR、viewer 或 CLI 重构的理由。
+1. schema、IR、viewer 与 CLI 可以继续演进，但不能把“当前 story 顺手改公开包边界”当成默认自由度。
+2. schema version 与 viewer spec version 的 reset 只影响产品 contract 轴线，不等于 npm package semver reset，也不要求更名发布。
+3. 如果未来确实需要调整 `packages/*` 的公开性、拆分公开包或重命名公开包，必须另立 story / PRD，并附带可审阅的 release plan。
 
-约束只有一条：最终对外产品边界必须清晰、一致、可文档化。
+约束只有一条：任何公开发布边界变更都必须显式、独立、可文档化，而不是隐含夹带在其他重构里。
 
 ## 11. 非目标
 
@@ -252,7 +252,7 @@ vNext 实现阶段允许重定义公开包边界。
 2. 是否保持了共享语义核心，而不是让单个视图偷建私有语义？
 3. 是否避免重新把 `composition` 拉回一级概念？
 4. 是否继续坚持“不做向前兼容”的产品决策？
-5. 是否允许在必要时重定义公开包边界，而不是被当前结构绑死？
+5. 是否在不误伤当前公开发布边界的前提下推进实现，并把任何公开包边界调整单独立项？
 
 如果答案是否定的，该实现不应被视为 vNext 正确方向。
 

@@ -143,6 +143,7 @@ The repo root stays `private: true` and should be read as maintainer infrastruct
 
 - The repo root stays `private: true`; it is the maintainer workspace shell, not the external product package.
 - [`packages/ddd-spec-cli/`](./packages/ddd-spec-cli/) is the single public npm package boundary, published under the current package name `@knowledge-alchemy/ddd-spec`.
+- The schema version reset and viewer spec version reset belong to product contract evolution, not npm package naming. This reset does not rename `@knowledge-alchemy/ddd-spec` or the `ddd-spec` CLI, and it does not imply a package semver reset.
 - The consumer README for installed-package usage lives at [`packages/ddd-spec-cli/README.md`](./packages/ddd-spec-cli/README.md).
 - [`apps/ddd-spec-viewer/`](./apps/ddd-spec-viewer/) remains private source. The shipped viewer is the static bundle emitted into `packages/ddd-spec-cli/dist/ddd-spec-cli/static/viewer/` during package build.
 - [`examples/`](./examples/) and [`docs/ddd-spec/`](./docs/ddd-spec/) are repo-only maintainer example and design materials. They do not ship in the published tarball.
@@ -176,6 +177,8 @@ Use changesets at the repo root to manage versions for the single public package
 1. `npm run changeset`
 2. `npm run changeset:status`
 3. `npm run release:dry-run`
+
+The release toolchain still targets the existing public package boundary only: `@knowledge-alchemy/ddd-spec` and the `ddd-spec` CLI name remain unchanged for this reset. Schema version and viewer spec version resets are documented product-contract changes inside the existing package history; they do not reset npm semver and they do not imply a package rename. Any future public-package rename or split must be proposed as a separate story or PRD.
 
 `npm run release:dry-run` is designed for a disposable checkout or the reusable
 [`release-dry-run.yml`](./.github/workflows/release-dry-run.yml) workflow. It runs the normal

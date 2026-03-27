@@ -6,6 +6,12 @@ Version management lives under [`.changeset/`](./.changeset/), and
 [`.changeset/config.json`](./.changeset/config.json) keeps private workspace packages unversioned
 and untagged so release planning only affects `@knowledge-alchemy/ddd-spec`.
 
+The current release boundary remains unchanged during the default workspace and contract reset:
+the published npm package stays `@knowledge-alchemy/ddd-spec`, the CLI name stays `ddd-spec`,
+and schema/viewer version resets do not imply an npm semver reset or a public package rename.
+If a future change needs to rename or split the public package, treat that as a separate story or
+PRD with its own release plan.
+
 ## Maintainer Dry Run
 
 Run the release preview from a disposable checkout or via

@@ -5,6 +5,11 @@ This repo uses changesets to manage versions for the single public package bound
 Private workspaces stay unversioned, so every maintainer-authored changeset should target
 `@knowledge-alchemy/ddd-spec` only.
 
+Schema version resets and viewer spec version resets are product-contract changes inside that
+existing public package history. They do not rename `@knowledge-alchemy/ddd-spec`, they do not
+rename the `ddd-spec` CLI, and they do not imply an npm semver reset. Any future public-package
+rename or split needs a separate story or PRD plus dedicated release planning.
+
 ## Maintainer Flow
 
 1. Run `npm run changeset` and select `@knowledge-alchemy/ddd-spec`.

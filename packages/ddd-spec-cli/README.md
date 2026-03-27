@@ -3,6 +3,8 @@
 `@knowledge-alchemy/ddd-spec` is the external CLI package for the DDD modeling workbench.
 Zero-config is the default product path: run `ddd-spec init`, model under `ddd-spec/canonical-vnext/`, and let the CLI write build outputs into `.ddd-spec/`. Use `--config <path>` only when a workspace needs custom entry paths, output locations, or viewer sync targets.
 
+Package naming and versioning stay on a separate axis from schema contracts: this reset does not rename the package, does not rename the `ddd-spec` CLI command, and does not imply an npm semver reset just because schema or viewer contract versions change.
+
 ## Preferred Onboarding
 
 Start here for a normal consumer workspace. The preferred path is `install -> init -> dev`.
