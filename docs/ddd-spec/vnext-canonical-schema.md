@@ -84,6 +84,7 @@ model:
 
 - 只有明确声明 `lifecycleComplexity: true` 的 aggregate，才应该进入 `Lifecycle` 主视图。
 - 未声明 `lifecycleComplexity` 的 aggregate 仍可存在于 model 中，并继续参与 context、scenario、message 等其它视图。
+- `contexts[].relationships[]` 可选声明结构化协作语义；当需要支撑 `Context Map` inspector 时，优先使用 `direction: upstream|downstream|bidirectional` 与 `integration: <semantic>`，而不是把这些信息埋进 `kind` 或 `description` 自由文本。
 
 ## 6. Repo 内的最小样例
 

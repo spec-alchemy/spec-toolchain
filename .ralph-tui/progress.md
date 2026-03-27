@@ -15,6 +15,7 @@ after each iteration and it's included in prompts for context.
 - For vNext modeling, keep one analysis layer as the source of truth for normalization, view projections, and diagnostics; compatibility wrappers such as `vnext-semantic-validation.ts` should delegate instead of re-encoding rules.
 - For vNext lifecycle work, keep all aggregates in the shared analysis IR and filter lifecycle-only visibility in `projectVnextLifecycle()` via explicit aggregate metadata such as `lifecycleComplexity`, so context/message views retain full aggregate coverage.
 - For packaged vNext viewer verification, do not rely on root `repo:viewer`; it is pinned to the repo's legacy scenario config. Launch the packaged viewer against an example-specific vNext config such as `examples/vnext-cross-context/ddd-spec.config.yaml` when you need browser-facing evidence for vNext views.
+- For vNext Context Map relationship semantics, keep upstream/downstream and integration metadata as optional structured fields on `contexts[].relationships[]`, carry them through the shared analysis IR, and reuse the existing `context.relationships` detail contract for both node and edge inspectors instead of inventing edge-only semantics.
 
 ---
 
@@ -221,4 +222,27 @@ after each iteration and it's included in prompts for context.
     - vNext manual viewer checks need an example-specific packaged viewer config because the root maintainer viewer entry is intentionally version-locked to the legacy repo scenario.
   - Gotchas encountered
     - The current sandbox denies launching the local Chrome binary, so interactive browser validation could only go as far as packaged viewer server availability plus the existing packaged-viewer/runtime tests for v3 scenarios.
+---
+## 2026-03-27 - knowledge-alchemy-app-v2-n6b
+- Implemented structured Context Map relationship semantics for vNext by adding optional `direction` and `integration` metadata on context relationships, carrying them through the shared analysis IR, and surfacing them in `Context Map` node and edge inspector details.
+- Updated the cross-context vNext example so the orders-to-payments dependency and payments-to-ledger dependency explicitly model downstream direction and integration semantics, then added projection and UI assertions that lock those details into the viewer contract.
+- Re-ran targeted Context Map tests, all repo gates (`repo:validate`, `repo:build`, `pkg:test`, `verify`), and launched the packaged viewer against `examples/vnext-cross-context/ddd-spec.config.yaml` to confirm the served viewer spec includes `context-map`, `downstream`, and integration entries on the example path.
+- Files changed:
+  - `packages/ddd-spec-core/spec.ts`
+  - `packages/ddd-spec-core/vnext-analysis.ts`
+  - `packages/ddd-spec-core/schema/vnext/shared.schema.json`
+  - `packages/ddd-spec-core/schema/vnext/context.schema.json`
+  - `packages/ddd-spec-core/vnext-loader.test.ts`
+  - `packages/ddd-spec-projection-viewer/vnext.ts`
+  - `packages/ddd-spec-projection-viewer/index.test.ts`
+  - `apps/ddd-spec-viewer/test/inspect-selection.test.ts`
+  - `examples/vnext-cross-context/canonical-vnext/contexts/orders.context.yaml`
+  - `examples/vnext-cross-context/canonical-vnext/contexts/payments.context.yaml`
+  - `docs/ddd-spec/vnext-canonical-schema.md`
+  - `.ralph-tui/progress.md`
+- **Learnings:**
+  - Patterns discovered
+    - Context Map inspector requirements are best met by enriching canonical relationship records with optional structured metadata and letting projection reuse the same record/list detail contract for context nodes and relationship edges.
+  - Gotchas encountered
+    - In this environment, the practical packaged-viewer verification path is to launch the example-specific viewer server and fetch the served `generated/viewer-spec.json`; full interactive browser inspection is still constrained by the sandbox.
 ---

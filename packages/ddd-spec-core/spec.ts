@@ -207,6 +207,15 @@ export const VNEXT_MESSAGE_CHANNELS = ["sync", "async"] as const;
 
 export type VnextMessageChannel = (typeof VNEXT_MESSAGE_CHANNELS)[number];
 
+export const VNEXT_CONTEXT_RELATIONSHIP_DIRECTIONS = [
+  "upstream",
+  "downstream",
+  "bidirectional"
+] as const;
+
+export type VnextContextRelationshipDirection =
+  (typeof VNEXT_CONTEXT_RELATIONSHIP_DIRECTIONS)[number];
+
 export type VnextCollectionRef = string | readonly string[];
 
 export interface VnextResourceRef {
@@ -225,6 +234,8 @@ export interface VnextContextRelationshipSpec {
   id: string;
   kind: string;
   target: VnextResourceRef;
+  direction?: VnextContextRelationshipDirection;
+  integration?: string;
   description?: string;
 }
 

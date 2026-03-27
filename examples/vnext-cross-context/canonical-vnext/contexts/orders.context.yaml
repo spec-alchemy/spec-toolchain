@@ -14,4 +14,6 @@ relationships:
     target:
       kind: context
       id: payments
+    direction: downstream
+    integration: customer-supplier
     description: Orders depends on the payments context to authorize settlement before confirmation.

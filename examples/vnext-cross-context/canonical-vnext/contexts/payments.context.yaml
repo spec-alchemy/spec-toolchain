@@ -13,4 +13,6 @@ relationships:
     target:
       kind: system
       id: ledger-gateway
+    direction: downstream
+    integration: synchronous-query
     description: Payments and orders rely on the shared ledger gateway for reconciliation details.

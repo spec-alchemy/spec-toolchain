@@ -260,6 +260,38 @@ test("lifecycle edge selections keep aggregate ownership and trigger details", (
   );
 });
 
+test("context-map collaboration selections keep relationship direction and integration details", () => {
+  const edgeSelection = selectionFromEdgeData({
+    kind: "collaboration",
+    label: "depends-on",
+    details: [
+      { semanticKey: "context.id", label: "Context", value: textDetailValue("orders") },
+      { semanticKey: "relation.from", label: "From", value: textDetailValue("orders") },
+      { semanticKey: "relation.to", label: "To", value: textDetailValue("context:payments") },
+      {
+        semanticKey: "context.relationships",
+        label: "Relationships",
+        value: {
+          kind: "record",
+          entries: [
+            { label: "Relationship", value: textDetailValue("requests-payment-authorization") },
+            { label: "Kind", value: textDetailValue("depends-on") },
+            { label: "Direction", value: textDetailValue("downstream") },
+            { label: "Integration", value: textDetailValue("customer-supplier") },
+            { label: "Target", value: textDetailValue("context:payments") }
+          ]
+        }
+      }
+    ]
+  });
+
+  assert.deepEqual(
+    edgeSelection.details.map((item) => item.semanticKey),
+    ["context.id", "relation.from", "relation.to", "context.relationships"]
+  );
+  assert.equal(edgeSelection.details[3]?.value.kind, "record");
+});
+
 test("detail renderer recursively renders structured field sections", () => {
   const markup = renderToStaticMarkup(
     createElement(DetailValueRenderer, {

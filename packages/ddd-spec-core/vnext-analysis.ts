@@ -4,6 +4,7 @@ import type {
   VnextAggregateSpec,
   VnextBusinessSpec,
   VnextContextRelationshipSpec,
+  VnextContextRelationshipDirection,
   VnextContextSpec,
   VnextMessageChannel,
   VnextMessageKind,
@@ -67,6 +68,8 @@ export interface VnextContextBoundaryRelationship {
   id: string;
   kind: string;
   target: VnextResourceRef;
+  direction?: VnextContextRelationshipDirection;
+  integration?: string;
   description?: string;
   path: string;
 }
@@ -1906,6 +1909,8 @@ function toContextBoundaryRelationship(
     id: relationship.id,
     kind: relationship.kind,
     target: { ...relationship.target },
+    direction: relationship.direction,
+    integration: relationship.integration,
     description: relationship.description,
     path: contextPath(contextId, `/relationships/${relationship.id}`)
   };

@@ -40,6 +40,12 @@
           "target": {
             "$ref": "shared.schema.json#/$defs/resourceRef"
           },
+          "direction": {
+            "$ref": "shared.schema.json#/$defs/contextRelationshipDirection"
+          },
+          "integration": {
+            "$ref": "shared.schema.json#/$defs/nonEmptyString"
+          },
           "description": {
             "type": "string"
           }

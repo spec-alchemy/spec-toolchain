@@ -239,10 +239,23 @@ test("vnext analysis IR exposes unified primary-view projections and policy coor
 test("vnext cross-context example exposes command, event, and query message flow across contexts", async () => {
   const spec = await loadVnextCrossContextFixture();
   const analysis = analyzeVnextBusinessSpec(spec);
+  const contextMap = projectVnextContextMap(analysis.ir);
   const scenarioStory = projectVnextScenarioStory(analysis.ir);
   const messageFlow = projectVnextMessageFlow(analysis.ir);
   const lifecycle = projectVnextLifecycle(analysis.ir);
 
+  const ordersContext = mustFind(
+    contextMap.contexts,
+    (context) => context.id === "orders"
+  );
+  const paymentsContext = mustFind(
+    contextMap.contexts,
+    (context) => context.id === "payments"
+  );
+  const ledgerGateway = mustFind(
+    contextMap.systems,
+    (system) => system.id === "ledger-gateway"
+  );
   const settlementScenario = mustFind(
     scenarioStory,
     (scenario) => scenario.id === "order-settlement-flow"
@@ -269,6 +282,48 @@ test("vnext cross-context example exposes command, event, and query message flow
   );
 
   assert.deepEqual(analysis.diagnostics, []);
+  assert.deepEqual(
+    contextMap.contexts.map((context) => context.id),
+    ["orders", "payments"]
+  );
+  assert.deepEqual(ordersContext.systemIds, ["ledger-gateway"]);
+  assert.deepEqual(
+    ordersContext.relationships.map((relationship) => ({
+      id: relationship.id,
+      kind: relationship.kind,
+      direction: relationship.direction,
+      integration: relationship.integration,
+      target: `${relationship.target.kind}:${relationship.target.id}`
+    })),
+    [
+      {
+        id: "requests-payment-authorization",
+        kind: "depends-on",
+        direction: "downstream",
+        integration: "customer-supplier",
+        target: "context:payments"
+      }
+    ]
+  );
+  assert.deepEqual(
+    paymentsContext.relationships.map((relationship) => ({
+      id: relationship.id,
+      kind: relationship.kind,
+      direction: relationship.direction,
+      integration: relationship.integration,
+      target: `${relationship.target.kind}:${relationship.target.id}`
+    })),
+    [
+      {
+        id: "queries-ledger",
+        kind: "queries",
+        direction: "downstream",
+        integration: "synchronous-query",
+        target: "system:ledger-gateway"
+      }
+    ]
+  );
+  assert.equal(ledgerGateway.boundary, "external");
   assert.deepEqual(
     analysis.ir.aggregateLifecycles.map((aggregate) => aggregate.id),
     ["order", "payment"]

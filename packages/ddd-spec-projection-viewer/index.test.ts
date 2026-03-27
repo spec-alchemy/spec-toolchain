@@ -273,9 +273,31 @@ test("vNext viewer projection renders cross-context message flow and query detai
   const spec = await loadVnextCrossContextFixture();
   const analysis = analyzeVnextBusinessSpec(spec);
   const viewerSpec = buildVnextViewerSpec(spec, analysis);
+  const contextMapView = mustFind(viewerSpec.views, (view) => view.id === "context-map");
   const messageFlowView = mustFind(viewerSpec.views, (view) => view.id === "message-flow");
   const scenarioStoryView = mustFind(viewerSpec.views, (view) => view.id === "scenario-story");
   const lifecycleView = mustFind(viewerSpec.views, (view) => view.id === "lifecycle");
+  const ordersContextNode = mustFind(
+    contextMapView.nodes,
+    (node) =>
+      node.kind === "context" &&
+      getTextDetailValue(node.details, "context.id") === "orders"
+  );
+  const ledgerGatewayNode = mustFind(
+    contextMapView.nodes,
+    (node) =>
+      node.kind === "system" &&
+      getTextDetailValue(node.details, "system.boundary") === "external" &&
+      node.subtitle === "ledger-gateway"
+  );
+  const ordersPaymentsEdge = mustFind(
+    contextMapView.edges,
+    (edge) =>
+      edge.kind === "collaboration" &&
+      edge.label === "depends-on" &&
+      getTextDetailValue(edge.details, "relation.from") === "orders" &&
+      getTextDetailValue(edge.details, "relation.to") === "context:payments"
+  );
   const paymentAuthorizedNode = mustFind(
     messageFlowView.nodes,
     (node) =>
@@ -335,6 +357,31 @@ test("vNext viewer projection renders cross-context message flow and query detai
   assert.deepEqual(
     viewerSpec.views.map((view) => view.id),
     ["context-map", "scenario-story", "message-flow", "lifecycle"]
+  );
+  assert.equal(getTextDetailValue(ledgerGatewayNode.details, "system.boundary"), "external");
+  assert.deepEqual(
+    getRecordListDetailEntries(ordersContextNode.details, "context.relationships"),
+    [
+      {
+        Relationship: "requests-payment-authorization",
+        Kind: "depends-on",
+        Direction: "downstream",
+        Integration: "customer-supplier",
+        Target: "context:payments",
+        Description: "Orders depends on the payments context to authorize settlement before confirmation."
+      }
+    ]
+  );
+  assert.deepEqual(
+    getRecordDetailEntries(ordersPaymentsEdge.details, "context.relationships"),
+    {
+      Relationship: "requests-payment-authorization",
+      Kind: "depends-on",
+      Direction: "downstream",
+      Integration: "customer-supplier",
+      Target: "context:payments",
+      Description: "Orders depends on the payments context to authorize settlement before confirmation."
+    }
   );
   assert.equal(getTextDetailValue(paymentAuthorizedNode.details, "message.kind"), "event");
   assert.equal(
@@ -443,6 +490,23 @@ function getRecordListDetailEntries(
       })
     );
   });
+}
+
+function getRecordDetailEntries(
+  details: readonly ViewerDetailItem[],
+  semanticKey: string
+): Readonly<Record<string, string>> {
+  const detail = getDetail(details, semanticKey);
+
+  assert.equal(detail.value.kind, "record");
+
+  return Object.fromEntries(
+    detail.value.entries.map((entry) => {
+      assert.equal(entry.value.kind, "text", `Expected text entry ${semanticKey}.${entry.label}`);
+
+      return [entry.label, entry.value.text];
+    })
+  );
 }
 
 function getFieldDetail(

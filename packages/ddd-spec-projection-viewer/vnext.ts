@@ -544,7 +544,8 @@ function buildContextMapView(
         details: [
           detail("context.id", context.id),
           detail("relation.from", context.id),
-          detail("relation.to", `${relationship.target.kind}:${relationship.target.id}`)
+          detail("relation.to", `${relationship.target.kind}:${relationship.target.id}`),
+          detail("context.relationships", formatContextRelationship(relationship))
         ]
       });
     }
@@ -1282,21 +1283,29 @@ function formatContextRelationships(context: VnextContextBoundary): ViewerDetail
     return textDetailValue("none");
   }
 
-  return listDetailValue(
-    context.relationships.map((relationship) =>
-      recordDetailValue([
-        recordDetailEntry("Relationship", textDetailValue(relationship.id)),
-        recordDetailEntry("Kind", textDetailValue(relationship.kind)),
-        recordDetailEntry(
-          "Target",
-          textDetailValue(`${relationship.target.kind}:${relationship.target.id}`)
-        ),
-        ...(relationship.description
-          ? [recordDetailEntry("Description", textDetailValue(relationship.description))]
-          : [])
-      ])
-    )
-  );
+  return listDetailValue(context.relationships.map((relationship) => formatContextRelationship(relationship)));
+}
+
+function formatContextRelationship(
+  relationship: VnextContextBoundary["relationships"][number]
+): ViewerDetailValue {
+  return recordDetailValue([
+    recordDetailEntry("Relationship", textDetailValue(relationship.id)),
+    recordDetailEntry("Kind", textDetailValue(relationship.kind)),
+    ...(relationship.direction
+      ? [recordDetailEntry("Direction", textDetailValue(relationship.direction))]
+      : []),
+    ...(relationship.integration
+      ? [recordDetailEntry("Integration", textDetailValue(relationship.integration))]
+      : []),
+    recordDetailEntry(
+      "Target",
+      textDetailValue(`${relationship.target.kind}:${relationship.target.id}`)
+    ),
+    ...(relationship.description
+      ? [recordDetailEntry("Description", textDetailValue(relationship.description))]
+      : [])
+  ]);
 }
 
 function formatSystemDependencies(system: VnextSystemParticipant): ViewerDetailValue {
