@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import test from "node:test";
@@ -7,75 +7,17 @@ import { buildUsageText, formatCliFailureOutput } from "./console.js";
 import { loadDddSpecConfig } from "./config.js";
 import { runCliCommand } from "./commands.js";
 import {
-  DEFAULT_SCHEMA_PATH,
+  CONNECTION_CARD_REVIEW_FIXTURE_ENTRY_PATH,
   DEFAULT_VNEXT_SCHEMA_PATH,
-  EXAMPLE_FIXTURES,
   REPO_ROOT_PATH,
   REPO_VIEWER_ENTRY_PATH,
-  REPO_VIEWER_CONFIG_PATH,
-  ZERO_CONFIG_FIXTURE
+  REPO_VIEWER_CONFIG_PATH
 } from "./test-support/cli-test-fixtures.js";
 import {
-  copyExampleCanonicalToZeroConfigRoot,
   copyVnextCanonicalToZeroConfigRoot,
   countMatches
 } from "./test-support/cli-test-helpers.js";
-
-for (const example of EXAMPLE_FIXTURES) {
-  test(`${example.id} example config resolves repo-local relative paths`, async () => {
-    const config = await loadDddSpecConfig({
-      configPath: example.configPath
-    });
-
-    assert.equal(config.mode, "config");
-    assert.equal(config.sourceDescription, example.configPath);
-    assert.equal(config.spec.entryPath, example.entryPath);
-    assert.equal(config.projections.viewer, true);
-    assert.equal(config.projections.typescript, true);
-    assert.equal(config.outputs.rootDirPath, example.expectedPaths.rootDirPath);
-    assert.equal(config.outputs.bundlePath, example.expectedPaths.bundlePath);
-    assert.equal(config.outputs.analysisPath, example.expectedPaths.analysisPath);
-    assert.equal(config.outputs.viewerPath, example.expectedPaths.viewerPath);
-    assert.equal(config.outputs.typescriptPath, example.expectedPaths.typescriptPath);
-    assert.deepEqual(config.viewer.syncTargetPaths, []);
-  });
-}
-
-test("zero-config mode resolves the canonical entry and standard outputs from cwd", async () => {
-  const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-zero-config-resolve-"));
-
-  try {
-    await copyExampleCanonicalToZeroConfigRoot(tempDir, ZERO_CONFIG_FIXTURE.id);
-
-    const config = await loadDddSpecConfig({
-      cwd: tempDir
-    });
-
-    assert.equal(config.mode, "zero-config");
-    assert.equal(config.configPath, undefined);
-    assert.equal(config.sourceDescription, "zero-config defaults");
-    assert.equal(config.spec.entryPath, join(tempDir, "ddd-spec", "canonical", "index.yaml"));
-    assert.equal(config.schema.path, DEFAULT_SCHEMA_PATH);
-    assert.equal(config.outputs.rootDirPath, join(tempDir, ".ddd-spec", "artifacts"));
-    assert.equal(config.outputs.bundlePath, join(tempDir, ".ddd-spec", "artifacts", "business-spec.json"));
-    assert.equal(
-      config.outputs.analysisPath,
-      join(tempDir, ".ddd-spec", "artifacts", "business-spec.analysis.json")
-    );
-    assert.equal(config.outputs.viewerPath, join(tempDir, ".ddd-spec", "artifacts", "viewer-spec.json"));
-    assert.equal(
-      config.outputs.typescriptPath,
-      join(tempDir, ".ddd-spec", "generated", "business-spec.generated.ts")
-    );
-    assert.equal(config.projections.viewer, true);
-    assert.equal(config.projections.typescript, true);
-    assert.deepEqual(config.viewer.syncTargetPaths, []);
-  } finally {
-    await rm(tempDir, { recursive: true, force: true });
-  }
-});
-
-test("zero-config mode prefers canonical-vnext and disables TypeScript by default", async () => {
+test("zero-config mode resolves canonical-vnext and disables TypeScript by default", async () => {
   const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-zero-config-vnext-resolve-"));
 
   try {
@@ -86,8 +28,17 @@ test("zero-config mode prefers canonical-vnext and disables TypeScript by defaul
     });
 
     assert.equal(config.mode, "zero-config");
+    assert.equal(config.configPath, undefined);
+    assert.equal(config.sourceDescription, "zero-config defaults");
     assert.equal(config.spec.entryPath, join(tempDir, "ddd-spec", "canonical-vnext", "index.yaml"));
     assert.equal(config.schema.path, DEFAULT_VNEXT_SCHEMA_PATH);
+    assert.equal(config.outputs.rootDirPath, join(tempDir, ".ddd-spec", "artifacts"));
+    assert.equal(config.outputs.bundlePath, join(tempDir, ".ddd-spec", "artifacts", "business-spec.json"));
+    assert.equal(
+      config.outputs.analysisPath,
+      join(tempDir, ".ddd-spec", "artifacts", "business-spec.analysis.json")
+    );
+    assert.equal(config.outputs.viewerPath, join(tempDir, ".ddd-spec", "artifacts", "viewer-spec.json"));
     assert.equal(config.projections.viewer, true);
     assert.equal(config.projections.typescript, false);
     assert.equal(
@@ -131,20 +82,73 @@ test("zero-config dev shows an init hint when the canonical entry is missing", a
   }
 });
 
+test("config mode defaults the schema path to the vNext canonical schema", async () => {
+  const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-config-vnext-schema-"));
+  const configPath = join(tempDir, "ddd-spec.config.yaml");
+
+  try {
+    await writeFile(
+      configPath,
+      [
+        "version: 1",
+        "spec:",
+        `  entry: ${JSON.stringify(REPO_VIEWER_ENTRY_PATH)}`,
+        "outputs:",
+        "  rootDir: ./artifacts",
+        "projections:",
+        "  viewer: true",
+        "  typescript: false"
+      ].join("\n").concat("\n"),
+      "utf8"
+    );
+
+    const config = await loadDddSpecConfig({
+      configPath
+    });
+
+    assert.equal(config.mode, "config");
+    assert.equal(config.schema.path, DEFAULT_VNEXT_SCHEMA_PATH);
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
+
+test("CLI validate rejects legacy version 2 canonicals in config mode", async () => {
+  const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-config-legacy-reject-"));
+  const configPath = join(tempDir, "ddd-spec.config.yaml");
+
+  try {
+    await writeFile(
+      configPath,
+      [
+        "version: 1",
+        "spec:",
+        `  entry: ${JSON.stringify(CONNECTION_CARD_REVIEW_FIXTURE_ENTRY_PATH)}`
+      ].join("\n").concat("\n"),
+      "utf8"
+    );
+
+    await assert.rejects(
+      runCliCommand(["validate", "--config", configPath], { cwd: tempDir }),
+      /Legacy version 2 canonicals are no longer supported by ddd-spec CLI\./
+    );
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
+
 test("CLI help lists the primary commands and entry points", () => {
   const usageText = buildUsageText();
 
   assert.match(usageText, /\n  ddd-spec init\n/);
   assert.match(usageText, /\n  ddd-spec dev\n/);
-  assert.match(usageText, /\n  init \[--template <name>\]\n/);
+  assert.match(usageText, /\n  init\n/);
   assert.match(usageText, /\n  build \[--config <path>\]\n/);
   assert.match(usageText, /\n  dev \[--config <path>\] \[-- <viewer-args\.\.\.>\]\n/);
-  assert.match(usageText, /\bdefault\b/);
-  assert.match(usageText, /\bminimal\b/);
-  assert.match(usageText, /\border-payment\b/);
   assert.match(usageText, /\n  generate-viewer \[--config <path>\]\n/);
   assert.match(usageText, /generate-typescript \[--config <path>\]$/);
   assert.match(usageText, /ddd-spec\/canonical-vnext/);
+  assert.doesNotMatch(usageText, /template/);
   assert.doesNotMatch(usageText, /\n  generate viewer\n/);
   assert.doesNotMatch(usageText, /\n  generate typescript\n/);
 });

@@ -1,7 +1,0 @@
-kind: object
-id: PublicationStatus
-title: Publication Status
-role: enum
-values:
-  - pending
-  - published

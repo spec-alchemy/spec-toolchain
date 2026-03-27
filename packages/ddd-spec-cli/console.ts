@@ -1,5 +1,3 @@
-import { getSupportedInitTemplateIds } from "./init-templates.js";
-
 const PREFIX = "[ddd-spec]";
 
 interface CliDiagnostic {
@@ -30,8 +28,6 @@ export function formatDiagnostic(diagnostic: CliDiagnostic): string {
 }
 
 export function buildUsageText(): string {
-  const supportedTemplateIds = getSupportedInitTemplateIds().join(", ");
-
   return [
     "Usage:",
     "  ddd-spec <command>",
@@ -53,19 +49,14 @@ export function buildUsageText(): string {
     "Zero-config defaults:",
     "  Reads ddd-spec/canonical-vnext/index.yaml from the current workspace",
     "  Writes bundle, analysis, and viewer outputs into .ddd-spec/",
-    "  Generates TypeScript only for version 2 canonicals that opt into the legacy path",
-    "",
-    "Advanced init templates:",
-    "  Most first-time users should stick with plain ddd-spec init",
-    "  Use init --template <name> only when you want a different packaged scaffold",
-    `  Supported templates: ${supportedTemplateIds}`,
+    "  Keeps TypeScript generation out of the default vNext path",
     "",
     "Advanced config:",
     "  Use --config <path> to load a version: 1 DDD spec config file",
     "  plain init scaffolds ddd-spec/canonical-vnext/ in the current workspace",
     "",
     "Commands:",
-    "  init [--template <name>]",
+    "  init",
     "  validate [--config <path>]",
     "  bundle [--config <path>]",
     "  analyze [--config <path>]",
@@ -101,7 +92,7 @@ function inferCommandFromArgv(argv: readonly string[]): string | undefined {
       break;
     }
 
-    if (arg === "--config" || arg === "--template") {
+    if (arg === "--config") {
       index += 1;
       continue;
     }

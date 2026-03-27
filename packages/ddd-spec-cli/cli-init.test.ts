@@ -57,114 +57,13 @@ test("CLI init creates the default vNext starter and build emits the primary vie
   }
 });
 
-test("CLI init supports explicitly selecting the default template", async () => {
-  const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-init-default-template-"));
-
-  try {
-    await runCliCommand(["init", "--template", "default"], { cwd: tempDir });
-
-    await assertGeneratedInitSkeleton(tempDir, "default");
-    await runCliCommand(["build"], { cwd: tempDir });
-
-    const bundle = JSON.parse(
-      await readFile(join(tempDir, ".ddd-spec", "artifacts", "business-spec.json"), "utf8")
-    ) as { version: number };
-
-    assert.equal(bundle.version, 3);
-  } finally {
-    await rm(tempDir, { recursive: true, force: true });
-  }
-});
-
-test("CLI init supports the minimal template and build succeeds", async () => {
-  const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-init-minimal-template-"));
-
-  try {
-    await runCliCommand(["init", "--template", "minimal"], { cwd: tempDir });
-
-    await assertGeneratedInitSkeleton(tempDir, "minimal");
-    await runCliCommand(["build"], { cwd: tempDir });
-
-    const bundle = JSON.parse(
-      await readFile(join(tempDir, ".ddd-spec", "artifacts", "business-spec.json"), "utf8")
-    ) as {
-      id: string;
-      domain: {
-        commands: Array<{ type: string }>;
-        events: Array<{ type: string }>;
-        processes: Array<{ id: string }>;
-      };
-    };
-
-    assert.equal(bundle.id, "minimal-domain");
-    assert.deepEqual(
-      bundle.domain.commands.map((command) => command.type),
-      ["activateExampleRecord"]
-    );
-    assert.deepEqual(
-      bundle.domain.events.map((event) => event.type),
-      ["ExampleRecordActivated"]
-    );
-    assert.deepEqual(
-      bundle.domain.processes.map((process) => process.id),
-      ["exampleRecordLifecycle"]
-    );
-  } finally {
-    await rm(tempDir, { recursive: true, force: true });
-  }
-});
-
-test("CLI init supports an example-style order-payment template and build succeeds", async () => {
-  const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-init-order-payment-template-"));
-
-  try {
-    await runCliCommand(["init", "--template", "order-payment"], { cwd: tempDir });
-
-    await assertGeneratedInitSkeleton(tempDir, "order-payment");
-    await runCliCommand(["build"], { cwd: tempDir });
-
-    const bundle = JSON.parse(
-      await readFile(join(tempDir, ".ddd-spec", "artifacts", "business-spec.json"), "utf8")
-    ) as {
-      id: string;
-      domain: {
-        processes: Array<{ id: string }>;
-      };
-    };
-
-    assert.equal(bundle.id, "order-payment");
-    assert.deepEqual(
-      bundle.domain.processes.map((process) => process.id),
-      ["orderPaymentProcess"]
-    );
-  } finally {
-    await rm(tempDir, { recursive: true, force: true });
-  }
-});
-
-test("CLI init rejects unknown template names", async () => {
-  const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-init-unknown-template-"));
+test("CLI init rejects the removed --template option", async () => {
+  const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-init-template-removed-"));
 
   try {
     await assert.rejects(
-      runCliCommand(["init", "--template", "missing-template"], { cwd: tempDir }),
-      (error: unknown) =>
-        error instanceof Error &&
-        error.message.includes("Unknown init template: missing-template") &&
-        error.message.includes("default, minimal, order-payment")
-    );
-  } finally {
-    await rm(tempDir, { recursive: true, force: true });
-  }
-});
-
-test("CLI rejects --template outside init", async () => {
-  const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-template-non-init-"));
-
-  try {
-    await assert.rejects(
-      runCliCommand(["validate", "--template", "minimal"], { cwd: tempDir }),
-      /The --template option is only supported by the init command/
+      runCliCommand(["init", "--template", "default"], { cwd: tempDir }),
+      /Legacy init templates were removed\. Use plain `ddd-spec init`\./
     );
   } finally {
     await rm(tempDir, { recursive: true, force: true });
@@ -178,7 +77,7 @@ test("CLI init appends .ddd-spec/ to an existing .gitignore", async () => {
   try {
     await writeFile(gitignorePath, "node_modules/", "utf8");
 
-    await runCliCommand(["init", "--template", "minimal"], { cwd: tempDir });
+    await runCliCommand(["init"], { cwd: tempDir });
 
     const gitignoreSource = await readFile(gitignorePath, "utf8");
 
@@ -274,7 +173,7 @@ test("CLI init skips overlapping existing YAML schema globs", async () => {
       JSON.stringify(
         {
           "yaml.schemas": {
-            "https://example.com/custom-domain.schema.json": ["**/canonical/**/*.yaml"]
+            "https://example.com/custom-domain.schema.json": ["**/canonical-vnext/**/*.yaml"]
           }
         },
         null,
@@ -289,18 +188,19 @@ test("CLI init skips overlapping existing YAML schema globs", async () => {
     const yamlSchemas = normalizeYamlSchemaMappings(settings["yaml.schemas"]);
 
     assert.deepEqual(yamlSchemas["https://example.com/custom-domain.schema.json"], [
-      "**/canonical/**/*.yaml"
+      "**/canonical-vnext/**/*.yaml"
     ]);
     await assertGeneratedVsCodeWorkspaceConfig({
       rootPath: tempDir,
       skippedSchemaFiles: [
-        "canonical-index.schema.json",
-        "object.schema.json",
-        "command.schema.json",
-        "event.schema.json",
-        "aggregate.schema.json",
-        "process.schema.json",
-        "viewer-detail-semantics.schema.json"
+        "vnext/canonical-index.schema.json",
+        "vnext/context.schema.json",
+        "vnext/actor.schema.json",
+        "vnext/system.schema.json",
+        "vnext/scenario.schema.json",
+        "vnext/message.schema.json",
+        "vnext/aggregate.schema.json",
+        "vnext/policy.schema.json"
       ]
     });
   } finally {

@@ -14,9 +14,9 @@ npm exec ddd-spec init
 npm exec ddd-spec dev
 ```
 
-`init` creates a vNext starter under `ddd-spec/canonical-vnext/` with one bounded context, one core scenario, one message flow, and one lifecycle. It also adds `.ddd-spec/` to `.gitignore` when needed. That no-argument path remains the recommended first-time experience.
+`init` creates a vNext starter under `ddd-spec/canonical-vnext/` with one bounded context, one core scenario, one message flow, and one lifecycle. It also adds `.ddd-spec/` to `.gitignore` when needed.
 
-The default zero-config build writes bundle, analysis, and viewer outputs into `.ddd-spec/`. TypeScript projection is still version-2-only, so the vNext starter intentionally skips generated TypeScript output until that projection path lands.
+The default zero-config build writes bundle, analysis, and viewer outputs into `.ddd-spec/`. TypeScript projection is not part of the default vNext path yet, so the starter intentionally skips generated TypeScript output for now.
 
 The `dev` command is the recommended iteration loop. It runs the initial validation/build, starts the packaged viewer server, opens the browser automatically by default, and keeps watching canonical inputs so edits trigger rebuilds without restarting the session. After each successful rebuild, the already-open viewer automatically reloads the current workspace viewer spec. If a rebuild fails, the terminal tells you what broke, keeps the watcher alive, and the viewer keeps showing the last successful result with an in-app warning until the next build passes.
 
@@ -97,29 +97,9 @@ The published package supports these commands:
 - `generate-viewer`
 - `generate-typescript`
 
-## Advanced Init Templates
-
-Most users should keep using plain `ddd-spec init`. Advanced users can opt into an explicit scaffold with `--template <name>` when they want a different starting shape without changing the default path.
-
-Supported packaged templates:
-
-- `default`: the same vNext approval starter created by `ddd-spec init`
-- `minimal`: the smallest valid legacy scaffold with one object, command, event, aggregate, and process
-- `order-payment`: a legacy example-style order and payment workflow
-
-`minimal` and `order-payment` remain legacy compatibility templates. They are not the default product path and they do not redefine the vNext primary-view teaching order.
-
-Example commands:
-
-```sh
-npm exec ddd-spec init --template default
-npm exec ddd-spec init --template minimal
-npm exec ddd-spec init --template order-payment
-```
-
 ## Advanced `--config` Workflow
 
-Use `--config <path>` when you want an explicit config file instead of the default `ddd-spec/canonical-vnext/index.yaml` and `.ddd-spec/` layout. `init` still defaults to zero-config, and explicit template selection is a separate advanced path for choosing packaged starter scaffolds.
+Use `--config <path>` when you want an explicit config file instead of the default `ddd-spec/canonical-vnext/index.yaml` and `.ddd-spec/` layout.
 
 ```sh
 npm exec ddd-spec validate --config ./ddd-spec.config.yaml

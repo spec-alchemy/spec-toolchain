@@ -1,7 +1,0 @@
-kind: object
-id: PaymentStatus
-title: Payment Status
-role: enum
-values:
-  - pending
-  - confirmed

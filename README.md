@@ -117,7 +117,7 @@ These commands resolve through [`apps/ddd-spec-viewer/ddd-spec.config.yaml`](./a
 - `.ddd-spec/artifacts/viewer-spec.json`: viewer projection consumed by the packaged viewer
 - `.ddd-spec/generated/business-spec.generated.ts`: generated TypeScript source when TypeScript projection is enabled
 
-On the default vNext path, the viewer artifact is the main generated product surface. TypeScript projection is still version-2-only, so the zero-config vNext starter does not emit `.ddd-spec/generated/business-spec.generated.ts` until a vNext TypeScript projection lands.
+On the default vNext path, the viewer artifact is the main generated product surface. TypeScript projection is not part of the zero-config vNext starter yet, so `.ddd-spec/generated/business-spec.generated.ts` is intentionally absent for now.
 
 `npm exec ddd-spec dev` runs the initial validation/build, opens the packaged viewer automatically by default, and keeps rebuilding when canonical files change.
 
@@ -209,8 +209,6 @@ These items are maintainer backlog, not a public product promise:
 - [`scenarios/connection-card-review/`](./scenarios/connection-card-review/): legacy repo-local canonical input kept for regression pressure around the version-2 loader and projections; not published
 - [`examples/vnext-minimal/`](./examples/vnext-minimal/): minimal repo-owned vNext example that mirrors the zero-config starter; not published
 - [`examples/vnext-cross-context/`](./examples/vnext-cross-context/): full cross-context vNext example for the default four-view product story; not published
-- [`examples/order-payment/`](./examples/order-payment/): legacy example domain kept for regression pressure testing; not published
-- [`examples/content-moderation/`](./examples/content-moderation/): second legacy example domain kept for cross-domain regression pressure testing; not published
 - [`test/fixtures/connection-card-review/`](./test/fixtures/connection-card-review/): shared canonical fixture used by automated regression tests only; not published
 - [`docs/ddd-spec/`](./docs/ddd-spec/): tracked maintainer notes and supporting internals; not published
 - [`./.ddd-spec/artifacts/`](./.ddd-spec/artifacts/): generated bundle, analysis, and viewer outputs

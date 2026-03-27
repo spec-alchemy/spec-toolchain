@@ -33,14 +33,6 @@ const SCHEMA_DIR_PATH = fileURLToPath(new URL("../ddd-spec-core/schema", import.
 const WORKSPACE_SCHEMA_DIR = [".vscode", "ddd-spec", "schema"] as const;
 const YAML_EXTENSION_RECOMMENDATION = "redhat.vscode-yaml";
 const SCHEMA_FILE_NAMES = [
-  "business-spec.schema.json",
-  "canonical-index.schema.json",
-  "object.schema.json",
-  "command.schema.json",
-  "event.schema.json",
-  "aggregate.schema.json",
-  "process.schema.json",
-  "viewer-detail-semantics.schema.json",
   "vnext/canonical-index.schema.json",
   "vnext/context.schema.json",
   "vnext/actor.schema.json",
@@ -52,34 +44,6 @@ const SCHEMA_FILE_NAMES = [
   "vnext/shared.schema.json"
 ] as const;
 const SCHEMA_MAPPINGS = [
-  {
-    schemaFile: "canonical-index.schema.json",
-    globs: ["**/canonical/index.yaml"]
-  },
-  {
-    schemaFile: "object.schema.json",
-    globs: ["**/canonical/objects/*.object.yaml"]
-  },
-  {
-    schemaFile: "command.schema.json",
-    globs: ["**/canonical/commands/*.command.yaml"]
-  },
-  {
-    schemaFile: "event.schema.json",
-    globs: ["**/canonical/events/*.event.yaml"]
-  },
-  {
-    schemaFile: "aggregate.schema.json",
-    globs: ["**/canonical/aggregates/*.aggregate.yaml"]
-  },
-  {
-    schemaFile: "process.schema.json",
-    globs: ["**/canonical/processes/*.process.yaml"]
-  },
-  {
-    schemaFile: "viewer-detail-semantics.schema.json",
-    globs: ["**/canonical/vocabulary/*.yaml"]
-  },
   {
     schemaFile: "vnext/canonical-index.schema.json",
     globs: ["**/canonical-vnext/index.yaml"]
@@ -540,13 +504,9 @@ function combineStatuses(
 }
 
 async function collectWorkspaceCanonicalFilePaths(rootPath: string): Promise<string[]> {
-  const canonicalRootPaths = [
-    resolve(rootPath, "ddd-spec", "canonical"),
+  const absolutePaths = await listFilesRecursively(
     resolve(rootPath, "ddd-spec", "canonical-vnext")
-  ];
-  const absolutePaths = (
-    await Promise.all(canonicalRootPaths.map((canonicalRootPath) => listFilesRecursively(canonicalRootPath)))
-  ).flat();
+  );
 
   return absolutePaths.map((absolutePath) => toWorkspaceMatchPath(rootPath, absolutePath));
 }

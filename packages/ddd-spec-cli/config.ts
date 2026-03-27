@@ -3,14 +3,10 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import YAML from "yaml";
 
-export const DEFAULT_SCHEMA_PATH = fileURLToPath(
-  new URL("../ddd-spec-core/schema/business-spec.schema.json", import.meta.url)
-);
 export const DEFAULT_VNEXT_SCHEMA_PATH = fileURLToPath(
   new URL("../ddd-spec-core/schema/vnext/canonical-index.schema.json", import.meta.url)
 );
 export const ZERO_CONFIG_ENTRY_PATH = "ddd-spec/canonical-vnext/index.yaml";
-export const LEGACY_ZERO_CONFIG_ENTRY_PATH = "ddd-spec/canonical/index.yaml";
 export const ZERO_CONFIG_ARTIFACTS_DIR = ".ddd-spec/artifacts";
 export const ZERO_CONFIG_GENERATED_DIR = ".ddd-spec/generated";
 export const ZERO_CONFIG_SOURCE_DESCRIPTION = "zero-config defaults";
@@ -149,7 +145,7 @@ export async function loadDddSpecConfig(
       path: resolveOptionalPath(
         configDir,
         requireOptionalString(schemaConfig, "path", configPath)
-      ) ?? DEFAULT_SCHEMA_PATH
+      ) ?? DEFAULT_VNEXT_SCHEMA_PATH
     },
     outputs: {
       rootDirPath,
@@ -203,16 +199,15 @@ export async function loadDddSpecConfig(
 }
 
 async function loadZeroConfig(cwd: string): Promise<ResolvedDddSpecConfig> {
-  const zeroConfigSpec = await resolveZeroConfigEntryPath(cwd);
+  const entryPath = resolve(cwd, ZERO_CONFIG_ENTRY_PATH);
 
-  if (!zeroConfigSpec) {
+  if (!(await pathExists(entryPath))) {
     throw new Error(
       `No canonical spec found at ${resolve(cwd, ZERO_CONFIG_ENTRY_PATH)}. Run \`ddd-spec init\` to create ${ZERO_CONFIG_ENTRY_PATH} before running this command.`
     );
   }
 
   const artifactsDirPath = resolve(cwd, ZERO_CONFIG_ARTIFACTS_DIR);
-  const usesVnextZeroConfig = zeroConfigSpec.relativeEntryPath === ZERO_CONFIG_ENTRY_PATH;
 
   return {
     version: 1,
@@ -220,10 +215,10 @@ async function loadZeroConfig(cwd: string): Promise<ResolvedDddSpecConfig> {
     sourceDescription: ZERO_CONFIG_SOURCE_DESCRIPTION,
     rootDir: cwd,
     spec: {
-      entryPath: zeroConfigSpec.entryPath
+      entryPath
     },
     schema: {
-      path: usesVnextZeroConfig ? DEFAULT_VNEXT_SCHEMA_PATH : DEFAULT_SCHEMA_PATH
+      path: DEFAULT_VNEXT_SCHEMA_PATH
     },
     outputs: {
       rootDirPath: artifactsDirPath,
@@ -237,30 +232,9 @@ async function loadZeroConfig(cwd: string): Promise<ResolvedDddSpecConfig> {
     },
     projections: {
       viewer: true,
-      typescript: !usesVnextZeroConfig
+      typescript: false
     }
   };
-}
-
-async function resolveZeroConfigEntryPath(cwd: string): Promise<
-  | {
-      entryPath: string;
-      relativeEntryPath: string;
-    }
-  | undefined
-> {
-  for (const relativeEntryPath of [ZERO_CONFIG_ENTRY_PATH, LEGACY_ZERO_CONFIG_ENTRY_PATH]) {
-    const entryPath = resolve(cwd, relativeEntryPath);
-
-    if (await pathExists(entryPath)) {
-      return {
-        entryPath,
-        relativeEntryPath
-      };
-    }
-  }
-
-  return undefined;
 }
 
 function resolveOptionalPath(baseDir: string, relativePath?: string): string | undefined {

@@ -3,49 +3,33 @@ import { resolve } from "node:path";
 import {
   isVnextBusinessSpec,
   loadCanonicalSpec,
-  validateBusinessSpecSchema,
   validateBusinessSpecSemantics,
   validateVnextCanonicalSchema
 } from "../ddd-spec-core/index.js";
 import { logArtifact, logInfo } from "./console.js";
-import { DEFAULT_SCHEMA_PATH, DEFAULT_VNEXT_SCHEMA_PATH } from "./config.js";
+import { DEFAULT_VNEXT_SCHEMA_PATH } from "./config.js";
 import { ensureVsCodeWorkspaceConfig } from "./editor-config.js";
 import {
-  DEFAULT_INIT_TEMPLATE_ID,
   getInitScaffoldRelativePaths,
   getInitTemplate,
   getInitTemplateDirectoryPaths,
-  type InitTemplateDefinition,
-  ZERO_CONFIG_CANONICAL_DIR
+  type InitTemplateDefinition
 } from "./init-templates.js";
 
 const GITIGNORE_ENTRY = ".ddd-spec/";
 const EXISTING_GITIGNORE_MATCHES = new Set([GITIGNORE_ENTRY, ".ddd-spec"]);
 
-const LEGACY_SCAFFOLD_RELATIVE_PATHS = [
-  `${ZERO_CONFIG_CANONICAL_DIR}/objects/work-item.object.yaml`,
-  `${ZERO_CONFIG_CANONICAL_DIR}/commands/create-work-item.command.yaml`,
-  `${ZERO_CONFIG_CANONICAL_DIR}/events/work-item-created.event.yaml`,
-  `${ZERO_CONFIG_CANONICAL_DIR}/aggregates/work-item.aggregate.yaml`,
-  `${ZERO_CONFIG_CANONICAL_DIR}/processes/work-item-lifecycle.process.yaml`,
-  `${ZERO_CONFIG_CANONICAL_DIR}/vocabulary/viewer-detail-semantics.yaml`
-] as const;
-
-const SCAFFOLD_RELATIVE_PATHS = [
-  ...getInitScaffoldRelativePaths(),
-  ...LEGACY_SCAFFOLD_RELATIVE_PATHS
-];
+const SCAFFOLD_RELATIVE_PATHS = getInitScaffoldRelativePaths();
 
 export interface InitDddSpecOptions {
   cwd?: string;
-  templateId?: string;
 }
 
 export async function initDddSpec(
   options: InitDddSpecOptions = {}
 ): Promise<void> {
   const cwd = resolve(options.cwd ?? process.cwd());
-  const template = getInitTemplate(options.templateId ?? DEFAULT_INIT_TEMPLATE_ID);
+  const template = getInitTemplate();
   const entryPath = resolve(cwd, template.entryPath);
 
   await assertNoExistingScaffold(cwd, template);
@@ -137,16 +121,14 @@ async function validateGeneratedSkeleton(entryPath: string): Promise<void> {
     validateSemantics: false
   });
 
-  if (isVnextBusinessSpec(spec)) {
-    await validateVnextCanonicalSchema({
-      entryPath,
-      schemaPath: DEFAULT_VNEXT_SCHEMA_PATH
-    });
-  } else {
-    await validateBusinessSpecSchema(spec, {
-      schemaPath: DEFAULT_SCHEMA_PATH
-    });
+  if (!isVnextBusinessSpec(spec)) {
+    throw new Error("Expected the init scaffold to stay on version 3 canonical-vnext.");
   }
+
+  await validateVnextCanonicalSchema({
+    entryPath,
+    schemaPath: DEFAULT_VNEXT_SCHEMA_PATH
+  });
   validateBusinessSpecSemantics(spec);
 }
 

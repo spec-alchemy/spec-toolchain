@@ -1,27 +1,18 @@
 import {
-  analyzeBusinessSpec,
   analyzeVnextBusinessSpec,
   isVnextBusinessSpec,
   loadCanonicalSpec,
-  type BusinessSpecAnalysis,
-  type LoadedBusinessSpec,
+  type VnextBusinessSpec,
   type VnextBusinessSpecAnalysis,
-  validateBusinessSpecSchema,
   validateVnextCanonicalSchema,
   validateBusinessSpecSemantics
 } from "../ddd-spec-core/index.js";
-import {
-  buildBusinessViewerSpec,
-  buildVnextViewerSpec
-} from "../ddd-spec-projection-viewer/index.js";
-import { buildBusinessSpecTypescriptSource } from "../ddd-spec-projection-typescript/index.js";
+import { buildVnextViewerSpec } from "../ddd-spec-projection-viewer/index.js";
 import {
   removeOutputPath,
-  writeJsonArtifact,
-  writeTextArtifact
+  writeJsonArtifact
 } from "./artifact-io.js";
-import { buildUsageText, formatDiagnostic, logArtifact, logInfo, logWarningDiagnostic } from "./console.js";
-import { DEFAULT_SCHEMA_PATH, DEFAULT_VNEXT_SCHEMA_PATH } from "./config.js";
+import { buildUsageText, formatDiagnostic, logArtifact, logInfo } from "./console.js";
 import { loadDddSpecConfig } from "./config.js";
 import { startDddSpecDevSession } from "./dev.js";
 import { initDddSpec } from "./init.js";
@@ -42,7 +33,6 @@ interface ParsedCliArgs {
   command?: CliCommand;
   configPath?: string;
   help: boolean;
-  templateId?: string;
   passthroughArgs: readonly string[];
 }
 
@@ -52,10 +42,10 @@ export interface RunCliCommandOptions {
 }
 
 interface LoadedSpecContext {
-  spec: LoadedBusinessSpec;
+  spec: VnextBusinessSpec;
 }
 
-type LoadedSpecAnalysis = BusinessSpecAnalysis | VnextBusinessSpecAnalysis;
+type LoadedSpecAnalysis = VnextBusinessSpecAnalysis;
 
 export async function runCliCommand(
   argv: readonly string[],
@@ -64,10 +54,6 @@ export async function runCliCommand(
   const parsedArgs = parseCliArgs(argv);
 
   if (parsedArgs.help || !parsedArgs.command) {
-    if (!parsedArgs.help && parsedArgs.templateId) {
-      throw new Error("The --template option requires the init command");
-    }
-
     console.log(buildUsageText());
     return;
   }
@@ -78,14 +64,9 @@ export async function runCliCommand(
     }
 
     await initDddSpec({
-      cwd: options.cwd,
-      templateId: parsedArgs.templateId
+      cwd: options.cwd
     });
     return;
-  }
-
-  if (parsedArgs.templateId) {
-    throw new Error("The --template option is only supported by the init command");
   }
 
   const config = await loadDddSpecConfig({
@@ -243,18 +224,16 @@ async function loadValidatedSpec(
     validateSemantics: false
   });
 
-  const schemaPath = resolveSchemaPath(spec, config.schema.path);
-
-  if (isVnextBusinessSpec(spec)) {
-    await validateVnextCanonicalSchema({
-      entryPath: config.spec.entryPath,
-      schemaPath
-    });
-  } else {
-    await validateBusinessSpecSchema(spec, {
-      schemaPath
-    });
+  if (!isVnextBusinessSpec(spec)) {
+    throw new Error(
+      `Legacy version 2 canonicals are no longer supported by ddd-spec CLI. Migrate ${config.spec.entryPath} to a version 3 canonical-vnext workspace before running this command.`
+    );
   }
+
+  await validateVnextCanonicalSchema({
+    entryPath: config.spec.entryPath,
+    schemaPath: config.schema.path
+  });
   validateBusinessSpecSemantics(spec);
 
   return {
@@ -264,35 +243,23 @@ async function loadValidatedSpec(
 
 async function generateTypescriptSpec(
   config: Awaited<ReturnType<typeof loadDddSpecConfig>>,
-  spec: LoadedBusinessSpec
+  spec: VnextBusinessSpec
 ): Promise<void> {
-  if (isVnextBusinessSpec(spec)) {
-    throw new Error(
-      "TypeScript projection is not implemented for version 3 canonicals yet. Disable projections.typescript for this config before running build or generate typescript."
-    );
-  }
+  void config;
+  void spec;
 
-  const typescriptPath = requireOutputPath(
-    config.outputs.typescriptPath,
-    "outputs.typescript"
+  throw new Error(
+    "TypeScript projection is not implemented for version 3 canonicals yet. Disable projections.typescript for this config before running build or generate typescript."
   );
-
-  await writeTextArtifact(
-    typescriptPath,
-    buildBusinessSpecTypescriptSource(spec)
-  );
-  logArtifact("generated TypeScript spec", typescriptPath);
 }
 
 async function generateViewerSpec(
   config: Awaited<ReturnType<typeof loadDddSpecConfig>>,
-  spec: LoadedBusinessSpec,
+  spec: VnextBusinessSpec,
   analysis: LoadedSpecAnalysis
 ): Promise<void> {
   const viewerPath = requireOutputPath(config.outputs.viewerPath, "outputs.viewer");
-  const viewerSpec = isVnextBusinessSpec(spec)
-    ? buildVnextViewerSpec(spec, ensureVnextAnalysis(analysis))
-    : buildBusinessViewerSpec(spec, ensureLegacyAnalysis(analysis).graph);
+  const viewerSpec = buildVnextViewerSpec(spec, analysis);
 
   await writeJsonArtifact(viewerPath, viewerSpec);
   logArtifact("generated viewer spec", viewerPath);
@@ -346,7 +313,6 @@ function parseCliArgs(argv: readonly string[]): ParsedCliArgs {
   const positionals: string[] = [];
   let configPath: string | undefined;
   let help = false;
-  let templateId: string | undefined;
   let passthroughArgs: readonly string[] = [];
 
   for (let index = 0; index < argv.length; index += 1) {
@@ -370,15 +336,7 @@ function parseCliArgs(argv: readonly string[]): ParsedCliArgs {
     }
 
     if (arg === "--template") {
-      const nextArg = argv[index + 1];
-
-      if (!nextArg) {
-        throw new Error("--template requires a template name");
-      }
-
-      templateId = nextArg;
-      index += 1;
-      continue;
+      throw new Error("Legacy init templates were removed. Use plain `ddd-spec init`.");
     }
 
     if (arg === "--help" || arg === "-h") {
@@ -397,7 +355,6 @@ function parseCliArgs(argv: readonly string[]): ParsedCliArgs {
     command: parseCommand(positionals),
     configPath,
     help,
-    templateId,
     passthroughArgs
   };
 }
@@ -450,15 +407,7 @@ function parseCommand(positionals: readonly string[]): CliCommand | undefined {
 }
 
 function emitAnalysisDiagnostics(analysis: LoadedSpecAnalysis): void {
-  if (!("warningCount" in analysis.summary)) {
-    return;
-  }
-
-  for (const diagnostic of analysis.diagnostics) {
-    if (diagnostic.severity === "warning") {
-      logWarningDiagnostic(diagnostic);
-    }
-  }
+  void analysis;
 }
 
 function assertNoAnalysisErrors(analysis: LoadedSpecAnalysis): void {
@@ -490,47 +439,10 @@ function uniqueDefined(values: readonly (string | undefined)[]): string[] {
   return [...new Set(values.filter((value): value is string => Boolean(value)))];
 }
 
-function analyzeSpec(spec: LoadedBusinessSpec): LoadedSpecAnalysis {
-  return isVnextBusinessSpec(spec)
-    ? analyzeVnextBusinessSpec(spec)
-    : analyzeBusinessSpec(spec);
-}
-
-function resolveSchemaPath(
-  spec: LoadedBusinessSpec,
-  configuredSchemaPath: string
-): string {
-  if (isVnextBusinessSpec(spec) && configuredSchemaPath === DEFAULT_SCHEMA_PATH) {
-    return DEFAULT_VNEXT_SCHEMA_PATH;
-  }
-
-  return configuredSchemaPath;
-}
-
-function ensureLegacyAnalysis(
-  analysis: LoadedSpecAnalysis
-): BusinessSpecAnalysis {
-  if ("graph" in analysis) {
-    return analysis;
-  }
-
-  throw new Error("Expected legacy graph-based analysis for version 2 canonical");
-}
-
-function ensureVnextAnalysis(
-  analysis: LoadedSpecAnalysis
-): VnextBusinessSpecAnalysis {
-  if ("ir" in analysis) {
-    return analysis;
-  }
-
-  throw new Error("Expected vNext analysis IR for version 3 canonical");
+function analyzeSpec(spec: VnextBusinessSpec): LoadedSpecAnalysis {
+  return analyzeVnextBusinessSpec(spec);
 }
 
 function formatAnalysisSuccessMessage(analysis: LoadedSpecAnalysis): string {
-  if ("warningCount" in analysis.summary) {
-    return `analysis passed with ${analysis.summary.warningCount} warning(s)`;
-  }
-
   return `analysis passed with ${analysis.summary.errorCount} error(s)`;
 }

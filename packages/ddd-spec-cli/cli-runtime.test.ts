@@ -4,32 +4,58 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
-import type {
-  BusinessSpec,
-  BusinessSpecAnalysis,
-  VnextBusinessSpecAnalysis
-} from "../ddd-spec-core/index.js";
+import type { VnextBusinessSpecAnalysis } from "../ddd-spec-core/index.js";
 import type { BusinessViewerSpec } from "../ddd-spec-viewer-contract/index.js";
 import { runCliCommand } from "./commands.js";
-import type { LaunchViewerOptions } from "./viewer.js";
 import {
   CLI_DIST_VIEWER_DIR_PATH,
-  CONNECTION_CARD_REVIEW_FIXTURE_ENTRY_PATH,
-  EXAMPLE_FIXTURES,
-  ZERO_CONFIG_FIXTURE
+  REPO_VIEWER_ENTRY_PATH
 } from "./test-support/cli-test-fixtures.js";
-import {
-  assertExampleAnalysis,
-  assertExampleBundle,
-  assertExampleViewer,
-  copyExampleCanonicalToZeroConfigRoot,
-  writeExampleConfig
-} from "./test-support/cli-test-helpers.js";
+import { copyVnextCanonicalToZeroConfigRoot } from "./test-support/cli-test-helpers.js";
+import type { LaunchViewerOptions } from "./viewer.js";
 import YAML from "yaml";
 
 const VNEXT_CROSS_CONTEXT_ENTRY_PATH = fileURLToPath(
   new URL("../../examples/vnext-cross-context/canonical-vnext/index.yaml", import.meta.url)
 );
+
+function assertPrimaryViewOrder(
+  viewer: Pick<BusinessViewerSpec, "views">,
+  expectedViewIds: readonly string[]
+): void {
+  assert.deepEqual(
+    viewer.views.map((view) => view.id),
+    expectedViewIds
+  );
+}
+
+function buildVnextConfigSource(options: {
+  entryPath?: string;
+  rootDir?: string;
+  viewerSyncTargets?: readonly string[];
+  typescript?: boolean;
+} = {}): string {
+  return YAML.stringify({
+    version: 1,
+    spec: {
+      entry: options.entryPath ?? VNEXT_CROSS_CONTEXT_ENTRY_PATH
+    },
+    outputs: {
+      rootDir: options.rootDir ?? "./artifacts"
+    },
+    ...(options.viewerSyncTargets
+      ? {
+          viewer: {
+            syncTargets: [...options.viewerSyncTargets]
+          }
+        }
+      : {}),
+    projections: {
+      viewer: true,
+      typescript: options.typescript ?? false
+    }
+  });
+}
 
 test("CLI build syncs viewer spec to configured sync targets", async () => {
   const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-config-sync-targets-"));
@@ -38,25 +64,8 @@ test("CLI build syncs viewer spec to configured sync targets", async () => {
   try {
     await writeFile(
       configPath,
-      YAML.stringify({
-        version: 1,
-        spec: {
-          entry: CONNECTION_CARD_REVIEW_FIXTURE_ENTRY_PATH
-        },
-        outputs: {
-          rootDir: "./artifacts",
-          bundle: "./artifacts/business-spec.json",
-          analysis: "./artifacts/business-spec.analysis.json",
-          viewer: "./artifacts/viewer-spec.json",
-          typescript: "./generated/business-spec.generated.ts"
-        },
-        viewer: {
-          syncTargets: ["./app/public/generated/viewer-spec.json"]
-        },
-        projections: {
-          viewer: true,
-          typescript: true
-        }
+      buildVnextConfigSource({
+        viewerSyncTargets: ["./app/public/generated/viewer-spec.json"]
       }),
       "utf8"
     );
@@ -66,7 +75,7 @@ test("CLI build syncs viewer spec to configured sync targets", async () => {
     });
 
     const builtViewerSpec = JSON.parse(
-      await readFile(join(tempDir, "artifacts", "viewer-spec.json"), "utf8")
+      await readFile(join(tempDir, "artifacts", "business-viewer", "viewer-spec.json"), "utf8")
     );
     const syncedViewerSpec = JSON.parse(
       await readFile(join(tempDir, "app", "public", "generated", "viewer-spec.json"), "utf8")
@@ -80,12 +89,10 @@ test("CLI build syncs viewer spec to configured sync targets", async () => {
 
 test("CLI validate succeeds in explicit config mode without writing outputs", async () => {
   const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-config-validate-"));
+  const configPath = join(tempDir, "ddd-spec.config.yaml");
 
   try {
-    const configPath = await writeExampleConfig({
-      rootPath: tempDir,
-      example: ZERO_CONFIG_FIXTURE
-    });
+    await writeFile(configPath, buildVnextConfigSource(), "utf8");
 
     await runCliCommand(["validate", "--config", configPath], {
       cwd: tempDir
@@ -104,60 +111,11 @@ test("CLI validate succeeds in explicit config mode without writing outputs", as
   }
 });
 
-for (const example of EXAMPLE_FIXTURES) {
-  test(`CLI build succeeds for the ${example.id} example with isolated outputs`, async () => {
-    const tempDir = await mkdtemp(join(tmpdir(), `ddd-spec-${example.id}-`));
-    const tempConfigPath = join(tempDir, "ddd-spec.config.yaml");
-
-    try {
-      await writeFile(
-        tempConfigPath,
-        YAML.stringify({
-          version: 1,
-          spec: {
-            entry: example.entryPath
-          },
-          outputs: {
-            rootDir: join(tempDir, "artifacts"),
-            typescript: join(tempDir, "generated", `${example.id}.generated.ts`)
-          },
-          projections: {
-            viewer: true,
-            typescript: true
-          }
-        }),
-        "utf8"
-      );
-
-      await runCliCommand(["build", "--config", tempConfigPath]);
-
-      const bundle = JSON.parse(
-        await readFile(join(tempDir, "artifacts", "business-spec.json"), "utf8")
-      ) as BusinessSpec;
-      const analysis = JSON.parse(
-        await readFile(join(tempDir, "artifacts", "business-spec.analysis.json"), "utf8")
-      ) as BusinessSpecAnalysis;
-      const viewer = JSON.parse(
-        await readFile(
-          join(tempDir, "artifacts", "business-viewer", "viewer-spec.json"),
-          "utf8"
-        )
-      ) as BusinessViewerSpec;
-      assertExampleBundle(bundle, example);
-      assertExampleAnalysis(analysis, example);
-      assertExampleViewer(viewer, example);
-      await access(join(tempDir, "generated", `${example.id}.generated.ts`));
-    } finally {
-      await rm(tempDir, { recursive: true, force: true });
-    }
-  });
-}
-
-test("CLI validate and build succeed in zero-config mode with standard outputs", async () => {
+test("CLI validate and build succeed in zero-config mode with standard vNext outputs", async () => {
   const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-zero-config-build-"));
 
   try {
-    await copyExampleCanonicalToZeroConfigRoot(tempDir, ZERO_CONFIG_FIXTURE.id);
+    await copyVnextCanonicalToZeroConfigRoot(tempDir);
 
     await runCliCommand(["validate"], { cwd: tempDir });
 
@@ -170,20 +128,34 @@ test("CLI validate and build succeed in zero-config mode with standard outputs",
 
     const bundle = JSON.parse(
       await readFile(join(tempDir, ".ddd-spec", "artifacts", "business-spec.json"), "utf8")
-    ) as BusinessSpec;
+    ) as {
+      version: number;
+      id: string;
+    };
     const analysis = JSON.parse(
       await readFile(
         join(tempDir, ".ddd-spec", "artifacts", "business-spec.analysis.json"),
         "utf8"
       )
-    ) as BusinessSpecAnalysis;
+    ) as VnextBusinessSpecAnalysis;
     const viewer = JSON.parse(
       await readFile(join(tempDir, ".ddd-spec", "artifacts", "viewer-spec.json"), "utf8")
     ) as BusinessViewerSpec;
-    assertExampleBundle(bundle, ZERO_CONFIG_FIXTURE);
-    assertExampleAnalysis(analysis, ZERO_CONFIG_FIXTURE);
-    assertExampleViewer(viewer, ZERO_CONFIG_FIXTURE);
-    await access(join(tempDir, ".ddd-spec", "generated", "business-spec.generated.ts"));
+
+    assert.equal(bundle.version, 3);
+    assert.equal(bundle.id, "approval-flow-vnext");
+    assert.equal(analysis.summary.errorCount, 0);
+    assertPrimaryViewOrder(viewer, [
+      "context-map",
+      "scenario-story",
+      "message-flow",
+      "lifecycle",
+      "policy-saga"
+    ]);
+    await assert.rejects(
+      access(join(tempDir, ".ddd-spec", "generated", "business-spec.generated.ts")),
+      /ENOENT/
+    );
   } finally {
     await rm(tempDir, { recursive: true, force: true });
   }
@@ -194,7 +166,7 @@ test("CLI viewer rebuilds the zero-config viewer artifact and launches the packa
   let launchOptions: LaunchViewerOptions | undefined;
 
   try {
-    await copyExampleCanonicalToZeroConfigRoot(tempDir, ZERO_CONFIG_FIXTURE.id);
+    await copyVnextCanonicalToZeroConfigRoot(tempDir);
 
     await runCliCommand(["viewer", "--", "--host", "0.0.0.0"], {
       cwd: tempDir,
@@ -216,7 +188,13 @@ test("CLI viewer rebuilds the zero-config viewer artifact and launches the packa
       await readFile(join(tempDir, ".ddd-spec", "artifacts", "viewer-spec.json"), "utf8")
     ) as BusinessViewerSpec;
 
-    assertExampleViewer(viewer, ZERO_CONFIG_FIXTURE);
+    assertPrimaryViewOrder(viewer, [
+      "context-map",
+      "scenario-story",
+      "message-flow",
+      "lifecycle",
+      "policy-saga"
+    ]);
   } finally {
     await rm(tempDir, { recursive: true, force: true });
   }
@@ -224,13 +202,11 @@ test("CLI viewer rebuilds the zero-config viewer artifact and launches the packa
 
 test("CLI viewer rebuilds the explicit-config viewer artifact and launches the packaged static server", async () => {
   const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-config-viewer-"));
+  const configPath = join(tempDir, "ddd-spec.config.yaml");
   let launchOptions: LaunchViewerOptions | undefined;
 
   try {
-    const configPath = await writeExampleConfig({
-      rootPath: tempDir,
-      example: ZERO_CONFIG_FIXTURE
-    });
+    await writeFile(configPath, buildVnextConfigSource(), "utf8");
 
     await runCliCommand(["viewer", "--config", configPath, "--", "--host", "0.0.0.0", "--port", "0"], {
       cwd: tempDir,
@@ -255,7 +231,12 @@ test("CLI viewer rebuilds the explicit-config viewer artifact and launches the p
       await readFile(join(tempDir, "artifacts", "business-viewer", "viewer-spec.json"), "utf8")
     ) as BusinessViewerSpec;
 
-    assertExampleViewer(viewer, ZERO_CONFIG_FIXTURE);
+    assertPrimaryViewOrder(viewer, [
+      "context-map",
+      "scenario-story",
+      "message-flow",
+      "lifecycle"
+    ]);
   } finally {
     await rm(tempDir, { recursive: true, force: true });
   }
@@ -266,7 +247,7 @@ test("CLI dev rebuilds the zero-config viewer artifact and enables browser auto-
   let launchOptions: LaunchViewerOptions | undefined;
 
   try {
-    await copyExampleCanonicalToZeroConfigRoot(tempDir, ZERO_CONFIG_FIXTURE.id);
+    await copyVnextCanonicalToZeroConfigRoot(tempDir);
 
     await runCliCommand(["dev", "--", "--host", "0.0.0.0"], {
       cwd: tempDir,
@@ -291,7 +272,13 @@ test("CLI dev rebuilds the zero-config viewer artifact and enables browser auto-
       await readFile(join(tempDir, ".ddd-spec", "artifacts", "viewer-spec.json"), "utf8")
     ) as BusinessViewerSpec;
 
-    assertExampleViewer(viewer, ZERO_CONFIG_FIXTURE);
+    assertPrimaryViewOrder(viewer, [
+      "context-map",
+      "scenario-story",
+      "message-flow",
+      "lifecycle",
+      "policy-saga"
+    ]);
   } finally {
     await rm(tempDir, { recursive: true, force: true });
   }
@@ -304,18 +291,8 @@ test("CLI build supports version 3 canonicals when viewer projection is enabled 
   try {
     await writeFile(
       configPath,
-      YAML.stringify({
-        version: 1,
-        spec: {
-          entry: VNEXT_CROSS_CONTEXT_ENTRY_PATH
-        },
-        outputs: {
-          rootDir: "./artifacts"
-        },
-        projections: {
-          viewer: true,
-          typescript: false
-        }
+      buildVnextConfigSource({
+        entryPath: VNEXT_CROSS_CONTEXT_ENTRY_PATH
       }),
       "utf8"
     );
@@ -326,7 +303,7 @@ test("CLI build supports version 3 canonicals when viewer projection is enabled 
 
     const bundle = JSON.parse(
       await readFile(join(tempDir, "artifacts", "business-spec.json"), "utf8")
-    ) as BusinessSpec & { version: 3 };
+    ) as { version: 3 };
     const analysis = JSON.parse(
       await readFile(join(tempDir, "artifacts", "business-spec.analysis.json"), "utf8")
     ) as VnextBusinessSpecAnalysis;
@@ -339,10 +316,12 @@ test("CLI build supports version 3 canonicals when viewer projection is enabled 
 
     assert.equal(bundle.version, 3);
     assert.equal(analysis.summary.errorCount, 0);
-    assert.deepEqual(
-      viewer.views.map((view) => view.id),
-      ["context-map", "scenario-story", "message-flow", "lifecycle"]
-    );
+    assertPrimaryViewOrder(viewer, [
+      "context-map",
+      "scenario-story",
+      "message-flow",
+      "lifecycle"
+    ]);
     assert.equal(JSON.stringify(viewer).includes("\"fetch-ledger-status\""), true);
     await assert.rejects(
       access(join(tempDir, "artifacts", "business-spec.generated.ts")),
@@ -361,18 +340,8 @@ test("CLI viewer supports version 3 canonicals through the packaged viewer path"
   try {
     await writeFile(
       configPath,
-      YAML.stringify({
-        version: 1,
-        spec: {
-          entry: VNEXT_CROSS_CONTEXT_ENTRY_PATH
-        },
-        outputs: {
-          rootDir: "./artifacts"
-        },
-        projections: {
-          viewer: true,
-          typescript: false
-        }
+      buildVnextConfigSource({
+        entryPath: REPO_VIEWER_ENTRY_PATH
       }),
       "utf8"
     );
