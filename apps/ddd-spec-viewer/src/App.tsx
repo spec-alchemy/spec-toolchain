@@ -14,6 +14,10 @@ import { ViewerEmptyState } from "@/components/shell/ViewerEmptyState";
 import { ViewerHeader } from "@/components/shell/ViewerHeader";
 import { layoutViewerView, type LayoutedView } from "@/lib/layout";
 import {
+  getSelectedViewExperience,
+  getViewerNavigationExperience
+} from "@/lib/view-experience";
+import {
   loadViewerSpec,
   resolveViewerSpecSource,
   type ViewerSpecSource
@@ -40,7 +44,7 @@ export default function App() {
   const deferredViewId = useDeferredValue(selectedViewId);
   const [layoutedView, setLayoutedView] = useState<LayoutedView | null>(null);
   const [selection, setSelection] = useState<InspectorSelection | null>(null);
-  const [loadingMessage, setLoadingMessage] = useState("Loading viewer spec...");
+  const [loadingMessage, setLoadingMessage] = useState("Loading modeling workspace...");
   const [devSessionStatus, setDevSessionStatus] = useState<ViewerDevSessionStatus | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const lastLoadedBuildRevisionRef = useRef(0);
@@ -59,7 +63,7 @@ export default function App() {
       const nextSource = resolveViewerSpecSource();
 
       setSpecSource(nextSource);
-      setLoadingMessage(`Loading viewer spec from ${nextSource.label}...`);
+      setLoadingMessage(`Loading modeling workspace from ${nextSource.label}...`);
       const nextSpec = await loadViewerSpec(nextSource);
 
       setViewerSpec(nextSpec);
@@ -127,7 +131,7 @@ export default function App() {
     let cancelled = false;
     setLayoutedView(null);
     setSelection(null);
-    setLoadingMessage(`Laying out ${currentView.title}...`);
+    setLoadingMessage(`Preparing the ${currentView.title} map...`);
 
     void layoutViewerView(currentView)
       .then((nextLayout) => {
@@ -174,6 +178,8 @@ export default function App() {
   const currentView =
     viewerSpec?.views.find((view) => view.id === deferredViewId) ??
     (viewerSpec ? getDefaultView(viewerSpec.views) : null);
+  const navigation = getViewerNavigationExperience(viewerSpec);
+  const selectedView = getSelectedViewExperience(viewerSpec, selectedViewId);
   const devSessionMessage = getViewerDevSessionMessage(devSessionStatus, {
     isDefaultSpecSource: specSource.isDefault
   });
@@ -203,12 +209,19 @@ export default function App() {
               lines={[
                 errorMessage,
                 specSource.isDefault
-                  ? "Run `ddd-spec build` or `npm run repo:build` to regenerate the default viewer spec."
+                  ? "Run `ddd-spec build` or `npm run repo:build` to regenerate the modeling workspace."
                   : `Check the external spec source: ${specSource.label}`
               ]}
+              primaryViewGuide={navigation.primary}
+              activeViewId={selectedView?.id}
             />
           ) : !layoutedView ? (
-            <ViewerEmptyState title="Preparing Viewer" lines={[loadingMessage]} />
+            <ViewerEmptyState
+              title={selectedView ? `Preparing ${selectedView.title}` : "Preparing Viewer"}
+              lines={[loadingMessage]}
+              primaryViewGuide={navigation.primary}
+              activeViewId={selectedView?.id}
+            />
           ) : (
             <FlowCanvas
               layoutedView={layoutedView}

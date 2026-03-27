@@ -17,6 +17,7 @@ after each iteration and it's included in prompts for context.
 - For packaged vNext viewer verification, do not rely on root `repo:viewer`; it is pinned to the repo's legacy scenario config. Launch the packaged viewer against an example-specific vNext config such as `examples/vnext-cross-context/ddd-spec.config.yaml` when you need browser-facing evidence for vNext views.
 - For vNext Context Map relationship semantics, keep upstream/downstream and integration metadata as optional structured fields on `contexts[].relationships[]`, carry them through the shared analysis IR, and reuse the existing `context.relationships` detail contract for both node and edge inspectors instead of inventing edge-only semantics.
 - When the default zero-config path moves to `canonical-vnext/`, keep CLI zero-config loading version-dispatched with a legacy `canonical/` fallback until the explicit legacy init templates and package smoke fixtures are retired.
+- When package-level `node --import tsx --test ...` commands execute `apps/ddd-spec-viewer` tests from another workspace, run the app test files in a second invocation with `TSX_TSCONFIG_PATH=../../apps/ddd-spec-viewer/tsconfig.json` so `@/` aliases resolve against the viewer app's own tsconfig.
 
 ---
 
@@ -272,4 +273,25 @@ after each iteration and it's included in prompts for context.
     - Moving zero-config to vNext is safest when the CLI prefers `canonical-vnext/` but still falls back to `canonical/`, because packaged legacy templates and smoke fixtures otherwise fail before they can be migrated.
   - Gotchas encountered
     - Packaged CLI smoke tests exercise built `dist` artifacts rather than source files, so template-path changes must be reflected in packaging tests and accompanied by a fresh package build before those tests become meaningful.
+---
+## 2026-03-27 - knowledge-alchemy-app-v2-j67
+- Reworked the viewer app around shared view-experience metadata so the default UX now explains what each primary map answers in the header, selector, loading/empty state, and inspector no-selection guidance.
+- Added SSR coverage for the new viewer UX copy, and updated `pkg:test` so app-side tests that import `@/` aliases run under the viewer workspace tsconfig instead of failing from the CLI package workspace.
+- Re-ran `npm run repo:validate`, `npm run repo:build`, `npm run pkg:test`, and `npm run verify`, then launched the packaged viewer path and confirmed the served viewer spec still defaults to `Context Map -> Scenario Story -> Message Flow / Trace -> Lifecycle` with no top-level `composition` entry.
+- Files changed
+  - `apps/ddd-spec-viewer/src/App.tsx`
+  - `apps/ddd-spec-viewer/src/components/InspectorPanel.tsx`
+  - `apps/ddd-spec-viewer/src/components/shell/ViewerEmptyState.tsx`
+  - `apps/ddd-spec-viewer/src/components/shell/ViewerHeader.tsx`
+  - `apps/ddd-spec-viewer/src/lib/inspector-detail-help.ts`
+  - `apps/ddd-spec-viewer/src/lib/view-experience.ts`
+  - `apps/ddd-spec-viewer/test/inspect-selection.test.ts`
+  - `packages/ddd-spec-cli/package.json`
+  - `.ralph-tui/progress.md`
+- **Learnings:**
+  - Patterns discovered
+    - Shared app-owned view metadata is the clean seam for “what question does this map answer?” copy; it keeps header, empty state, and inspector guidance synchronized without mutating the viewer projection contract.
+    - CLI package tests can keep importing viewer app test files as long as the app-specific tsconfig is supplied explicitly for the app test invocation.
+  - Gotchas encountered
+    - Direct browser automation remains sandbox-constrained on this machine: both the system Chrome binary and a temporary Playwright Chromium failed with Mach-port / process-permission errors, so packaged-viewer verification had to stop at server launch plus served `generated/viewer-spec.json` evidence after the UI behavior was otherwise locked by SSR tests.
 ---
