@@ -6,7 +6,7 @@ import YAML from "yaml";
 export const DEFAULT_VNEXT_SCHEMA_PATH = fileURLToPath(
   new URL("../ddd-spec-core/schema/vnext/canonical-index.schema.json", import.meta.url)
 );
-export const ZERO_CONFIG_ENTRY_PATH = "ddd-spec/canonical-vnext/index.yaml";
+export const ZERO_CONFIG_ENTRY_PATH = "domain-model/index.yaml";
 export const ZERO_CONFIG_ARTIFACTS_DIR = ".ddd-spec/artifacts";
 export const ZERO_CONFIG_GENERATED_DIR = ".ddd-spec/generated";
 export const ZERO_CONFIG_SOURCE_DESCRIPTION = "zero-config defaults";
@@ -203,7 +203,7 @@ async function loadZeroConfig(cwd: string): Promise<ResolvedDddSpecConfig> {
 
   if (!(await pathExists(entryPath))) {
     throw new Error(
-      `No canonical spec found at ${resolve(cwd, ZERO_CONFIG_ENTRY_PATH)}. Run \`ddd-spec init\` to create ${ZERO_CONFIG_ENTRY_PATH} before running this command.`
+      `No domain model found at ${resolve(cwd, ZERO_CONFIG_ENTRY_PATH)}. Run \`ddd-spec init\` to create ${ZERO_CONFIG_ENTRY_PATH} before running this command.`
     );
   }
 

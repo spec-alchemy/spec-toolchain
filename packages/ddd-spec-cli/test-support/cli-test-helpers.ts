@@ -31,7 +31,7 @@ export async function copyVnextCanonicalToZeroConfigRoot(
 ): Promise<void> {
   await cp(
     resolve(REPO_ROOT_PATH, "examples", exampleId, "canonical-vnext"),
-    join(targetRootPath, "ddd-spec", "canonical-vnext"),
+    join(targetRootPath, "domain-model"),
     { recursive: true }
   );
 }
@@ -272,28 +272,28 @@ export async function writeBrowserOpenStub(rootPath: string): Promise<void> {
 }
 
 export async function assertGeneratedInitSkeleton(rootPath: string): Promise<void> {
-  const canonicalRootPath = join(rootPath, "ddd-spec", "canonical-vnext");
+  const modelRootPath = join(rootPath, "domain-model");
   const requiredPaths = [
-    join(canonicalRootPath, "index.yaml"),
-    join(canonicalRootPath, "contexts"),
-    join(canonicalRootPath, "actors"),
-    join(canonicalRootPath, "systems"),
-    join(canonicalRootPath, "scenarios"),
-    join(canonicalRootPath, "messages"),
-    join(canonicalRootPath, "aggregates"),
-    join(canonicalRootPath, "policies"),
-    join(canonicalRootPath, "contexts", "approvals.context.yaml"),
-    join(canonicalRootPath, "actors", "requester.actor.yaml"),
-    join(canonicalRootPath, "actors", "approver.actor.yaml"),
-    join(canonicalRootPath, "systems", "notification-hub.system.yaml"),
-    join(canonicalRootPath, "scenarios", "approval-request-flow.scenario.yaml"),
-    join(canonicalRootPath, "messages", "submit-approval-request.message.yaml"),
-    join(canonicalRootPath, "messages", "approval-request-submitted.message.yaml"),
-    join(canonicalRootPath, "messages", "approve-request.message.yaml"),
-    join(canonicalRootPath, "messages", "approval-request-approved.message.yaml"),
-    join(canonicalRootPath, "messages", "send-approval-notification.message.yaml"),
-    join(canonicalRootPath, "aggregates", "approval-request.aggregate.yaml"),
-    join(canonicalRootPath, "policies", "notify-requester-after-approval.policy.yaml")
+    join(modelRootPath, "index.yaml"),
+    join(modelRootPath, "contexts"),
+    join(modelRootPath, "actors"),
+    join(modelRootPath, "systems"),
+    join(modelRootPath, "scenarios"),
+    join(modelRootPath, "messages"),
+    join(modelRootPath, "aggregates"),
+    join(modelRootPath, "policies"),
+    join(modelRootPath, "contexts", "approvals.context.yaml"),
+    join(modelRootPath, "actors", "requester.actor.yaml"),
+    join(modelRootPath, "actors", "approver.actor.yaml"),
+    join(modelRootPath, "systems", "notification-hub.system.yaml"),
+    join(modelRootPath, "scenarios", "approval-request-flow.scenario.yaml"),
+    join(modelRootPath, "messages", "submit-approval-request.message.yaml"),
+    join(modelRootPath, "messages", "approval-request-submitted.message.yaml"),
+    join(modelRootPath, "messages", "approve-request.message.yaml"),
+    join(modelRootPath, "messages", "approval-request-approved.message.yaml"),
+    join(modelRootPath, "messages", "send-approval-notification.message.yaml"),
+    join(modelRootPath, "aggregates", "approval-request.aggregate.yaml"),
+    join(modelRootPath, "policies", "notify-requester-after-approval.policy.yaml")
   ] as const;
 
   for (const path of requiredPaths) {
@@ -301,12 +301,12 @@ export async function assertGeneratedInitSkeleton(rootPath: string): Promise<voi
   }
 
   const spec = await loadCanonicalSpec({
-    entryPath: join(canonicalRootPath, "index.yaml"),
+    entryPath: join(modelRootPath, "index.yaml"),
     validateSemantics: false
   });
 
   if (!isVnextBusinessSpec(spec)) {
-    throw new Error("Expected the init scaffold to load as a vNext canonical");
+    throw new Error("Expected the init scaffold to load as the default domain model");
   }
 
   const approvalsContext = mustFind(spec.contexts, (context) => context.id === "approvals");
@@ -317,7 +317,7 @@ export async function assertGeneratedInitSkeleton(rootPath: string): Promise<voi
     (candidate) => candidate.id === "notify-requester-after-approval"
   );
 
-  assert.equal(spec.id, "approval-flow-vnext");
+  assert.equal(spec.id, "approval-flow");
   assert.deepEqual(spec.contexts.map((context) => context.id), ["approvals"]);
   assert.deepEqual(
     sortStrings(spec.actors.map((actor) => actor.id)),
@@ -623,14 +623,14 @@ function assertHasExpectedYamlSchemaMappings(options: {
 
 function buildExpectedYamlSchemaMappings(): Record<string, readonly string[]> {
   return {
-    "vnext/canonical-index.schema.json": ["**/canonical-vnext/index.yaml"],
-    "vnext/context.schema.json": ["**/canonical-vnext/contexts/*.context.yaml"],
-    "vnext/actor.schema.json": ["**/canonical-vnext/actors/*.actor.yaml"],
-    "vnext/system.schema.json": ["**/canonical-vnext/systems/*.system.yaml"],
-    "vnext/scenario.schema.json": ["**/canonical-vnext/scenarios/*.scenario.yaml"],
-    "vnext/message.schema.json": ["**/canonical-vnext/messages/*.message.yaml"],
-    "vnext/aggregate.schema.json": ["**/canonical-vnext/aggregates/*.aggregate.yaml"],
-    "vnext/policy.schema.json": ["**/canonical-vnext/policies/*.policy.yaml"]
+    "vnext/canonical-index.schema.json": ["**/domain-model/index.yaml"],
+    "vnext/context.schema.json": ["**/domain-model/contexts/*.context.yaml"],
+    "vnext/actor.schema.json": ["**/domain-model/actors/*.actor.yaml"],
+    "vnext/system.schema.json": ["**/domain-model/systems/*.system.yaml"],
+    "vnext/scenario.schema.json": ["**/domain-model/scenarios/*.scenario.yaml"],
+    "vnext/message.schema.json": ["**/domain-model/messages/*.message.yaml"],
+    "vnext/aggregate.schema.json": ["**/domain-model/aggregates/*.aggregate.yaml"],
+    "vnext/policy.schema.json": ["**/domain-model/policies/*.policy.yaml"]
   };
 }
 

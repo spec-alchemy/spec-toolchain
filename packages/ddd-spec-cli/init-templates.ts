@@ -1,7 +1,7 @@
 import { dirname } from "node:path";
 import { ZERO_CONFIG_ENTRY_PATH } from "./config.js";
 
-export const DEFAULT_ZERO_CONFIG_CANONICAL_DIR = "ddd-spec/canonical-vnext";
+export const DEFAULT_ZERO_CONFIG_MODEL_DIR = "domain-model";
 
 interface InitTemplateFile {
   relativePath: string;
@@ -19,16 +19,16 @@ export interface InitTemplateDefinition {
 
 const DEFAULT_INIT_TEMPLATE: InitTemplateDefinition = {
   id: "default",
-  label: "vNext approval starter",
+  label: "domain model starter",
   description:
     "Recommended first-time scaffold with one context, one scenario, one message flow, and one lifecycle.",
   entryPath: ZERO_CONFIG_ENTRY_PATH,
-  scaffoldDir: DEFAULT_ZERO_CONFIG_CANONICAL_DIR,
+  scaffoldDir: DEFAULT_ZERO_CONFIG_MODEL_DIR,
   files: [
     {
       relativePath: ZERO_CONFIG_ENTRY_PATH,
       source: `version: 3
-id: approval-flow-vnext
+id: approval-flow
 title: Approval Flow Starter
 summary: Starter model showing how one bounded context, one scenario, one message flow, and one lifecycle fit together.
 model:
@@ -42,7 +42,7 @@ model:
 `
     },
     {
-      relativePath: `${DEFAULT_ZERO_CONFIG_CANONICAL_DIR}/contexts/approvals.context.yaml`,
+      relativePath: `${DEFAULT_ZERO_CONFIG_MODEL_DIR}/contexts/approvals.context.yaml`,
       source: `kind: context
 id: approvals
 title: Approvals
@@ -63,7 +63,7 @@ relationships:
 `
     },
     {
-      relativePath: `${DEFAULT_ZERO_CONFIG_CANONICAL_DIR}/actors/requester.actor.yaml`,
+      relativePath: `${DEFAULT_ZERO_CONFIG_MODEL_DIR}/actors/requester.actor.yaml`,
       source: `kind: actor
 id: requester
 title: Requester
@@ -72,7 +72,7 @@ actorType: role
 `
     },
     {
-      relativePath: `${DEFAULT_ZERO_CONFIG_CANONICAL_DIR}/actors/approver.actor.yaml`,
+      relativePath: `${DEFAULT_ZERO_CONFIG_MODEL_DIR}/actors/approver.actor.yaml`,
       source: `kind: actor
 id: approver
 title: Approver
@@ -81,7 +81,7 @@ actorType: role
 `
     },
     {
-      relativePath: `${DEFAULT_ZERO_CONFIG_CANONICAL_DIR}/systems/notification-hub.system.yaml`,
+      relativePath: `${DEFAULT_ZERO_CONFIG_MODEL_DIR}/systems/notification-hub.system.yaml`,
       source: `kind: system
 id: notification-hub
 title: Notification Hub
@@ -92,7 +92,7 @@ capabilities:
 `
     },
     {
-      relativePath: `${DEFAULT_ZERO_CONFIG_CANONICAL_DIR}/scenarios/approval-request-flow.scenario.yaml`,
+      relativePath: `${DEFAULT_ZERO_CONFIG_MODEL_DIR}/scenarios/approval-request-flow.scenario.yaml`,
       source: `kind: scenario
 id: approval-request-flow
 title: Approval Request Flow
@@ -128,7 +128,7 @@ steps:
 `
     },
     {
-      relativePath: `${DEFAULT_ZERO_CONFIG_CANONICAL_DIR}/messages/submit-approval-request.message.yaml`,
+      relativePath: `${DEFAULT_ZERO_CONFIG_MODEL_DIR}/messages/submit-approval-request.message.yaml`,
       source: `kind: message
 id: submit-approval-request
 title: Submit Approval Request
@@ -151,7 +151,7 @@ payload:
 `
     },
     {
-      relativePath: `${DEFAULT_ZERO_CONFIG_CANONICAL_DIR}/messages/approval-request-submitted.message.yaml`,
+      relativePath: `${DEFAULT_ZERO_CONFIG_MODEL_DIR}/messages/approval-request-submitted.message.yaml`,
       source: `kind: message
 id: approval-request-submitted
 title: Approval Request Submitted
@@ -171,7 +171,7 @@ payload:
 `
     },
     {
-      relativePath: `${DEFAULT_ZERO_CONFIG_CANONICAL_DIR}/messages/approve-request.message.yaml`,
+      relativePath: `${DEFAULT_ZERO_CONFIG_MODEL_DIR}/messages/approve-request.message.yaml`,
       source: `kind: message
 id: approve-request
 title: Approve Request
@@ -194,7 +194,7 @@ payload:
 `
     },
     {
-      relativePath: `${DEFAULT_ZERO_CONFIG_CANONICAL_DIR}/messages/approval-request-approved.message.yaml`,
+      relativePath: `${DEFAULT_ZERO_CONFIG_MODEL_DIR}/messages/approval-request-approved.message.yaml`,
       source: `kind: message
 id: approval-request-approved
 title: Approval Request Approved
@@ -219,7 +219,7 @@ payload:
 `
     },
     {
-      relativePath: `${DEFAULT_ZERO_CONFIG_CANONICAL_DIR}/messages/send-approval-notification.message.yaml`,
+      relativePath: `${DEFAULT_ZERO_CONFIG_MODEL_DIR}/messages/send-approval-notification.message.yaml`,
       source: `kind: message
 id: send-approval-notification
 title: Send Approval Notification
@@ -242,7 +242,7 @@ payload:
 `
     },
     {
-      relativePath: `${DEFAULT_ZERO_CONFIG_CANONICAL_DIR}/aggregates/approval-request.aggregate.yaml`,
+      relativePath: `${DEFAULT_ZERO_CONFIG_MODEL_DIR}/aggregates/approval-request.aggregate.yaml`,
       source: `kind: aggregate
 id: approval-request
 title: Approval Request
@@ -270,7 +270,7 @@ transitions:
 `
     },
     {
-      relativePath: `${DEFAULT_ZERO_CONFIG_CANONICAL_DIR}/policies/notify-requester-after-approval.policy.yaml`,
+      relativePath: `${DEFAULT_ZERO_CONFIG_MODEL_DIR}/policies/notify-requester-after-approval.policy.yaml`,
       source: `kind: policy
 id: notify-requester-after-approval
 title: Notify Requester After Approval

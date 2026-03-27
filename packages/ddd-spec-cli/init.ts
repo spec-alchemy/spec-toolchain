@@ -48,7 +48,7 @@ export async function initDddSpec(
     throw error;
   }
 
-  logArtifact("created canonical entry", entryPath);
+  logArtifact("created domain model entry", entryPath);
   logInfo(`created ${template.label} under ${resolve(cwd, template.scaffoldDir)}`);
 
   if (gitignoreStatus === "created") {
@@ -82,7 +82,7 @@ async function assertNoExistingScaffold(
 
   if (existingFile === entryPath) {
     throw new Error(
-      `Refusing to overwrite existing canonical entry at ${existingFile}. Keep editing that workspace in place, or remove the existing scaffold before running \`ddd-spec init\` again.`
+      `Refusing to overwrite existing domain model entry at ${existingFile}. Keep editing that workspace in place, or remove the existing scaffold before running \`ddd-spec init\` again.`
     );
   }
 

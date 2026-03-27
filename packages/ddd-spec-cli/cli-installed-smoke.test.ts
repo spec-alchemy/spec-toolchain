@@ -83,7 +83,7 @@ test("npm pack smoke test installs the tarball and runs zero-config init plus bu
 
     assert.equal(bundle.version, 3);
     assert.equal(viewer.viewerVersion, 1);
-    assert.equal(bundle.id, "approval-flow-vnext");
+    assert.equal(bundle.id, "approval-flow");
     assert.equal(analysis.summary.errorCount, 0);
     assertPrimaryViewOrder(viewer, [
       "context-map",
@@ -253,8 +253,7 @@ test("npm pack smoke test installs the tarball and keeps the packaged dev watch 
 
     const scenarioPath = join(
       consumerRootPath,
-      "ddd-spec",
-      "canonical-vnext",
+      "domain-model",
       "scenarios",
       "approval-request-flow.scenario.yaml"
     );

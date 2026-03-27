@@ -105,7 +105,7 @@ async function runValidateCommand(
   config: Awaited<ReturnType<typeof loadDddSpecConfig>>
 ): Promise<LoadedSpecContext> {
   const loadedSpec = await loadValidatedSpec(config);
-  logInfo(`validated canonical spec (${config.spec.entryPath})`);
+  logInfo(`validated domain model (${config.spec.entryPath})`);
 
   return loadedSpec;
 }
@@ -117,7 +117,7 @@ async function runBundleCommand(
   const bundlePath = requireOutputPath(config.outputs.bundlePath, "outputs.bundle");
 
   await writeJsonArtifact(bundlePath, spec);
-  logArtifact("bundled canonical spec", bundlePath);
+  logArtifact("bundled domain model", bundlePath);
 }
 
 async function runAnalyzeCommand(
@@ -143,7 +143,7 @@ async function runBuildCommand(
   const bundlePath = requireOutputPath(config.outputs.bundlePath, "outputs.bundle");
 
   await writeJsonArtifact(bundlePath, loadedSpec.spec);
-  logArtifact("bundled canonical spec", bundlePath);
+  logArtifact("bundled domain model", bundlePath);
 
   const analysis = analyzeSpec(loadedSpec.spec);
   const analysisPath = requireOutputPath(config.outputs.analysisPath, "outputs.analysis");

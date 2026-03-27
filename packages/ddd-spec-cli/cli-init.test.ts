@@ -11,7 +11,7 @@ import {
   parseJsoncObject
 } from "./test-support/cli-test-helpers.js";
 
-test("CLI init creates the default vNext starter and build emits the primary viewer graphs", async () => {
+test("CLI init creates the default domain model starter and build emits the primary viewer graphs", async () => {
   const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-init-"));
 
   try {
@@ -39,7 +39,7 @@ test("CLI init creates the default vNext starter and build emits the primary vie
 
     assert.equal(bundle.version, 3);
     assert.equal(viewer.viewerVersion, 1);
-    assert.equal(bundle.id, "approval-flow-vnext");
+    assert.equal(bundle.id, "approval-flow");
     assert.deepEqual(
       viewer.views.slice(0, 4).map((view) => view.id),
       ["context-map", "scenario-story", "message-flow", "lifecycle"]
@@ -175,7 +175,7 @@ test("CLI init skips overlapping existing YAML schema globs", async () => {
       JSON.stringify(
         {
           "yaml.schemas": {
-            "https://example.com/custom-domain.schema.json": ["**/canonical-vnext/**/*.yaml"]
+            "https://example.com/custom-domain.schema.json": ["**/domain-model/**/*.yaml"]
           }
         },
         null,
@@ -190,7 +190,7 @@ test("CLI init skips overlapping existing YAML schema globs", async () => {
     const yamlSchemas = normalizeYamlSchemaMappings(settings["yaml.schemas"]);
 
     assert.deepEqual(yamlSchemas["https://example.com/custom-domain.schema.json"], [
-      "**/canonical-vnext/**/*.yaml"
+      "**/domain-model/**/*.yaml"
     ]);
     await assertGeneratedVsCodeWorkspaceConfig({
       rootPath: tempDir,
@@ -210,20 +210,20 @@ test("CLI init skips overlapping existing YAML schema globs", async () => {
   }
 });
 
-test("CLI init refuses to overwrite an existing canonical index", async () => {
+test("CLI init refuses to overwrite an existing domain model index", async () => {
   const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-init-existing-"));
-  const entryPath = join(tempDir, "ddd-spec", "canonical-vnext", "index.yaml");
+  const entryPath = join(tempDir, "domain-model", "index.yaml");
   const existingSource = "version: 3\n";
 
   try {
-    await mkdir(join(tempDir, "ddd-spec", "canonical-vnext"), { recursive: true });
+    await mkdir(join(tempDir, "domain-model"), { recursive: true });
     await writeFile(entryPath, existingSource, "utf8");
 
     await assert.rejects(
       runCliCommand(["init"], { cwd: tempDir }),
       (error: unknown) =>
         error instanceof Error &&
-        error.message.includes("Refusing to overwrite existing canonical entry") &&
+        error.message.includes("Refusing to overwrite existing domain model entry") &&
         error.message.includes(entryPath)
     );
 

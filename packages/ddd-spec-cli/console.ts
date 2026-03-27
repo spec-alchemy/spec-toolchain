@@ -34,11 +34,11 @@ export function buildUsageText(): string {
     "",
     "After install, start here:",
     "  ddd-spec init",
-    "  edit ddd-spec/canonical-vnext/",
+    "  edit domain-model/",
     "  ddd-spec dev",
     "",
     "Why this path:",
-    "  init scaffolds a vNext starter with context, scenario, message, and lifecycle seams",
+    "  init scaffolds a domain model starter with context, scenario, message, and lifecycle seams",
     "  dev validates, builds, opens the packaged viewer, and rebuilds on save",
     "",
     "Alternative step-by-step flow:",
@@ -47,13 +47,13 @@ export function buildUsageText(): string {
     "  ddd-spec viewer -- --port 4173",
     "",
     "Zero-config defaults:",
-    "  Reads ddd-spec/canonical-vnext/index.yaml from the current workspace",
+    "  Reads domain-model/index.yaml from the current workspace",
     "  Writes bundle, analysis, and viewer outputs into .ddd-spec/",
-    "  Keeps TypeScript generation out of the default vNext path",
+    "  Keeps TypeScript generation out of the default path",
     "",
     "Advanced config:",
     "  Use --config <path> to load a version: 1 DDD spec config file",
-    "  plain init scaffolds ddd-spec/canonical-vnext/ in the current workspace",
+    "  plain init scaffolds domain-model/ in the current workspace",
     "",
     "Commands:",
     "  init",
@@ -125,17 +125,17 @@ function buildFailureGuidance(
 
   switch (command) {
     case "validate":
-      return "Fix the reported canonical YAML or config issue, then rerun `ddd-spec validate`. After it passes, use `ddd-spec dev` for the watch loop.";
+      return "Fix the reported domain model or config issue, then rerun `ddd-spec validate`. After it passes, use `ddd-spec dev` for the watch loop.";
     case "build":
-      return "Fix the reported canonical, analysis, or config issue, then rerun `ddd-spec build`. For the live rebuild loop plus viewer, use `ddd-spec dev`.";
+      return "Fix the reported domain model, analysis, or config issue, then rerun `ddd-spec build`. For the live rebuild loop plus viewer, use `ddd-spec dev`.";
     case "viewer":
       return "Fix the reported build or viewer issue, then rerun `ddd-spec viewer`. If the port is busy, retry with `ddd-spec viewer -- --port 0`.";
     case "dev":
       return "Fix the reported build or viewer issue, then rerun `ddd-spec dev`. If browser launch is a problem, use `ddd-spec dev -- --no-open`; if the port is busy, use `ddd-spec dev -- --port 0`.";
     case "generate-viewer":
-      return "Fix the reported canonical, analysis, or config issue, then rerun `ddd-spec generate viewer`.";
+      return "Fix the reported domain model, analysis, or config issue, then rerun `ddd-spec generate viewer`.";
     case "generate-typescript":
-      return "Fix the reported canonical or config issue, then rerun `ddd-spec generate typescript`.";
+      return "Fix the reported domain model or config issue, then rerun `ddd-spec generate typescript`.";
     default:
       return "Run `ddd-spec --help` to see the supported commands and the zero-config init -> dev workflow.";
   }

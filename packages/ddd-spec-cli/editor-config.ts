@@ -32,6 +32,7 @@ const JSONC_FORMATTING: FormattingOptions = {
 const SCHEMA_DIR_PATH = fileURLToPath(new URL("../ddd-spec-core/schema", import.meta.url));
 const WORKSPACE_SCHEMA_DIR = [".vscode", "ddd-spec", "schema"] as const;
 const YAML_EXTENSION_RECOMMENDATION = "redhat.vscode-yaml";
+const DEFAULT_MODEL_DIR = "domain-model";
 const SCHEMA_FILE_NAMES = [
   "vnext/canonical-index.schema.json",
   "vnext/context.schema.json",
@@ -46,35 +47,35 @@ const SCHEMA_FILE_NAMES = [
 const SCHEMA_MAPPINGS = [
   {
     schemaFile: "vnext/canonical-index.schema.json",
-    globs: ["**/canonical-vnext/index.yaml"]
+    globs: [`**/${DEFAULT_MODEL_DIR}/index.yaml`]
   },
   {
     schemaFile: "vnext/context.schema.json",
-    globs: ["**/canonical-vnext/contexts/*.context.yaml"]
+    globs: [`**/${DEFAULT_MODEL_DIR}/contexts/*.context.yaml`]
   },
   {
     schemaFile: "vnext/actor.schema.json",
-    globs: ["**/canonical-vnext/actors/*.actor.yaml"]
+    globs: [`**/${DEFAULT_MODEL_DIR}/actors/*.actor.yaml`]
   },
   {
     schemaFile: "vnext/system.schema.json",
-    globs: ["**/canonical-vnext/systems/*.system.yaml"]
+    globs: [`**/${DEFAULT_MODEL_DIR}/systems/*.system.yaml`]
   },
   {
     schemaFile: "vnext/scenario.schema.json",
-    globs: ["**/canonical-vnext/scenarios/*.scenario.yaml"]
+    globs: [`**/${DEFAULT_MODEL_DIR}/scenarios/*.scenario.yaml`]
   },
   {
     schemaFile: "vnext/message.schema.json",
-    globs: ["**/canonical-vnext/messages/*.message.yaml"]
+    globs: [`**/${DEFAULT_MODEL_DIR}/messages/*.message.yaml`]
   },
   {
     schemaFile: "vnext/aggregate.schema.json",
-    globs: ["**/canonical-vnext/aggregates/*.aggregate.yaml"]
+    globs: [`**/${DEFAULT_MODEL_DIR}/aggregates/*.aggregate.yaml`]
   },
   {
     schemaFile: "vnext/policy.schema.json",
-    globs: ["**/canonical-vnext/policies/*.policy.yaml"]
+    globs: [`**/${DEFAULT_MODEL_DIR}/policies/*.policy.yaml`]
   }
 ] as const;
 
@@ -86,7 +87,7 @@ export async function ensureVsCodeWorkspaceConfig(
   const extensionsPath = resolve(rootPath, ".vscode", "extensions.json");
   const warnings: string[] = [];
   const schemaAssetsStatus = await ensureWorkspaceSchemaAssets(schemaDirPath);
-  const workspaceCanonicalFilePaths = await collectWorkspaceCanonicalFilePaths(rootPath);
+  const workspaceModelFilePaths = await collectWorkspaceModelFilePaths(rootPath);
   const desiredMappings = SCHEMA_MAPPINGS.map((mapping) => {
     const workspaceSchemaPath = toWorkspaceRelativePath(
       rootPath,
@@ -96,7 +97,7 @@ export async function ensureVsCodeWorkspaceConfig(
     return {
       schemaPath: workspaceSchemaPath,
       globs: [...mapping.globs],
-      workspaceTargetPaths: workspaceCanonicalFilePaths.filter((workspaceFilePath) =>
+      workspaceTargetPaths: workspaceModelFilePaths.filter((workspaceFilePath) =>
         matchesAnyGlob(mapping.globs, workspaceFilePath)
       )
     };
@@ -503,10 +504,8 @@ function combineStatuses(
   return "unchanged";
 }
 
-async function collectWorkspaceCanonicalFilePaths(rootPath: string): Promise<string[]> {
-  const absolutePaths = await listFilesRecursively(
-    resolve(rootPath, "ddd-spec", "canonical-vnext")
-  );
+async function collectWorkspaceModelFilePaths(rootPath: string): Promise<string[]> {
+  const absolutePaths = await listFilesRecursively(resolve(rootPath, DEFAULT_MODEL_DIR));
 
   return absolutePaths.map((absolutePath) => toWorkspaceMatchPath(rootPath, absolutePath));
 }

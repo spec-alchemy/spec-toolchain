@@ -16,7 +16,7 @@ import {
   copyVnextCanonicalToZeroConfigRoot,
   countMatches
 } from "./test-support/cli-test-helpers.js";
-test("zero-config mode resolves canonical-vnext and disables TypeScript by default", async () => {
+test("zero-config mode resolves domain-model and disables TypeScript by default", async () => {
   const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-zero-config-vnext-resolve-"));
 
   try {
@@ -29,7 +29,7 @@ test("zero-config mode resolves canonical-vnext and disables TypeScript by defau
     assert.equal(config.mode, "zero-config");
     assert.equal(config.configPath, undefined);
     assert.equal(config.sourceDescription, "zero-config defaults");
-    assert.equal(config.spec.entryPath, join(tempDir, "ddd-spec", "canonical-vnext", "index.yaml"));
+    assert.equal(config.spec.entryPath, join(tempDir, "domain-model", "index.yaml"));
     assert.equal(config.schema.path, DEFAULT_VNEXT_SCHEMA_PATH);
     assert.equal(config.outputs.rootDirPath, join(tempDir, ".ddd-spec", "artifacts"));
     assert.equal(config.outputs.bundlePath, join(tempDir, ".ddd-spec", "artifacts", "business-spec.json"));
@@ -49,7 +49,7 @@ test("zero-config mode resolves canonical-vnext and disables TypeScript by defau
   }
 });
 
-test("zero-config validate shows an init hint when the canonical entry is missing", async () => {
+test("zero-config validate shows an init hint when the domain model entry is missing", async () => {
   const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-zero-config-missing-"));
 
   try {
@@ -58,14 +58,14 @@ test("zero-config validate shows an init hint when the canonical entry is missin
       (error: unknown) =>
         error instanceof Error &&
         error.message.includes("Run `ddd-spec init`") &&
-        error.message.includes(join(tempDir, "ddd-spec", "canonical-vnext", "index.yaml"))
+        error.message.includes(join(tempDir, "domain-model", "index.yaml"))
     );
   } finally {
     await rm(tempDir, { recursive: true, force: true });
   }
 });
 
-test("zero-config dev shows an init hint when the canonical entry is missing", async () => {
+test("zero-config dev shows an init hint when the domain model entry is missing", async () => {
   const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-zero-config-missing-dev-"));
 
   try {
@@ -74,7 +74,7 @@ test("zero-config dev shows an init hint when the canonical entry is missing", a
       (error: unknown) =>
         error instanceof Error &&
         error.message.includes("Run `ddd-spec init`") &&
-        error.message.includes(join(tempDir, "ddd-spec", "canonical-vnext", "index.yaml"))
+        error.message.includes(join(tempDir, "domain-model", "index.yaml"))
     );
   } finally {
     await rm(tempDir, { recursive: true, force: true });
@@ -159,14 +159,15 @@ test("CLI help lists the primary commands and entry points", () => {
   assert.match(usageText, /\n  dev \[--config <path>\] \[-- <viewer-args\.\.\.>\]\n/);
   assert.match(usageText, /\n  generate-viewer \[--config <path>\]\n/);
   assert.match(usageText, /generate-typescript \[--config <path>\]$/);
-  assert.match(usageText, /ddd-spec\/canonical-vnext/);
+  assert.match(usageText, /domain-model/);
+  assert.doesNotMatch(usageText, /canonical-vnext/);
   assert.doesNotMatch(usageText, /template/);
   assert.doesNotMatch(usageText, /\n  generate viewer\n/);
   assert.doesNotMatch(usageText, /\n  generate typescript\n/);
 });
 
 test("CLI failure output keeps command-specific recovery hints", () => {
-  const validateOutput = formatCliFailureOutput(["validate"], new Error("invalid canonical YAML"));
+  const validateOutput = formatCliFailureOutput(["validate"], new Error("invalid domain model"));
   const viewerOutput = formatCliFailureOutput(
     ["viewer", "--", "--port", "nope"],
     new Error("Viewer port must be an integer between 0 and 65535; received nope")
@@ -187,7 +188,7 @@ test("CLI failure output preserves an existing init hint without duplicating gui
   const output = formatCliFailureOutput(
     ["validate"],
     new Error(
-      "No canonical spec found at /tmp/example/ddd-spec/canonical-vnext/index.yaml. Run `ddd-spec init` to create ddd-spec/canonical-vnext/index.yaml before running this command."
+      "No domain model found at /tmp/example/domain-model/index.yaml. Run `ddd-spec init` to create domain-model/index.yaml before running this command."
     )
   );
 

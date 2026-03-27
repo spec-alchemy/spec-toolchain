@@ -22,28 +22,28 @@
       "**/canonical/vocabulary/*.yaml"
     ],
     "./.vscode/ddd-spec/schema/vnext/canonical-index.schema.json": [
-      "**/canonical-vnext/index.yaml"
+      "**/domain-model/index.yaml"
     ],
     "./.vscode/ddd-spec/schema/vnext/context.schema.json": [
-      "**/canonical-vnext/contexts/*.context.yaml"
+      "**/domain-model/contexts/*.context.yaml"
     ],
     "./.vscode/ddd-spec/schema/vnext/actor.schema.json": [
-      "**/canonical-vnext/actors/*.actor.yaml"
+      "**/domain-model/actors/*.actor.yaml"
     ],
     "./.vscode/ddd-spec/schema/vnext/system.schema.json": [
-      "**/canonical-vnext/systems/*.system.yaml"
+      "**/domain-model/systems/*.system.yaml"
     ],
     "./.vscode/ddd-spec/schema/vnext/scenario.schema.json": [
-      "**/canonical-vnext/scenarios/*.scenario.yaml"
+      "**/domain-model/scenarios/*.scenario.yaml"
     ],
     "./.vscode/ddd-spec/schema/vnext/message.schema.json": [
-      "**/canonical-vnext/messages/*.message.yaml"
+      "**/domain-model/messages/*.message.yaml"
     ],
     "./.vscode/ddd-spec/schema/vnext/aggregate.schema.json": [
-      "**/canonical-vnext/aggregates/*.aggregate.yaml"
+      "**/domain-model/aggregates/*.aggregate.yaml"
     ],
     "./.vscode/ddd-spec/schema/vnext/policy.schema.json": [
-      "**/canonical-vnext/policies/*.policy.yaml"
+      "**/domain-model/policies/*.policy.yaml"
     ]
   }
 }
