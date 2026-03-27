@@ -80,6 +80,11 @@ model:
 | `aggregates/` | 声明生命周期复杂度 | `context`、`states`、`initialState`、`transitions` |
 | `policies/` | 声明跨步骤或跨边界协调逻辑 | `triggerMessages` |
 
+补充约束：
+
+- 只有明确声明 `lifecycleComplexity: true` 的 aggregate，才应该进入 `Lifecycle` 主视图。
+- 未声明 `lifecycleComplexity` 的 aggregate 仍可存在于 model 中，并继续参与 context、scenario、message 等其它视图。
+
 ## 6. Repo 内的最小样例
 
 当前 repo 用以下路径承载最小 vNext canonical 结构：

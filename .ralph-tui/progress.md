@@ -13,7 +13,31 @@ after each iteration and it's included in prompts for context.
 - For vNext CLI/schema gates, validate raw `canonical-vnext` index plus collection files against the vNext schema set; do not validate the loaded `VnextBusinessSpec` bundle against legacy `canonical-index.schema.json`.
 - When vNext validation needs to feed later IR or CLI layers, collect structured diagnostics (`code`, `path`, `message`) first and layer the throwing validator on top, rather than forcing downstream code to parse error strings.
 - For vNext modeling, keep one analysis layer as the source of truth for normalization, view projections, and diagnostics; compatibility wrappers such as `vnext-semantic-validation.ts` should delegate instead of re-encoding rules.
+- For vNext lifecycle work, keep all aggregates in the shared analysis IR and filter lifecycle-only visibility in `projectVnextLifecycle()` via explicit aggregate metadata such as `lifecycleComplexity`, so context/message views retain full aggregate coverage.
 
+---
+
+## 2026-03-27 - knowledge-alchemy-app-v2-efp
+- Implemented explicit vNext `lifecycleComplexity` declarations on aggregates, filtered `projectVnextLifecycle()` and the vNext lifecycle viewer to show only declared-complexity aggregates, and kept the shared analysis IR available for the other views.
+- Added unreachable-state diagnostics, preserved illegal-transition validation, exposed owning context on lifecycle state/transition inspector details, and updated vNext examples plus schema/tests to lock the behavior.
+- Files changed:
+  - `packages/ddd-spec-core/spec.ts`
+  - `packages/ddd-spec-core/schema/vnext/aggregate.schema.json`
+  - `packages/ddd-spec-core/vnext-analysis.ts`
+  - `packages/ddd-spec-core/vnext-loader.test.ts`
+  - `packages/ddd-spec-core/validation.test.ts`
+  - `packages/ddd-spec-projection-viewer/vnext.ts`
+  - `packages/ddd-spec-projection-viewer/index.test.ts`
+  - `apps/ddd-spec-viewer/test/inspect-selection.test.ts`
+  - `examples/vnext-minimal/canonical-vnext/aggregates/approval-request.aggregate.yaml`
+  - `examples/vnext-cross-context/canonical-vnext/aggregates/order.aggregate.yaml`
+  - `docs/ddd-spec/vnext-canonical-schema.md`
+  - `.ralph-tui/progress.md`
+- **Learnings:**
+  - Patterns discovered
+    - Lifecycle visibility belongs at the vNext projection seam, not in the shared IR shape; explicit aggregate metadata keeps the lifecycle view focused without erasing aggregate data from context or message projections.
+  - Gotchas encountered
+    - Headless Chrome launch was blocked by the current sandbox, so the practical fallback was to rely on packaged viewer path tests plus viewer inspector UI tests after confirming the packaged `viewer` command still served the vNext example correctly.
 ---
 
 ## 2026-03-27 - knowledge-alchemy-app-v2-jq7

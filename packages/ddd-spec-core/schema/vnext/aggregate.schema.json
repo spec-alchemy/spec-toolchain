@@ -30,6 +30,9 @@
     "context": {
       "$ref": "shared.schema.json#/$defs/identifier"
     },
+    "lifecycleComplexity": {
+      "type": "boolean"
+    },
     "states": {
       "$ref": "shared.schema.json#/$defs/identifierArray"
     },

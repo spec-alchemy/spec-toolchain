@@ -57,6 +57,7 @@ test("vnext loader reads the minimal canonical into first-class vnext fields", a
     spec.aggregates[0].transitions.map((transition) => transition.onMessage),
     ["submit-approval-request", "approve-request"]
   );
+  assert.equal(spec.aggregates[0]?.lifecycleComplexity, true);
   assert.deepEqual(
     spec.policies[0].triggerMessages,
     ["approval-request-approved"]
@@ -198,6 +199,7 @@ test("vnext analysis IR exposes unified primary-view projections and policy coor
     ["system:notification-hub"]
   );
   assert.equal(notificationMessage.crossesContextBoundary, false);
+  assert.equal(approvalLifecycle.lifecycleComplexity, true);
   assert.equal(approvalLifecycle.initialState, "draft");
   assert.deepEqual(
     approvalLifecycle.reachableStateIds,
@@ -267,6 +269,14 @@ test("vnext cross-context example exposes command, event, and query message flow
   );
 
   assert.deepEqual(analysis.diagnostics, []);
+  assert.deepEqual(
+    analysis.ir.aggregateLifecycles.map((aggregate) => aggregate.id),
+    ["order", "payment"]
+  );
+  assert.deepEqual(
+    lifecycle.map((aggregate) => aggregate.id),
+    ["order"]
+  );
   assert.deepEqual(settlementScenario.participatingContextIds, ["orders", "payments"]);
   assert.deepEqual(settlementScenario.entryStepIds, ["capture-order"]);
   assert.deepEqual(settlementScenario.finalStepIds, ["order-confirmed"]);
@@ -289,6 +299,7 @@ test("vnext cross-context example exposes command, event, and query message flow
     ledgerStatusFetched.stepLinks.map((link) => `${link.direction}:${link.scenarioId}.${link.stepId}`),
     ["incoming:order-settlement-flow.order-confirmed"]
   );
+  assert.equal(orderLifecycle.lifecycleComplexity, true);
   assert.deepEqual(orderLifecycle.acceptedMessageIds, ["submit-order", "ledger-status-fetched"]);
   assert.deepEqual(orderLifecycle.reachableStateIds, ["draft", "submitted", "confirmed"]);
 });
@@ -419,6 +430,66 @@ test("vnext semantic validation rejects broken aggregate lifecycle triggers", as
       validateBusinessSpecSemantics(spec);
     },
     /Message submit-approval-request consumer aggregate missing-aggregate must reference existing aggregate/
+  );
+});
+
+test("vnext semantic validation rejects unreachable aggregate states", async () => {
+  const spec = cloneVnextBusinessSpec(await loadVnextMinimalFixture());
+  const aggregates = asMutableArray(spec.aggregates);
+
+  aggregates[0] = {
+    ...aggregates[0],
+    states: [...aggregates[0].states, "abandoned"]
+  };
+
+  const result = analyzeVnextBusinessSpecSemantics(spec);
+
+  assert.ok(
+    result.diagnostics.some(
+      (diagnostic) =>
+        diagnostic.code === "aggregate-state-unreachable" &&
+        diagnostic.path === "/aggregates/approval-request/states/abandoned"
+    )
+  );
+
+  assert.throws(
+    () => {
+      validateBusinessSpecSemantics(spec);
+    },
+    /state abandoned is unreachable from initialState draft/
+  );
+});
+
+test("vnext semantic validation rejects aggregate transitions that target unknown states", async () => {
+  const spec = cloneVnextBusinessSpec(await loadVnextMinimalFixture());
+  const aggregates = asMutableArray(spec.aggregates);
+  const approvalRequestAggregate = aggregates.find(
+    (aggregate) => aggregate.id === "approval-request"
+  );
+
+  assert.ok(approvalRequestAggregate);
+  const transitions = asMutableArray(approvalRequestAggregate.transitions);
+
+  transitions[1] = {
+    ...transitions[1],
+    to: "missing-state"
+  };
+
+  const result = analyzeVnextBusinessSpecSemantics(spec);
+
+  assert.ok(
+    result.diagnostics.some(
+      (diagnostic) =>
+        diagnostic.code === "aggregate-transition-state-invalid" &&
+        diagnostic.path === "/aggregates/approval-request/transitions/approve-request/to"
+    )
+  );
+
+  assert.throws(
+    () => {
+      validateBusinessSpecSemantics(spec);
+    },
+    /transition approve-request to missing-state must belong to states/
   );
 });
 

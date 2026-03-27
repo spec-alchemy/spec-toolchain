@@ -3,6 +3,7 @@ id: order
 title: Order
 summary: Tracks the customer order from draft capture to final confirmation.
 context: orders
+lifecycleComplexity: true
 states:
   - draft
   - submitted

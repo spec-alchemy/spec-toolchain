@@ -13,6 +13,7 @@ import type {
   VnextScenarioStep,
   VnextSystemParticipant
 } from "../ddd-spec-core/index.js";
+import { projectVnextLifecycle } from "../ddd-spec-core/index.js";
 import type {
   BusinessViewerSpec,
   ViewerDetailItem,
@@ -986,12 +987,13 @@ function buildLifecycleView(
 ): ViewerViewSpec {
   const nodes: ViewerNodeSpec[] = [];
   const edges: ViewerViewSpec["edges"][number][] = [];
+  const lifecycleAggregates = projectVnextLifecycle(analysis.ir);
 
-  for (const aggregate of analysis.ir.aggregateLifecycles) {
+  for (const aggregate of lifecycleAggregates) {
     const groupBox = measureGroupNodeBox(
       DIMENSIONS.aggregateGroup,
       aggregate.title,
-      aggregate.id,
+      `${aggregate.id} | ${aggregate.contextId}`,
       `initial: ${aggregate.initialState}`
     );
 
@@ -999,7 +1001,7 @@ function buildLifecycleView(
       id: toLifecycleAggregateId(aggregate.id),
       kind: "aggregate",
       label: aggregate.title,
-      subtitle: aggregate.id,
+      subtitle: `${aggregate.id} | ${aggregate.contextId}`,
       summary: `initial: ${aggregate.initialState}`,
       ...groupBox,
       details: buildAggregateDetails(aggregate)
@@ -1026,6 +1028,7 @@ function buildLifecycleView(
         ...stateBox,
         details: [
           detail("aggregate.id", aggregate.id),
+          detail("aggregate.context", aggregate.contextId),
           detail("aggregate.state.id", state.id),
           detail("aggregate.state.reachable", state.reachableFromInitial ? "yes" : "no"),
           detail("aggregate.state.outgoing_messages", formatTextList(unique(emittedMessageIds)))
@@ -1233,6 +1236,7 @@ function toLifecycleTransitionEdge(
     label: edgeLabel,
     details: [
       detail("aggregate.id", aggregate.id),
+      detail("aggregate.context", aggregate.contextId),
       detail("relation.from", transition.fromStateId),
       detail("relation.to", transition.toStateId),
       detail("transition.trigger_message", transition.onMessageId),

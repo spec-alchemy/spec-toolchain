@@ -304,6 +304,7 @@ export interface VnextAggregateSpec {
   title: string;
   summary: string;
   context: string;
+  lifecycleComplexity?: boolean;
   states: readonly string[];
   initialState: string;
   transitions: readonly VnextAggregateTransitionSpec[];

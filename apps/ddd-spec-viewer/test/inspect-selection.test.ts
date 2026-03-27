@@ -230,6 +230,36 @@ test("relation selections hide redundant label and kind details", () => {
   );
 });
 
+test("lifecycle edge selections keep aggregate ownership and trigger details", () => {
+  const edgeSelection = selectionFromEdgeData({
+    kind: "state-transition",
+    label: "ledger-status-fetched",
+    details: [
+      { semanticKey: "relation.kind", label: "Relation Type", value: textDetailValue("state-transition") },
+      { semanticKey: "aggregate.id", label: "Aggregate", value: textDetailValue("order") },
+      { semanticKey: "aggregate.context", label: "Context", value: textDetailValue("orders") },
+      { semanticKey: "relation.from", label: "From", value: textDetailValue("submitted") },
+      { semanticKey: "relation.to", label: "To", value: textDetailValue("confirmed") },
+      {
+        semanticKey: "transition.trigger_message",
+        label: "Trigger message",
+        value: textDetailValue("ledger-status-fetched")
+      }
+    ]
+  });
+
+  assert.deepEqual(
+    edgeSelection.details.map((item) => item.semanticKey),
+    [
+      "aggregate.id",
+      "aggregate.context",
+      "relation.from",
+      "relation.to",
+      "transition.trigger_message"
+    ]
+  );
+});
+
 test("detail renderer recursively renders structured field sections", () => {
   const markup = renderToStaticMarkup(
     createElement(DetailValueRenderer, {

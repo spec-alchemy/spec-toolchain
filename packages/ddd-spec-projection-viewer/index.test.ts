@@ -317,6 +317,13 @@ test("vNext viewer projection renders cross-context message flow and query detai
       node.kind === "aggregate" &&
       getTextDetailValue(node.details, "aggregate.id") === "order"
   );
+  const submittedStateNode = mustFind(
+    lifecycleView.nodes,
+    (node) =>
+      node.kind === "lifecycle-state" &&
+      getTextDetailValue(node.details, "aggregate.id") === "order" &&
+      getTextDetailValue(node.details, "aggregate.state.id") === "submitted"
+  );
   const confirmTransitionEdge = mustFind(
     lifecycleView.edges,
     (edge) =>
@@ -342,11 +349,23 @@ test("vNext viewer projection renders cross-context message flow and query detai
     "message-flow:scenario:order-settlement-flow:step:reconcile-order"
   );
   assert.equal(crossContextScenarioEdge.label, "payment-authorized");
+  assert.equal(orderAggregateNode.subtitle, "order | orders");
+  assert.equal(getTextDetailValue(orderAggregateNode.details, "aggregate.context"), "orders");
   assert.deepEqual(
     getTextListDetailValues(orderAggregateNode.details, "aggregate.accepted_messages"),
     ["submit-order", "ledger-status-fetched"]
   );
+  assert.equal(getTextDetailValue(submittedStateNode.details, "aggregate.context"), "orders");
+  assert.equal(getTextDetailValue(confirmTransitionEdge.details, "aggregate.context"), "orders");
   assert.equal(getTextDetailValue(confirmTransitionEdge.details, "relation.to"), "confirmed");
+  assert.equal(
+    lifecycleView.nodes.some(
+      (node) =>
+        node.kind === "aggregate" &&
+        getTextDetailValue(node.details, "aggregate.id") === "payment"
+    ),
+    false
+  );
 });
 
 function mustFind<Value>(

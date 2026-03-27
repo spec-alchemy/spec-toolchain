@@ -39,6 +39,7 @@ export const VNEXT_ANALYSIS_DIAGNOSTIC_CODES = [
   "scenario-message-link-broken",
   "ambiguous-message-ownership",
   "aggregate-initial-state-invalid",
+  "aggregate-state-unreachable",
   "aggregate-transition-state-invalid",
   "aggregate-transition-trigger-missing",
   "aggregate-transition-trigger-consumer-mismatch",
@@ -230,6 +231,7 @@ export interface VnextAggregateLifecycle {
   title: string;
   summary: string;
   contextId: string;
+  lifecycleComplexity: boolean;
   initialState: string;
   states: readonly VnextLifecycleState[];
   transitions: readonly VnextLifecycleTransition[];
@@ -452,7 +454,7 @@ export function projectVnextMessageFlow(
 export function projectVnextLifecycle(
   ir: VnextAnalysisIR
 ): readonly VnextAggregateLifecycle[] {
-  return ir.aggregateLifecycles;
+  return ir.aggregateLifecycles.filter((aggregate) => aggregate.lifecycleComplexity);
 }
 
 export function projectVnextPolicyCoordination(
@@ -794,6 +796,7 @@ function buildAggregateLifecycles(
       title: aggregate.title,
       summary: aggregate.summary,
       contextId: aggregate.context,
+      lifecycleComplexity: aggregate.lifecycleComplexity === true,
       initialState: aggregate.initialState,
       states: aggregate.states.map((stateId) => ({
         id: stateId,
@@ -1275,7 +1278,11 @@ function validateAggregateLifecycle(
     collector
   );
 
-  if (!aggregate.states.some((state) => state.id === aggregate.initialState)) {
+  const hasValidInitialState = aggregate.states.some(
+    (state) => state.id === aggregate.initialState
+  );
+
+  if (!hasValidInitialState) {
     collector.push({
       severity: "error",
       code: "aggregate-initial-state-invalid",
@@ -1286,6 +1293,21 @@ function validateAggregateLifecycle(
 
   const transitionIds = new Set<string>();
   const stateIds = new Set(aggregate.states.map((state) => state.id));
+
+  if (hasValidInitialState) {
+    for (const state of aggregate.states) {
+      if (state.reachableFromInitial) {
+        continue;
+      }
+
+      collector.push({
+        severity: "error",
+        code: "aggregate-state-unreachable",
+        path: state.path,
+        message: `Aggregate ${aggregate.id} state ${state.id} is unreachable from initialState ${aggregate.initialState}`
+      });
+    }
+  }
 
   for (const transition of aggregate.transitions) {
     if (transitionIds.has(transition.id)) {

@@ -3,6 +3,7 @@ id: approval-request
 title: Approval Request
 summary: Controls the approval lifecycle from draft through submitted to approved.
 context: approvals
+lifecycleComplexity: true
 states:
   - draft
   - submitted

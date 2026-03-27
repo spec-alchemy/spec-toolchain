@@ -373,6 +373,62 @@ test("standalone vnext canonical index schema rejects legacy domain keys", async
   );
 });
 
+test("standalone vnext aggregate schema accepts explicit lifecycle complexity declarations", async () => {
+  const validate = await createVnextSchemaValidator("aggregate.schema.json");
+  const aggregateSpec = {
+    kind: "aggregate",
+    id: "order",
+    title: "Order",
+    summary: "Tracks order state transitions that deserve a dedicated lifecycle view.",
+    context: "orders",
+    lifecycleComplexity: true,
+    states: ["draft", "submitted", "confirmed"],
+    initialState: "draft",
+    transitions: [
+      {
+        id: "submit-order",
+        from: "draft",
+        to: "submitted",
+        onMessage: "submit-order"
+      }
+    ]
+  };
+
+  assertSchemaValidationPasses(validate, aggregateSpec);
+});
+
+test("standalone vnext aggregate schema rejects non-boolean lifecycle complexity markers", async () => {
+  const validate = await createVnextSchemaValidator("aggregate.schema.json");
+  const aggregateSpec = {
+    kind: "aggregate",
+    id: "order",
+    title: "Order",
+    summary: "Tracks order state transitions that deserve a dedicated lifecycle view.",
+    context: "orders",
+    lifecycleComplexity: "high",
+    states: ["draft", "submitted"],
+    initialState: "draft",
+    transitions: [
+      {
+        id: "submit-order",
+        from: "draft",
+        to: "submitted",
+        onMessage: "submit-order"
+      }
+    ]
+  };
+
+  const errors = assertSchemaValidationFails(validate, aggregateSpec);
+
+  assert.ok(
+    errors.some(
+      (error) =>
+        error.instancePath === "/lifecycleComplexity" &&
+        error.keyword === "type"
+    )
+  );
+});
+
 test("minimal vnext canonical example validates against v3 schemas", async () => {
   const index = await loadYamlFile<VnextCanonicalIndexSpec>(
     join(VNEXT_EXAMPLE_ROOT_PATH, "index.yaml")
