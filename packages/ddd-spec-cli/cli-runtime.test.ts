@@ -76,12 +76,31 @@ test("CLI build syncs viewer spec to configured sync targets", async () => {
 
     const builtViewerSpec = JSON.parse(
       await readFile(join(tempDir, "artifacts", "business-viewer", "viewer-spec.json"), "utf8")
-    );
+    ) as BusinessViewerSpec;
+    const builtEnglishViewerSpec = JSON.parse(
+      await readFile(join(tempDir, "artifacts", "business-viewer", "viewer-spec.en.json"), "utf8")
+    ) as BusinessViewerSpec;
+    const builtChineseViewerSpec = JSON.parse(
+      await readFile(join(tempDir, "artifacts", "business-viewer", "viewer-spec.zh-CN.json"), "utf8")
+    ) as BusinessViewerSpec;
     const syncedViewerSpec = JSON.parse(
       await readFile(join(tempDir, "app", "public", "generated", "viewer-spec.json"), "utf8")
-    );
+    ) as BusinessViewerSpec;
+    const syncedEnglishViewerSpec = JSON.parse(
+      await readFile(join(tempDir, "app", "public", "generated", "viewer-spec.en.json"), "utf8")
+    ) as BusinessViewerSpec;
+    const syncedChineseViewerSpec = JSON.parse(
+      await readFile(join(tempDir, "app", "public", "generated", "viewer-spec.zh-CN.json"), "utf8")
+    ) as BusinessViewerSpec;
 
+    assert.deepEqual(builtViewerSpec, builtEnglishViewerSpec);
     assert.deepEqual(syncedViewerSpec, builtViewerSpec);
+    assert.deepEqual(syncedEnglishViewerSpec, builtEnglishViewerSpec);
+    assert.deepEqual(syncedChineseViewerSpec, builtChineseViewerSpec);
+    assert.notEqual(
+      builtChineseViewerSpec.detailHelp.semantic["context.id"],
+      builtEnglishViewerSpec.detailHelp.semantic["context.id"]
+    );
   } finally {
     await rm(tempDir, { recursive: true, force: true });
   }
@@ -141,11 +160,21 @@ test("CLI validate and build succeed in zero-config mode with the reset domain m
     const viewer = JSON.parse(
       await readFile(join(tempDir, ".ddd-spec", "artifacts", "viewer-spec.json"), "utf8")
     ) as BusinessViewerSpec;
+    const englishViewer = JSON.parse(
+      await readFile(join(tempDir, ".ddd-spec", "artifacts", "viewer-spec.en.json"), "utf8")
+    ) as BusinessViewerSpec;
+    const chineseViewer = JSON.parse(
+      await readFile(join(tempDir, ".ddd-spec", "artifacts", "viewer-spec.zh-CN.json"), "utf8")
+    ) as BusinessViewerSpec;
 
     assert.equal(bundle.version, 1);
     assert.equal(viewer.viewerVersion, 1);
+    assert.equal(chineseViewer.viewerVersion, 1);
     assert.equal(bundle.id, "approval-flow");
     assert.equal(analysis.summary.errorCount, 0);
+    assert.deepEqual(viewer, englishViewer);
+    assert.equal(chineseViewer.title, viewer.title);
+    assert.notEqual(chineseViewer.views[0]?.title, viewer.views[0]?.title);
     assertPrimaryViewOrder(viewer, [
       "context-map",
       "scenario-story",
@@ -232,8 +261,17 @@ test("CLI viewer rebuilds the explicit-config viewer artifact and launches the p
     const viewer = JSON.parse(
       await readFile(join(tempDir, "artifacts", "business-viewer", "viewer-spec.json"), "utf8")
     ) as BusinessViewerSpec;
+    const englishViewer = JSON.parse(
+      await readFile(join(tempDir, "artifacts", "business-viewer", "viewer-spec.en.json"), "utf8")
+    ) as BusinessViewerSpec;
+    const chineseViewer = JSON.parse(
+      await readFile(join(tempDir, "artifacts", "business-viewer", "viewer-spec.zh-CN.json"), "utf8")
+    ) as BusinessViewerSpec;
 
     assert.equal(viewer.viewerVersion, 1);
+    assert.equal(chineseViewer.viewerVersion, 1);
+    assert.deepEqual(viewer, englishViewer);
+    assert.equal(chineseViewer.title, viewer.title);
     assertPrimaryViewOrder(viewer, [
       "context-map",
       "scenario-story",

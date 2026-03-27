@@ -18,10 +18,18 @@ import type {
   BusinessViewerSpec,
   ViewerDetailItem,
   ViewerDetailValue,
+  ViewerLocale,
   ViewerNodeSpec,
   ViewerViewSpec
 } from "../ddd-spec-viewer-contract/index.js";
-import { BUSINESS_VIEWER_SPEC_VERSION } from "../ddd-spec-viewer-contract/index.js";
+import {
+  BUSINESS_VIEWER_SPEC_VERSION,
+  DEFAULT_VIEWER_LOCALE
+} from "../ddd-spec-viewer-contract/index.js";
+import {
+  getViewerProjectionCopy,
+  type ViewerSemanticKey
+} from "./viewer-i18n.js";
 
 const DIMENSIONS = {
   contextGroup: { width: 360, minHeight: 240, charsPerLine: 32, minHeaderHeight: 120 },
@@ -37,268 +45,21 @@ const DIMENSIONS = {
   lifecycleState: { width: 180, minHeight: 96, charsPerLine: 16 }
 } as const;
 
-const VIEWER_DETAIL_SEMANTICS = {
-  "context.id": {
-    label: "Context",
-    description: "当前作为业务所有权边界展示的 bounded context。"
-  },
-  "context.owners": {
-    label: "Owners",
-    description: "对当前 context 负业务责任的团队、角色或组织。"
-  },
-  "context.responsibilities": {
-    label: "Responsibilities",
-    description: "当前 context 明确承担的业务职责集合。"
-  },
-  "context.owned_aggregates": {
-    label: "Owned aggregates",
-    description: "当前 context 边界内部建模的聚合集合。"
-  },
-  "context.scenarios": {
-    label: "Scenarios",
-    description: "当前 context 默认教学路径下的业务场景集合。"
-  },
-  "context.related_actors": {
-    label: "Actors",
-    description: "会在当前 context 边界内发起或参与步骤的 actor 集合。"
-  },
-  "context.related_systems": {
-    label: "Systems",
-    description: "当前 context 会协作、依赖或调用的系统集合。"
-  },
-  "context.relationships": {
-    label: "Relationships",
-    description: "当前 context 显式声明的外部协作或依赖关系。"
-  },
-  "actor.type": {
-    label: "Actor type",
-    description: "当前 actor 的参与者类型，例如 person、role 或 team。"
-  },
-  "actor.contexts": {
-    label: "Contexts",
-    description: "当前 actor 参与过步骤的 context 集合。"
-  },
-  "actor.scenarios": {
-    label: "Scenarios",
-    description: "当前 actor 参与过的场景集合。"
-  },
-  "actor.scenario_steps": {
-    label: "Scenario steps",
-    description: "当前 actor 在哪些场景步骤中显式参与。"
-  },
-  "system.boundary": {
-    label: "Boundary",
-    description: "当前系统属于内部能力还是外部依赖。"
-  },
-  "system.capabilities": {
-    label: "Capabilities",
-    description: "当前系统向业务建模显式提供的能力集合。"
-  },
-  "system.contexts": {
-    label: "Contexts",
-    description: "当前系统与哪些业务 context 存在依赖或消息协作。"
-  },
-  "system.dependencies": {
-    label: "Dependencies",
-    description: "当前系统被哪些 context、message 或 policy 以何种方式引用。"
-  },
-  "scenario.id": {
-    label: "Scenario",
-    description: "作为默认阅读主线的端到端业务场景。"
-  },
-  "scenario.goal": {
-    label: "Goal",
-    description: "该场景试图达成的业务目标。"
-  },
-  "scenario.owner_context": {
-    label: "Owner context",
-    description: "拥有该场景主叙事和业务责任的 context。"
-  },
-  "scenario.participating_contexts": {
-    label: "Participating contexts",
-    description: "该场景推进过程中会触达的 context 集合。"
-  },
-  "scenario.actors": {
-    label: "Actors",
-    description: "在该场景步骤中出现过的 actor 集合。"
-  },
-  "scenario.systems": {
-    label: "Systems",
-    description: "在该场景步骤中出现过的系统集合。"
-  },
-  "scenario.final_steps": {
-    label: "Final steps",
-    description: "该场景允许收束到的终局步骤集合。"
-  },
-  "step.id": {
-    label: "Step",
-    description: "场景故事中的单个业务步骤。"
-  },
-  "step.context": {
-    label: "Context",
-    description: "当前步骤所属的业务 context。"
-  },
-  "step.actor": {
-    label: "Actor",
-    description: "当前步骤由哪个 actor 发起或主导。"
-  },
-  "step.system": {
-    label: "System",
-    description: "当前步骤直接接触或调用的系统。"
-  },
-  "step.entry": {
-    label: "Entry",
-    description: "标记该步骤是否为场景入口。"
-  },
-  "step.final": {
-    label: "Final",
-    description: "标记该步骤是否为终局业务结果，而不是继续推进中的工作步骤。"
-  },
-  "step.incoming_messages": {
-    label: "Incoming messages",
-    description: "当前步骤会接收或观察的消息集合。"
-  },
-  "step.outgoing_messages": {
-    label: "Outgoing messages",
-    description: "当前步骤会发出、触发或请求的消息集合。"
-  },
-  "step.outcome": {
-    label: "Outcome",
-    description: "当场景走到终局步骤时，对业务结果的简短说明。"
-  },
-  "message.kind": {
-    label: "Message kind",
-    description: "当前消息的类别，例如 command、event 或 query。"
-  },
-  "message.type": {
-    label: "Message",
-    description: "当前视图中展示或讨论的业务消息标识。"
-  },
-  "message.channel": {
-    label: "Channel",
-    description: "当前消息预期通过 sync 或 async 方式传递。"
-  },
-  "message.endpoints": {
-    label: "Endpoints",
-    description: "当前消息的 source、target 以及它们所在的 context。"
-  },
-  "message.crosses_context_boundary": {
-    label: "Crosses context boundary",
-    description: "当前消息是否跨越多个业务 context。"
-  },
-  "message.step_links": {
-    label: "Scenario links",
-    description: "当前消息与哪些场景步骤存在 incoming 或 outgoing 绑定。"
-  },
-  "message.payload_fields": {
-    label: "Payload fields",
-    description: "当前消息契约中的 payload 字段，以及每个字段的语义说明。"
-  },
-  "aggregate.id": {
-    label: "Aggregate",
-    description: "当前节点或关系所属的聚合对象。"
-  },
-  "aggregate.context": {
-    label: "Context",
-    description: "拥有该 aggregate 生命周期的业务 context。"
-  },
-  "aggregate.initial_state": {
-    label: "Initial state",
-    description: "聚合生命周期开始时的默认状态。"
-  },
-  "aggregate.lifecycle": {
-    label: "Lifecycle",
-    description: "该聚合定义的全部生命周期状态集合。"
-  },
-  "aggregate.accepted_messages": {
-    label: "Accepted messages",
-    description: "驱动该 aggregate 生命周期转移的消息集合。"
-  },
-  "aggregate.emitted_messages": {
-    label: "Emitted messages",
-    description: "该 aggregate 在转移过程中会发出的消息集合。"
-  },
-  "aggregate.reachable_states": {
-    label: "Reachable states",
-    description: "可从初始状态通过合法转移到达的状态集合。"
-  },
-  "aggregate.unreachable_states": {
-    label: "Unreachable states",
-    description: "当前生命周期里尚不可达的状态集合。"
-  },
-  "aggregate.state.id": {
-    label: "State",
-    description: "当前聚合所处的生命周期状态。"
-  },
-  "aggregate.state.reachable": {
-    label: "Reachable",
-    description: "表示该状态是否能从初始状态通过合法转移到达。"
-  },
-  "aggregate.state.outgoing_messages": {
-    label: "Outgoing messages",
-    description: "从当前状态出发可能触发的生命周期转移所发出的消息集合。"
-  },
-  "transition.trigger_message": {
-    label: "Trigger message",
-    description: "触发当前生命周期转移的消息。"
-  },
-  "transition.emitted_messages": {
-    label: "Emitted messages",
-    description: "当前生命周期转移会额外发出的消息集合。"
-  },
-  "relation.from": {
-    label: "From",
-    description: "转移或关系的起点状态、起始步骤或来源节点。"
-  },
-  "relation.to": {
-    label: "To",
-    description: "转移或关系的目标状态、目标步骤或去向节点。"
-  },
-  "policy.id": {
-    label: "Policy",
-    description: "当前协调策略或 saga 的标识。"
-  },
-  "policy.context": {
-    label: "Context",
-    description: "当前 policy 所属或声明的业务 context。"
-  },
-  "policy.trigger_messages": {
-    label: "Trigger messages",
-    description: "会触发该 policy 运行的消息集合。"
-  },
-  "policy.emitted_messages": {
-    label: "Emitted messages",
-    description: "该 policy 继续向外发出的消息集合。"
-  },
-  "policy.target_systems": {
-    label: "Target systems",
-    description: "该 policy 会调用或协调的目标系统。"
-  },
-  "policy.related_contexts": {
-    label: "Related contexts",
-    description: "该 policy 触达或协调到的 context 集合。"
-  },
-  "policy.coordinates": {
-    label: "Coordinates",
-    description: "该 policy 显式协调的业务资源集合。"
-  }
-} as const;
-
-type SemanticKey = keyof typeof VIEWER_DETAIL_SEMANTICS;
-
 export function buildViewerSpec(
   spec: BusinessSpec,
-  analysis: BusinessSpecAnalysis
+  analysis: BusinessSpecAnalysis,
+  locale: ViewerLocale = DEFAULT_VIEWER_LOCALE
 ): BusinessViewerSpec {
+  const copy = getViewerProjectionCopy(locale);
   const views: ViewerViewSpec[] = [
-    buildContextMapView(analysis),
-    buildScenarioStoryView(analysis),
-    buildMessageFlowView(analysis),
-    buildLifecycleView(analysis)
+    buildContextMapView(analysis, locale),
+    buildScenarioStoryView(analysis, locale),
+    buildMessageFlowView(analysis, locale),
+    buildLifecycleView(analysis, locale)
   ];
 
   if (analysis.ir.policyCoordinations.length > 0) {
-    views.push(buildPolicySagaView(analysis));
+    views.push(buildPolicySagaView(analysis, locale));
   }
 
   return {
@@ -308,7 +69,7 @@ export function buildViewerSpec(
     summary: spec.summary,
     detailHelp: {
       semantic: Object.fromEntries(
-        Object.entries(VIEWER_DETAIL_SEMANTICS).map(([semanticKey, semantic]) => [
+        Object.entries(copy.detailSemantics).map(([semanticKey, semantic]) => [
           semanticKey,
           semantic.description
         ])
@@ -319,8 +80,10 @@ export function buildViewerSpec(
 }
 
 function buildContextMapView(
-  analysis: BusinessSpecAnalysis
+  analysis: BusinessSpecAnalysis,
+  locale: ViewerLocale
 ): ViewerViewSpec {
+  const copy = getViewerProjectionCopy(locale);
   const nodes: ViewerNodeSpec[] = [];
   const edges: ViewerViewSpec["edges"][number][] = [];
   const aggregateById = toMap(analysis.ir.aggregateLifecycles, (aggregate) => aggregate.id);
@@ -328,11 +91,11 @@ function buildContextMapView(
   const policyById = toMap(analysis.ir.policyCoordinations, (policy) => policy.id);
 
   for (const context of analysis.ir.contextBoundaries) {
-    const contextSummary = [
-      `${context.aggregateIds.length} aggregate(s)`,
-      `${context.scenarioIds.length} scenario(s)`,
-      `${context.policyIds.length} policy(s)`
-    ].join(", ");
+    const contextSummary = copy.summaries.context(
+      context.aggregateIds.length,
+      context.scenarioIds.length,
+      context.policyIds.length
+    );
     const box = measureGroupNodeBox(
       DIMENSIONS.contextGroup,
       context.title,
@@ -348,14 +111,14 @@ function buildContextMapView(
       summary: contextSummary,
       ...box,
       details: [
-        detail("context.id", context.id),
-        detail("context.owners", formatTextList(context.owners)),
-        detail("context.responsibilities", formatTextList(context.responsibilities)),
-        detail("context.owned_aggregates", formatTextList(context.aggregateIds)),
-        detail("context.scenarios", formatTextList(context.scenarioIds)),
-        detail("context.related_actors", formatTextList(context.actorIds)),
-        detail("context.related_systems", formatTextList(context.systemIds)),
-        detail("context.relationships", formatContextRelationships(context))
+        detail(locale, "context.id", context.id),
+        detail(locale, "context.owners", formatTextList(locale, context.owners)),
+        detail(locale, "context.responsibilities", formatTextList(locale, context.responsibilities)),
+        detail(locale, "context.owned_aggregates", formatTextList(locale, context.aggregateIds)),
+        detail(locale, "context.scenarios", formatTextList(locale, context.scenarioIds)),
+        detail(locale, "context.related_actors", formatTextList(locale, context.actorIds)),
+        detail(locale, "context.related_systems", formatTextList(locale, context.systemIds)),
+        detail(locale, "context.relationships", formatContextRelationships(locale, context))
       ]
     });
 
@@ -365,7 +128,7 @@ function buildContextMapView(
         DIMENSIONS.aggregate,
         aggregate.title,
         aggregate.id,
-        `initial: ${aggregate.initialState}`
+        copy.summaries.aggregateInitial(aggregate.initialState)
       );
 
       nodes.push({
@@ -373,10 +136,10 @@ function buildContextMapView(
         kind: "aggregate",
         label: aggregate.title,
         subtitle: aggregate.id,
-        summary: `initial: ${aggregate.initialState}`,
+        summary: copy.summaries.aggregateInitial(aggregate.initialState),
         parentId: toContextMapContextId(context.id),
         ...aggregateBox,
-        details: buildAggregateDetails(aggregate)
+        details: buildAggregateDetails(aggregate, locale)
       });
 
       edges.push({
@@ -384,10 +147,10 @@ function buildContextMapView(
         kind: "ownership",
         source: toContextMapContextId(context.id),
         target: toContextMapAggregateId(aggregate.id),
-        label: "owns",
+        label: copy.edgeLabels.owns,
         details: [
-          detail("context.id", context.id),
-          detail("aggregate.id", aggregate.id)
+          detail(locale, "context.id", context.id),
+          detail(locale, "aggregate.id", aggregate.id)
         ]
       });
     }
@@ -398,7 +161,7 @@ function buildContextMapView(
         DIMENSIONS.actor,
         scenario.title,
         scenario.id,
-        `goal: ${scenario.goal}`
+        copy.summaries.scenarioGoal(scenario.goal)
       );
 
       nodes.push({
@@ -406,10 +169,10 @@ function buildContextMapView(
         kind: "scenario",
         label: scenario.title,
         subtitle: scenario.id,
-        summary: `goal: ${scenario.goal}`,
+        summary: copy.summaries.scenarioGoal(scenario.goal),
         parentId: toContextMapContextId(context.id),
         ...scenarioBox,
-        details: buildScenarioDetails(scenario)
+        details: buildScenarioDetails(scenario, locale)
       });
 
       edges.push({
@@ -417,21 +180,25 @@ function buildContextMapView(
         kind: "ownership",
         source: toContextMapContextId(context.id),
         target: toContextMapScenarioId(scenario.id),
-        label: "owns",
+        label: copy.edgeLabels.owns,
         details: [
-          detail("context.id", context.id),
-          detail("scenario.id", scenario.id)
+          detail(locale, "context.id", context.id),
+          detail(locale, "scenario.id", scenario.id)
         ]
       });
     }
 
     for (const policyId of context.policyIds) {
       const policy = mustGet(policyById, policyId, "policy");
+      const policySummary = copy.summaries.policy(
+        policy.triggerMessageIds.length,
+        policy.emittedMessageIds.length
+      );
       const policyBox = measureLeafNodeBox(
         DIMENSIONS.policy,
         policy.title,
         policy.id,
-        `${policy.triggerMessageIds.length} trigger(s), ${policy.emittedMessageIds.length} emitted`
+        policySummary
       );
 
       nodes.push({
@@ -439,10 +206,10 @@ function buildContextMapView(
         kind: "policy",
         label: policy.title,
         subtitle: policy.id,
-        summary: `${policy.triggerMessageIds.length} trigger(s), ${policy.emittedMessageIds.length} emitted`,
+        summary: policySummary,
         parentId: toContextMapContextId(context.id),
         ...policyBox,
-        details: buildPolicyDetails(policy)
+        details: buildPolicyDetails(policy, locale)
       });
 
       edges.push({
@@ -450,21 +217,25 @@ function buildContextMapView(
         kind: "ownership",
         source: toContextMapContextId(context.id),
         target: toContextMapPolicyId(policy.id),
-        label: "owns",
+        label: copy.edgeLabels.owns,
         details: [
-          detail("context.id", context.id),
-          detail("policy.id", policy.id)
+          detail(locale, "context.id", context.id),
+          detail(locale, "policy.id", policy.id)
         ]
       });
     }
   }
 
   for (const actor of analysis.ir.actors) {
+    const actorSummary = copy.summaries.actorContextsSteps(
+      actor.contextIds.length,
+      actor.stepRefs.length
+    );
     const box = measureLeafNodeBox(
       DIMENSIONS.actor,
       actor.title,
       actor.id,
-      `${actor.contextIds.length} context(s), ${actor.stepRefs.length} step(s)`
+      actorSummary
     );
 
     nodes.push({
@@ -472,9 +243,9 @@ function buildContextMapView(
       kind: "actor",
       label: actor.title,
       subtitle: actor.id,
-      summary: `${actor.contextIds.length} context(s), ${actor.stepRefs.length} step(s)`,
+      summary: actorSummary,
       ...box,
-      details: buildActorDetails(actor)
+      details: buildActorDetails(actor, locale)
     });
 
     for (const contextId of actor.contextIds) {
@@ -483,17 +254,17 @@ function buildContextMapView(
         kind: "collaboration",
         source: toContextMapActorId(actor.id),
         target: toContextMapContextId(contextId),
-        label: "participates",
+        label: copy.edgeLabels.participates,
         details: [
-          detail("step.actor", actor.id),
-          detail("context.id", contextId)
+          detail(locale, "step.actor", actor.id),
+          detail(locale, "context.id", contextId)
         ]
       });
     }
   }
 
   for (const system of analysis.ir.systems) {
-    const boundarySummary = system.boundary ?? "internal";
+    const boundarySummary = system.boundary ?? copy.values.internal;
     const box = measureLeafNodeBox(
       DIMENSIONS.system,
       system.title,
@@ -508,7 +279,7 @@ function buildContextMapView(
       subtitle: system.id,
       summary: boundarySummary,
       ...box,
-      details: buildSystemDetails(system)
+      details: buildSystemDetails(system, locale)
     });
 
     for (const contextId of system.contextIds) {
@@ -517,10 +288,10 @@ function buildContextMapView(
         kind: "collaboration",
         source: toContextMapSystemId(system.id),
         target: toContextMapContextId(contextId),
-        label: "touches",
+        label: copy.edgeLabels.touches,
         details: [
-          detail("system.contexts", formatTextList([contextId])),
-          detail("context.id", contextId)
+          detail(locale, "system.contexts", formatTextList(locale, [contextId])),
+          detail(locale, "context.id", contextId)
         ]
       });
     }
@@ -542,10 +313,10 @@ function buildContextMapView(
         label: relationship.kind,
         ...(relationship.description ? { description: relationship.description } : {}),
         details: [
-          detail("context.id", context.id),
-          detail("relation.from", context.id),
-          detail("relation.to", `${relationship.target.kind}:${relationship.target.id}`),
-          detail("context.relationships", formatContextRelationship(relationship))
+          detail(locale, "context.id", context.id),
+          detail(locale, "relation.from", context.id),
+          detail(locale, "relation.to", `${relationship.target.kind}:${relationship.target.id}`),
+          detail(locale, "context.relationships", formatContextRelationship(locale, relationship))
         ]
       });
     }
@@ -559,22 +330,23 @@ function buildContextMapView(
       order: 10,
       default: true
     },
-    title: "Context Map",
-    description:
-      "Shows bounded contexts, the actors and systems they collaborate with, and which scenarios, aggregates, and policies each context owns.",
+    title: copy.views.contextMap.title,
+    description: copy.views.contextMap.description,
     nodes,
     edges
   };
 }
 
 function buildScenarioStoryView(
-  analysis: BusinessSpecAnalysis
+  analysis: BusinessSpecAnalysis,
+  locale: ViewerLocale
 ): ViewerViewSpec {
+  const copy = getViewerProjectionCopy(locale);
   const nodes: ViewerNodeSpec[] = [];
   const edges: ViewerViewSpec["edges"][number][] = [];
 
   for (const scenario of analysis.ir.scenarioSequences) {
-    const groupSummary = `goal: ${scenario.goal}`;
+    const groupSummary = copy.summaries.scenarioGoal(scenario.goal);
     const groupBox = measureGroupNodeBox(
       DIMENSIONS.scenarioGroup,
       scenario.title,
@@ -589,14 +361,16 @@ function buildScenarioStoryView(
       subtitle: scenario.id,
       summary: groupSummary,
       ...groupBox,
-      details: buildScenarioDetails(scenario)
+      details: buildScenarioDetails(scenario, locale)
     });
 
     for (const step of scenario.steps) {
       const subtitle = [step.id, step.contextId].join(" | ");
       const summary = step.final
-        ? step.outcome ?? "final outcome"
-        : `${step.incomingMessageIds.length + step.outgoingMessageIds.length} message(s)`;
+        ? step.outcome ?? copy.values.finalOutcome
+        : copy.summaries.scenarioMessages(
+            step.incomingMessageIds.length + step.outgoingMessageIds.length
+          );
       const stepBox = measureLeafNodeBox(
         step.final ? DIMENSIONS.finalStep : DIMENSIONS.step,
         step.title,
@@ -612,22 +386,22 @@ function buildScenarioStoryView(
         summary,
         parentId: toScenarioStoryScenarioId(scenario.id),
         ...stepBox,
-        details: buildScenarioStepDetails(step)
+        details: buildScenarioStepDetails(step, locale)
       });
     }
 
     for (const edge of scenario.edges) {
       const sourceStep = mustFind(scenario.steps, (step) => step.id === edge.sourceStepId, "scenario step");
       const targetStep = mustFind(scenario.steps, (step) => step.id === edge.targetStepId, "scenario step");
-      const label = getScenarioProgressionLabel(sourceStep, targetStep);
+      const label = getScenarioProgressionLabel(sourceStep, targetStep, locale);
       const details: ViewerDetailItem[] = [
-        detail("scenario.id", scenario.id),
-        detail("relation.from", edge.sourceStepId),
-        detail("relation.to", edge.targetStepId)
+        detail(locale, "scenario.id", scenario.id),
+        detail(locale, "relation.from", edge.sourceStepId),
+        detail(locale, "relation.to", edge.targetStepId)
       ];
 
-      if (label !== "next") {
-        details.push(detail("message.type", label));
+      if (label !== copy.edgeLabels.next) {
+        details.push(detail(locale, "message.type", label));
       }
 
       edges.push({
@@ -648,17 +422,18 @@ function buildScenarioStoryView(
       tier: "primary",
       order: 20
     },
-    title: "Scenario Story",
-    description:
-      "Shows how each scenario advances step by step across contexts, including which message moves the story forward.",
+    title: copy.views.scenarioStory.title,
+    description: copy.views.scenarioStory.description,
     nodes,
     edges
   };
 }
 
 function buildMessageFlowView(
-  analysis: BusinessSpecAnalysis
+  analysis: BusinessSpecAnalysis,
+  locale: ViewerLocale
 ): ViewerViewSpec {
+  const copy = getViewerProjectionCopy(locale);
   const nodes: ViewerNodeSpec[] = [];
   const edges: ViewerViewSpec["edges"][number][] = [];
   const stepNodeIds = new Set<string>();
@@ -679,7 +454,7 @@ function buildMessageFlowView(
       DIMENSIONS.contextGroup,
       context.title,
       context.id,
-      `${linkedSteps.length} step(s), ${linkedEndpointCount} endpoint(s)`
+      copy.summaries.messageFlowContext(linkedSteps.length, linkedEndpointCount)
     );
 
     nodes.push({
@@ -687,12 +462,12 @@ function buildMessageFlowView(
       kind: "context",
       label: context.title,
       subtitle: context.id,
-      summary: `${linkedSteps.length} step(s), ${linkedEndpointCount} endpoint(s)`,
+      summary: copy.summaries.messageFlowContext(linkedSteps.length, linkedEndpointCount),
       ...box,
       details: [
-        detail("context.id", context.id),
-        detail("context.owners", formatTextList(context.owners)),
-        detail("context.related_systems", formatTextList(context.systemIds))
+        detail(locale, "context.id", context.id),
+        detail(locale, "context.owners", formatTextList(locale, context.owners)),
+        detail(locale, "context.related_systems", formatTextList(locale, context.systemIds))
       ]
     });
   }
@@ -702,7 +477,10 @@ function buildMessageFlowView(
       DIMENSIONS.actor,
       scenario.title,
       scenario.id,
-      `${scenario.steps.length} step(s), ${scenario.participatingContextIds.length} context(s)`
+      copy.summaries.messageFlowScenario(
+        scenario.steps.length,
+        scenario.participatingContextIds.length
+      )
     );
 
     nodes.push({
@@ -710,9 +488,12 @@ function buildMessageFlowView(
       kind: "scenario",
       label: scenario.title,
       subtitle: scenario.id,
-      summary: `${scenario.steps.length} step(s), ${scenario.participatingContextIds.length} context(s)`,
+      summary: copy.summaries.messageFlowScenario(
+        scenario.steps.length,
+        scenario.participatingContextIds.length
+      ),
       ...scenarioBox,
-      details: buildScenarioDetails(scenario)
+      details: buildScenarioDetails(scenario, locale)
     });
 
     for (const step of scenario.steps) {
@@ -723,8 +504,11 @@ function buildMessageFlowView(
       }
 
       const summary = step.final
-        ? step.outcome ?? "final outcome"
-        : `${step.incomingMessageIds.length} in, ${step.outgoingMessageIds.length} out`;
+        ? step.outcome ?? copy.values.finalOutcome
+        : copy.summaries.stepInOut(
+            step.incomingMessageIds.length,
+            step.outgoingMessageIds.length
+          );
       const stepBox = measureLeafNodeBox(
         step.final ? DIMENSIONS.finalStep : DIMENSIONS.step,
         step.title,
@@ -741,8 +525,8 @@ function buildMessageFlowView(
         parentId: toMessageFlowContextId(step.contextId),
         ...stepBox,
         details: [
-          detail("scenario.id", scenario.id),
-          ...buildScenarioStepDetails(step)
+          detail(locale, "scenario.id", scenario.id),
+          ...buildScenarioStepDetails(step, locale)
         ]
       });
       stepNodeIds.add(stepNodeId);
@@ -758,7 +542,7 @@ function buildMessageFlowView(
       DIMENSIONS.actor,
       actor.title,
       actor.id,
-      `${actor.stepRefs.length} step(s)`
+      copy.summaries.actorSteps(actor.stepRefs.length)
     );
 
     nodes.push({
@@ -766,9 +550,9 @@ function buildMessageFlowView(
       kind: "actor",
       label: actor.title,
       subtitle: actor.id,
-      summary: `${actor.stepRefs.length} step(s)`,
+      summary: copy.summaries.actorSteps(actor.stepRefs.length),
       ...box,
-      details: buildActorDetails(actor)
+      details: buildActorDetails(actor, locale)
     });
   }
 
@@ -781,7 +565,7 @@ function buildMessageFlowView(
       DIMENSIONS.system,
       system.title,
       system.id,
-      system.boundary ?? "internal"
+      system.boundary ?? copy.values.internal
     );
 
     nodes.push({
@@ -789,9 +573,9 @@ function buildMessageFlowView(
       kind: "system",
       label: system.title,
       subtitle: system.id,
-      summary: system.boundary ?? "internal",
+      summary: system.boundary ?? copy.values.internal,
       ...box,
-      details: buildSystemDetails(system)
+      details: buildSystemDetails(system, locale)
     });
   }
 
@@ -804,7 +588,7 @@ function buildMessageFlowView(
       DIMENSIONS.aggregate,
       aggregate.title,
       aggregate.id,
-      `initial: ${aggregate.initialState}`
+      copy.summaries.aggregateInitial(aggregate.initialState)
     );
 
     nodes.push({
@@ -812,10 +596,10 @@ function buildMessageFlowView(
       kind: "aggregate",
       label: aggregate.title,
       subtitle: aggregate.id,
-      summary: `initial: ${aggregate.initialState}`,
+      summary: copy.summaries.aggregateInitial(aggregate.initialState),
       parentId: toMessageFlowContextId(aggregate.contextId),
       ...box,
-      details: buildAggregateDetails(aggregate)
+      details: buildAggregateDetails(aggregate, locale)
     });
   }
 
@@ -824,11 +608,15 @@ function buildMessageFlowView(
       continue;
     }
 
+    const policySummary = copy.summaries.policy(
+      policy.triggerMessageIds.length,
+      policy.emittedMessageIds.length
+    );
     const box = measureLeafNodeBox(
       DIMENSIONS.policy,
       policy.title,
       policy.id,
-      `${policy.triggerMessageIds.length} trigger(s), ${policy.emittedMessageIds.length} emitted`
+      policySummary
     );
 
     nodes.push({
@@ -836,10 +624,10 @@ function buildMessageFlowView(
       kind: "policy",
       label: policy.title,
       subtitle: policy.id,
-      summary: `${policy.triggerMessageIds.length} trigger(s), ${policy.emittedMessageIds.length} emitted`,
+      summary: policySummary,
       ...(policy.contextId ? { parentId: toMessageFlowContextId(policy.contextId) } : {}),
       ...box,
-      details: buildPolicyDetails(policy)
+      details: buildPolicyDetails(policy, locale)
     });
   }
 
@@ -858,7 +646,7 @@ function buildMessageFlowView(
       DIMENSIONS.message,
       message.title,
       subtitleParts.join(" | "),
-      formatMessageTraceSummary(message)
+      formatMessageTraceSummary(message, locale)
     );
 
     nodes.push({
@@ -866,10 +654,10 @@ function buildMessageFlowView(
       kind: "message",
       label: message.title,
       subtitle: subtitleParts.join(" | "),
-      summary: formatMessageTraceSummary(message),
+      summary: formatMessageTraceSummary(message, locale),
       ...(messageContextIds.length === 1 ? { parentId: toMessageFlowContextId(messageContextIds[0] as string) } : {}),
       ...messageBox,
-      details: buildMessageDetails(message)
+      details: buildMessageDetails(message, locale)
     });
 
     for (const producer of message.producers) {
@@ -884,11 +672,11 @@ function buildMessageFlowView(
         kind: "message-flow",
         source: sourceNodeId,
         target: toMessageFlowMessageId(message.id),
-        label: "source",
+        label: copy.edgeLabels.source,
         details: [
-          detail("message.type", message.id),
-          detail("relation.from", `${producer.kind}:${producer.id}`),
-          detail("relation.to", message.id)
+          detail(locale, "message.type", message.id),
+          detail(locale, "relation.from", `${producer.kind}:${producer.id}`),
+          detail(locale, "relation.to", message.id)
         ]
       });
     }
@@ -905,11 +693,11 @@ function buildMessageFlowView(
         kind: "message-flow",
         source: toMessageFlowMessageId(message.id),
         target: targetNodeId,
-        label: "target",
+        label: copy.edgeLabels.target,
         details: [
-          detail("message.type", message.id),
-          detail("relation.from", message.id),
-          detail("relation.to", `${consumer.kind}:${consumer.id}`)
+          detail(locale, "message.type", message.id),
+          detail(locale, "relation.from", message.id),
+          detail(locale, "relation.to", `${consumer.kind}:${consumer.id}`)
         ]
       });
     }
@@ -923,11 +711,11 @@ function buildMessageFlowView(
           kind: "message-flow",
           source: stepNodeId,
           target: toMessageFlowMessageId(message.id),
-          label: messageVerbForOutgoing(message.messageKind),
+          label: messageVerbForOutgoing(message.messageKind, locale),
           details: [
-            detail("scenario.id", link.scenarioId),
-            detail("step.id", link.stepId),
-            detail("message.type", message.id)
+            detail(locale, "scenario.id", link.scenarioId),
+            detail(locale, "step.id", link.stepId),
+            detail(locale, "message.type", message.id)
           ]
         });
         continue;
@@ -938,11 +726,11 @@ function buildMessageFlowView(
         kind: "message-flow",
         source: toMessageFlowMessageId(message.id),
         target: stepNodeId,
-        label: "feeds",
+        label: copy.edgeLabels.feeds,
         details: [
-          detail("scenario.id", link.scenarioId),
-          detail("step.id", link.stepId),
-          detail("message.type", message.id)
+          detail(locale, "scenario.id", link.scenarioId),
+          detail(locale, "step.id", link.stepId),
+          detail(locale, "message.type", message.id)
         ]
       });
     }
@@ -958,11 +746,11 @@ function buildMessageFlowView(
         kind: "sequence",
         source: toMessageFlowStepId(scenario.id, edge.sourceStepId),
         target: toMessageFlowStepId(scenario.id, edge.targetStepId),
-        label: getScenarioProgressionLabel(sourceStep, targetStep),
+        label: getScenarioProgressionLabel(sourceStep, targetStep, locale),
         details: [
-          detail("scenario.id", scenario.id),
-          detail("relation.from", edge.sourceStepId),
-          detail("relation.to", edge.targetStepId)
+          detail(locale, "scenario.id", scenario.id),
+          detail(locale, "relation.from", edge.sourceStepId),
+          detail(locale, "relation.to", edge.targetStepId)
         ]
       });
     }
@@ -975,17 +763,18 @@ function buildMessageFlowView(
       tier: "primary",
       order: 30
     },
-    title: "Message Flow / Trace",
-    description:
-      "Shows how commands, events, and queries move between contexts, endpoints, and scenario steps, including cross-context hops.",
+    title: copy.views.messageFlow.title,
+    description: copy.views.messageFlow.description,
     nodes,
     edges
   };
 }
 
 function buildLifecycleView(
-  analysis: BusinessSpecAnalysis
+  analysis: BusinessSpecAnalysis,
+  locale: ViewerLocale
 ): ViewerViewSpec {
+  const copy = getViewerProjectionCopy(locale);
   const nodes: ViewerNodeSpec[] = [];
   const edges: ViewerViewSpec["edges"][number][] = [];
   const lifecycleAggregates = projectLifecycle(analysis.ir);
@@ -995,7 +784,7 @@ function buildLifecycleView(
       DIMENSIONS.aggregateGroup,
       aggregate.title,
       `${aggregate.id} | ${aggregate.contextId}`,
-      `initial: ${aggregate.initialState}`
+      copy.summaries.aggregateInitial(aggregate.initialState)
     );
 
     nodes.push({
@@ -1003,9 +792,9 @@ function buildLifecycleView(
       kind: "aggregate",
       label: aggregate.title,
       subtitle: `${aggregate.id} | ${aggregate.contextId}`,
-      summary: `initial: ${aggregate.initialState}`,
+      summary: copy.summaries.aggregateInitial(aggregate.initialState),
       ...groupBox,
-      details: buildAggregateDetails(aggregate)
+      details: buildAggregateDetails(aggregate, locale)
     });
 
     for (const state of aggregate.states) {
@@ -1015,30 +804,34 @@ function buildLifecycleView(
       const stateBox = measureLeafNodeBox(
         DIMENSIONS.lifecycleState,
         state.id,
-        state.reachableFromInitial ? "reachable" : "unreachable",
-        state.terminal ? "terminal" : `${state.outgoingTransitionIds.length} transition(s)`
+        state.reachableFromInitial ? copy.values.reachable : copy.values.unreachable,
+        state.terminal
+          ? copy.values.terminal
+          : copy.summaries.lifecycleTransitions(state.outgoingTransitionIds.length)
       );
 
       nodes.push({
         id: toLifecycleStateId(aggregate.id, state.id),
         kind: "lifecycle-state",
         label: state.id,
-        subtitle: state.reachableFromInitial ? "reachable" : "unreachable",
-        summary: state.terminal ? "terminal" : `${state.outgoingTransitionIds.length} transition(s)`,
+        subtitle: state.reachableFromInitial ? copy.values.reachable : copy.values.unreachable,
+        summary: state.terminal
+          ? copy.values.terminal
+          : copy.summaries.lifecycleTransitions(state.outgoingTransitionIds.length),
         parentId: toLifecycleAggregateId(aggregate.id),
         ...stateBox,
         details: [
-          detail("aggregate.id", aggregate.id),
-          detail("aggregate.context", aggregate.contextId),
-          detail("aggregate.state.id", state.id),
-          detail("aggregate.state.reachable", state.reachableFromInitial ? "yes" : "no"),
-          detail("aggregate.state.outgoing_messages", formatTextList(unique(emittedMessageIds)))
+          detail(locale, "aggregate.id", aggregate.id),
+          detail(locale, "aggregate.context", aggregate.contextId),
+          detail(locale, "aggregate.state.id", state.id),
+          detail(locale, "aggregate.state.reachable", state.reachableFromInitial ? copy.values.yes : copy.values.no),
+          detail(locale, "aggregate.state.outgoing_messages", formatTextList(locale, unique(emittedMessageIds)))
         ]
       });
     }
 
     for (const transition of aggregate.transitions) {
-      edges.push(toLifecycleTransitionEdge(aggregate, transition));
+      edges.push(toLifecycleTransitionEdge(aggregate, transition, locale));
     }
   }
 
@@ -1049,26 +842,31 @@ function buildLifecycleView(
       tier: "primary",
       order: 40
     },
-    title: "Lifecycle",
-    description:
-      "Shows aggregate state transitions, the message that triggers each transition, and which follow-up messages each transition emits.",
+    title: copy.views.lifecycle.title,
+    description: copy.views.lifecycle.description,
     nodes,
     edges
   };
 }
 
 function buildPolicySagaView(
-  analysis: BusinessSpecAnalysis
+  analysis: BusinessSpecAnalysis,
+  locale: ViewerLocale
 ): ViewerViewSpec {
+  const copy = getViewerProjectionCopy(locale);
   const nodes: ViewerNodeSpec[] = [];
   const edges: ViewerViewSpec["edges"][number][] = [];
 
   for (const policy of analysis.ir.policyCoordinations) {
+    const policySummary = copy.summaries.policy(
+      policy.triggerMessageIds.length,
+      policy.emittedMessageIds.length
+    );
     const policyBox = measureLeafNodeBox(
       DIMENSIONS.policy,
       policy.title,
       policy.id,
-      `${policy.triggerMessageIds.length} trigger(s), ${policy.emittedMessageIds.length} emitted`
+      policySummary
     );
 
     nodes.push({
@@ -1076,37 +874,37 @@ function buildPolicySagaView(
       kind: "policy",
       label: policy.title,
       subtitle: policy.id,
-      summary: `${policy.triggerMessageIds.length} trigger(s), ${policy.emittedMessageIds.length} emitted`,
+      summary: policySummary,
       ...policyBox,
-      details: buildPolicyDetails(policy)
+      details: buildPolicyDetails(policy, locale)
     });
 
     for (const messageId of policy.triggerMessageIds) {
-      nodes.push(...ensurePolicyViewMessageNode(nodes, analysis.ir.messageFlows, messageId));
+      nodes.push(...ensurePolicyViewMessageNode(nodes, analysis.ir.messageFlows, messageId, locale));
       edges.push({
         id: `policy-saga:trigger:${policy.id}:${messageId}`,
         kind: "coordination",
         source: toPolicyViewMessageId(messageId),
         target: toPolicyViewPolicyId(policy.id),
-        label: "triggers",
+        label: copy.edgeLabels.triggers,
         details: [
-          detail("policy.id", policy.id),
-          detail("message.type", messageId)
+          detail(locale, "policy.id", policy.id),
+          detail(locale, "message.type", messageId)
         ]
       });
     }
 
     for (const messageId of policy.emittedMessageIds) {
-      nodes.push(...ensurePolicyViewMessageNode(nodes, analysis.ir.messageFlows, messageId));
+      nodes.push(...ensurePolicyViewMessageNode(nodes, analysis.ir.messageFlows, messageId, locale));
       edges.push({
         id: `policy-saga:emit:${policy.id}:${messageId}`,
         kind: "coordination",
         source: toPolicyViewPolicyId(policy.id),
         target: toPolicyViewMessageId(messageId),
-        label: "emits",
+        label: copy.edgeLabels.emits,
         details: [
-          detail("policy.id", policy.id),
-          detail("message.type", messageId)
+          detail(locale, "policy.id", policy.id),
+          detail(locale, "message.type", messageId)
         ]
       });
     }
@@ -1119,22 +917,28 @@ function buildPolicySagaView(
       tier: "secondary",
       order: 50
     },
-    title: "Policy / Saga",
-    description:
-      "Shows which messages trigger each coordination policy and which follow-up messages that policy emits.",
+    title: copy.views.policySaga.title,
+    description: copy.views.policySaga.description,
     nodes,
     edges
   };
 }
 
-function buildActorDetails(actor: ActorParticipant): ViewerDetailItem[] {
+function buildActorDetails(
+  actor: ActorParticipant,
+  locale: ViewerLocale
+): ViewerDetailItem[] {
+  const copy = getViewerProjectionCopy(locale);
+
   return [
-    detail("actor.type", actor.actorType ?? "unspecified"),
-    detail("actor.contexts", formatTextList(actor.contextIds)),
-    detail("actor.scenarios", formatTextList(actor.scenarioIds)),
+    detail(locale, "actor.type", actor.actorType ?? copy.values.unspecified),
+    detail(locale, "actor.contexts", formatTextList(locale, actor.contextIds)),
+    detail(locale, "actor.scenarios", formatTextList(locale, actor.scenarioIds)),
     detail(
+      locale,
       "actor.scenario_steps",
       formatTextList(
+        locale,
         actor.stepRefs.map(
           (stepRef) => `${stepRef.scenarioId}.${stepRef.stepId} (${stepRef.contextId})`
         )
@@ -1143,87 +947,116 @@ function buildActorDetails(actor: ActorParticipant): ViewerDetailItem[] {
   ];
 }
 
-function buildSystemDetails(system: SystemParticipant): ViewerDetailItem[] {
+function buildSystemDetails(
+  system: SystemParticipant,
+  locale: ViewerLocale
+): ViewerDetailItem[] {
+  const copy = getViewerProjectionCopy(locale);
+
   return [
-    detail("system.boundary", system.boundary ?? "internal"),
-    detail("system.capabilities", formatTextList(system.capabilities)),
-    detail("system.contexts", formatTextList(system.contextIds)),
-    detail("system.dependencies", formatSystemDependencies(system))
+    detail(locale, "system.boundary", system.boundary ?? copy.values.internal),
+    detail(locale, "system.capabilities", formatTextList(locale, system.capabilities)),
+    detail(locale, "system.contexts", formatTextList(locale, system.contextIds)),
+    detail(locale, "system.dependencies", formatSystemDependencies(locale, system))
   ];
 }
 
-function buildScenarioDetails(scenario: ScenarioSequence): ViewerDetailItem[] {
+function buildScenarioDetails(
+  scenario: ScenarioSequence,
+  locale: ViewerLocale
+): ViewerDetailItem[] {
   return [
-    detail("scenario.id", scenario.id),
-    detail("scenario.goal", scenario.goal),
-    detail("scenario.owner_context", scenario.ownerContextId),
+    detail(locale, "scenario.id", scenario.id),
+    detail(locale, "scenario.goal", scenario.goal),
+    detail(locale, "scenario.owner_context", scenario.ownerContextId),
     detail(
+      locale,
       "scenario.participating_contexts",
-      formatTextList(scenario.participatingContextIds)
+      formatTextList(locale, scenario.participatingContextIds)
     ),
-    detail("scenario.actors", formatTextList(scenario.actorIds)),
-    detail("scenario.systems", formatTextList(scenario.systemIds)),
-    detail("scenario.final_steps", formatTextList(scenario.finalStepIds))
+    detail(locale, "scenario.actors", formatTextList(locale, scenario.actorIds)),
+    detail(locale, "scenario.systems", formatTextList(locale, scenario.systemIds)),
+    detail(locale, "scenario.final_steps", formatTextList(locale, scenario.finalStepIds))
   ];
 }
 
-function buildScenarioStepDetails(step: ScenarioStep): ViewerDetailItem[] {
+function buildScenarioStepDetails(
+  step: ScenarioStep,
+  locale: ViewerLocale
+): ViewerDetailItem[] {
+  const copy = getViewerProjectionCopy(locale);
+
   return [
-    detail("step.id", step.id),
-    detail("step.context", step.contextId),
-    detail("step.entry", step.entry ? "yes" : "no"),
-    detail("step.final", step.final ? "yes" : "no"),
-    ...(step.actorId ? [detail("step.actor", step.actorId)] : []),
-    ...(step.systemId ? [detail("step.system", step.systemId)] : []),
-    detail("step.incoming_messages", formatTextList(step.incomingMessageIds)),
-    detail("step.outgoing_messages", formatTextList(step.outgoingMessageIds)),
-    ...(step.outcome ? [detail("step.outcome", step.outcome)] : [])
+    detail(locale, "step.id", step.id),
+    detail(locale, "step.context", step.contextId),
+    detail(locale, "step.entry", step.entry ? copy.values.yes : copy.values.no),
+    detail(locale, "step.final", step.final ? copy.values.yes : copy.values.no),
+    ...(step.actorId ? [detail(locale, "step.actor", step.actorId)] : []),
+    ...(step.systemId ? [detail(locale, "step.system", step.systemId)] : []),
+    detail(locale, "step.incoming_messages", formatTextList(locale, step.incomingMessageIds)),
+    detail(locale, "step.outgoing_messages", formatTextList(locale, step.outgoingMessageIds)),
+    ...(step.outcome ? [detail(locale, "step.outcome", step.outcome)] : [])
   ];
 }
 
-function buildMessageDetails(message: MessageFlow): ViewerDetailItem[] {
+function buildMessageDetails(
+  message: MessageFlow,
+  locale: ViewerLocale
+): ViewerDetailItem[] {
+  const copy = getViewerProjectionCopy(locale);
+
   return [
-    detail("message.kind", message.messageKind),
-    detail("message.type", message.id),
-    detail("message.channel", message.channel ?? "unspecified"),
-    detail("message.endpoints", formatMessageEndpoints(message)),
+    detail(locale, "message.kind", message.messageKind),
+    detail(locale, "message.type", message.id),
+    detail(locale, "message.channel", message.channel ?? copy.values.unspecified),
+    detail(locale, "message.endpoints", formatMessageEndpoints(locale, message)),
     detail(
+      locale,
       "message.crosses_context_boundary",
-      message.crossesContextBoundary ? "yes" : "no"
+      message.crossesContextBoundary ? copy.values.yes : copy.values.no
     ),
-    detail("message.step_links", formatMessageStepLinks(message.stepLinks)),
-    detail("message.payload_fields", formatPayloadFields(message.payload))
+    detail(locale, "message.step_links", formatMessageStepLinks(locale, message.stepLinks)),
+    detail(locale, "message.payload_fields", formatPayloadFields(locale, message.payload))
   ];
 }
 
-function buildAggregateDetails(aggregate: AggregateLifecycle): ViewerDetailItem[] {
+function buildAggregateDetails(
+  aggregate: AggregateLifecycle,
+  locale: ViewerLocale
+): ViewerDetailItem[] {
   return [
-    detail("aggregate.id", aggregate.id),
-    detail("aggregate.context", aggregate.contextId),
-    detail("aggregate.initial_state", aggregate.initialState),
-    detail("aggregate.lifecycle", formatTextList(aggregate.states.map((state) => state.id))),
-    detail("aggregate.accepted_messages", formatTextList(aggregate.acceptedMessageIds)),
-    detail("aggregate.emitted_messages", formatTextList(aggregate.emittedMessageIds)),
-    detail("aggregate.reachable_states", formatTextList(aggregate.reachableStateIds)),
-    detail("aggregate.unreachable_states", formatTextList(aggregate.unreachableStateIds))
+    detail(locale, "aggregate.id", aggregate.id),
+    detail(locale, "aggregate.context", aggregate.contextId),
+    detail(locale, "aggregate.initial_state", aggregate.initialState),
+    detail(locale, "aggregate.lifecycle", formatTextList(locale, aggregate.states.map((state) => state.id))),
+    detail(locale, "aggregate.accepted_messages", formatTextList(locale, aggregate.acceptedMessageIds)),
+    detail(locale, "aggregate.emitted_messages", formatTextList(locale, aggregate.emittedMessageIds)),
+    detail(locale, "aggregate.reachable_states", formatTextList(locale, aggregate.reachableStateIds)),
+    detail(locale, "aggregate.unreachable_states", formatTextList(locale, aggregate.unreachableStateIds))
   ];
 }
 
-function buildPolicyDetails(policy: PolicyCoordination): ViewerDetailItem[] {
+function buildPolicyDetails(
+  policy: PolicyCoordination,
+  locale: ViewerLocale
+): ViewerDetailItem[] {
+  const copy = getViewerProjectionCopy(locale);
+
   return [
-    detail("policy.id", policy.id),
-    detail("policy.context", policy.contextId ?? "none"),
-    detail("policy.trigger_messages", formatTextList(policy.triggerMessageIds)),
-    detail("policy.emitted_messages", formatTextList(policy.emittedMessageIds)),
-    detail("policy.target_systems", formatTextList(policy.targetSystemIds)),
-    detail("policy.related_contexts", formatTextList(policy.relatedContextIds)),
-    detail("policy.coordinates", formatPolicyCoordinates(policy))
+    detail(locale, "policy.id", policy.id),
+    detail(locale, "policy.context", policy.contextId ?? copy.values.none),
+    detail(locale, "policy.trigger_messages", formatTextList(locale, policy.triggerMessageIds)),
+    detail(locale, "policy.emitted_messages", formatTextList(locale, policy.emittedMessageIds)),
+    detail(locale, "policy.target_systems", formatTextList(locale, policy.targetSystemIds)),
+    detail(locale, "policy.related_contexts", formatTextList(locale, policy.relatedContextIds)),
+    detail(locale, "policy.coordinates", formatPolicyCoordinates(locale, policy))
   ];
 }
 
 function toLifecycleTransitionEdge(
   aggregate: AggregateLifecycle,
-  transition: LifecycleTransition
+  transition: LifecycleTransition,
+  locale: ViewerLocale
 ): ViewerViewSpec["edges"][number] {
   const edgeLabel = transition.emittedMessageIds.length > 0
     ? `${transition.onMessageId} / ${transition.emittedMessageIds.join(", ")}`
@@ -1236,12 +1069,12 @@ function toLifecycleTransitionEdge(
     target: toLifecycleStateId(aggregate.id, transition.toStateId),
     label: edgeLabel,
     details: [
-      detail("aggregate.id", aggregate.id),
-      detail("aggregate.context", aggregate.contextId),
-      detail("relation.from", transition.fromStateId),
-      detail("relation.to", transition.toStateId),
-      detail("transition.trigger_message", transition.onMessageId),
-      detail("transition.emitted_messages", formatTextList(transition.emittedMessageIds))
+      detail(locale, "aggregate.id", aggregate.id),
+      detail(locale, "aggregate.context", aggregate.contextId),
+      detail(locale, "relation.from", transition.fromStateId),
+      detail(locale, "relation.to", transition.toStateId),
+      detail(locale, "transition.trigger_message", transition.onMessageId),
+      detail(locale, "transition.emitted_messages", formatTextList(locale, transition.emittedMessageIds))
     ]
   };
 }
@@ -1249,7 +1082,8 @@ function toLifecycleTransitionEdge(
 function ensurePolicyViewMessageNode(
   existingNodes: readonly ViewerNodeSpec[],
   messages: readonly MessageFlow[],
-  messageId: string
+  messageId: string,
+  locale: ViewerLocale
 ): ViewerNodeSpec[] {
   const nodeId = toPolicyViewMessageId(messageId);
 
@@ -1262,7 +1096,7 @@ function ensurePolicyViewMessageNode(
     DIMENSIONS.message,
     message.title,
     `${message.id} | ${message.messageKind}`,
-    formatMessageTraceSummary(message)
+    formatMessageTraceSummary(message, locale)
   );
 
   return [
@@ -1271,116 +1105,148 @@ function ensurePolicyViewMessageNode(
       kind: "message",
       label: message.title,
       subtitle: `${message.id} | ${message.messageKind}`,
-      summary: formatMessageTraceSummary(message),
+      summary: formatMessageTraceSummary(message, locale),
       ...box,
-      details: buildMessageDetails(message)
+      details: buildMessageDetails(message, locale)
     }
   ];
 }
 
-function formatContextRelationships(context: ContextBoundary): ViewerDetailValue {
+function formatContextRelationships(
+  locale: ViewerLocale,
+  context: ContextBoundary
+): ViewerDetailValue {
+  const copy = getViewerProjectionCopy(locale);
+
   if (context.relationships.length === 0) {
-    return textDetailValue("none");
+    return textDetailValue(copy.values.none);
   }
 
-  return listDetailValue(context.relationships.map((relationship) => formatContextRelationship(relationship)));
+  return listDetailValue(
+    context.relationships.map((relationship) => formatContextRelationship(locale, relationship))
+  );
 }
 
 function formatContextRelationship(
+  locale: ViewerLocale,
   relationship: ContextBoundary["relationships"][number]
 ): ViewerDetailValue {
+  const copy = getViewerProjectionCopy(locale);
+
   return recordDetailValue([
-    recordDetailEntry("Relationship", textDetailValue(relationship.id)),
-    recordDetailEntry("Kind", textDetailValue(relationship.kind)),
+    recordDetailEntry(copy.recordLabels.relationship, textDetailValue(relationship.id)),
+    recordDetailEntry(copy.recordLabels.kind, textDetailValue(relationship.kind)),
     ...(relationship.direction
-      ? [recordDetailEntry("Direction", textDetailValue(relationship.direction))]
+      ? [recordDetailEntry(copy.recordLabels.direction, textDetailValue(relationship.direction))]
       : []),
     ...(relationship.integration
-      ? [recordDetailEntry("Integration", textDetailValue(relationship.integration))]
+      ? [recordDetailEntry(copy.recordLabels.integration, textDetailValue(relationship.integration))]
       : []),
     recordDetailEntry(
-      "Target",
+      copy.recordLabels.target,
       textDetailValue(`${relationship.target.kind}:${relationship.target.id}`)
     ),
     ...(relationship.description
-      ? [recordDetailEntry("Description", textDetailValue(relationship.description))]
+      ? [recordDetailEntry(copy.recordLabels.description, textDetailValue(relationship.description))]
       : [])
   ]);
 }
 
-function formatSystemDependencies(system: SystemParticipant): ViewerDetailValue {
+function formatSystemDependencies(
+  locale: ViewerLocale,
+  system: SystemParticipant
+): ViewerDetailValue {
+  const copy = getViewerProjectionCopy(locale);
+
   if (system.dependencyRefs.length === 0) {
-    return textDetailValue("none");
+    return textDetailValue(copy.values.none);
   }
 
   return listDetailValue(
     system.dependencyRefs.map((dependency) =>
       recordDetailValue([
-        recordDetailEntry("Kind", textDetailValue(dependency.kind)),
-        recordDetailEntry("Contexts", formatTextList(dependency.contextIds)),
+        recordDetailEntry(copy.recordLabels.kind, textDetailValue(dependency.kind)),
+        recordDetailEntry(copy.recordLabels.contexts, formatTextList(locale, dependency.contextIds)),
         ...(dependency.scenarioId
-          ? [recordDetailEntry("Scenario", textDetailValue(dependency.scenarioId))]
+          ? [recordDetailEntry(copy.recordLabels.scenario, textDetailValue(dependency.scenarioId))]
           : []),
         ...(dependency.stepId
-          ? [recordDetailEntry("Step", textDetailValue(dependency.stepId))]
+          ? [recordDetailEntry(copy.recordLabels.step, textDetailValue(dependency.stepId))]
           : []),
         ...(dependency.messageId
-          ? [recordDetailEntry("Message", textDetailValue(dependency.messageId))]
+          ? [recordDetailEntry(copy.recordLabels.message, textDetailValue(dependency.messageId))]
           : []),
         ...(dependency.policyId
-          ? [recordDetailEntry("Policy", textDetailValue(dependency.policyId))]
+          ? [recordDetailEntry(copy.recordLabels.policy, textDetailValue(dependency.policyId))]
           : []),
         ...(dependency.description
-          ? [recordDetailEntry("Description", textDetailValue(dependency.description))]
+          ? [recordDetailEntry(copy.recordLabels.description, textDetailValue(dependency.description))]
           : [])
       ])
     )
   );
 }
 
-function formatMessageEndpoints(message: MessageFlow): ViewerDetailValue {
+function formatMessageEndpoints(
+  locale: ViewerLocale,
+  message: MessageFlow
+): ViewerDetailValue {
+  const copy = getViewerProjectionCopy(locale);
+
   return recordDetailValue([
     recordDetailEntry(
-      "Sources",
-      formatTextList(message.producers.map((producer) => formatEndpointRef(producer.kind, producer.id)))
+      copy.recordLabels.sources,
+      formatTextList(locale, message.producers.map((producer) => formatEndpointRef(producer.kind, producer.id)))
     ),
     recordDetailEntry(
-      "Targets",
-      formatTextList(message.consumers.map((consumer) => formatEndpointRef(consumer.kind, consumer.id)))
+      copy.recordLabels.targets,
+      formatTextList(locale, message.consumers.map((consumer) => formatEndpointRef(consumer.kind, consumer.id)))
     ),
-    recordDetailEntry("Source contexts", formatTextList(message.producerContextIds)),
-    recordDetailEntry("Target contexts", formatTextList(message.consumerContextIds))
+    recordDetailEntry(copy.recordLabels.sourceContexts, formatTextList(locale, message.producerContextIds)),
+    recordDetailEntry(copy.recordLabels.targetContexts, formatTextList(locale, message.consumerContextIds))
   ]);
 }
 
-function formatMessageStepLinks(stepLinks: readonly MessageStepLink[]): ViewerDetailValue {
+function formatMessageStepLinks(
+  locale: ViewerLocale,
+  stepLinks: readonly MessageStepLink[]
+): ViewerDetailValue {
+  const copy = getViewerProjectionCopy(locale);
+
   if (stepLinks.length === 0) {
-    return textDetailValue("none");
+    return textDetailValue(copy.values.none);
   }
 
   return listDetailValue(
     stepLinks.map((link) =>
       recordDetailValue([
-        recordDetailEntry("Direction", textDetailValue(link.direction)),
-        recordDetailEntry("Scenario", textDetailValue(link.scenarioId)),
-        recordDetailEntry("Step", textDetailValue(link.stepId)),
-        recordDetailEntry("Context", textDetailValue(link.contextId))
+        recordDetailEntry(copy.recordLabels.direction, textDetailValue(link.direction)),
+        recordDetailEntry(copy.recordLabels.scenario, textDetailValue(link.scenarioId)),
+        recordDetailEntry(copy.recordLabels.step, textDetailValue(link.stepId)),
+        recordDetailEntry(copy.recordLabels.context, textDetailValue(link.contextId))
       ])
     )
   );
 }
 
-function formatPolicyCoordinates(policy: PolicyCoordination): ViewerDetailValue {
+function formatPolicyCoordinates(
+  locale: ViewerLocale,
+  policy: PolicyCoordination
+): ViewerDetailValue {
+  const copy = getViewerProjectionCopy(locale);
+
   if (policy.coordinates.length === 0) {
-    return textDetailValue("none");
+    return textDetailValue(copy.values.none);
   }
 
   return formatTextList(
+    locale,
     policy.coordinates.map((coordinate) => formatEndpointRef(coordinate.kind, coordinate.id))
   );
 }
 
 function formatPayloadFields(
+  locale: ViewerLocale,
   fields: readonly {
     id: string;
     type: string;
@@ -1388,8 +1254,10 @@ function formatPayloadFields(
     description?: string;
   }[]
 ): ViewerDetailValue {
+  const copy = getViewerProjectionCopy(locale);
+
   if (fields.length === 0) {
-    return textDetailValue("none");
+    return textDetailValue(copy.values.none);
   }
 
   return listDetailValue(
@@ -1398,36 +1266,27 @@ function formatPayloadFields(
         name: field.id,
         fieldType: field.type,
         required: field.required,
-        description: field.description ?? "No description available."
+        description: field.description ?? copy.values.noDescriptionAvailable
       })
     )
   );
 }
 
-function formatMessageTraceSummary(message: MessageFlow): string {
+function formatMessageTraceSummary(
+  message: MessageFlow,
+  locale: ViewerLocale
+): string {
+  const copy = getViewerProjectionCopy(locale);
   const producerContexts = message.producerContextIds.join(", ");
   const consumerContexts = message.consumerContextIds.join(", ");
 
-  if (producerContexts && consumerContexts) {
-    return producerContexts === consumerContexts
-      ? producerContexts
-      : `${producerContexts} -> ${consumerContexts}`;
-  }
-
-  if (producerContexts) {
-    return `${producerContexts} -> external`;
-  }
-
-  if (consumerContexts) {
-    return `external -> ${consumerContexts}`;
-  }
-
-  return "external hop";
+  return copy.summaries.messageTrace(producerContexts, consumerContexts);
 }
 
 function getScenarioProgressionLabel(
   sourceStep: ScenarioStep,
-  targetStep: ScenarioStep
+  targetStep: ScenarioStep,
+  locale: ViewerLocale
 ): string {
   const sharedMessageIds = sourceStep.outgoingMessageIds.filter((messageId) =>
     targetStep.incomingMessageIds.includes(messageId)
@@ -1437,7 +1296,11 @@ function getScenarioProgressionLabel(
     return sharedMessageIds.join(", ");
   }
 
-  return targetStep.incomingMessageIds[0] ?? sourceStep.outgoingMessageIds[0] ?? "next";
+  return (
+    targetStep.incomingMessageIds[0] ??
+    sourceStep.outgoingMessageIds[0] ??
+    getViewerProjectionCopy(locale).edgeLabels.next
+  );
 }
 
 function hasEndpoint(
@@ -1450,15 +1313,11 @@ function hasEndpoint(
   );
 }
 
-function messageVerbForOutgoing(messageKind: MessageKind): string {
-  switch (messageKind) {
-    case "command":
-      return "issues";
-    case "event":
-      return "publishes";
-    case "query":
-      return "asks";
-  }
+function messageVerbForOutgoing(
+  messageKind: MessageKind,
+  locale: ViewerLocale
+): string {
+  return getViewerProjectionCopy(locale).messageVerbs[messageKind];
 }
 
 function formatEndpointRef(kind: string, id: string): string {
@@ -1466,12 +1325,13 @@ function formatEndpointRef(kind: string, id: string): string {
 }
 
 function detail(
-  semanticKey: SemanticKey,
+  locale: ViewerLocale,
+  semanticKey: ViewerSemanticKey,
   value: ViewerDetailValue | string
 ): ViewerDetailItem {
   return {
     semanticKey,
-    label: VIEWER_DETAIL_SEMANTICS[semanticKey].label,
+    label: getViewerProjectionCopy(locale).detailSemantics[semanticKey].label,
     value: typeof value === "string" ? textDetailValue(value) : value
   };
 }
@@ -1524,9 +1384,12 @@ function fieldDetailValue(input: {
   };
 }
 
-function formatTextList(values: readonly string[]): ViewerDetailValue {
+function formatTextList(
+  locale: ViewerLocale,
+  values: readonly string[]
+): ViewerDetailValue {
   if (values.length === 0) {
-    return textDetailValue("none");
+    return textDetailValue(getViewerProjectionCopy(locale).values.none);
   }
 
   return listDetailValue(values.map((value) => textDetailValue(value)));

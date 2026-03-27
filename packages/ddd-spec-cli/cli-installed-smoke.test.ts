@@ -80,11 +80,20 @@ test("npm pack smoke test installs the tarball and runs zero-config init plus bu
     const viewer = JSON.parse(
       await readFile(join(consumerRootPath, ".ddd-spec", "artifacts", "viewer-spec.json"), "utf8")
     ) as BusinessViewerSpec;
+    const englishViewer = JSON.parse(
+      await readFile(join(consumerRootPath, ".ddd-spec", "artifacts", "viewer-spec.en.json"), "utf8")
+    ) as BusinessViewerSpec;
+    const chineseViewer = JSON.parse(
+      await readFile(join(consumerRootPath, ".ddd-spec", "artifacts", "viewer-spec.zh-CN.json"), "utf8")
+    ) as BusinessViewerSpec;
 
     assert.equal(bundle.version, 1);
     assert.equal(viewer.viewerVersion, 1);
+    assert.equal(chineseViewer.viewerVersion, 1);
     assert.equal(bundle.id, "approval-flow");
     assert.equal(analysis.summary.errorCount, 0);
+    assert.deepEqual(viewer, englishViewer);
+    assert.equal(chineseViewer.title, viewer.title);
     assertPrimaryViewOrder(viewer, [
       "context-map",
       "scenario-story",
@@ -137,9 +146,18 @@ test("npm pack smoke test installs the tarball and runs build with --config on t
     const viewer = JSON.parse(
       await readFile(join(consumerRootPath, "artifacts", "business-viewer", "viewer-spec.json"), "utf8")
     ) as BusinessViewerSpec;
+    const englishViewer = JSON.parse(
+      await readFile(join(consumerRootPath, "artifacts", "business-viewer", "viewer-spec.en.json"), "utf8")
+    ) as BusinessViewerSpec;
+    const chineseViewer = JSON.parse(
+      await readFile(join(consumerRootPath, "artifacts", "business-viewer", "viewer-spec.zh-CN.json"), "utf8")
+    ) as BusinessViewerSpec;
 
     assert.equal(bundle.version, 1);
     assert.equal(viewer.viewerVersion, 1);
+    assert.equal(chineseViewer.viewerVersion, 1);
+    assert.deepEqual(viewer, englishViewer);
+    assert.equal(chineseViewer.title, viewer.title);
     assertPrimaryViewOrder(viewer, [
       "context-map",
       "scenario-story",
@@ -193,8 +211,12 @@ test("npm pack smoke test installs the tarball and serves packaged viewer assets
     assert.equal(assetResponse.status, 200);
 
     const viewerResponse = await fetch(new URL("/generated/viewer-spec.json", viewerUrl));
+    const englishViewerResponse = await fetch(new URL("/generated/viewer-spec.en.json", viewerUrl));
+    const chineseViewerResponse = await fetch(new URL("/generated/viewer-spec.zh-CN.json", viewerUrl));
 
     assert.equal(viewerResponse.status, 200);
+    assert.equal(englishViewerResponse.status, 200);
+    assert.equal(chineseViewerResponse.status, 200);
 
     const devSessionStatus = await readViewerDevSessionStatus(viewerUrl);
 
@@ -206,13 +228,22 @@ test("npm pack smoke test installs the tarball and serves packaged viewer assets
     });
 
     const viewer = await viewerResponse.json() as BusinessViewerSpec;
+    const englishViewer = await englishViewerResponse.json() as BusinessViewerSpec;
+    const chineseViewer = await chineseViewerResponse.json() as BusinessViewerSpec;
     const builtViewer = JSON.parse(
       await readFile(join(consumerRootPath, ".ddd-spec", "artifacts", "viewer-spec.json"), "utf8")
+    ) as BusinessViewerSpec;
+    const builtChineseViewer = JSON.parse(
+      await readFile(join(consumerRootPath, ".ddd-spec", "artifacts", "viewer-spec.zh-CN.json"), "utf8")
     ) as BusinessViewerSpec;
 
     assert.equal(viewer.viewerVersion, 1);
     assert.equal(builtViewer.viewerVersion, 1);
     assert.deepEqual(viewer, builtViewer);
+    assert.deepEqual(englishViewer, builtViewer);
+    assert.deepEqual(chineseViewer, builtChineseViewer);
+    assert.equal(chineseViewer.title, viewer.title);
+    assert.notEqual(chineseViewer.views[0]?.title, viewer.views[0]?.title);
     assertPrimaryViewOrder(viewer, [
       "context-map",
       "scenario-story",

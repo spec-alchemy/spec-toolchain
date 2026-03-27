@@ -28,6 +28,14 @@ export const CROSS_CONTEXT_VIEWER_GOLDEN_PATH = fileURLToPath(
   new URL("../../examples/cross-context/artifacts/business-viewer/viewer-spec.json", import.meta.url)
 );
 
+export const CROSS_CONTEXT_VIEWER_EN_GOLDEN_PATH = fileURLToPath(
+  new URL("../../examples/cross-context/artifacts/business-viewer/viewer-spec.en.json", import.meta.url)
+);
+
+export const CROSS_CONTEXT_VIEWER_ZH_CN_GOLDEN_PATH = fileURLToPath(
+  new URL("../../examples/cross-context/artifacts/business-viewer/viewer-spec.zh-CN.json", import.meta.url)
+);
+
 export async function loadMinimalFixture(): Promise<BusinessSpec> {
   return loadBusinessSpec({
     entryPath: MINIMAL_FIXTURE_ENTRY_PATH

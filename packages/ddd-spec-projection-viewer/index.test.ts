@@ -5,7 +5,9 @@ import {
   analyzeBusinessSpec
 } from "../ddd-spec-core/index.js";
 import {
+  CROSS_CONTEXT_VIEWER_EN_GOLDEN_PATH,
   CROSS_CONTEXT_VIEWER_GOLDEN_PATH,
+  CROSS_CONTEXT_VIEWER_ZH_CN_GOLDEN_PATH,
   loadCrossContextFixture
 } from "../ddd-spec-core/test-fixtures.js";
 import type {
@@ -16,16 +18,51 @@ import type {
 import { BUSINESS_VIEWER_SPEC_VERSION } from "../ddd-spec-viewer-contract/index.js";
 import { buildViewerSpec } from "./index.js";
 
-test("viewer projection matches the checked-in cross-context artifact", async () => {
+test("viewer projection matches the checked-in cross-context artifacts", async () => {
   const spec = await loadCrossContextFixture();
   const analysis = analyzeBusinessSpec(spec);
-  const actualViewerSpec = buildViewerSpec(spec, analysis);
-  const expectedViewerSpec = JSON.parse(
+  const defaultViewerSpec = buildViewerSpec(spec, analysis);
+  const englishViewerSpec = buildViewerSpec(spec, analysis, "en");
+  const chineseViewerSpec = buildViewerSpec(spec, analysis, "zh-CN");
+  const expectedDefaultViewerSpec = JSON.parse(
     await readFile(CROSS_CONTEXT_VIEWER_GOLDEN_PATH, "utf8")
   );
+  const expectedEnglishViewerSpec = JSON.parse(
+    await readFile(CROSS_CONTEXT_VIEWER_EN_GOLDEN_PATH, "utf8")
+  );
+  const expectedChineseViewerSpec = JSON.parse(
+    await readFile(CROSS_CONTEXT_VIEWER_ZH_CN_GOLDEN_PATH, "utf8")
+  );
+  const englishContextMapView = mustFind(
+    englishViewerSpec.views,
+    (view) => view.id === "context-map"
+  );
+  const chineseContextMapView = mustFind(
+    chineseViewerSpec.views,
+    (view) => view.id === "context-map"
+  );
+  const englishOrdersContextNode = mustFind(
+    englishContextMapView.nodes,
+    (node) =>
+      node.kind === "context" &&
+      getTextDetailValue(node.details, "context.id") === "orders"
+  );
+  const chineseOrdersContextNode = mustFind(
+    chineseContextMapView.nodes,
+    (node) =>
+      node.kind === "context" &&
+      getTextDetailValue(node.details, "context.id") === "orders"
+  );
 
-  assert.equal(actualViewerSpec.viewerVersion, BUSINESS_VIEWER_SPEC_VERSION);
-  assert.deepStrictEqual(actualViewerSpec, expectedViewerSpec);
+  assert.equal(defaultViewerSpec.viewerVersion, BUSINESS_VIEWER_SPEC_VERSION);
+  assert.deepStrictEqual(defaultViewerSpec, expectedDefaultViewerSpec);
+  assert.deepStrictEqual(englishViewerSpec, expectedEnglishViewerSpec);
+  assert.deepStrictEqual(chineseViewerSpec, expectedChineseViewerSpec);
+  assert.deepStrictEqual(defaultViewerSpec, englishViewerSpec);
+  assert.equal(englishViewerSpec.title, spec.title);
+  assert.equal(chineseViewerSpec.title, spec.title);
+  assert.equal(englishOrdersContextNode.label, chineseOrdersContextNode.label);
+  assert.equal(englishOrdersContextNode.label, "Orders");
 });
 
 test("viewer projection renders cross-context message flow and query details", async () => {

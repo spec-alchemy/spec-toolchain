@@ -1,3 +1,8 @@
+import type { BusinessViewerSpec, ViewerLocale } from "../ddd-spec-viewer-contract/index.js";
+import {
+  DEFAULT_VIEWER_LOCALE,
+  VIEWER_LOCALES
+} from "../ddd-spec-viewer-contract/index.js";
 import {
   analyzeBusinessSpec,
   loadCanonicalSpec,
@@ -15,6 +20,10 @@ import { buildUsageText, formatDiagnostic, logArtifact, logInfo } from "./consol
 import { loadDddSpecConfig } from "./config.js";
 import { startDddSpecDevSession } from "./dev.js";
 import { initDddSpec } from "./init.js";
+import {
+  expandViewerArtifactPaths,
+  toViewerLocaleArtifactPath
+} from "./viewer-artifacts.js";
 import { startDddSpecViewer, type ViewerCommandHooks } from "./viewer.js";
 
 type CliCommand =
@@ -252,14 +261,14 @@ async function generateViewerSpec(
   analysis: LoadedSpecAnalysis
 ): Promise<void> {
   const viewerPath = requireOutputPath(config.outputs.viewerPath, "outputs.viewer");
-  const viewerSpec = buildViewerSpec(spec, analysis);
+  const viewerSpecsByLocale = Object.fromEntries(
+    VIEWER_LOCALES.map((locale) => [locale, buildViewerSpec(spec, analysis, locale)])
+  ) as Record<ViewerLocale, BusinessViewerSpec>;
 
-  await writeJsonArtifact(viewerPath, viewerSpec);
-  logArtifact("generated viewer spec", viewerPath);
+  await writeViewerArtifacts(viewerPath, viewerSpecsByLocale, "generated viewer spec");
 
   for (const syncTargetPath of config.viewer.syncTargetPaths) {
-    await writeJsonArtifact(syncTargetPath, viewerSpec);
-    logArtifact("synced viewer spec", syncTargetPath);
+    await writeViewerArtifacts(syncTargetPath, viewerSpecsByLocale, "synced viewer spec");
   }
 }
 
@@ -273,9 +282,28 @@ async function cleanupViewerOutputs(
   config: Awaited<ReturnType<typeof loadDddSpecConfig>>
 ): Promise<void> {
   await cleanupOutputPaths(
-    [config.outputs.viewerPath, ...config.viewer.syncTargetPaths],
+    expandOptionalViewerArtifactPaths([
+      config.outputs.viewerPath,
+      ...config.viewer.syncTargetPaths
+    ]),
     "removed stale viewer output"
   );
+}
+
+async function writeViewerArtifacts(
+  outputPath: string,
+  viewerSpecsByLocale: Readonly<Record<ViewerLocale, BusinessViewerSpec>>,
+  label: string
+): Promise<void> {
+  await writeJsonArtifact(outputPath, viewerSpecsByLocale[DEFAULT_VIEWER_LOCALE]);
+  logArtifact(label, outputPath);
+
+  for (const locale of VIEWER_LOCALES) {
+    const localeOutputPath = toViewerLocaleArtifactPath(outputPath, locale);
+
+    await writeJsonArtifact(localeOutputPath, viewerSpecsByLocale[locale]);
+    logArtifact(`${label} (${locale})`, localeOutputPath);
+  }
 }
 
 async function cleanupOutputPaths(
@@ -430,6 +458,12 @@ function requireOutputPath(outputPath: string | undefined, configKey: string): s
 
 function uniqueDefined(values: readonly (string | undefined)[]): string[] {
   return [...new Set(values.filter((value): value is string => Boolean(value)))];
+}
+
+function expandOptionalViewerArtifactPaths(
+  outputPaths: readonly (string | undefined)[]
+): readonly string[] {
+  return uniqueDefined(outputPaths).flatMap((outputPath) => expandViewerArtifactPaths(outputPath));
 }
 
 function analyzeSpec(spec: BusinessSpec): LoadedSpecAnalysis {

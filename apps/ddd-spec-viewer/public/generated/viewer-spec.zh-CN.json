@@ -5,67 +5,67 @@
   "summary": "Cross-context domain model example centered on command, event, and query flow across orders and payments.",
   "detailHelp": {
     "semantic": {
-      "context.id": "The bounded context currently shown as the business ownership boundary.",
-      "context.owners": "Teams, roles, or organizations that carry business responsibility for this context.",
-      "context.responsibilities": "The business responsibilities explicitly assigned to this context.",
-      "context.owned_aggregates": "Aggregates modeled inside this context boundary.",
-      "context.scenarios": "Scenarios on the default learning path for this context.",
-      "context.related_actors": "Actors that initiate or participate in steps inside this context.",
-      "context.related_systems": "Systems this context collaborates with, depends on, or calls.",
-      "context.relationships": "External collaborations or dependencies explicitly declared for this context.",
-      "actor.type": "The participant type for this actor, such as person, role, or team.",
-      "actor.contexts": "Contexts where this actor participates in at least one step.",
-      "actor.scenarios": "Scenarios where this actor appears.",
-      "actor.scenario_steps": "Scenario steps where this actor explicitly participates.",
-      "system.boundary": "Whether this system is modeled as an internal capability or an external dependency.",
-      "system.capabilities": "Capabilities this system explicitly provides to the business model.",
-      "system.contexts": "Contexts that depend on this system or collaborate with it through messages.",
-      "system.dependencies": "Which contexts, messages, or policies refer to this system and how.",
-      "scenario.id": "The end-to-end business scenario used as the default reading storyline.",
-      "scenario.goal": "The business goal this scenario tries to achieve.",
-      "scenario.owner_context": "The context that owns the main narrative and responsibility for this scenario.",
-      "scenario.participating_contexts": "Contexts touched while this scenario advances.",
-      "scenario.actors": "Actors that appear in this scenario.",
-      "scenario.systems": "Systems that appear in this scenario.",
-      "scenario.final_steps": "Final steps where this scenario can conclude.",
-      "step.id": "A single business step inside the scenario story.",
-      "step.context": "The business context that owns this step.",
-      "step.actor": "The actor that initiates or leads this step.",
-      "step.system": "The system directly touched or invoked by this step.",
-      "step.entry": "Whether this step is marked as the scenario entry point.",
-      "step.final": "Whether this step is a final business outcome instead of ongoing work.",
-      "step.incoming_messages": "Messages this step receives or observes.",
-      "step.outgoing_messages": "Messages this step sends, triggers, or requests.",
-      "step.outcome": "A short description of the business result when the scenario ends at this step.",
-      "message.kind": "The message category, such as command, event, or query.",
-      "message.type": "The business message identifier shown in this view.",
-      "message.channel": "Whether the message is expected to travel through sync or async delivery.",
-      "message.endpoints": "The source, target, and their owning contexts for this message.",
-      "message.crosses_context_boundary": "Whether this message crosses more than one business context.",
-      "message.step_links": "Scenario steps linked to this message as incoming or outgoing references.",
-      "message.payload_fields": "Payload fields defined on this message contract and the meaning of each field.",
-      "aggregate.id": "The aggregate that owns this node or relation.",
-      "aggregate.context": "The business context that owns this aggregate lifecycle.",
-      "aggregate.initial_state": "The default state at the beginning of the aggregate lifecycle.",
-      "aggregate.lifecycle": "All lifecycle states defined for this aggregate.",
-      "aggregate.accepted_messages": "Messages that drive transitions in this aggregate lifecycle.",
-      "aggregate.emitted_messages": "Messages this aggregate emits during lifecycle transitions.",
-      "aggregate.reachable_states": "States that can be reached legally from the initial state.",
-      "aggregate.unreachable_states": "States that remain unreachable in the current lifecycle.",
-      "aggregate.state.id": "The lifecycle state currently being shown.",
-      "aggregate.state.reachable": "Whether this state can be reached from the initial state.",
-      "aggregate.state.outgoing_messages": "Messages emitted by transitions that leave this state.",
-      "transition.trigger_message": "The message that triggers this lifecycle transition.",
-      "transition.emitted_messages": "Additional messages emitted by this lifecycle transition.",
-      "relation.from": "The source state, source step, or source node for this relation.",
-      "relation.to": "The target state, target step, or target node for this relation.",
-      "policy.id": "The identifier of the current coordination policy or saga.",
-      "policy.context": "The business context where this policy is declared or owned.",
-      "policy.trigger_messages": "Messages that trigger this policy.",
-      "policy.emitted_messages": "Messages this policy emits as follow-up work.",
-      "policy.target_systems": "Systems this policy calls or coordinates.",
-      "policy.related_contexts": "Contexts this policy touches or coordinates.",
-      "policy.coordinates": "Business resources explicitly coordinated by this policy."
+      "context.id": "当前作为业务所有权边界展示的 bounded context。",
+      "context.owners": "对当前 context 负业务责任的团队、角色或组织。",
+      "context.responsibilities": "当前 context 明确承担的业务职责集合。",
+      "context.owned_aggregates": "当前 context 边界内部建模的聚合集合。",
+      "context.scenarios": "当前 context 默认教学路径下的业务场景集合。",
+      "context.related_actors": "会在当前 context 边界内发起或参与步骤的 actor 集合。",
+      "context.related_systems": "当前 context 会协作、依赖或调用的系统集合。",
+      "context.relationships": "当前 context 显式声明的外部协作或依赖关系。",
+      "actor.type": "当前 actor 的参与者类型，例如 person、role 或 team。",
+      "actor.contexts": "当前 actor 参与过步骤的 context 集合。",
+      "actor.scenarios": "当前 actor 参与过的场景集合。",
+      "actor.scenario_steps": "当前 actor 在哪些场景步骤中显式参与。",
+      "system.boundary": "当前系统属于内部能力还是外部依赖。",
+      "system.capabilities": "当前系统向业务建模显式提供的能力集合。",
+      "system.contexts": "当前系统与哪些业务 context 存在依赖或消息协作。",
+      "system.dependencies": "当前系统被哪些 context、message 或 policy 以何种方式引用。",
+      "scenario.id": "作为默认阅读主线的端到端业务场景。",
+      "scenario.goal": "该场景试图达成的业务目标。",
+      "scenario.owner_context": "拥有该场景主叙事和业务责任的 context。",
+      "scenario.participating_contexts": "该场景推进过程中会触达的 context 集合。",
+      "scenario.actors": "在该场景步骤中出现过的 actor 集合。",
+      "scenario.systems": "在该场景步骤中出现过的系统集合。",
+      "scenario.final_steps": "该场景允许收束到的终局步骤集合。",
+      "step.id": "场景故事中的单个业务步骤。",
+      "step.context": "当前步骤所属的业务 context。",
+      "step.actor": "当前步骤由哪个 actor 发起或主导。",
+      "step.system": "当前步骤直接接触或调用的系统。",
+      "step.entry": "标记该步骤是否为场景入口。",
+      "step.final": "标记该步骤是否为终局业务结果，而不是继续推进中的工作步骤。",
+      "step.incoming_messages": "当前步骤会接收或观察的消息集合。",
+      "step.outgoing_messages": "当前步骤会发出、触发或请求的消息集合。",
+      "step.outcome": "当场景走到终局步骤时，对业务结果的简短说明。",
+      "message.kind": "当前消息的类别，例如 command、event 或 query。",
+      "message.type": "当前视图中展示或讨论的业务消息标识。",
+      "message.channel": "当前消息预期通过 sync 或 async 方式传递。",
+      "message.endpoints": "当前消息的 source、target 以及它们所在的 context。",
+      "message.crosses_context_boundary": "当前消息是否跨越多个业务 context。",
+      "message.step_links": "当前消息与哪些场景步骤存在 incoming 或 outgoing 绑定。",
+      "message.payload_fields": "当前消息契约中的 payload 字段，以及每个字段的语义说明。",
+      "aggregate.id": "当前节点或关系所属的聚合对象。",
+      "aggregate.context": "拥有该 aggregate 生命周期的业务 context。",
+      "aggregate.initial_state": "聚合生命周期开始时的默认状态。",
+      "aggregate.lifecycle": "该聚合定义的全部生命周期状态集合。",
+      "aggregate.accepted_messages": "驱动该 aggregate 生命周期转移的消息集合。",
+      "aggregate.emitted_messages": "该 aggregate 在转移过程中会发出的消息集合。",
+      "aggregate.reachable_states": "可从初始状态通过合法转移到达的状态集合。",
+      "aggregate.unreachable_states": "当前生命周期里尚不可达的状态集合。",
+      "aggregate.state.id": "当前聚合所处的生命周期状态。",
+      "aggregate.state.reachable": "表示该状态是否能从初始状态通过合法转移到达。",
+      "aggregate.state.outgoing_messages": "从当前状态出发可能触发的生命周期转移所发出的消息集合。",
+      "transition.trigger_message": "触发当前生命周期转移的消息。",
+      "transition.emitted_messages": "当前生命周期转移会额外发出的消息集合。",
+      "relation.from": "转移或关系的起点状态、起始步骤或来源节点。",
+      "relation.to": "转移或关系的目标状态、目标步骤或去向节点。",
+      "policy.id": "当前协调策略或 saga 的标识。",
+      "policy.context": "当前 policy 所属或声明的业务 context。",
+      "policy.trigger_messages": "会触发该 policy 运行的消息集合。",
+      "policy.emitted_messages": "该 policy 继续向外发出的消息集合。",
+      "policy.target_systems": "该 policy 会调用或协调的目标系统。",
+      "policy.related_contexts": "该 policy 触达或协调到的 context 集合。",
+      "policy.coordinates": "该 policy 显式协调的业务资源集合。"
     }
   },
   "views": [
@@ -77,22 +77,22 @@
         "order": 10,
         "default": true
       },
-      "title": "Context Map",
-      "description": "Shows bounded contexts, the actors and systems they collaborate with, and which scenarios, aggregates, and policies each context owns.",
+      "title": "上下文地图",
+      "description": "展示 bounded context，以及与其协作的参与者和系统，还有每个 context 拥有的场景、聚合与策略。",
       "nodes": [
         {
           "id": "context-map:context:orders",
           "kind": "context",
           "label": "Orders",
           "subtitle": "orders",
-          "summary": "1 aggregate(s), 1 scenario(s), 0 policy(s)",
+          "summary": "1 个聚合, 1 个场景, 0 个策略",
           "width": 360,
           "height": 240,
-          "headerHeight": 123,
+          "headerHeight": 120,
           "details": [
             {
               "semanticKey": "context.id",
-              "label": "Context",
+              "label": "上下文",
               "value": {
                 "kind": "text",
                 "text": "orders"
@@ -100,7 +100,7 @@
             },
             {
               "semanticKey": "context.owners",
-              "label": "Owners",
+              "label": "负责方",
               "value": {
                 "kind": "list",
                 "items": [
@@ -113,7 +113,7 @@
             },
             {
               "semanticKey": "context.responsibilities",
-              "label": "Responsibilities",
+              "label": "职责",
               "value": {
                 "kind": "list",
                 "items": [
@@ -134,7 +134,7 @@
             },
             {
               "semanticKey": "context.owned_aggregates",
-              "label": "Owned aggregates",
+              "label": "拥有的聚合",
               "value": {
                 "kind": "list",
                 "items": [
@@ -147,7 +147,7 @@
             },
             {
               "semanticKey": "context.scenarios",
-              "label": "Scenarios",
+              "label": "场景",
               "value": {
                 "kind": "list",
                 "items": [
@@ -160,7 +160,7 @@
             },
             {
               "semanticKey": "context.related_actors",
-              "label": "Actors",
+              "label": "参与者",
               "value": {
                 "kind": "list",
                 "items": [
@@ -173,7 +173,7 @@
             },
             {
               "semanticKey": "context.related_systems",
-              "label": "Systems",
+              "label": "系统",
               "value": {
                 "kind": "list",
                 "items": [
@@ -186,7 +186,7 @@
             },
             {
               "semanticKey": "context.relationships",
-              "label": "Relationships",
+              "label": "关系",
               "value": {
                 "kind": "list",
                 "items": [
@@ -194,42 +194,42 @@
                     "kind": "record",
                     "entries": [
                       {
-                        "label": "Relationship",
+                        "label": "关系",
                         "value": {
                           "kind": "text",
                           "text": "requests-payment-authorization"
                         }
                       },
                       {
-                        "label": "Kind",
+                        "label": "类型",
                         "value": {
                           "kind": "text",
                           "text": "depends-on"
                         }
                       },
                       {
-                        "label": "Direction",
+                        "label": "方向",
                         "value": {
                           "kind": "text",
                           "text": "downstream"
                         }
                       },
                       {
-                        "label": "Integration",
+                        "label": "集成方式",
                         "value": {
                           "kind": "text",
                           "text": "customer-supplier"
                         }
                       },
                       {
-                        "label": "Target",
+                        "label": "目标",
                         "value": {
                           "kind": "text",
                           "text": "context:payments"
                         }
                       },
                       {
-                        "label": "Description",
+                        "label": "说明",
                         "value": {
                           "kind": "text",
                           "text": "Orders depends on the payments context to authorize settlement before confirmation."
@@ -247,14 +247,14 @@
           "kind": "aggregate",
           "label": "Order",
           "subtitle": "order",
-          "summary": "initial: draft",
+          "summary": "初始状态: draft",
           "parentId": "context-map:context:orders",
           "width": 220,
           "height": 123,
           "details": [
             {
               "semanticKey": "aggregate.id",
-              "label": "Aggregate",
+              "label": "聚合",
               "value": {
                 "kind": "text",
                 "text": "order"
@@ -262,7 +262,7 @@
             },
             {
               "semanticKey": "aggregate.context",
-              "label": "Context",
+              "label": "上下文",
               "value": {
                 "kind": "text",
                 "text": "orders"
@@ -270,7 +270,7 @@
             },
             {
               "semanticKey": "aggregate.initial_state",
-              "label": "Initial state",
+              "label": "初始状态",
               "value": {
                 "kind": "text",
                 "text": "draft"
@@ -278,7 +278,7 @@
             },
             {
               "semanticKey": "aggregate.lifecycle",
-              "label": "Lifecycle",
+              "label": "生命周期",
               "value": {
                 "kind": "list",
                 "items": [
@@ -299,7 +299,7 @@
             },
             {
               "semanticKey": "aggregate.accepted_messages",
-              "label": "Accepted messages",
+              "label": "接收的消息",
               "value": {
                 "kind": "list",
                 "items": [
@@ -316,7 +316,7 @@
             },
             {
               "semanticKey": "aggregate.emitted_messages",
-              "label": "Emitted messages",
+              "label": "发出的消息",
               "value": {
                 "kind": "list",
                 "items": [
@@ -329,7 +329,7 @@
             },
             {
               "semanticKey": "aggregate.reachable_states",
-              "label": "Reachable states",
+              "label": "可达状态",
               "value": {
                 "kind": "list",
                 "items": [
@@ -350,10 +350,10 @@
             },
             {
               "semanticKey": "aggregate.unreachable_states",
-              "label": "Unreachable states",
+              "label": "不可达状态",
               "value": {
                 "kind": "text",
-                "text": "none"
+                "text": "无"
               }
             }
           ]
@@ -363,14 +363,14 @@
           "kind": "scenario",
           "label": "Order Settlement Flow",
           "subtitle": "order-settlement-flow",
-          "summary": "goal: Capture an order, settle payment in another context, and confirm the order after reconciliation.",
+          "summary": "目标: Capture an order, settle payment in another context, and confirm the order after reconciliation.",
           "parentId": "context-map:context:orders",
           "width": 208,
           "height": 238,
           "details": [
             {
               "semanticKey": "scenario.id",
-              "label": "Scenario",
+              "label": "场景",
               "value": {
                 "kind": "text",
                 "text": "order-settlement-flow"
@@ -378,7 +378,7 @@
             },
             {
               "semanticKey": "scenario.goal",
-              "label": "Goal",
+              "label": "目标",
               "value": {
                 "kind": "text",
                 "text": "Capture an order, settle payment in another context, and confirm the order after reconciliation."
@@ -386,7 +386,7 @@
             },
             {
               "semanticKey": "scenario.owner_context",
-              "label": "Owner context",
+              "label": "所属上下文",
               "value": {
                 "kind": "text",
                 "text": "orders"
@@ -394,7 +394,7 @@
             },
             {
               "semanticKey": "scenario.participating_contexts",
-              "label": "Participating contexts",
+              "label": "参与的上下文",
               "value": {
                 "kind": "list",
                 "items": [
@@ -411,7 +411,7 @@
             },
             {
               "semanticKey": "scenario.actors",
-              "label": "Actors",
+              "label": "参与者",
               "value": {
                 "kind": "list",
                 "items": [
@@ -424,7 +424,7 @@
             },
             {
               "semanticKey": "scenario.systems",
-              "label": "Systems",
+              "label": "系统",
               "value": {
                 "kind": "list",
                 "items": [
@@ -437,7 +437,7 @@
             },
             {
               "semanticKey": "scenario.final_steps",
-              "label": "Final steps",
+              "label": "终局步骤",
               "value": {
                 "kind": "list",
                 "items": [
@@ -455,14 +455,14 @@
           "kind": "context",
           "label": "Payments",
           "subtitle": "payments",
-          "summary": "1 aggregate(s), 0 scenario(s), 0 policy(s)",
+          "summary": "1 个聚合, 0 个场景, 0 个策略",
           "width": 360,
           "height": 240,
-          "headerHeight": 123,
+          "headerHeight": 120,
           "details": [
             {
               "semanticKey": "context.id",
-              "label": "Context",
+              "label": "上下文",
               "value": {
                 "kind": "text",
                 "text": "payments"
@@ -470,7 +470,7 @@
             },
             {
               "semanticKey": "context.owners",
-              "label": "Owners",
+              "label": "负责方",
               "value": {
                 "kind": "list",
                 "items": [
@@ -483,7 +483,7 @@
             },
             {
               "semanticKey": "context.responsibilities",
-              "label": "Responsibilities",
+              "label": "职责",
               "value": {
                 "kind": "list",
                 "items": [
@@ -500,7 +500,7 @@
             },
             {
               "semanticKey": "context.owned_aggregates",
-              "label": "Owned aggregates",
+              "label": "拥有的聚合",
               "value": {
                 "kind": "list",
                 "items": [
@@ -513,23 +513,23 @@
             },
             {
               "semanticKey": "context.scenarios",
-              "label": "Scenarios",
+              "label": "场景",
               "value": {
                 "kind": "text",
-                "text": "none"
+                "text": "无"
               }
             },
             {
               "semanticKey": "context.related_actors",
-              "label": "Actors",
+              "label": "参与者",
               "value": {
                 "kind": "text",
-                "text": "none"
+                "text": "无"
               }
             },
             {
               "semanticKey": "context.related_systems",
-              "label": "Systems",
+              "label": "系统",
               "value": {
                 "kind": "list",
                 "items": [
@@ -542,7 +542,7 @@
             },
             {
               "semanticKey": "context.relationships",
-              "label": "Relationships",
+              "label": "关系",
               "value": {
                 "kind": "list",
                 "items": [
@@ -550,42 +550,42 @@
                     "kind": "record",
                     "entries": [
                       {
-                        "label": "Relationship",
+                        "label": "关系",
                         "value": {
                           "kind": "text",
                           "text": "queries-ledger"
                         }
                       },
                       {
-                        "label": "Kind",
+                        "label": "类型",
                         "value": {
                           "kind": "text",
                           "text": "queries"
                         }
                       },
                       {
-                        "label": "Direction",
+                        "label": "方向",
                         "value": {
                           "kind": "text",
                           "text": "downstream"
                         }
                       },
                       {
-                        "label": "Integration",
+                        "label": "集成方式",
                         "value": {
                           "kind": "text",
                           "text": "synchronous-query"
                         }
                       },
                       {
-                        "label": "Target",
+                        "label": "目标",
                         "value": {
                           "kind": "text",
                           "text": "system:ledger-gateway"
                         }
                       },
                       {
-                        "label": "Description",
+                        "label": "说明",
                         "value": {
                           "kind": "text",
                           "text": "Payments and orders rely on the shared ledger gateway for reconciliation details."
@@ -603,14 +603,14 @@
           "kind": "aggregate",
           "label": "Payment",
           "subtitle": "payment",
-          "summary": "initial: pending",
+          "summary": "初始状态: pending",
           "parentId": "context-map:context:payments",
           "width": 220,
           "height": 123,
           "details": [
             {
               "semanticKey": "aggregate.id",
-              "label": "Aggregate",
+              "label": "聚合",
               "value": {
                 "kind": "text",
                 "text": "payment"
@@ -618,7 +618,7 @@
             },
             {
               "semanticKey": "aggregate.context",
-              "label": "Context",
+              "label": "上下文",
               "value": {
                 "kind": "text",
                 "text": "payments"
@@ -626,7 +626,7 @@
             },
             {
               "semanticKey": "aggregate.initial_state",
-              "label": "Initial state",
+              "label": "初始状态",
               "value": {
                 "kind": "text",
                 "text": "pending"
@@ -634,7 +634,7 @@
             },
             {
               "semanticKey": "aggregate.lifecycle",
-              "label": "Lifecycle",
+              "label": "生命周期",
               "value": {
                 "kind": "list",
                 "items": [
@@ -651,7 +651,7 @@
             },
             {
               "semanticKey": "aggregate.accepted_messages",
-              "label": "Accepted messages",
+              "label": "接收的消息",
               "value": {
                 "kind": "list",
                 "items": [
@@ -664,7 +664,7 @@
             },
             {
               "semanticKey": "aggregate.emitted_messages",
-              "label": "Emitted messages",
+              "label": "发出的消息",
               "value": {
                 "kind": "list",
                 "items": [
@@ -677,7 +677,7 @@
             },
             {
               "semanticKey": "aggregate.reachable_states",
-              "label": "Reachable states",
+              "label": "可达状态",
               "value": {
                 "kind": "list",
                 "items": [
@@ -694,10 +694,10 @@
             },
             {
               "semanticKey": "aggregate.unreachable_states",
-              "label": "Unreachable states",
+              "label": "不可达状态",
               "value": {
                 "kind": "text",
-                "text": "none"
+                "text": "无"
               }
             }
           ]
@@ -707,13 +707,13 @@
           "kind": "actor",
           "label": "Customer",
           "subtitle": "customer",
-          "summary": "1 context(s), 1 step(s)",
+          "summary": "1 个上下文, 1 个步骤",
           "width": 208,
-          "height": 139,
+          "height": 123,
           "details": [
             {
               "semanticKey": "actor.type",
-              "label": "Actor type",
+              "label": "参与者类型",
               "value": {
                 "kind": "text",
                 "text": "person"
@@ -721,7 +721,7 @@
             },
             {
               "semanticKey": "actor.contexts",
-              "label": "Contexts",
+              "label": "上下文",
               "value": {
                 "kind": "list",
                 "items": [
@@ -734,7 +734,7 @@
             },
             {
               "semanticKey": "actor.scenarios",
-              "label": "Scenarios",
+              "label": "场景",
               "value": {
                 "kind": "list",
                 "items": [
@@ -747,7 +747,7 @@
             },
             {
               "semanticKey": "actor.scenario_steps",
-              "label": "Scenario steps",
+              "label": "场景步骤",
               "value": {
                 "kind": "list",
                 "items": [
@@ -771,7 +771,7 @@
           "details": [
             {
               "semanticKey": "system.boundary",
-              "label": "Boundary",
+              "label": "边界",
               "value": {
                 "kind": "text",
                 "text": "external"
@@ -779,7 +779,7 @@
             },
             {
               "semanticKey": "system.capabilities",
-              "label": "Capabilities",
+              "label": "能力",
               "value": {
                 "kind": "list",
                 "items": [
@@ -796,7 +796,7 @@
             },
             {
               "semanticKey": "system.contexts",
-              "label": "Contexts",
+              "label": "上下文",
               "value": {
                 "kind": "list",
                 "items": [
@@ -813,7 +813,7 @@
             },
             {
               "semanticKey": "system.dependencies",
-              "label": "Dependencies",
+              "label": "依赖",
               "value": {
                 "kind": "list",
                 "items": [
@@ -821,14 +821,14 @@
                     "kind": "record",
                     "entries": [
                       {
-                        "label": "Kind",
+                        "label": "类型",
                         "value": {
                           "kind": "text",
                           "text": "context-relationship"
                         }
                       },
                       {
-                        "label": "Contexts",
+                        "label": "上下文",
                         "value": {
                           "kind": "list",
                           "items": [
@@ -840,7 +840,7 @@
                         }
                       },
                       {
-                        "label": "Description",
+                        "label": "说明",
                         "value": {
                           "kind": "text",
                           "text": "Payments and orders rely on the shared ledger gateway for reconciliation details."
@@ -852,14 +852,14 @@
                     "kind": "record",
                     "entries": [
                       {
-                        "label": "Kind",
+                        "label": "类型",
                         "value": {
                           "kind": "text",
                           "text": "scenario-step"
                         }
                       },
                       {
-                        "label": "Contexts",
+                        "label": "上下文",
                         "value": {
                           "kind": "list",
                           "items": [
@@ -871,14 +871,14 @@
                         }
                       },
                       {
-                        "label": "Scenario",
+                        "label": "场景",
                         "value": {
                           "kind": "text",
                           "text": "order-settlement-flow"
                         }
                       },
                       {
-                        "label": "Step",
+                        "label": "步骤",
                         "value": {
                           "kind": "text",
                           "text": "reconcile-order"
@@ -890,14 +890,14 @@
                     "kind": "record",
                     "entries": [
                       {
-                        "label": "Kind",
+                        "label": "类型",
                         "value": {
                           "kind": "text",
                           "text": "message-consumer"
                         }
                       },
                       {
-                        "label": "Contexts",
+                        "label": "上下文",
                         "value": {
                           "kind": "list",
                           "items": [
@@ -909,7 +909,7 @@
                         }
                       },
                       {
-                        "label": "Message",
+                        "label": "消息",
                         "value": {
                           "kind": "text",
                           "text": "fetch-ledger-status"
@@ -921,14 +921,14 @@
                     "kind": "record",
                     "entries": [
                       {
-                        "label": "Kind",
+                        "label": "类型",
                         "value": {
                           "kind": "text",
                           "text": "message-producer"
                         }
                       },
                       {
-                        "label": "Contexts",
+                        "label": "上下文",
                         "value": {
                           "kind": "list",
                           "items": [
@@ -940,7 +940,7 @@
                         }
                       },
                       {
-                        "label": "Message",
+                        "label": "消息",
                         "value": {
                           "kind": "text",
                           "text": "ledger-status-fetched"
@@ -960,11 +960,11 @@
           "kind": "ownership",
           "source": "context-map:context:orders",
           "target": "context-map:aggregate:order",
-          "label": "owns",
+          "label": "拥有",
           "details": [
             {
               "semanticKey": "context.id",
-              "label": "Context",
+              "label": "上下文",
               "value": {
                 "kind": "text",
                 "text": "orders"
@@ -972,7 +972,7 @@
             },
             {
               "semanticKey": "aggregate.id",
-              "label": "Aggregate",
+              "label": "聚合",
               "value": {
                 "kind": "text",
                 "text": "order"
@@ -985,11 +985,11 @@
           "kind": "ownership",
           "source": "context-map:context:orders",
           "target": "context-map:scenario:order-settlement-flow",
-          "label": "owns",
+          "label": "拥有",
           "details": [
             {
               "semanticKey": "context.id",
-              "label": "Context",
+              "label": "上下文",
               "value": {
                 "kind": "text",
                 "text": "orders"
@@ -997,7 +997,7 @@
             },
             {
               "semanticKey": "scenario.id",
-              "label": "Scenario",
+              "label": "场景",
               "value": {
                 "kind": "text",
                 "text": "order-settlement-flow"
@@ -1010,11 +1010,11 @@
           "kind": "ownership",
           "source": "context-map:context:payments",
           "target": "context-map:aggregate:payment",
-          "label": "owns",
+          "label": "拥有",
           "details": [
             {
               "semanticKey": "context.id",
-              "label": "Context",
+              "label": "上下文",
               "value": {
                 "kind": "text",
                 "text": "payments"
@@ -1022,7 +1022,7 @@
             },
             {
               "semanticKey": "aggregate.id",
-              "label": "Aggregate",
+              "label": "聚合",
               "value": {
                 "kind": "text",
                 "text": "payment"
@@ -1035,11 +1035,11 @@
           "kind": "collaboration",
           "source": "context-map:actor:customer",
           "target": "context-map:context:orders",
-          "label": "participates",
+          "label": "参与",
           "details": [
             {
               "semanticKey": "step.actor",
-              "label": "Actor",
+              "label": "参与者",
               "value": {
                 "kind": "text",
                 "text": "customer"
@@ -1047,7 +1047,7 @@
             },
             {
               "semanticKey": "context.id",
-              "label": "Context",
+              "label": "上下文",
               "value": {
                 "kind": "text",
                 "text": "orders"
@@ -1060,11 +1060,11 @@
           "kind": "collaboration",
           "source": "context-map:system:ledger-gateway",
           "target": "context-map:context:payments",
-          "label": "touches",
+          "label": "触达",
           "details": [
             {
               "semanticKey": "system.contexts",
-              "label": "Contexts",
+              "label": "上下文",
               "value": {
                 "kind": "list",
                 "items": [
@@ -1077,7 +1077,7 @@
             },
             {
               "semanticKey": "context.id",
-              "label": "Context",
+              "label": "上下文",
               "value": {
                 "kind": "text",
                 "text": "payments"
@@ -1090,11 +1090,11 @@
           "kind": "collaboration",
           "source": "context-map:system:ledger-gateway",
           "target": "context-map:context:orders",
-          "label": "touches",
+          "label": "触达",
           "details": [
             {
               "semanticKey": "system.contexts",
-              "label": "Contexts",
+              "label": "上下文",
               "value": {
                 "kind": "list",
                 "items": [
@@ -1107,7 +1107,7 @@
             },
             {
               "semanticKey": "context.id",
-              "label": "Context",
+              "label": "上下文",
               "value": {
                 "kind": "text",
                 "text": "orders"
@@ -1125,7 +1125,7 @@
           "details": [
             {
               "semanticKey": "context.id",
-              "label": "Context",
+              "label": "上下文",
               "value": {
                 "kind": "text",
                 "text": "orders"
@@ -1133,7 +1133,7 @@
             },
             {
               "semanticKey": "relation.from",
-              "label": "From",
+              "label": "起点",
               "value": {
                 "kind": "text",
                 "text": "orders"
@@ -1141,7 +1141,7 @@
             },
             {
               "semanticKey": "relation.to",
-              "label": "To",
+              "label": "终点",
               "value": {
                 "kind": "text",
                 "text": "context:payments"
@@ -1149,47 +1149,47 @@
             },
             {
               "semanticKey": "context.relationships",
-              "label": "Relationships",
+              "label": "关系",
               "value": {
                 "kind": "record",
                 "entries": [
                   {
-                    "label": "Relationship",
+                    "label": "关系",
                     "value": {
                       "kind": "text",
                       "text": "requests-payment-authorization"
                     }
                   },
                   {
-                    "label": "Kind",
+                    "label": "类型",
                     "value": {
                       "kind": "text",
                       "text": "depends-on"
                     }
                   },
                   {
-                    "label": "Direction",
+                    "label": "方向",
                     "value": {
                       "kind": "text",
                       "text": "downstream"
                     }
                   },
                   {
-                    "label": "Integration",
+                    "label": "集成方式",
                     "value": {
                       "kind": "text",
                       "text": "customer-supplier"
                     }
                   },
                   {
-                    "label": "Target",
+                    "label": "目标",
                     "value": {
                       "kind": "text",
                       "text": "context:payments"
                     }
                   },
                   {
-                    "label": "Description",
+                    "label": "说明",
                     "value": {
                       "kind": "text",
                       "text": "Orders depends on the payments context to authorize settlement before confirmation."
@@ -1210,7 +1210,7 @@
           "details": [
             {
               "semanticKey": "context.id",
-              "label": "Context",
+              "label": "上下文",
               "value": {
                 "kind": "text",
                 "text": "payments"
@@ -1218,7 +1218,7 @@
             },
             {
               "semanticKey": "relation.from",
-              "label": "From",
+              "label": "起点",
               "value": {
                 "kind": "text",
                 "text": "payments"
@@ -1226,7 +1226,7 @@
             },
             {
               "semanticKey": "relation.to",
-              "label": "To",
+              "label": "终点",
               "value": {
                 "kind": "text",
                 "text": "system:ledger-gateway"
@@ -1234,47 +1234,47 @@
             },
             {
               "semanticKey": "context.relationships",
-              "label": "Relationships",
+              "label": "关系",
               "value": {
                 "kind": "record",
                 "entries": [
                   {
-                    "label": "Relationship",
+                    "label": "关系",
                     "value": {
                       "kind": "text",
                       "text": "queries-ledger"
                     }
                   },
                   {
-                    "label": "Kind",
+                    "label": "类型",
                     "value": {
                       "kind": "text",
                       "text": "queries"
                     }
                   },
                   {
-                    "label": "Direction",
+                    "label": "方向",
                     "value": {
                       "kind": "text",
                       "text": "downstream"
                     }
                   },
                   {
-                    "label": "Integration",
+                    "label": "集成方式",
                     "value": {
                       "kind": "text",
                       "text": "synchronous-query"
                     }
                   },
                   {
-                    "label": "Target",
+                    "label": "目标",
                     "value": {
                       "kind": "text",
                       "text": "system:ledger-gateway"
                     }
                   },
                   {
-                    "label": "Description",
+                    "label": "说明",
                     "value": {
                       "kind": "text",
                       "text": "Payments and orders rely on the shared ledger gateway for reconciliation details."
@@ -1294,22 +1294,22 @@
         "tier": "primary",
         "order": 20
       },
-      "title": "Scenario Story",
-      "description": "Shows how each scenario advances step by step across contexts, including which message moves the story forward.",
+      "title": "场景故事",
+      "description": "展示每个场景如何跨 context 逐步推进，以及哪条消息推动故事继续前进。",
       "nodes": [
         {
           "id": "scenario-story:scenario:order-settlement-flow",
           "kind": "scenario",
           "label": "Order Settlement Flow",
           "subtitle": "order-settlement-flow",
-          "summary": "goal: Capture an order, settle payment in another context, and confirm the order after reconciliation.",
+          "summary": "目标: Capture an order, settle payment in another context, and confirm the order after reconciliation.",
           "width": 320,
           "height": 227,
           "headerHeight": 155,
           "details": [
             {
               "semanticKey": "scenario.id",
-              "label": "Scenario",
+              "label": "场景",
               "value": {
                 "kind": "text",
                 "text": "order-settlement-flow"
@@ -1317,7 +1317,7 @@
             },
             {
               "semanticKey": "scenario.goal",
-              "label": "Goal",
+              "label": "目标",
               "value": {
                 "kind": "text",
                 "text": "Capture an order, settle payment in another context, and confirm the order after reconciliation."
@@ -1325,7 +1325,7 @@
             },
             {
               "semanticKey": "scenario.owner_context",
-              "label": "Owner context",
+              "label": "所属上下文",
               "value": {
                 "kind": "text",
                 "text": "orders"
@@ -1333,7 +1333,7 @@
             },
             {
               "semanticKey": "scenario.participating_contexts",
-              "label": "Participating contexts",
+              "label": "参与的上下文",
               "value": {
                 "kind": "list",
                 "items": [
@@ -1350,7 +1350,7 @@
             },
             {
               "semanticKey": "scenario.actors",
-              "label": "Actors",
+              "label": "参与者",
               "value": {
                 "kind": "list",
                 "items": [
@@ -1363,7 +1363,7 @@
             },
             {
               "semanticKey": "scenario.systems",
-              "label": "Systems",
+              "label": "系统",
               "value": {
                 "kind": "list",
                 "items": [
@@ -1376,7 +1376,7 @@
             },
             {
               "semanticKey": "scenario.final_steps",
-              "label": "Final steps",
+              "label": "终局步骤",
               "value": {
                 "kind": "list",
                 "items": [
@@ -1394,14 +1394,14 @@
           "kind": "scenario-step",
           "label": "Capture order",
           "subtitle": "capture-order | orders",
-          "summary": "1 message(s)",
+          "summary": "1 条消息",
           "parentId": "scenario-story:scenario:order-settlement-flow",
           "width": 220,
           "height": 139,
           "details": [
             {
               "semanticKey": "step.id",
-              "label": "Step",
+              "label": "步骤",
               "value": {
                 "kind": "text",
                 "text": "capture-order"
@@ -1409,7 +1409,7 @@
             },
             {
               "semanticKey": "step.context",
-              "label": "Context",
+              "label": "上下文",
               "value": {
                 "kind": "text",
                 "text": "orders"
@@ -1417,23 +1417,23 @@
             },
             {
               "semanticKey": "step.entry",
-              "label": "Entry",
+              "label": "入口",
               "value": {
                 "kind": "text",
-                "text": "yes"
+                "text": "是"
               }
             },
             {
               "semanticKey": "step.final",
-              "label": "Final",
+              "label": "终局",
               "value": {
                 "kind": "text",
-                "text": "no"
+                "text": "否"
               }
             },
             {
               "semanticKey": "step.actor",
-              "label": "Actor",
+              "label": "参与者",
               "value": {
                 "kind": "text",
                 "text": "customer"
@@ -1441,15 +1441,15 @@
             },
             {
               "semanticKey": "step.incoming_messages",
-              "label": "Incoming messages",
+              "label": "入站消息",
               "value": {
                 "kind": "text",
-                "text": "none"
+                "text": "无"
               }
             },
             {
               "semanticKey": "step.outgoing_messages",
-              "label": "Outgoing messages",
+              "label": "出站消息",
               "value": {
                 "kind": "list",
                 "items": [
@@ -1467,14 +1467,14 @@
           "kind": "scenario-step",
           "label": "Authorize payment",
           "subtitle": "await-payment-authorization | payments",
-          "summary": "2 message(s)",
+          "summary": "2 条消息",
           "parentId": "scenario-story:scenario:order-settlement-flow",
           "width": 220,
           "height": 139,
           "details": [
             {
               "semanticKey": "step.id",
-              "label": "Step",
+              "label": "步骤",
               "value": {
                 "kind": "text",
                 "text": "await-payment-authorization"
@@ -1482,7 +1482,7 @@
             },
             {
               "semanticKey": "step.context",
-              "label": "Context",
+              "label": "上下文",
               "value": {
                 "kind": "text",
                 "text": "payments"
@@ -1490,23 +1490,23 @@
             },
             {
               "semanticKey": "step.entry",
-              "label": "Entry",
+              "label": "入口",
               "value": {
                 "kind": "text",
-                "text": "no"
+                "text": "否"
               }
             },
             {
               "semanticKey": "step.final",
-              "label": "Final",
+              "label": "终局",
               "value": {
                 "kind": "text",
-                "text": "no"
+                "text": "否"
               }
             },
             {
               "semanticKey": "step.incoming_messages",
-              "label": "Incoming messages",
+              "label": "入站消息",
               "value": {
                 "kind": "list",
                 "items": [
@@ -1519,7 +1519,7 @@
             },
             {
               "semanticKey": "step.outgoing_messages",
-              "label": "Outgoing messages",
+              "label": "出站消息",
               "value": {
                 "kind": "list",
                 "items": [
@@ -1537,14 +1537,14 @@
           "kind": "scenario-step",
           "label": "Reconcile order",
           "subtitle": "reconcile-order | orders",
-          "summary": "2 message(s)",
+          "summary": "2 条消息",
           "parentId": "scenario-story:scenario:order-settlement-flow",
           "width": 220,
           "height": 139,
           "details": [
             {
               "semanticKey": "step.id",
-              "label": "Step",
+              "label": "步骤",
               "value": {
                 "kind": "text",
                 "text": "reconcile-order"
@@ -1552,7 +1552,7 @@
             },
             {
               "semanticKey": "step.context",
-              "label": "Context",
+              "label": "上下文",
               "value": {
                 "kind": "text",
                 "text": "orders"
@@ -1560,23 +1560,23 @@
             },
             {
               "semanticKey": "step.entry",
-              "label": "Entry",
+              "label": "入口",
               "value": {
                 "kind": "text",
-                "text": "no"
+                "text": "否"
               }
             },
             {
               "semanticKey": "step.final",
-              "label": "Final",
+              "label": "终局",
               "value": {
                 "kind": "text",
-                "text": "no"
+                "text": "否"
               }
             },
             {
               "semanticKey": "step.system",
-              "label": "System",
+              "label": "系统",
               "value": {
                 "kind": "text",
                 "text": "ledger-gateway"
@@ -1584,7 +1584,7 @@
             },
             {
               "semanticKey": "step.incoming_messages",
-              "label": "Incoming messages",
+              "label": "入站消息",
               "value": {
                 "kind": "list",
                 "items": [
@@ -1597,7 +1597,7 @@
             },
             {
               "semanticKey": "step.outgoing_messages",
-              "label": "Outgoing messages",
+              "label": "出站消息",
               "value": {
                 "kind": "list",
                 "items": [
@@ -1622,7 +1622,7 @@
           "details": [
             {
               "semanticKey": "step.id",
-              "label": "Step",
+              "label": "步骤",
               "value": {
                 "kind": "text",
                 "text": "order-confirmed"
@@ -1630,7 +1630,7 @@
             },
             {
               "semanticKey": "step.context",
-              "label": "Context",
+              "label": "上下文",
               "value": {
                 "kind": "text",
                 "text": "orders"
@@ -1638,23 +1638,23 @@
             },
             {
               "semanticKey": "step.entry",
-              "label": "Entry",
+              "label": "入口",
               "value": {
                 "kind": "text",
-                "text": "no"
+                "text": "否"
               }
             },
             {
               "semanticKey": "step.final",
-              "label": "Final",
+              "label": "终局",
               "value": {
                 "kind": "text",
-                "text": "yes"
+                "text": "是"
               }
             },
             {
               "semanticKey": "step.incoming_messages",
-              "label": "Incoming messages",
+              "label": "入站消息",
               "value": {
                 "kind": "list",
                 "items": [
@@ -1667,15 +1667,15 @@
             },
             {
               "semanticKey": "step.outgoing_messages",
-              "label": "Outgoing messages",
+              "label": "出站消息",
               "value": {
                 "kind": "text",
-                "text": "none"
+                "text": "无"
               }
             },
             {
               "semanticKey": "step.outcome",
-              "label": "Outcome",
+              "label": "结果",
               "value": {
                 "kind": "text",
                 "text": "order-confirmed"
@@ -1694,7 +1694,7 @@
           "details": [
             {
               "semanticKey": "scenario.id",
-              "label": "Scenario",
+              "label": "场景",
               "value": {
                 "kind": "text",
                 "text": "order-settlement-flow"
@@ -1702,7 +1702,7 @@
             },
             {
               "semanticKey": "relation.from",
-              "label": "From",
+              "label": "起点",
               "value": {
                 "kind": "text",
                 "text": "capture-order"
@@ -1710,7 +1710,7 @@
             },
             {
               "semanticKey": "relation.to",
-              "label": "To",
+              "label": "终点",
               "value": {
                 "kind": "text",
                 "text": "await-payment-authorization"
@@ -1718,7 +1718,7 @@
             },
             {
               "semanticKey": "message.type",
-              "label": "Message",
+              "label": "消息",
               "value": {
                 "kind": "text",
                 "text": "order-submitted"
@@ -1735,7 +1735,7 @@
           "details": [
             {
               "semanticKey": "scenario.id",
-              "label": "Scenario",
+              "label": "场景",
               "value": {
                 "kind": "text",
                 "text": "order-settlement-flow"
@@ -1743,7 +1743,7 @@
             },
             {
               "semanticKey": "relation.from",
-              "label": "From",
+              "label": "起点",
               "value": {
                 "kind": "text",
                 "text": "await-payment-authorization"
@@ -1751,7 +1751,7 @@
             },
             {
               "semanticKey": "relation.to",
-              "label": "To",
+              "label": "终点",
               "value": {
                 "kind": "text",
                 "text": "reconcile-order"
@@ -1759,7 +1759,7 @@
             },
             {
               "semanticKey": "message.type",
-              "label": "Message",
+              "label": "消息",
               "value": {
                 "kind": "text",
                 "text": "payment-authorized"
@@ -1776,7 +1776,7 @@
           "details": [
             {
               "semanticKey": "scenario.id",
-              "label": "Scenario",
+              "label": "场景",
               "value": {
                 "kind": "text",
                 "text": "order-settlement-flow"
@@ -1784,7 +1784,7 @@
             },
             {
               "semanticKey": "relation.from",
-              "label": "From",
+              "label": "起点",
               "value": {
                 "kind": "text",
                 "text": "reconcile-order"
@@ -1792,7 +1792,7 @@
             },
             {
               "semanticKey": "relation.to",
-              "label": "To",
+              "label": "终点",
               "value": {
                 "kind": "text",
                 "text": "order-confirmed"
@@ -1800,7 +1800,7 @@
             },
             {
               "semanticKey": "message.type",
-              "label": "Message",
+              "label": "消息",
               "value": {
                 "kind": "text",
                 "text": "ledger-status-fetched"
@@ -1817,22 +1817,22 @@
         "tier": "primary",
         "order": 30
       },
-      "title": "Message Flow / Trace",
-      "description": "Shows how commands, events, and queries move between contexts, endpoints, and scenario steps, including cross-context hops.",
+      "title": "消息流 / 追踪",
+      "description": "展示 command、event 与 query 如何在 context、端点和场景步骤之间流动，包括跨上下文跳转。",
       "nodes": [
         {
           "id": "message-flow:context:orders",
           "kind": "context",
           "label": "Orders",
           "subtitle": "orders",
-          "summary": "3 step(s), 1 endpoint(s)",
+          "summary": "3 个步骤, 1 个端点",
           "width": 360,
           "height": 240,
           "headerHeight": 120,
           "details": [
             {
               "semanticKey": "context.id",
-              "label": "Context",
+              "label": "上下文",
               "value": {
                 "kind": "text",
                 "text": "orders"
@@ -1840,7 +1840,7 @@
             },
             {
               "semanticKey": "context.owners",
-              "label": "Owners",
+              "label": "负责方",
               "value": {
                 "kind": "list",
                 "items": [
@@ -1853,7 +1853,7 @@
             },
             {
               "semanticKey": "context.related_systems",
-              "label": "Systems",
+              "label": "系统",
               "value": {
                 "kind": "list",
                 "items": [
@@ -1871,14 +1871,14 @@
           "kind": "context",
           "label": "Payments",
           "subtitle": "payments",
-          "summary": "1 step(s), 1 endpoint(s)",
+          "summary": "1 个步骤, 1 个端点",
           "width": 360,
           "height": 240,
           "headerHeight": 120,
           "details": [
             {
               "semanticKey": "context.id",
-              "label": "Context",
+              "label": "上下文",
               "value": {
                 "kind": "text",
                 "text": "payments"
@@ -1886,7 +1886,7 @@
             },
             {
               "semanticKey": "context.owners",
-              "label": "Owners",
+              "label": "负责方",
               "value": {
                 "kind": "list",
                 "items": [
@@ -1899,7 +1899,7 @@
             },
             {
               "semanticKey": "context.related_systems",
-              "label": "Systems",
+              "label": "系统",
               "value": {
                 "kind": "list",
                 "items": [
@@ -1917,13 +1917,13 @@
           "kind": "scenario",
           "label": "Order Settlement Flow",
           "subtitle": "order-settlement-flow",
-          "summary": "4 step(s), 2 context(s)",
+          "summary": "4 个步骤, 2 个上下文",
           "width": 208,
-          "height": 174,
+          "height": 158,
           "details": [
             {
               "semanticKey": "scenario.id",
-              "label": "Scenario",
+              "label": "场景",
               "value": {
                 "kind": "text",
                 "text": "order-settlement-flow"
@@ -1931,7 +1931,7 @@
             },
             {
               "semanticKey": "scenario.goal",
-              "label": "Goal",
+              "label": "目标",
               "value": {
                 "kind": "text",
                 "text": "Capture an order, settle payment in another context, and confirm the order after reconciliation."
@@ -1939,7 +1939,7 @@
             },
             {
               "semanticKey": "scenario.owner_context",
-              "label": "Owner context",
+              "label": "所属上下文",
               "value": {
                 "kind": "text",
                 "text": "orders"
@@ -1947,7 +1947,7 @@
             },
             {
               "semanticKey": "scenario.participating_contexts",
-              "label": "Participating contexts",
+              "label": "参与的上下文",
               "value": {
                 "kind": "list",
                 "items": [
@@ -1964,7 +1964,7 @@
             },
             {
               "semanticKey": "scenario.actors",
-              "label": "Actors",
+              "label": "参与者",
               "value": {
                 "kind": "list",
                 "items": [
@@ -1977,7 +1977,7 @@
             },
             {
               "semanticKey": "scenario.systems",
-              "label": "Systems",
+              "label": "系统",
               "value": {
                 "kind": "list",
                 "items": [
@@ -1990,7 +1990,7 @@
             },
             {
               "semanticKey": "scenario.final_steps",
-              "label": "Final steps",
+              "label": "终局步骤",
               "value": {
                 "kind": "list",
                 "items": [
@@ -2008,14 +2008,14 @@
           "kind": "scenario-step",
           "label": "Capture order",
           "subtitle": "capture-order | order-settlement-flow",
-          "summary": "0 in, 1 out",
+          "summary": "0 入, 1 出",
           "parentId": "message-flow:context:orders",
           "width": 220,
           "height": 139,
           "details": [
             {
               "semanticKey": "scenario.id",
-              "label": "Scenario",
+              "label": "场景",
               "value": {
                 "kind": "text",
                 "text": "order-settlement-flow"
@@ -2023,7 +2023,7 @@
             },
             {
               "semanticKey": "step.id",
-              "label": "Step",
+              "label": "步骤",
               "value": {
                 "kind": "text",
                 "text": "capture-order"
@@ -2031,7 +2031,7 @@
             },
             {
               "semanticKey": "step.context",
-              "label": "Context",
+              "label": "上下文",
               "value": {
                 "kind": "text",
                 "text": "orders"
@@ -2039,23 +2039,23 @@
             },
             {
               "semanticKey": "step.entry",
-              "label": "Entry",
+              "label": "入口",
               "value": {
                 "kind": "text",
-                "text": "yes"
+                "text": "是"
               }
             },
             {
               "semanticKey": "step.final",
-              "label": "Final",
+              "label": "终局",
               "value": {
                 "kind": "text",
-                "text": "no"
+                "text": "否"
               }
             },
             {
               "semanticKey": "step.actor",
-              "label": "Actor",
+              "label": "参与者",
               "value": {
                 "kind": "text",
                 "text": "customer"
@@ -2063,15 +2063,15 @@
             },
             {
               "semanticKey": "step.incoming_messages",
-              "label": "Incoming messages",
+              "label": "入站消息",
               "value": {
                 "kind": "text",
-                "text": "none"
+                "text": "无"
               }
             },
             {
               "semanticKey": "step.outgoing_messages",
-              "label": "Outgoing messages",
+              "label": "出站消息",
               "value": {
                 "kind": "list",
                 "items": [
@@ -2089,14 +2089,14 @@
           "kind": "scenario-step",
           "label": "Authorize payment",
           "subtitle": "await-payment-authorization | order-settlement-flow",
-          "summary": "1 in, 1 out",
+          "summary": "1 入, 1 出",
           "parentId": "message-flow:context:payments",
           "width": 220,
           "height": 155,
           "details": [
             {
               "semanticKey": "scenario.id",
-              "label": "Scenario",
+              "label": "场景",
               "value": {
                 "kind": "text",
                 "text": "order-settlement-flow"
@@ -2104,7 +2104,7 @@
             },
             {
               "semanticKey": "step.id",
-              "label": "Step",
+              "label": "步骤",
               "value": {
                 "kind": "text",
                 "text": "await-payment-authorization"
@@ -2112,7 +2112,7 @@
             },
             {
               "semanticKey": "step.context",
-              "label": "Context",
+              "label": "上下文",
               "value": {
                 "kind": "text",
                 "text": "payments"
@@ -2120,23 +2120,23 @@
             },
             {
               "semanticKey": "step.entry",
-              "label": "Entry",
+              "label": "入口",
               "value": {
                 "kind": "text",
-                "text": "no"
+                "text": "否"
               }
             },
             {
               "semanticKey": "step.final",
-              "label": "Final",
+              "label": "终局",
               "value": {
                 "kind": "text",
-                "text": "no"
+                "text": "否"
               }
             },
             {
               "semanticKey": "step.incoming_messages",
-              "label": "Incoming messages",
+              "label": "入站消息",
               "value": {
                 "kind": "list",
                 "items": [
@@ -2149,7 +2149,7 @@
             },
             {
               "semanticKey": "step.outgoing_messages",
-              "label": "Outgoing messages",
+              "label": "出站消息",
               "value": {
                 "kind": "list",
                 "items": [
@@ -2167,14 +2167,14 @@
           "kind": "scenario-step",
           "label": "Reconcile order",
           "subtitle": "reconcile-order | order-settlement-flow",
-          "summary": "1 in, 1 out",
+          "summary": "1 入, 1 出",
           "parentId": "message-flow:context:orders",
           "width": 220,
           "height": 139,
           "details": [
             {
               "semanticKey": "scenario.id",
-              "label": "Scenario",
+              "label": "场景",
               "value": {
                 "kind": "text",
                 "text": "order-settlement-flow"
@@ -2182,7 +2182,7 @@
             },
             {
               "semanticKey": "step.id",
-              "label": "Step",
+              "label": "步骤",
               "value": {
                 "kind": "text",
                 "text": "reconcile-order"
@@ -2190,7 +2190,7 @@
             },
             {
               "semanticKey": "step.context",
-              "label": "Context",
+              "label": "上下文",
               "value": {
                 "kind": "text",
                 "text": "orders"
@@ -2198,23 +2198,23 @@
             },
             {
               "semanticKey": "step.entry",
-              "label": "Entry",
+              "label": "入口",
               "value": {
                 "kind": "text",
-                "text": "no"
+                "text": "否"
               }
             },
             {
               "semanticKey": "step.final",
-              "label": "Final",
+              "label": "终局",
               "value": {
                 "kind": "text",
-                "text": "no"
+                "text": "否"
               }
             },
             {
               "semanticKey": "step.system",
-              "label": "System",
+              "label": "系统",
               "value": {
                 "kind": "text",
                 "text": "ledger-gateway"
@@ -2222,7 +2222,7 @@
             },
             {
               "semanticKey": "step.incoming_messages",
-              "label": "Incoming messages",
+              "label": "入站消息",
               "value": {
                 "kind": "list",
                 "items": [
@@ -2235,7 +2235,7 @@
             },
             {
               "semanticKey": "step.outgoing_messages",
-              "label": "Outgoing messages",
+              "label": "出站消息",
               "value": {
                 "kind": "list",
                 "items": [
@@ -2260,7 +2260,7 @@
           "details": [
             {
               "semanticKey": "scenario.id",
-              "label": "Scenario",
+              "label": "场景",
               "value": {
                 "kind": "text",
                 "text": "order-settlement-flow"
@@ -2268,7 +2268,7 @@
             },
             {
               "semanticKey": "step.id",
-              "label": "Step",
+              "label": "步骤",
               "value": {
                 "kind": "text",
                 "text": "order-confirmed"
@@ -2276,7 +2276,7 @@
             },
             {
               "semanticKey": "step.context",
-              "label": "Context",
+              "label": "上下文",
               "value": {
                 "kind": "text",
                 "text": "orders"
@@ -2284,23 +2284,23 @@
             },
             {
               "semanticKey": "step.entry",
-              "label": "Entry",
+              "label": "入口",
               "value": {
                 "kind": "text",
-                "text": "no"
+                "text": "否"
               }
             },
             {
               "semanticKey": "step.final",
-              "label": "Final",
+              "label": "终局",
               "value": {
                 "kind": "text",
-                "text": "yes"
+                "text": "是"
               }
             },
             {
               "semanticKey": "step.incoming_messages",
-              "label": "Incoming messages",
+              "label": "入站消息",
               "value": {
                 "kind": "list",
                 "items": [
@@ -2313,15 +2313,15 @@
             },
             {
               "semanticKey": "step.outgoing_messages",
-              "label": "Outgoing messages",
+              "label": "出站消息",
               "value": {
                 "kind": "text",
-                "text": "none"
+                "text": "无"
               }
             },
             {
               "semanticKey": "step.outcome",
-              "label": "Outcome",
+              "label": "结果",
               "value": {
                 "kind": "text",
                 "text": "order-confirmed"
@@ -2340,7 +2340,7 @@
           "details": [
             {
               "semanticKey": "system.boundary",
-              "label": "Boundary",
+              "label": "边界",
               "value": {
                 "kind": "text",
                 "text": "external"
@@ -2348,7 +2348,7 @@
             },
             {
               "semanticKey": "system.capabilities",
-              "label": "Capabilities",
+              "label": "能力",
               "value": {
                 "kind": "list",
                 "items": [
@@ -2365,7 +2365,7 @@
             },
             {
               "semanticKey": "system.contexts",
-              "label": "Contexts",
+              "label": "上下文",
               "value": {
                 "kind": "list",
                 "items": [
@@ -2382,7 +2382,7 @@
             },
             {
               "semanticKey": "system.dependencies",
-              "label": "Dependencies",
+              "label": "依赖",
               "value": {
                 "kind": "list",
                 "items": [
@@ -2390,14 +2390,14 @@
                     "kind": "record",
                     "entries": [
                       {
-                        "label": "Kind",
+                        "label": "类型",
                         "value": {
                           "kind": "text",
                           "text": "context-relationship"
                         }
                       },
                       {
-                        "label": "Contexts",
+                        "label": "上下文",
                         "value": {
                           "kind": "list",
                           "items": [
@@ -2409,7 +2409,7 @@
                         }
                       },
                       {
-                        "label": "Description",
+                        "label": "说明",
                         "value": {
                           "kind": "text",
                           "text": "Payments and orders rely on the shared ledger gateway for reconciliation details."
@@ -2421,14 +2421,14 @@
                     "kind": "record",
                     "entries": [
                       {
-                        "label": "Kind",
+                        "label": "类型",
                         "value": {
                           "kind": "text",
                           "text": "scenario-step"
                         }
                       },
                       {
-                        "label": "Contexts",
+                        "label": "上下文",
                         "value": {
                           "kind": "list",
                           "items": [
@@ -2440,14 +2440,14 @@
                         }
                       },
                       {
-                        "label": "Scenario",
+                        "label": "场景",
                         "value": {
                           "kind": "text",
                           "text": "order-settlement-flow"
                         }
                       },
                       {
-                        "label": "Step",
+                        "label": "步骤",
                         "value": {
                           "kind": "text",
                           "text": "reconcile-order"
@@ -2459,14 +2459,14 @@
                     "kind": "record",
                     "entries": [
                       {
-                        "label": "Kind",
+                        "label": "类型",
                         "value": {
                           "kind": "text",
                           "text": "message-consumer"
                         }
                       },
                       {
-                        "label": "Contexts",
+                        "label": "上下文",
                         "value": {
                           "kind": "list",
                           "items": [
@@ -2478,7 +2478,7 @@
                         }
                       },
                       {
-                        "label": "Message",
+                        "label": "消息",
                         "value": {
                           "kind": "text",
                           "text": "fetch-ledger-status"
@@ -2490,14 +2490,14 @@
                     "kind": "record",
                     "entries": [
                       {
-                        "label": "Kind",
+                        "label": "类型",
                         "value": {
                           "kind": "text",
                           "text": "message-producer"
                         }
                       },
                       {
-                        "label": "Contexts",
+                        "label": "上下文",
                         "value": {
                           "kind": "list",
                           "items": [
@@ -2509,7 +2509,7 @@
                         }
                       },
                       {
-                        "label": "Message",
+                        "label": "消息",
                         "value": {
                           "kind": "text",
                           "text": "ledger-status-fetched"
@@ -2527,14 +2527,14 @@
           "kind": "aggregate",
           "label": "Order",
           "subtitle": "order",
-          "summary": "initial: draft",
+          "summary": "初始状态: draft",
           "parentId": "message-flow:context:orders",
           "width": 220,
           "height": 123,
           "details": [
             {
               "semanticKey": "aggregate.id",
-              "label": "Aggregate",
+              "label": "聚合",
               "value": {
                 "kind": "text",
                 "text": "order"
@@ -2542,7 +2542,7 @@
             },
             {
               "semanticKey": "aggregate.context",
-              "label": "Context",
+              "label": "上下文",
               "value": {
                 "kind": "text",
                 "text": "orders"
@@ -2550,7 +2550,7 @@
             },
             {
               "semanticKey": "aggregate.initial_state",
-              "label": "Initial state",
+              "label": "初始状态",
               "value": {
                 "kind": "text",
                 "text": "draft"
@@ -2558,7 +2558,7 @@
             },
             {
               "semanticKey": "aggregate.lifecycle",
-              "label": "Lifecycle",
+              "label": "生命周期",
               "value": {
                 "kind": "list",
                 "items": [
@@ -2579,7 +2579,7 @@
             },
             {
               "semanticKey": "aggregate.accepted_messages",
-              "label": "Accepted messages",
+              "label": "接收的消息",
               "value": {
                 "kind": "list",
                 "items": [
@@ -2596,7 +2596,7 @@
             },
             {
               "semanticKey": "aggregate.emitted_messages",
-              "label": "Emitted messages",
+              "label": "发出的消息",
               "value": {
                 "kind": "list",
                 "items": [
@@ -2609,7 +2609,7 @@
             },
             {
               "semanticKey": "aggregate.reachable_states",
-              "label": "Reachable states",
+              "label": "可达状态",
               "value": {
                 "kind": "list",
                 "items": [
@@ -2630,10 +2630,10 @@
             },
             {
               "semanticKey": "aggregate.unreachable_states",
-              "label": "Unreachable states",
+              "label": "不可达状态",
               "value": {
                 "kind": "text",
-                "text": "none"
+                "text": "无"
               }
             }
           ]
@@ -2643,14 +2643,14 @@
           "kind": "aggregate",
           "label": "Payment",
           "subtitle": "payment",
-          "summary": "initial: pending",
+          "summary": "初始状态: pending",
           "parentId": "message-flow:context:payments",
           "width": 220,
           "height": 123,
           "details": [
             {
               "semanticKey": "aggregate.id",
-              "label": "Aggregate",
+              "label": "聚合",
               "value": {
                 "kind": "text",
                 "text": "payment"
@@ -2658,7 +2658,7 @@
             },
             {
               "semanticKey": "aggregate.context",
-              "label": "Context",
+              "label": "上下文",
               "value": {
                 "kind": "text",
                 "text": "payments"
@@ -2666,7 +2666,7 @@
             },
             {
               "semanticKey": "aggregate.initial_state",
-              "label": "Initial state",
+              "label": "初始状态",
               "value": {
                 "kind": "text",
                 "text": "pending"
@@ -2674,7 +2674,7 @@
             },
             {
               "semanticKey": "aggregate.lifecycle",
-              "label": "Lifecycle",
+              "label": "生命周期",
               "value": {
                 "kind": "list",
                 "items": [
@@ -2691,7 +2691,7 @@
             },
             {
               "semanticKey": "aggregate.accepted_messages",
-              "label": "Accepted messages",
+              "label": "接收的消息",
               "value": {
                 "kind": "list",
                 "items": [
@@ -2704,7 +2704,7 @@
             },
             {
               "semanticKey": "aggregate.emitted_messages",
-              "label": "Emitted messages",
+              "label": "发出的消息",
               "value": {
                 "kind": "list",
                 "items": [
@@ -2717,7 +2717,7 @@
             },
             {
               "semanticKey": "aggregate.reachable_states",
-              "label": "Reachable states",
+              "label": "可达状态",
               "value": {
                 "kind": "list",
                 "items": [
@@ -2734,10 +2734,10 @@
             },
             {
               "semanticKey": "aggregate.unreachable_states",
-              "label": "Unreachable states",
+              "label": "不可达状态",
               "value": {
                 "kind": "text",
-                "text": "none"
+                "text": "无"
               }
             }
           ]
@@ -2754,7 +2754,7 @@
           "details": [
             {
               "semanticKey": "message.kind",
-              "label": "Message kind",
+              "label": "消息类型",
               "value": {
                 "kind": "text",
                 "text": "command"
@@ -2762,7 +2762,7 @@
             },
             {
               "semanticKey": "message.type",
-              "label": "Message",
+              "label": "消息",
               "value": {
                 "kind": "text",
                 "text": "authorize-payment"
@@ -2770,7 +2770,7 @@
             },
             {
               "semanticKey": "message.channel",
-              "label": "Channel",
+              "label": "通道",
               "value": {
                 "kind": "text",
                 "text": "sync"
@@ -2778,12 +2778,12 @@
             },
             {
               "semanticKey": "message.endpoints",
-              "label": "Endpoints",
+              "label": "端点",
               "value": {
                 "kind": "record",
                 "entries": [
                   {
-                    "label": "Sources",
+                    "label": "来源",
                     "value": {
                       "kind": "list",
                       "items": [
@@ -2795,7 +2795,7 @@
                     }
                   },
                   {
-                    "label": "Targets",
+                    "label": "目标",
                     "value": {
                       "kind": "list",
                       "items": [
@@ -2807,7 +2807,7 @@
                     }
                   },
                   {
-                    "label": "Source contexts",
+                    "label": "来源上下文",
                     "value": {
                       "kind": "list",
                       "items": [
@@ -2819,7 +2819,7 @@
                     }
                   },
                   {
-                    "label": "Target contexts",
+                    "label": "目标上下文",
                     "value": {
                       "kind": "list",
                       "items": [
@@ -2835,15 +2835,15 @@
             },
             {
               "semanticKey": "message.crosses_context_boundary",
-              "label": "Crosses context boundary",
+              "label": "跨上下文边界",
               "value": {
                 "kind": "text",
-                "text": "no"
+                "text": "否"
               }
             },
             {
               "semanticKey": "message.step_links",
-              "label": "Scenario links",
+              "label": "场景关联",
               "value": {
                 "kind": "list",
                 "items": [
@@ -2851,28 +2851,28 @@
                     "kind": "record",
                     "entries": [
                       {
-                        "label": "Direction",
+                        "label": "方向",
                         "value": {
                           "kind": "text",
                           "text": "outgoing"
                         }
                       },
                       {
-                        "label": "Scenario",
+                        "label": "场景",
                         "value": {
                           "kind": "text",
                           "text": "order-settlement-flow"
                         }
                       },
                       {
-                        "label": "Step",
+                        "label": "步骤",
                         "value": {
                           "kind": "text",
                           "text": "await-payment-authorization"
                         }
                       },
                       {
-                        "label": "Context",
+                        "label": "上下文",
                         "value": {
                           "kind": "text",
                           "text": "payments"
@@ -2885,7 +2885,7 @@
             },
             {
               "semanticKey": "message.payload_fields",
-              "label": "Payload fields",
+              "label": "负载字段",
               "value": {
                 "kind": "list",
                 "items": [
@@ -2906,14 +2906,14 @@
           "kind": "message",
           "label": "Fetch Ledger Status",
           "subtitle": "fetch-ledger-status | query | sync",
-          "summary": "orders -> external",
+          "summary": "orders -> 外部",
           "parentId": "message-flow:context:orders",
           "width": 228,
           "height": 139,
           "details": [
             {
               "semanticKey": "message.kind",
-              "label": "Message kind",
+              "label": "消息类型",
               "value": {
                 "kind": "text",
                 "text": "query"
@@ -2921,7 +2921,7 @@
             },
             {
               "semanticKey": "message.type",
-              "label": "Message",
+              "label": "消息",
               "value": {
                 "kind": "text",
                 "text": "fetch-ledger-status"
@@ -2929,7 +2929,7 @@
             },
             {
               "semanticKey": "message.channel",
-              "label": "Channel",
+              "label": "通道",
               "value": {
                 "kind": "text",
                 "text": "sync"
@@ -2937,12 +2937,12 @@
             },
             {
               "semanticKey": "message.endpoints",
-              "label": "Endpoints",
+              "label": "端点",
               "value": {
                 "kind": "record",
                 "entries": [
                   {
-                    "label": "Sources",
+                    "label": "来源",
                     "value": {
                       "kind": "list",
                       "items": [
@@ -2954,7 +2954,7 @@
                     }
                   },
                   {
-                    "label": "Targets",
+                    "label": "目标",
                     "value": {
                       "kind": "list",
                       "items": [
@@ -2966,7 +2966,7 @@
                     }
                   },
                   {
-                    "label": "Source contexts",
+                    "label": "来源上下文",
                     "value": {
                       "kind": "list",
                       "items": [
@@ -2978,10 +2978,10 @@
                     }
                   },
                   {
-                    "label": "Target contexts",
+                    "label": "目标上下文",
                     "value": {
                       "kind": "text",
-                      "text": "none"
+                      "text": "无"
                     }
                   }
                 ]
@@ -2989,15 +2989,15 @@
             },
             {
               "semanticKey": "message.crosses_context_boundary",
-              "label": "Crosses context boundary",
+              "label": "跨上下文边界",
               "value": {
                 "kind": "text",
-                "text": "no"
+                "text": "否"
               }
             },
             {
               "semanticKey": "message.step_links",
-              "label": "Scenario links",
+              "label": "场景关联",
               "value": {
                 "kind": "list",
                 "items": [
@@ -3005,28 +3005,28 @@
                     "kind": "record",
                     "entries": [
                       {
-                        "label": "Direction",
+                        "label": "方向",
                         "value": {
                           "kind": "text",
                           "text": "outgoing"
                         }
                       },
                       {
-                        "label": "Scenario",
+                        "label": "场景",
                         "value": {
                           "kind": "text",
                           "text": "order-settlement-flow"
                         }
                       },
                       {
-                        "label": "Step",
+                        "label": "步骤",
                         "value": {
                           "kind": "text",
                           "text": "reconcile-order"
                         }
                       },
                       {
-                        "label": "Context",
+                        "label": "上下文",
                         "value": {
                           "kind": "text",
                           "text": "orders"
@@ -3039,7 +3039,7 @@
             },
             {
               "semanticKey": "message.payload_fields",
-              "label": "Payload fields",
+              "label": "负载字段",
               "value": {
                 "kind": "list",
                 "items": [
@@ -3060,14 +3060,14 @@
           "kind": "message",
           "label": "Ledger Status Fetched",
           "subtitle": "ledger-status-fetched | event | async",
-          "summary": "external -> orders",
+          "summary": "外部 -> orders",
           "parentId": "message-flow:context:orders",
           "width": 228,
           "height": 158,
           "details": [
             {
               "semanticKey": "message.kind",
-              "label": "Message kind",
+              "label": "消息类型",
               "value": {
                 "kind": "text",
                 "text": "event"
@@ -3075,7 +3075,7 @@
             },
             {
               "semanticKey": "message.type",
-              "label": "Message",
+              "label": "消息",
               "value": {
                 "kind": "text",
                 "text": "ledger-status-fetched"
@@ -3083,7 +3083,7 @@
             },
             {
               "semanticKey": "message.channel",
-              "label": "Channel",
+              "label": "通道",
               "value": {
                 "kind": "text",
                 "text": "async"
@@ -3091,12 +3091,12 @@
             },
             {
               "semanticKey": "message.endpoints",
-              "label": "Endpoints",
+              "label": "端点",
               "value": {
                 "kind": "record",
                 "entries": [
                   {
-                    "label": "Sources",
+                    "label": "来源",
                     "value": {
                       "kind": "list",
                       "items": [
@@ -3108,7 +3108,7 @@
                     }
                   },
                   {
-                    "label": "Targets",
+                    "label": "目标",
                     "value": {
                       "kind": "list",
                       "items": [
@@ -3124,14 +3124,14 @@
                     }
                   },
                   {
-                    "label": "Source contexts",
+                    "label": "来源上下文",
                     "value": {
                       "kind": "text",
-                      "text": "none"
+                      "text": "无"
                     }
                   },
                   {
-                    "label": "Target contexts",
+                    "label": "目标上下文",
                     "value": {
                       "kind": "list",
                       "items": [
@@ -3147,15 +3147,15 @@
             },
             {
               "semanticKey": "message.crosses_context_boundary",
-              "label": "Crosses context boundary",
+              "label": "跨上下文边界",
               "value": {
                 "kind": "text",
-                "text": "no"
+                "text": "否"
               }
             },
             {
               "semanticKey": "message.step_links",
-              "label": "Scenario links",
+              "label": "场景关联",
               "value": {
                 "kind": "list",
                 "items": [
@@ -3163,28 +3163,28 @@
                     "kind": "record",
                     "entries": [
                       {
-                        "label": "Direction",
+                        "label": "方向",
                         "value": {
                           "kind": "text",
                           "text": "incoming"
                         }
                       },
                       {
-                        "label": "Scenario",
+                        "label": "场景",
                         "value": {
                           "kind": "text",
                           "text": "order-settlement-flow"
                         }
                       },
                       {
-                        "label": "Step",
+                        "label": "步骤",
                         "value": {
                           "kind": "text",
                           "text": "order-confirmed"
                         }
                       },
                       {
-                        "label": "Context",
+                        "label": "上下文",
                         "value": {
                           "kind": "text",
                           "text": "orders"
@@ -3197,7 +3197,7 @@
             },
             {
               "semanticKey": "message.payload_fields",
-              "label": "Payload fields",
+              "label": "负载字段",
               "value": {
                 "kind": "list",
                 "items": [
@@ -3231,7 +3231,7 @@
           "details": [
             {
               "semanticKey": "message.kind",
-              "label": "Message kind",
+              "label": "消息类型",
               "value": {
                 "kind": "text",
                 "text": "event"
@@ -3239,7 +3239,7 @@
             },
             {
               "semanticKey": "message.type",
-              "label": "Message",
+              "label": "消息",
               "value": {
                 "kind": "text",
                 "text": "order-submitted"
@@ -3247,7 +3247,7 @@
             },
             {
               "semanticKey": "message.channel",
-              "label": "Channel",
+              "label": "通道",
               "value": {
                 "kind": "text",
                 "text": "async"
@@ -3255,12 +3255,12 @@
             },
             {
               "semanticKey": "message.endpoints",
-              "label": "Endpoints",
+              "label": "端点",
               "value": {
                 "kind": "record",
                 "entries": [
                   {
-                    "label": "Sources",
+                    "label": "来源",
                     "value": {
                       "kind": "list",
                       "items": [
@@ -3272,7 +3272,7 @@
                     }
                   },
                   {
-                    "label": "Targets",
+                    "label": "目标",
                     "value": {
                       "kind": "list",
                       "items": [
@@ -3284,7 +3284,7 @@
                     }
                   },
                   {
-                    "label": "Source contexts",
+                    "label": "来源上下文",
                     "value": {
                       "kind": "list",
                       "items": [
@@ -3296,7 +3296,7 @@
                     }
                   },
                   {
-                    "label": "Target contexts",
+                    "label": "目标上下文",
                     "value": {
                       "kind": "list",
                       "items": [
@@ -3312,15 +3312,15 @@
             },
             {
               "semanticKey": "message.crosses_context_boundary",
-              "label": "Crosses context boundary",
+              "label": "跨上下文边界",
               "value": {
                 "kind": "text",
-                "text": "yes"
+                "text": "是"
               }
             },
             {
               "semanticKey": "message.step_links",
-              "label": "Scenario links",
+              "label": "场景关联",
               "value": {
                 "kind": "list",
                 "items": [
@@ -3328,28 +3328,28 @@
                     "kind": "record",
                     "entries": [
                       {
-                        "label": "Direction",
+                        "label": "方向",
                         "value": {
                           "kind": "text",
                           "text": "incoming"
                         }
                       },
                       {
-                        "label": "Scenario",
+                        "label": "场景",
                         "value": {
                           "kind": "text",
                           "text": "order-settlement-flow"
                         }
                       },
                       {
-                        "label": "Step",
+                        "label": "步骤",
                         "value": {
                           "kind": "text",
                           "text": "await-payment-authorization"
                         }
                       },
                       {
-                        "label": "Context",
+                        "label": "上下文",
                         "value": {
                           "kind": "text",
                           "text": "payments"
@@ -3362,7 +3362,7 @@
             },
             {
               "semanticKey": "message.payload_fields",
-              "label": "Payload fields",
+              "label": "负载字段",
               "value": {
                 "kind": "list",
                 "items": [
@@ -3389,7 +3389,7 @@
           "details": [
             {
               "semanticKey": "message.kind",
-              "label": "Message kind",
+              "label": "消息类型",
               "value": {
                 "kind": "text",
                 "text": "event"
@@ -3397,7 +3397,7 @@
             },
             {
               "semanticKey": "message.type",
-              "label": "Message",
+              "label": "消息",
               "value": {
                 "kind": "text",
                 "text": "payment-authorized"
@@ -3405,7 +3405,7 @@
             },
             {
               "semanticKey": "message.channel",
-              "label": "Channel",
+              "label": "通道",
               "value": {
                 "kind": "text",
                 "text": "async"
@@ -3413,12 +3413,12 @@
             },
             {
               "semanticKey": "message.endpoints",
-              "label": "Endpoints",
+              "label": "端点",
               "value": {
                 "kind": "record",
                 "entries": [
                   {
-                    "label": "Sources",
+                    "label": "来源",
                     "value": {
                       "kind": "list",
                       "items": [
@@ -3430,7 +3430,7 @@
                     }
                   },
                   {
-                    "label": "Targets",
+                    "label": "目标",
                     "value": {
                       "kind": "list",
                       "items": [
@@ -3442,7 +3442,7 @@
                     }
                   },
                   {
-                    "label": "Source contexts",
+                    "label": "来源上下文",
                     "value": {
                       "kind": "list",
                       "items": [
@@ -3454,7 +3454,7 @@
                     }
                   },
                   {
-                    "label": "Target contexts",
+                    "label": "目标上下文",
                     "value": {
                       "kind": "list",
                       "items": [
@@ -3470,15 +3470,15 @@
             },
             {
               "semanticKey": "message.crosses_context_boundary",
-              "label": "Crosses context boundary",
+              "label": "跨上下文边界",
               "value": {
                 "kind": "text",
-                "text": "yes"
+                "text": "是"
               }
             },
             {
               "semanticKey": "message.step_links",
-              "label": "Scenario links",
+              "label": "场景关联",
               "value": {
                 "kind": "list",
                 "items": [
@@ -3486,28 +3486,28 @@
                     "kind": "record",
                     "entries": [
                       {
-                        "label": "Direction",
+                        "label": "方向",
                         "value": {
                           "kind": "text",
                           "text": "incoming"
                         }
                       },
                       {
-                        "label": "Scenario",
+                        "label": "场景",
                         "value": {
                           "kind": "text",
                           "text": "order-settlement-flow"
                         }
                       },
                       {
-                        "label": "Step",
+                        "label": "步骤",
                         "value": {
                           "kind": "text",
                           "text": "reconcile-order"
                         }
                       },
                       {
-                        "label": "Context",
+                        "label": "上下文",
                         "value": {
                           "kind": "text",
                           "text": "orders"
@@ -3520,7 +3520,7 @@
             },
             {
               "semanticKey": "message.payload_fields",
-              "label": "Payload fields",
+              "label": "负载字段",
               "value": {
                 "kind": "list",
                 "items": [
@@ -3548,7 +3548,7 @@
           "details": [
             {
               "semanticKey": "message.kind",
-              "label": "Message kind",
+              "label": "消息类型",
               "value": {
                 "kind": "text",
                 "text": "command"
@@ -3556,7 +3556,7 @@
             },
             {
               "semanticKey": "message.type",
-              "label": "Message",
+              "label": "消息",
               "value": {
                 "kind": "text",
                 "text": "submit-order"
@@ -3564,7 +3564,7 @@
             },
             {
               "semanticKey": "message.channel",
-              "label": "Channel",
+              "label": "通道",
               "value": {
                 "kind": "text",
                 "text": "sync"
@@ -3572,12 +3572,12 @@
             },
             {
               "semanticKey": "message.endpoints",
-              "label": "Endpoints",
+              "label": "端点",
               "value": {
                 "kind": "record",
                 "entries": [
                   {
-                    "label": "Sources",
+                    "label": "来源",
                     "value": {
                       "kind": "list",
                       "items": [
@@ -3589,7 +3589,7 @@
                     }
                   },
                   {
-                    "label": "Targets",
+                    "label": "目标",
                     "value": {
                       "kind": "list",
                       "items": [
@@ -3601,7 +3601,7 @@
                     }
                   },
                   {
-                    "label": "Source contexts",
+                    "label": "来源上下文",
                     "value": {
                       "kind": "list",
                       "items": [
@@ -3613,7 +3613,7 @@
                     }
                   },
                   {
-                    "label": "Target contexts",
+                    "label": "目标上下文",
                     "value": {
                       "kind": "list",
                       "items": [
@@ -3629,15 +3629,15 @@
             },
             {
               "semanticKey": "message.crosses_context_boundary",
-              "label": "Crosses context boundary",
+              "label": "跨上下文边界",
               "value": {
                 "kind": "text",
-                "text": "no"
+                "text": "否"
               }
             },
             {
               "semanticKey": "message.step_links",
-              "label": "Scenario links",
+              "label": "场景关联",
               "value": {
                 "kind": "list",
                 "items": [
@@ -3645,28 +3645,28 @@
                     "kind": "record",
                     "entries": [
                       {
-                        "label": "Direction",
+                        "label": "方向",
                         "value": {
                           "kind": "text",
                           "text": "outgoing"
                         }
                       },
                       {
-                        "label": "Scenario",
+                        "label": "场景",
                         "value": {
                           "kind": "text",
                           "text": "order-settlement-flow"
                         }
                       },
                       {
-                        "label": "Step",
+                        "label": "步骤",
                         "value": {
                           "kind": "text",
                           "text": "capture-order"
                         }
                       },
                       {
-                        "label": "Context",
+                        "label": "上下文",
                         "value": {
                           "kind": "text",
                           "text": "orders"
@@ -3679,7 +3679,7 @@
             },
             {
               "semanticKey": "message.payload_fields",
-              "label": "Payload fields",
+              "label": "负载字段",
               "value": {
                 "kind": "list",
                 "items": [
@@ -3709,11 +3709,11 @@
           "kind": "message-flow",
           "source": "message-flow:context:payments",
           "target": "message-flow:message:authorize-payment",
-          "label": "source",
+          "label": "来源",
           "details": [
             {
               "semanticKey": "message.type",
-              "label": "Message",
+              "label": "消息",
               "value": {
                 "kind": "text",
                 "text": "authorize-payment"
@@ -3721,7 +3721,7 @@
             },
             {
               "semanticKey": "relation.from",
-              "label": "From",
+              "label": "起点",
               "value": {
                 "kind": "text",
                 "text": "context:payments"
@@ -3729,7 +3729,7 @@
             },
             {
               "semanticKey": "relation.to",
-              "label": "To",
+              "label": "终点",
               "value": {
                 "kind": "text",
                 "text": "authorize-payment"
@@ -3742,11 +3742,11 @@
           "kind": "message-flow",
           "source": "message-flow:message:authorize-payment",
           "target": "message-flow:aggregate:payment",
-          "label": "target",
+          "label": "目标",
           "details": [
             {
               "semanticKey": "message.type",
-              "label": "Message",
+              "label": "消息",
               "value": {
                 "kind": "text",
                 "text": "authorize-payment"
@@ -3754,7 +3754,7 @@
             },
             {
               "semanticKey": "relation.from",
-              "label": "From",
+              "label": "起点",
               "value": {
                 "kind": "text",
                 "text": "authorize-payment"
@@ -3762,7 +3762,7 @@
             },
             {
               "semanticKey": "relation.to",
-              "label": "To",
+              "label": "终点",
               "value": {
                 "kind": "text",
                 "text": "aggregate:payment"
@@ -3775,11 +3775,11 @@
           "kind": "message-flow",
           "source": "message-flow:scenario:order-settlement-flow:step:await-payment-authorization",
           "target": "message-flow:message:authorize-payment",
-          "label": "issues",
+          "label": "发出",
           "details": [
             {
               "semanticKey": "scenario.id",
-              "label": "Scenario",
+              "label": "场景",
               "value": {
                 "kind": "text",
                 "text": "order-settlement-flow"
@@ -3787,7 +3787,7 @@
             },
             {
               "semanticKey": "step.id",
-              "label": "Step",
+              "label": "步骤",
               "value": {
                 "kind": "text",
                 "text": "await-payment-authorization"
@@ -3795,7 +3795,7 @@
             },
             {
               "semanticKey": "message.type",
-              "label": "Message",
+              "label": "消息",
               "value": {
                 "kind": "text",
                 "text": "authorize-payment"
@@ -3808,11 +3808,11 @@
           "kind": "message-flow",
           "source": "message-flow:context:orders",
           "target": "message-flow:message:fetch-ledger-status",
-          "label": "source",
+          "label": "来源",
           "details": [
             {
               "semanticKey": "message.type",
-              "label": "Message",
+              "label": "消息",
               "value": {
                 "kind": "text",
                 "text": "fetch-ledger-status"
@@ -3820,7 +3820,7 @@
             },
             {
               "semanticKey": "relation.from",
-              "label": "From",
+              "label": "起点",
               "value": {
                 "kind": "text",
                 "text": "context:orders"
@@ -3828,7 +3828,7 @@
             },
             {
               "semanticKey": "relation.to",
-              "label": "To",
+              "label": "终点",
               "value": {
                 "kind": "text",
                 "text": "fetch-ledger-status"
@@ -3841,11 +3841,11 @@
           "kind": "message-flow",
           "source": "message-flow:message:fetch-ledger-status",
           "target": "message-flow:system:ledger-gateway",
-          "label": "target",
+          "label": "目标",
           "details": [
             {
               "semanticKey": "message.type",
-              "label": "Message",
+              "label": "消息",
               "value": {
                 "kind": "text",
                 "text": "fetch-ledger-status"
@@ -3853,7 +3853,7 @@
             },
             {
               "semanticKey": "relation.from",
-              "label": "From",
+              "label": "起点",
               "value": {
                 "kind": "text",
                 "text": "fetch-ledger-status"
@@ -3861,7 +3861,7 @@
             },
             {
               "semanticKey": "relation.to",
-              "label": "To",
+              "label": "终点",
               "value": {
                 "kind": "text",
                 "text": "system:ledger-gateway"
@@ -3874,11 +3874,11 @@
           "kind": "message-flow",
           "source": "message-flow:scenario:order-settlement-flow:step:reconcile-order",
           "target": "message-flow:message:fetch-ledger-status",
-          "label": "asks",
+          "label": "查询",
           "details": [
             {
               "semanticKey": "scenario.id",
-              "label": "Scenario",
+              "label": "场景",
               "value": {
                 "kind": "text",
                 "text": "order-settlement-flow"
@@ -3886,7 +3886,7 @@
             },
             {
               "semanticKey": "step.id",
-              "label": "Step",
+              "label": "步骤",
               "value": {
                 "kind": "text",
                 "text": "reconcile-order"
@@ -3894,7 +3894,7 @@
             },
             {
               "semanticKey": "message.type",
-              "label": "Message",
+              "label": "消息",
               "value": {
                 "kind": "text",
                 "text": "fetch-ledger-status"
@@ -3907,11 +3907,11 @@
           "kind": "message-flow",
           "source": "message-flow:system:ledger-gateway",
           "target": "message-flow:message:ledger-status-fetched",
-          "label": "source",
+          "label": "来源",
           "details": [
             {
               "semanticKey": "message.type",
-              "label": "Message",
+              "label": "消息",
               "value": {
                 "kind": "text",
                 "text": "ledger-status-fetched"
@@ -3919,7 +3919,7 @@
             },
             {
               "semanticKey": "relation.from",
-              "label": "From",
+              "label": "起点",
               "value": {
                 "kind": "text",
                 "text": "system:ledger-gateway"
@@ -3927,7 +3927,7 @@
             },
             {
               "semanticKey": "relation.to",
-              "label": "To",
+              "label": "终点",
               "value": {
                 "kind": "text",
                 "text": "ledger-status-fetched"
@@ -3940,11 +3940,11 @@
           "kind": "message-flow",
           "source": "message-flow:message:ledger-status-fetched",
           "target": "message-flow:context:orders",
-          "label": "target",
+          "label": "目标",
           "details": [
             {
               "semanticKey": "message.type",
-              "label": "Message",
+              "label": "消息",
               "value": {
                 "kind": "text",
                 "text": "ledger-status-fetched"
@@ -3952,7 +3952,7 @@
             },
             {
               "semanticKey": "relation.from",
-              "label": "From",
+              "label": "起点",
               "value": {
                 "kind": "text",
                 "text": "ledger-status-fetched"
@@ -3960,7 +3960,7 @@
             },
             {
               "semanticKey": "relation.to",
-              "label": "To",
+              "label": "终点",
               "value": {
                 "kind": "text",
                 "text": "context:orders"
@@ -3973,11 +3973,11 @@
           "kind": "message-flow",
           "source": "message-flow:message:ledger-status-fetched",
           "target": "message-flow:aggregate:order",
-          "label": "target",
+          "label": "目标",
           "details": [
             {
               "semanticKey": "message.type",
-              "label": "Message",
+              "label": "消息",
               "value": {
                 "kind": "text",
                 "text": "ledger-status-fetched"
@@ -3985,7 +3985,7 @@
             },
             {
               "semanticKey": "relation.from",
-              "label": "From",
+              "label": "起点",
               "value": {
                 "kind": "text",
                 "text": "ledger-status-fetched"
@@ -3993,7 +3993,7 @@
             },
             {
               "semanticKey": "relation.to",
-              "label": "To",
+              "label": "终点",
               "value": {
                 "kind": "text",
                 "text": "aggregate:order"
@@ -4006,11 +4006,11 @@
           "kind": "message-flow",
           "source": "message-flow:message:ledger-status-fetched",
           "target": "message-flow:scenario:order-settlement-flow:step:order-confirmed",
-          "label": "feeds",
+          "label": "输入到",
           "details": [
             {
               "semanticKey": "scenario.id",
-              "label": "Scenario",
+              "label": "场景",
               "value": {
                 "kind": "text",
                 "text": "order-settlement-flow"
@@ -4018,7 +4018,7 @@
             },
             {
               "semanticKey": "step.id",
-              "label": "Step",
+              "label": "步骤",
               "value": {
                 "kind": "text",
                 "text": "order-confirmed"
@@ -4026,7 +4026,7 @@
             },
             {
               "semanticKey": "message.type",
-              "label": "Message",
+              "label": "消息",
               "value": {
                 "kind": "text",
                 "text": "ledger-status-fetched"
@@ -4039,11 +4039,11 @@
           "kind": "message-flow",
           "source": "message-flow:aggregate:order",
           "target": "message-flow:message:order-submitted",
-          "label": "source",
+          "label": "来源",
           "details": [
             {
               "semanticKey": "message.type",
-              "label": "Message",
+              "label": "消息",
               "value": {
                 "kind": "text",
                 "text": "order-submitted"
@@ -4051,7 +4051,7 @@
             },
             {
               "semanticKey": "relation.from",
-              "label": "From",
+              "label": "起点",
               "value": {
                 "kind": "text",
                 "text": "aggregate:order"
@@ -4059,7 +4059,7 @@
             },
             {
               "semanticKey": "relation.to",
-              "label": "To",
+              "label": "终点",
               "value": {
                 "kind": "text",
                 "text": "order-submitted"
@@ -4072,11 +4072,11 @@
           "kind": "message-flow",
           "source": "message-flow:message:order-submitted",
           "target": "message-flow:context:payments",
-          "label": "target",
+          "label": "目标",
           "details": [
             {
               "semanticKey": "message.type",
-              "label": "Message",
+              "label": "消息",
               "value": {
                 "kind": "text",
                 "text": "order-submitted"
@@ -4084,7 +4084,7 @@
             },
             {
               "semanticKey": "relation.from",
-              "label": "From",
+              "label": "起点",
               "value": {
                 "kind": "text",
                 "text": "order-submitted"
@@ -4092,7 +4092,7 @@
             },
             {
               "semanticKey": "relation.to",
-              "label": "To",
+              "label": "终点",
               "value": {
                 "kind": "text",
                 "text": "context:payments"
@@ -4105,11 +4105,11 @@
           "kind": "message-flow",
           "source": "message-flow:message:order-submitted",
           "target": "message-flow:scenario:order-settlement-flow:step:await-payment-authorization",
-          "label": "feeds",
+          "label": "输入到",
           "details": [
             {
               "semanticKey": "scenario.id",
-              "label": "Scenario",
+              "label": "场景",
               "value": {
                 "kind": "text",
                 "text": "order-settlement-flow"
@@ -4117,7 +4117,7 @@
             },
             {
               "semanticKey": "step.id",
-              "label": "Step",
+              "label": "步骤",
               "value": {
                 "kind": "text",
                 "text": "await-payment-authorization"
@@ -4125,7 +4125,7 @@
             },
             {
               "semanticKey": "message.type",
-              "label": "Message",
+              "label": "消息",
               "value": {
                 "kind": "text",
                 "text": "order-submitted"
@@ -4138,11 +4138,11 @@
           "kind": "message-flow",
           "source": "message-flow:aggregate:payment",
           "target": "message-flow:message:payment-authorized",
-          "label": "source",
+          "label": "来源",
           "details": [
             {
               "semanticKey": "message.type",
-              "label": "Message",
+              "label": "消息",
               "value": {
                 "kind": "text",
                 "text": "payment-authorized"
@@ -4150,7 +4150,7 @@
             },
             {
               "semanticKey": "relation.from",
-              "label": "From",
+              "label": "起点",
               "value": {
                 "kind": "text",
                 "text": "aggregate:payment"
@@ -4158,7 +4158,7 @@
             },
             {
               "semanticKey": "relation.to",
-              "label": "To",
+              "label": "终点",
               "value": {
                 "kind": "text",
                 "text": "payment-authorized"
@@ -4171,11 +4171,11 @@
           "kind": "message-flow",
           "source": "message-flow:message:payment-authorized",
           "target": "message-flow:context:orders",
-          "label": "target",
+          "label": "目标",
           "details": [
             {
               "semanticKey": "message.type",
-              "label": "Message",
+              "label": "消息",
               "value": {
                 "kind": "text",
                 "text": "payment-authorized"
@@ -4183,7 +4183,7 @@
             },
             {
               "semanticKey": "relation.from",
-              "label": "From",
+              "label": "起点",
               "value": {
                 "kind": "text",
                 "text": "payment-authorized"
@@ -4191,7 +4191,7 @@
             },
             {
               "semanticKey": "relation.to",
-              "label": "To",
+              "label": "终点",
               "value": {
                 "kind": "text",
                 "text": "context:orders"
@@ -4204,11 +4204,11 @@
           "kind": "message-flow",
           "source": "message-flow:message:payment-authorized",
           "target": "message-flow:scenario:order-settlement-flow:step:reconcile-order",
-          "label": "feeds",
+          "label": "输入到",
           "details": [
             {
               "semanticKey": "scenario.id",
-              "label": "Scenario",
+              "label": "场景",
               "value": {
                 "kind": "text",
                 "text": "order-settlement-flow"
@@ -4216,7 +4216,7 @@
             },
             {
               "semanticKey": "step.id",
-              "label": "Step",
+              "label": "步骤",
               "value": {
                 "kind": "text",
                 "text": "reconcile-order"
@@ -4224,7 +4224,7 @@
             },
             {
               "semanticKey": "message.type",
-              "label": "Message",
+              "label": "消息",
               "value": {
                 "kind": "text",
                 "text": "payment-authorized"
@@ -4237,11 +4237,11 @@
           "kind": "message-flow",
           "source": "message-flow:context:orders",
           "target": "message-flow:message:submit-order",
-          "label": "source",
+          "label": "来源",
           "details": [
             {
               "semanticKey": "message.type",
-              "label": "Message",
+              "label": "消息",
               "value": {
                 "kind": "text",
                 "text": "submit-order"
@@ -4249,7 +4249,7 @@
             },
             {
               "semanticKey": "relation.from",
-              "label": "From",
+              "label": "起点",
               "value": {
                 "kind": "text",
                 "text": "context:orders"
@@ -4257,7 +4257,7 @@
             },
             {
               "semanticKey": "relation.to",
-              "label": "To",
+              "label": "终点",
               "value": {
                 "kind": "text",
                 "text": "submit-order"
@@ -4270,11 +4270,11 @@
           "kind": "message-flow",
           "source": "message-flow:message:submit-order",
           "target": "message-flow:aggregate:order",
-          "label": "target",
+          "label": "目标",
           "details": [
             {
               "semanticKey": "message.type",
-              "label": "Message",
+              "label": "消息",
               "value": {
                 "kind": "text",
                 "text": "submit-order"
@@ -4282,7 +4282,7 @@
             },
             {
               "semanticKey": "relation.from",
-              "label": "From",
+              "label": "起点",
               "value": {
                 "kind": "text",
                 "text": "submit-order"
@@ -4290,7 +4290,7 @@
             },
             {
               "semanticKey": "relation.to",
-              "label": "To",
+              "label": "终点",
               "value": {
                 "kind": "text",
                 "text": "aggregate:order"
@@ -4303,11 +4303,11 @@
           "kind": "message-flow",
           "source": "message-flow:scenario:order-settlement-flow:step:capture-order",
           "target": "message-flow:message:submit-order",
-          "label": "issues",
+          "label": "发出",
           "details": [
             {
               "semanticKey": "scenario.id",
-              "label": "Scenario",
+              "label": "场景",
               "value": {
                 "kind": "text",
                 "text": "order-settlement-flow"
@@ -4315,7 +4315,7 @@
             },
             {
               "semanticKey": "step.id",
-              "label": "Step",
+              "label": "步骤",
               "value": {
                 "kind": "text",
                 "text": "capture-order"
@@ -4323,7 +4323,7 @@
             },
             {
               "semanticKey": "message.type",
-              "label": "Message",
+              "label": "消息",
               "value": {
                 "kind": "text",
                 "text": "submit-order"
@@ -4340,7 +4340,7 @@
           "details": [
             {
               "semanticKey": "scenario.id",
-              "label": "Scenario",
+              "label": "场景",
               "value": {
                 "kind": "text",
                 "text": "order-settlement-flow"
@@ -4348,7 +4348,7 @@
             },
             {
               "semanticKey": "relation.from",
-              "label": "From",
+              "label": "起点",
               "value": {
                 "kind": "text",
                 "text": "capture-order"
@@ -4356,7 +4356,7 @@
             },
             {
               "semanticKey": "relation.to",
-              "label": "To",
+              "label": "终点",
               "value": {
                 "kind": "text",
                 "text": "await-payment-authorization"
@@ -4373,7 +4373,7 @@
           "details": [
             {
               "semanticKey": "scenario.id",
-              "label": "Scenario",
+              "label": "场景",
               "value": {
                 "kind": "text",
                 "text": "order-settlement-flow"
@@ -4381,7 +4381,7 @@
             },
             {
               "semanticKey": "relation.from",
-              "label": "From",
+              "label": "起点",
               "value": {
                 "kind": "text",
                 "text": "await-payment-authorization"
@@ -4389,7 +4389,7 @@
             },
             {
               "semanticKey": "relation.to",
-              "label": "To",
+              "label": "终点",
               "value": {
                 "kind": "text",
                 "text": "reconcile-order"
@@ -4406,7 +4406,7 @@
           "details": [
             {
               "semanticKey": "scenario.id",
-              "label": "Scenario",
+              "label": "场景",
               "value": {
                 "kind": "text",
                 "text": "order-settlement-flow"
@@ -4414,7 +4414,7 @@
             },
             {
               "semanticKey": "relation.from",
-              "label": "From",
+              "label": "起点",
               "value": {
                 "kind": "text",
                 "text": "reconcile-order"
@@ -4422,7 +4422,7 @@
             },
             {
               "semanticKey": "relation.to",
-              "label": "To",
+              "label": "终点",
               "value": {
                 "kind": "text",
                 "text": "order-confirmed"
@@ -4439,22 +4439,22 @@
         "tier": "primary",
         "order": 40
       },
-      "title": "Lifecycle",
-      "description": "Shows aggregate state transitions, the message that triggers each transition, and which follow-up messages each transition emits.",
+      "title": "生命周期",
+      "description": "展示聚合状态迁移、触发每次迁移的消息，以及每次迁移会发出的后续消息。",
       "nodes": [
         {
           "id": "lifecycle:aggregate:order",
           "kind": "aggregate",
           "label": "Order",
           "subtitle": "order | orders",
-          "summary": "initial: draft",
+          "summary": "初始状态: draft",
           "width": 280,
           "height": 184,
           "headerHeight": 112,
           "details": [
             {
               "semanticKey": "aggregate.id",
-              "label": "Aggregate",
+              "label": "聚合",
               "value": {
                 "kind": "text",
                 "text": "order"
@@ -4462,7 +4462,7 @@
             },
             {
               "semanticKey": "aggregate.context",
-              "label": "Context",
+              "label": "上下文",
               "value": {
                 "kind": "text",
                 "text": "orders"
@@ -4470,7 +4470,7 @@
             },
             {
               "semanticKey": "aggregate.initial_state",
-              "label": "Initial state",
+              "label": "初始状态",
               "value": {
                 "kind": "text",
                 "text": "draft"
@@ -4478,7 +4478,7 @@
             },
             {
               "semanticKey": "aggregate.lifecycle",
-              "label": "Lifecycle",
+              "label": "生命周期",
               "value": {
                 "kind": "list",
                 "items": [
@@ -4499,7 +4499,7 @@
             },
             {
               "semanticKey": "aggregate.accepted_messages",
-              "label": "Accepted messages",
+              "label": "接收的消息",
               "value": {
                 "kind": "list",
                 "items": [
@@ -4516,7 +4516,7 @@
             },
             {
               "semanticKey": "aggregate.emitted_messages",
-              "label": "Emitted messages",
+              "label": "发出的消息",
               "value": {
                 "kind": "list",
                 "items": [
@@ -4529,7 +4529,7 @@
             },
             {
               "semanticKey": "aggregate.reachable_states",
-              "label": "Reachable states",
+              "label": "可达状态",
               "value": {
                 "kind": "list",
                 "items": [
@@ -4550,10 +4550,10 @@
             },
             {
               "semanticKey": "aggregate.unreachable_states",
-              "label": "Unreachable states",
+              "label": "不可达状态",
               "value": {
                 "kind": "text",
-                "text": "none"
+                "text": "无"
               }
             }
           ]
@@ -4562,15 +4562,15 @@
           "id": "lifecycle:aggregate:order:state:draft",
           "kind": "lifecycle-state",
           "label": "draft",
-          "subtitle": "reachable",
-          "summary": "1 transition(s)",
+          "subtitle": "可达",
+          "summary": "1 个迁移",
           "parentId": "lifecycle:aggregate:order",
           "width": 180,
           "height": 123,
           "details": [
             {
               "semanticKey": "aggregate.id",
-              "label": "Aggregate",
+              "label": "聚合",
               "value": {
                 "kind": "text",
                 "text": "order"
@@ -4578,7 +4578,7 @@
             },
             {
               "semanticKey": "aggregate.context",
-              "label": "Context",
+              "label": "上下文",
               "value": {
                 "kind": "text",
                 "text": "orders"
@@ -4586,7 +4586,7 @@
             },
             {
               "semanticKey": "aggregate.state.id",
-              "label": "State",
+              "label": "状态",
               "value": {
                 "kind": "text",
                 "text": "draft"
@@ -4594,15 +4594,15 @@
             },
             {
               "semanticKey": "aggregate.state.reachable",
-              "label": "Reachable",
+              "label": "可达",
               "value": {
                 "kind": "text",
-                "text": "yes"
+                "text": "是"
               }
             },
             {
               "semanticKey": "aggregate.state.outgoing_messages",
-              "label": "Outgoing messages",
+              "label": "出站消息",
               "value": {
                 "kind": "list",
                 "items": [
@@ -4619,15 +4619,15 @@
           "id": "lifecycle:aggregate:order:state:submitted",
           "kind": "lifecycle-state",
           "label": "submitted",
-          "subtitle": "reachable",
-          "summary": "1 transition(s)",
+          "subtitle": "可达",
+          "summary": "1 个迁移",
           "parentId": "lifecycle:aggregate:order",
           "width": 180,
           "height": 123,
           "details": [
             {
               "semanticKey": "aggregate.id",
-              "label": "Aggregate",
+              "label": "聚合",
               "value": {
                 "kind": "text",
                 "text": "order"
@@ -4635,7 +4635,7 @@
             },
             {
               "semanticKey": "aggregate.context",
-              "label": "Context",
+              "label": "上下文",
               "value": {
                 "kind": "text",
                 "text": "orders"
@@ -4643,7 +4643,7 @@
             },
             {
               "semanticKey": "aggregate.state.id",
-              "label": "State",
+              "label": "状态",
               "value": {
                 "kind": "text",
                 "text": "submitted"
@@ -4651,18 +4651,18 @@
             },
             {
               "semanticKey": "aggregate.state.reachable",
-              "label": "Reachable",
+              "label": "可达",
               "value": {
                 "kind": "text",
-                "text": "yes"
+                "text": "是"
               }
             },
             {
               "semanticKey": "aggregate.state.outgoing_messages",
-              "label": "Outgoing messages",
+              "label": "出站消息",
               "value": {
                 "kind": "text",
-                "text": "none"
+                "text": "无"
               }
             }
           ]
@@ -4671,15 +4671,15 @@
           "id": "lifecycle:aggregate:order:state:confirmed",
           "kind": "lifecycle-state",
           "label": "confirmed",
-          "subtitle": "reachable",
-          "summary": "terminal",
+          "subtitle": "可达",
+          "summary": "终态",
           "parentId": "lifecycle:aggregate:order",
           "width": 180,
           "height": 123,
           "details": [
             {
               "semanticKey": "aggregate.id",
-              "label": "Aggregate",
+              "label": "聚合",
               "value": {
                 "kind": "text",
                 "text": "order"
@@ -4687,7 +4687,7 @@
             },
             {
               "semanticKey": "aggregate.context",
-              "label": "Context",
+              "label": "上下文",
               "value": {
                 "kind": "text",
                 "text": "orders"
@@ -4695,7 +4695,7 @@
             },
             {
               "semanticKey": "aggregate.state.id",
-              "label": "State",
+              "label": "状态",
               "value": {
                 "kind": "text",
                 "text": "confirmed"
@@ -4703,18 +4703,18 @@
             },
             {
               "semanticKey": "aggregate.state.reachable",
-              "label": "Reachable",
+              "label": "可达",
               "value": {
                 "kind": "text",
-                "text": "yes"
+                "text": "是"
               }
             },
             {
               "semanticKey": "aggregate.state.outgoing_messages",
-              "label": "Outgoing messages",
+              "label": "出站消息",
               "value": {
                 "kind": "text",
-                "text": "none"
+                "text": "无"
               }
             }
           ]
@@ -4730,7 +4730,7 @@
           "details": [
             {
               "semanticKey": "aggregate.id",
-              "label": "Aggregate",
+              "label": "聚合",
               "value": {
                 "kind": "text",
                 "text": "order"
@@ -4738,7 +4738,7 @@
             },
             {
               "semanticKey": "aggregate.context",
-              "label": "Context",
+              "label": "上下文",
               "value": {
                 "kind": "text",
                 "text": "orders"
@@ -4746,7 +4746,7 @@
             },
             {
               "semanticKey": "relation.from",
-              "label": "From",
+              "label": "起点",
               "value": {
                 "kind": "text",
                 "text": "draft"
@@ -4754,7 +4754,7 @@
             },
             {
               "semanticKey": "relation.to",
-              "label": "To",
+              "label": "终点",
               "value": {
                 "kind": "text",
                 "text": "submitted"
@@ -4762,7 +4762,7 @@
             },
             {
               "semanticKey": "transition.trigger_message",
-              "label": "Trigger message",
+              "label": "触发消息",
               "value": {
                 "kind": "text",
                 "text": "submit-order"
@@ -4770,7 +4770,7 @@
             },
             {
               "semanticKey": "transition.emitted_messages",
-              "label": "Emitted messages",
+              "label": "发出的消息",
               "value": {
                 "kind": "list",
                 "items": [
@@ -4792,7 +4792,7 @@
           "details": [
             {
               "semanticKey": "aggregate.id",
-              "label": "Aggregate",
+              "label": "聚合",
               "value": {
                 "kind": "text",
                 "text": "order"
@@ -4800,7 +4800,7 @@
             },
             {
               "semanticKey": "aggregate.context",
-              "label": "Context",
+              "label": "上下文",
               "value": {
                 "kind": "text",
                 "text": "orders"
@@ -4808,7 +4808,7 @@
             },
             {
               "semanticKey": "relation.from",
-              "label": "From",
+              "label": "起点",
               "value": {
                 "kind": "text",
                 "text": "submitted"
@@ -4816,7 +4816,7 @@
             },
             {
               "semanticKey": "relation.to",
-              "label": "To",
+              "label": "终点",
               "value": {
                 "kind": "text",
                 "text": "confirmed"
@@ -4824,7 +4824,7 @@
             },
             {
               "semanticKey": "transition.trigger_message",
-              "label": "Trigger message",
+              "label": "触发消息",
               "value": {
                 "kind": "text",
                 "text": "ledger-status-fetched"
@@ -4832,10 +4832,10 @@
             },
             {
               "semanticKey": "transition.emitted_messages",
-              "label": "Emitted messages",
+              "label": "发出的消息",
               "value": {
                 "kind": "text",
-                "text": "none"
+                "text": "无"
               }
             }
           ]

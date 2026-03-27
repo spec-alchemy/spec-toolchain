@@ -1,4 +1,13 @@
 export const BUSINESS_VIEWER_SPEC_VERSION = 1 as const;
+export const VIEWER_LOCALES = ["en", "zh-CN"] as const;
+export const DEFAULT_VIEWER_LOCALE = "en" as const;
+export const DEFAULT_VIEWER_SPEC_FILE_NAME = "viewer-spec.json" as const;
+
+export type ViewerLocale = (typeof VIEWER_LOCALES)[number];
+
+export function toViewerLocaleSpecFileName(locale: ViewerLocale): string {
+  return `viewer-spec.${locale}.json`;
+}
 
 export type ViewerViewKind =
   | "context-map"

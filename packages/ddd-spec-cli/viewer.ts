@@ -3,8 +3,14 @@ import { createServer, type IncomingMessage, type ServerResponse } from "node:ht
 import { access, readFile, stat } from "node:fs/promises";
 import { extname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import {
+  DEFAULT_VIEWER_SPEC_FILE_NAME,
+  VIEWER_LOCALES,
+  toViewerLocaleSpecFileName
+} from "../ddd-spec-viewer-contract/index.js";
 import { logInfo } from "./console.js";
 import type { ResolvedDddSpecConfig } from "./config.js";
+import { toViewerLocaleArtifactPath } from "./viewer-artifacts.js";
 import {
   getViewerDevSessionStatus,
   VIEWER_DEV_SESSION_ROUTE_PATH,
@@ -14,7 +20,7 @@ import {
 const DEFAULT_VIEWER_HOST = "127.0.0.1";
 const DEFAULT_VIEWER_PORT = 4173;
 const VIEWER_INDEX_FILE = "index.html";
-const VIEWER_SPEC_ROUTE_PATH = "/generated/viewer-spec.json";
+const VIEWER_SPEC_ROUTE_PATH = `/generated/${DEFAULT_VIEWER_SPEC_FILE_NAME}`;
 const VIEWER_ASSET_DIR_CANDIDATES = [
   fileURLToPath(new URL("./static/viewer", import.meta.url)),
   resolve(fileURLToPath(new URL(".", import.meta.url)), "dist", "ddd-spec-cli", "static", "viewer")
@@ -116,8 +122,13 @@ async function handleViewerRequest(
 ): Promise<void> {
   const requestUrl = new URL(request.url ?? "/", "http://ddd-spec-viewer.local");
 
-  if (requestUrl.pathname === VIEWER_SPEC_ROUTE_PATH) {
-    await sendFileResponse(response, options.viewerSpecPath, {
+  const workspaceViewerSpecPath = resolveWorkspaceViewerSpecPath(
+    requestUrl.pathname,
+    options.viewerSpecPath
+  );
+
+  if (workspaceViewerSpecPath) {
+    await sendFileResponse(response, workspaceViewerSpecPath, {
       cacheControl: "no-store",
       contentType: "application/json; charset=utf-8"
     });
@@ -146,6 +157,23 @@ async function handleViewerRequest(
       : "public, max-age=31536000, immutable",
     contentType: getContentType(assetPath)
   });
+}
+
+function resolveWorkspaceViewerSpecPath(
+  requestPathname: string,
+  viewerSpecPath: string
+): string | undefined {
+  if (requestPathname === VIEWER_SPEC_ROUTE_PATH) {
+    return viewerSpecPath;
+  }
+
+  for (const locale of VIEWER_LOCALES) {
+    if (requestPathname === `/generated/${toViewerLocaleSpecFileName(locale)}`) {
+      return toViewerLocaleArtifactPath(viewerSpecPath, locale);
+    }
+  }
+
+  return undefined;
 }
 
 async function resolveViewerAssetPath(

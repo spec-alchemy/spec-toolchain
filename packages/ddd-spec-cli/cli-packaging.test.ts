@@ -9,7 +9,9 @@ import {
   CLI_DIST_SCHEMA_DIR_PATH,
   CLI_DIST_SCHEMA_PATH,
   CLI_DIST_VIEWER_DIR_PATH,
+  CLI_DIST_VIEWER_GENERATED_EN_SPEC_PATH,
   CLI_DIST_VIEWER_GENERATED_SPEC_PATH,
+  CLI_DIST_VIEWER_GENERATED_ZH_CN_SPEC_PATH,
   CLI_DIST_VIEWER_INDEX_PATH,
   REPO_ROOT_PATH,
   SCHEMA_FILE_NAMES
@@ -42,6 +44,8 @@ test("CLI package build emits executable dist output and runtime schema assets",
 test("CLI package build emits packaged viewer static assets", async () => {
   await access(CLI_DIST_VIEWER_INDEX_PATH);
   await access(CLI_DIST_VIEWER_GENERATED_SPEC_PATH);
+  await access(CLI_DIST_VIEWER_GENERATED_EN_SPEC_PATH);
+  await access(CLI_DIST_VIEWER_GENERATED_ZH_CN_SPEC_PATH);
 
   const indexSource = await readFile(CLI_DIST_VIEWER_INDEX_PATH, "utf8");
   const builtAssetNames = await readdir(join(CLI_DIST_VIEWER_DIR_PATH, "assets"));
@@ -95,6 +99,12 @@ test("npm pack tarball keeps the published CLI package on runtime files only", a
     assert.ok(packedPaths.includes("dist/ddd-spec-cli/static/viewer/index.html"));
     assert.ok(
       packedPaths.includes("dist/ddd-spec-cli/static/viewer/generated/viewer-spec.json")
+    );
+    assert.ok(
+      packedPaths.includes("dist/ddd-spec-cli/static/viewer/generated/viewer-spec.en.json")
+    );
+    assert.ok(
+      packedPaths.includes("dist/ddd-spec-cli/static/viewer/generated/viewer-spec.zh-CN.json")
     );
     assert.ok(
       packedPaths.some(
