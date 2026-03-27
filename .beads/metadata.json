@@ -1,7 +1,0 @@
-{
-  "database": "dolt",
-  "backend": "dolt",
-  "dolt_mode": "server",
-  "dolt_database": "knowledge_alchemy_app_v2",
-  "project_id": "78f96a30-e51d-48b2-aeec-d47ff9cadb39"
-}

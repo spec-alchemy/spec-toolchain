@@ -34,8 +34,8 @@ Thumbs.db
 # Local agent config
 .agents/
 .claude/
-.ralph-tui/*
-!.ralph-tui/progress.md
+.ralph-tui/
+.beads/
 
 # Project-specific excluded docs
 docs/*
@@ -53,7 +53,7 @@ examples/*/generated/
 # Viewer app generated data
 apps/design-spec-viewer/public/generated/viewer-spec.json
 
-# Beads / Dolt files (added by bd init)
+# Beads / Dolt files (legacy local tooling)
 .dolt/
 *.db
 .beads-credential-key
