@@ -142,7 +142,51 @@ test("CLI validate rejects unsupported version 2 canonicals in config mode", asy
 
     await assert.rejects(
       runCliCommand(["validate", "--config", configPath], { cwd: tempDir }),
-      /ddd-spec only supports version 3 canonical-vnext workspaces/
+      /ddd-spec only supports version 1 domain models/
+    );
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
+
+test("CLI validate rejects legacy version 3 workspaces after the schema reset", async () => {
+  const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-config-legacy-version-3-"));
+  const configPath = join(tempDir, "ddd-spec.config.yaml");
+  const legacyEntryPath = join(tempDir, "legacy-index.yaml");
+
+  try {
+    await writeFile(
+      legacyEntryPath,
+      [
+        "version: 3",
+        "id: legacy-spec",
+        "title: Legacy Spec",
+        "summary: Should be rejected after the reset.",
+        "model:",
+        "  contexts: ./contexts",
+        "  actors: ./actors",
+        "  systems: ./systems",
+        "  scenarios: ./scenarios",
+        "  messages: ./messages",
+        "  aggregates: ./aggregates",
+        "  policies: ./policies"
+      ].join("\n").concat("\n"),
+      "utf8"
+    );
+
+    await writeFile(
+      configPath,
+      [
+        "version: 1",
+        "spec:",
+        `  entry: ${JSON.stringify(legacyEntryPath)}`
+      ].join("\n").concat("\n"),
+      "utf8"
+    );
+
+    await assert.rejects(
+      runCliCommand(["validate", "--config", configPath], { cwd: tempDir }),
+      /reset the default workspace contract to version 1/
     );
   } finally {
     await rm(tempDir, { recursive: true, force: true });

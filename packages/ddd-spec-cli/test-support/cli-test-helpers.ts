@@ -318,6 +318,7 @@ export async function assertGeneratedInitSkeleton(rootPath: string): Promise<voi
   );
 
   assert.equal(spec.id, "approval-flow");
+  assert.equal(spec.version, 1);
   assert.deepEqual(spec.contexts.map((context) => context.id), ["approvals"]);
   assert.deepEqual(
     sortStrings(spec.actors.map((actor) => actor.id)),

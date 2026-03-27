@@ -26,7 +26,7 @@ import {
 test("vnext loader reads the minimal canonical into first-class vnext fields", async () => {
   const spec = await loadVnextMinimalFixture();
 
-  assert.equal(spec.version, 3);
+  assert.equal(spec.version, 1);
   assert.equal("model" in spec, false);
   assert.equal("domain" in spec, false);
   assert.deepEqual(
@@ -66,7 +66,7 @@ test("vnext loader reads the minimal canonical into first-class vnext fields", a
   );
 });
 
-test("generic canonical loader dispatches version 3 without legacy adaptation", async () => {
+test("generic canonical loader dispatches version 1 without legacy adaptation", async () => {
   const spec = await loadCanonicalSpec({
     entryPath: VNEXT_MINIMAL_FIXTURE_ENTRY_PATH
   });
@@ -81,7 +81,7 @@ test("generic canonical loader dispatches version 3 without legacy adaptation", 
   assert.equal(spec.messages.find((message) => message.id === "send-approval-notification")?.producers[0].kind, "policy");
 });
 
-test("generic canonical loader rejects version 2 canonicals", async () => {
+test("generic canonical loader rejects reset version 3 workspaces", async () => {
   const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-legacy-version-"));
   const entryPath = join(tempDir, "index.yaml");
 
@@ -89,9 +89,45 @@ test("generic canonical loader rejects version 2 canonicals", async () => {
     await writeFile(
       entryPath,
       [
-        "version: 2",
+        "version: 3",
         "id: legacy-spec",
         "title: Legacy Spec",
+        "summary: Should be rejected after the reset.",
+        "model:",
+        "  contexts: ./contexts",
+        "  actors: ./actors",
+        "  systems: ./systems",
+        "  scenarios: ./scenarios",
+        "  messages: ./messages",
+        "  aggregates: ./aggregates",
+        "  policies: ./policies"
+      ].join("\n").concat("\n"),
+      "utf8"
+    );
+
+    await assert.rejects(
+      loadCanonicalSpec({
+        entryPath,
+        validateSemantics: false
+      }),
+      /reset the default workspace contract to version 1/
+    );
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
+
+test("generic canonical loader rejects legacy top-level domain containers", async () => {
+  const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-legacy-domain-shape-"));
+  const entryPath = join(tempDir, "index.yaml");
+
+  try {
+    await writeFile(
+      entryPath,
+      [
+        "version: 1",
+        "id: legacy-domain-shape",
+        "title: Legacy Domain Shape",
         "summary: Should be rejected.",
         "domain: {}"
       ].join("\n").concat("\n"),
@@ -103,7 +139,7 @@ test("generic canonical loader rejects version 2 canonicals", async () => {
         entryPath,
         validateSemantics: false
       }),
-      /ddd-spec only supports version 3 canonical-vnext workspaces/
+      /Legacy top-level `domain` is no longer supported/
     );
   } finally {
     await rm(tempDir, { recursive: true, force: true });

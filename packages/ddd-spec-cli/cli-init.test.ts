@@ -37,7 +37,7 @@ test("CLI init creates the default domain model starter and build emits the prim
     const gitignoreSource = await readFile(join(tempDir, ".gitignore"), "utf8");
     const settingsSource = await readFile(join(tempDir, ".vscode", "settings.json"), "utf8");
 
-    assert.equal(bundle.version, 3);
+    assert.equal(bundle.version, 1);
     assert.equal(viewer.viewerVersion, 1);
     assert.equal(bundle.id, "approval-flow");
     assert.deepEqual(
@@ -213,7 +213,7 @@ test("CLI init skips overlapping existing YAML schema globs", async () => {
 test("CLI init refuses to overwrite an existing domain model index", async () => {
   const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-init-existing-"));
   const entryPath = join(tempDir, "domain-model", "index.yaml");
-  const existingSource = "version: 3\n";
+  const existingSource = "version: 1\n";
 
   try {
     await mkdir(join(tempDir, "domain-model"), { recursive: true });

@@ -1,4 +1,4 @@
-version: 3
+version: 1
 id: approval-flow-vnext
 title: Approval Flow vNext
 summary: Minimal vNext canonical example centered on context, scenario, message flow, lifecycle, and a follow-up policy.

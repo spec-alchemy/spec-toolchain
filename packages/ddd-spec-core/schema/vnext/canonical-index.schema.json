@@ -7,7 +7,7 @@
   "required": ["version", "id", "title", "summary", "model"],
   "properties": {
     "version": {
-      "const": 3
+      "const": 1
     },
     "id": {
       "$ref": "shared.schema.json#/$defs/identifier"

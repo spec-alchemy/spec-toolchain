@@ -81,7 +81,7 @@ test("npm pack smoke test installs the tarball and runs zero-config init plus bu
       await readFile(join(consumerRootPath, ".ddd-spec", "artifacts", "viewer-spec.json"), "utf8")
     ) as BusinessViewerSpec;
 
-    assert.equal(bundle.version, 3);
+    assert.equal(bundle.version, 1);
     assert.equal(viewer.viewerVersion, 1);
     assert.equal(bundle.id, "approval-flow");
     assert.equal(analysis.summary.errorCount, 0);
@@ -138,7 +138,7 @@ test("npm pack smoke test installs the tarball and runs build with --config on a
       await readFile(join(consumerRootPath, "artifacts", "business-viewer", "viewer-spec.json"), "utf8")
     ) as BusinessViewerSpec;
 
-    assert.equal(bundle.version, 3);
+    assert.equal(bundle.version, 1);
     assert.equal(viewer.viewerVersion, 1);
     assertPrimaryViewOrder(viewer, [
       "context-map",

@@ -242,7 +242,7 @@ async function generateTypescriptSpec(
   void spec;
 
   throw new Error(
-    "TypeScript projection is not implemented for version 3 canonicals yet. Disable projections.typescript for this config before running build or generate typescript."
+    "TypeScript projection is not implemented for version 1 domain models yet. Disable projections.typescript for this config before running build or generate typescript."
   );
 }
 

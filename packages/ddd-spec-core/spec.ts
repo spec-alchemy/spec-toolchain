@@ -3,7 +3,7 @@ import { dirname, resolve } from "node:path";
 import YAML from "yaml";
 import { validateBusinessSpecSemantics } from "./semantic-validation.js";
 
-export const VNEXT_CANONICAL_SCHEMA_VERSION = 3 as const;
+export const VNEXT_CANONICAL_SCHEMA_VERSION = 1 as const;
 
 export const VNEXT_RESOURCE_KINDS = [
   "context",
@@ -232,7 +232,7 @@ export async function loadCanonicalSpec(
 
   if (version !== VNEXT_CANONICAL_SCHEMA_VERSION) {
     throw new Error(
-      `Unsupported canonical version ${String(version)} at ${options.entryPath}. ddd-spec only supports version 3 canonical-vnext workspaces.`
+      formatUnsupportedCanonicalVersionMessage(version, options.entryPath)
     );
   }
 
@@ -243,6 +243,11 @@ export async function loadVnextBusinessSpec(
   options: LoadVnextBusinessSpecOptions
 ): Promise<VnextBusinessSpec> {
   const index = await loadVnextCanonicalIndexSpec(options.entryPath);
+  assertCanonicalModelContainer(
+    index as { model?: unknown; domain?: unknown },
+    options.entryPath,
+    "loadVnextBusinessSpec"
+  );
   const baseDir = dirname(options.entryPath);
   const [
     contexts,
@@ -362,9 +367,46 @@ function assertCanonicalVersion(
 ): void {
   if (actualVersion !== VNEXT_CANONICAL_SCHEMA_VERSION) {
     throw new Error(
-      `${loaderName} expected version ${VNEXT_CANONICAL_SCHEMA_VERSION} canonical index at ${entryPath}, received ${String(actualVersion)}.`
+      `${loaderName} expected version ${VNEXT_CANONICAL_SCHEMA_VERSION} domain model index at ${entryPath}, received ${String(actualVersion)}.`
     );
   }
+}
+
+function assertCanonicalModelContainer(
+  index: { model?: unknown; domain?: unknown },
+  entryPath: string,
+  loaderName: string
+): void {
+  if (typeof index.model === "object" && index.model !== null) {
+    return;
+  }
+
+  if ("domain" in index) {
+    throw new Error(
+      `${loaderName} expected top-level \`model\` at ${entryPath}. Legacy top-level \`domain\` is no longer supported in version ${VNEXT_CANONICAL_SCHEMA_VERSION} domain models.`
+    );
+  }
+
+  throw new Error(
+    `${loaderName} expected top-level \`model\` at ${entryPath}.`
+  );
+}
+
+function formatUnsupportedCanonicalVersionMessage(
+  version: number | undefined,
+  entryPath: string
+): string {
+  if (version === 3) {
+    return (
+      `Unsupported domain model schema version 3 at ${entryPath}. ` +
+      "ddd-spec reset the default workspace contract to version 1 and no longer supports legacy version 3 workspaces."
+    );
+  }
+
+  return (
+    `Unsupported domain model schema version ${String(version)} at ${entryPath}. ` +
+    `ddd-spec only supports version ${VNEXT_CANONICAL_SCHEMA_VERSION} domain models.`
+  );
 }
 
 async function loadYamlFile<Value>(absolutePath: string): Promise<Value> {

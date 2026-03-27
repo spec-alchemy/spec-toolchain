@@ -27,7 +27,7 @@ const DEFAULT_INIT_TEMPLATE: InitTemplateDefinition = {
   files: [
     {
       relativePath: ZERO_CONFIG_ENTRY_PATH,
-      source: `version: 3
+      source: `version: 1
 id: approval-flow
 title: Approval Flow Starter
 summary: Starter model showing how one bounded context, one scenario, one message flow, and one lifecycle fit together.

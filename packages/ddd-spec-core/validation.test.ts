@@ -44,7 +44,7 @@ test("canonical index schema rejects malformed vNext index structure", async () 
 test("standalone vNext canonical index schema rejects legacy domain keys", async () => {
   const validate = await createVnextSchemaValidator("canonical-index.schema.json");
   const legacyIndex = {
-    version: 3,
+    version: 1,
     id: "legacy-domain-shape",
     title: "Legacy Domain Shape",
     summary: "Should be rejected.",

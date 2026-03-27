@@ -111,7 +111,7 @@ test("CLI validate succeeds in explicit config mode without writing outputs", as
   }
 });
 
-test("CLI validate and build succeed in zero-config mode with standard vNext outputs", async () => {
+test("CLI validate and build succeed in zero-config mode with the reset domain model version", async () => {
   const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-zero-config-build-"));
 
   try {
@@ -142,7 +142,7 @@ test("CLI validate and build succeed in zero-config mode with standard vNext out
       await readFile(join(tempDir, ".ddd-spec", "artifacts", "viewer-spec.json"), "utf8")
     ) as BusinessViewerSpec;
 
-    assert.equal(bundle.version, 3);
+    assert.equal(bundle.version, 1);
     assert.equal(viewer.viewerVersion, 1);
     assert.equal(bundle.id, "approval-flow-vnext");
     assert.equal(analysis.summary.errorCount, 0);
@@ -288,7 +288,7 @@ test("CLI dev rebuilds the zero-config viewer artifact and enables browser auto-
   }
 });
 
-test("CLI build supports version 3 canonicals when viewer projection is enabled without TypeScript output", async () => {
+test("CLI build supports version 1 domain models when viewer projection is enabled without TypeScript output", async () => {
   const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-vnext-build-"));
   const configPath = join(tempDir, "ddd-spec.config.yaml");
 
@@ -307,7 +307,7 @@ test("CLI build supports version 3 canonicals when viewer projection is enabled 
 
     const bundle = JSON.parse(
       await readFile(join(tempDir, "artifacts", "business-spec.json"), "utf8")
-    ) as { version: 3 };
+    ) as { version: 1 };
     const analysis = JSON.parse(
       await readFile(join(tempDir, "artifacts", "business-spec.analysis.json"), "utf8")
     ) as VnextBusinessSpecAnalysis;
@@ -318,7 +318,7 @@ test("CLI build supports version 3 canonicals when viewer projection is enabled 
       )
     ) as BusinessViewerSpec;
 
-    assert.equal(bundle.version, 3);
+    assert.equal(bundle.version, 1);
     assert.equal(viewer.viewerVersion, 1);
     assert.equal(analysis.summary.errorCount, 0);
     assertPrimaryViewOrder(viewer, [
@@ -337,7 +337,7 @@ test("CLI build supports version 3 canonicals when viewer projection is enabled 
   }
 });
 
-test("CLI viewer supports version 3 canonicals through the packaged viewer path", async () => {
+test("CLI viewer supports version 1 domain models through the packaged viewer path", async () => {
   const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-vnext-viewer-"));
   const configPath = join(tempDir, "ddd-spec.config.yaml");
   let launchOptions: LaunchViewerOptions | undefined;
