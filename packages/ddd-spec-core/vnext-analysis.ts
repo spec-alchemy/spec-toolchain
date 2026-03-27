@@ -2053,7 +2053,7 @@ function toResourceKey(kind: VnextResourceKind, id: string): string {
 
 function formatDiagnostics(diagnostics: readonly VnextAnalysisDiagnostic[]): string {
   return [
-    `vNext semantic validation failed with ${diagnostics.length} error(s):`,
+    `Domain model semantic validation failed with ${diagnostics.length} error(s):`,
     ...diagnostics.map((diagnostic) => `- ${diagnostic.message}`)
   ].join("\n");
 }

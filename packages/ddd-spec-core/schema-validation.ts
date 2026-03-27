@@ -73,7 +73,7 @@ export async function validateBusinessSpecSchema(
       .map((error: ErrorObject) => `${error.instancePath || "/"} ${error.message ?? "is invalid"}`)
       .join("\n");
 
-    throw new Error(`Business spec schema validation failed:\n${messages}`);
+    throw new Error(`Domain model schema validation failed:\n${messages}`);
   }
 }
 

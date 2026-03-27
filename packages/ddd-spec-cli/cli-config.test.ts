@@ -1,11 +1,12 @@
 import assert from "node:assert/strict";
-import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import test from "node:test";
 import { buildUsageText, formatCliFailureOutput } from "./console.js";
 import { loadDddSpecConfig } from "./config.js";
 import { runCliCommand } from "./commands.js";
+import { startDddSpecDevSession } from "./dev.js";
 import {
   DEFAULT_DOMAIN_MODEL_SCHEMA_PATH,
   REPO_ROOT_PATH,
@@ -112,7 +113,7 @@ test("config mode defaults the schema path to the domain model schema", async ()
   }
 });
 
-test("CLI validate rejects unsupported version 2 canonicals in config mode", async () => {
+test("CLI validate rejects unsupported version 2 domain models in config mode", async () => {
   const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-config-unsupported-version-"));
   const configPath = join(tempDir, "ddd-spec.config.yaml");
   const legacyEntryPath = join(tempDir, "legacy-index.yaml");
@@ -142,7 +143,7 @@ test("CLI validate rejects unsupported version 2 canonicals in config mode", asy
 
     await assert.rejects(
       runCliCommand(["validate", "--config", configPath], { cwd: tempDir }),
-      /ddd-spec only supports version 1 domain models/
+      /ddd-spec only supports domain models with version: 1/
     );
   } finally {
     await rm(tempDir, { recursive: true, force: true });
@@ -186,7 +187,7 @@ test("CLI validate rejects legacy version 3 workspaces after the schema reset", 
 
     await assert.rejects(
       runCliCommand(["validate", "--config", configPath], { cwd: tempDir }),
-      /reset the default workspace contract to version 1/
+      /default workspace now starts at domain-model\/index\.yaml with version: 1/
     );
   } finally {
     await rm(tempDir, { recursive: true, force: true });
@@ -204,6 +205,8 @@ test("CLI help lists the primary commands and entry points", () => {
   assert.match(usageText, /\n  generate-viewer \[--config <path>\]\n/);
   assert.match(usageText, /generate-typescript \[--config <path>\]$/);
   assert.match(usageText, /domain-model/);
+  assert.doesNotMatch(usageText, /canonical/i);
+  assert.doesNotMatch(usageText, /vnext/i);
   assert.doesNotMatch(usageText, /canonical-vnext/);
   assert.doesNotMatch(usageText, /template/);
   assert.doesNotMatch(usageText, /\n  generate viewer\n/);
@@ -220,12 +223,24 @@ test("CLI failure output keeps command-specific recovery hints", () => {
     ["dev", "--", "--port", "nope"],
     new Error("Viewer port must be an integer between 0 and 65535; received nope")
   );
+  const generateViewerOutput = formatCliFailureOutput(
+    ["generate-viewer"],
+    new Error("invalid domain model")
+  );
+  const generateTypescriptOutput = formatCliFailureOutput(
+    ["generate-typescript"],
+    new Error("invalid domain model")
+  );
 
   assert.match(validateOutput, /ddd-spec validate/);
   assert.match(validateOutput, /ddd-spec dev/);
   assert.match(viewerOutput, /ddd-spec viewer -- --port 0/);
   assert.match(devOutput, /ddd-spec dev -- --no-open/);
   assert.match(devOutput, /ddd-spec dev -- --port 0/);
+  assert.match(generateViewerOutput, /ddd-spec generate-viewer/);
+  assert.match(generateTypescriptOutput, /ddd-spec generate-typescript/);
+  assert.doesNotMatch(generateViewerOutput, /ddd-spec generate viewer/);
+  assert.doesNotMatch(generateTypescriptOutput, /ddd-spec generate typescript/);
 });
 
 test("CLI failure output preserves an existing init hint without duplicating guidance", () => {
@@ -237,6 +252,77 @@ test("CLI failure output preserves an existing init hint without duplicating gui
   );
 
   assert.equal(countMatches(output, "Run `ddd-spec init`"), 1);
+});
+
+test("CLI dev loop logs domain model watch guidance without legacy terminology", async () => {
+  const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-dev-loop-copy-"));
+  const watchRootPath = join(tempDir, "domain-model");
+  const entryPath = join(watchRootPath, "index.yaml");
+  const outputRootPath = join(tempDir, ".ddd-spec", "artifacts");
+  const originalLog = console.log;
+  const originalError = console.error;
+  const logMessages: string[] = [];
+  const errorMessages: string[] = [];
+
+  try {
+    await mkdir(watchRootPath, { recursive: true });
+
+    console.log = ((...args: unknown[]) => {
+      logMessages.push(args.map(String).join(" "));
+    }) as typeof console.log;
+    console.error = ((...args: unknown[]) => {
+      errorMessages.push(args.map(String).join(" "));
+    }) as typeof console.error;
+
+    await startDddSpecDevSession(
+      {
+        version: 1,
+        mode: "zero-config",
+        sourceDescription: "zero-config defaults",
+        rootDir: tempDir,
+        spec: {
+          entryPath
+        },
+        schema: {
+          path: DEFAULT_DOMAIN_MODEL_SCHEMA_PATH
+        },
+        outputs: {
+          rootDirPath: outputRootPath,
+          bundlePath: join(outputRootPath, "business-spec.json"),
+          analysisPath: join(outputRootPath, "business-spec.analysis.json"),
+          viewerPath: join(outputRootPath, "viewer-spec.json"),
+          typescriptPath: join(tempDir, ".ddd-spec", "generated", "business-spec.generated.ts")
+        },
+        viewer: {
+          syncTargetPaths: []
+        },
+        projections: {
+          viewer: true,
+          typescript: false
+        }
+      },
+      {
+        rebuild: async () => {
+          throw new Error("invalid domain model");
+        },
+        hooks: {
+          launchViewer: async () => {}
+        }
+      }
+    );
+  } finally {
+    console.log = originalLog;
+    console.error = originalError;
+    await rm(tempDir, { recursive: true, force: true });
+  }
+
+  assert.match(logMessages.join("\n"), /watching domain model inputs under/);
+  assert.match(
+    errorMessages.join("\n"),
+    /Next: fix the reported domain model or config issue and save again/
+  );
+  assert.doesNotMatch(logMessages.join("\n"), /canonical/i);
+  assert.doesNotMatch(errorMessages.join("\n"), /canonical/i);
 });
 
 test("repo viewer config resolves tracked cross-context example outputs and sync targets", async () => {

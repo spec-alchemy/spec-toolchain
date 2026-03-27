@@ -110,7 +110,7 @@ test("generic canonical loader rejects reset version 3 workspaces", async () => 
         entryPath,
         validateSemantics: false
       }),
-      /reset the default workspace contract to version 1/
+      /default workspace now starts at domain-model\/index\.yaml with version: 1/
     );
   } finally {
     await rm(tempDir, { recursive: true, force: true });

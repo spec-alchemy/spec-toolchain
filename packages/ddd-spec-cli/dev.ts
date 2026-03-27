@@ -39,13 +39,13 @@ export async function startDddSpecDevSession(
     ignoredPaths: collectIgnoredPaths(config, watchRootPath),
     intervalMs: DEFAULT_WATCH_INTERVAL_MS,
     onChange: async () => {
-      logInfo("rebuilding after canonical input changes");
+      logInfo("rebuilding after domain model input changes");
       await runBuildAttempt(options.rebuild, devSessionStatusController);
     },
     rootPath: watchRootPath
   });
 
-  logInfo(`watching canonical inputs under ${watchRootPath}`);
+  logInfo(`watching domain model inputs under ${watchRootPath}`);
 
   try {
     await startDddSpecViewer(config, {
@@ -75,7 +75,7 @@ async function runBuildAttempt(
       [
         "build failed; watcher remains active",
         toErrorMessage(error),
-        "Next: fix the reported canonical or config issue and save again. The next change will trigger another rebuild automatically."
+        "Next: fix the reported domain model or config issue and save again. The next change will trigger another rebuild automatically."
       ].join("\n")
     );
   }

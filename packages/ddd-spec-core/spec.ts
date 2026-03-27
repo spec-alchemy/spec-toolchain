@@ -399,13 +399,13 @@ function formatUnsupportedCanonicalVersionMessage(
   if (version === 3) {
     return (
       `Unsupported domain model schema version 3 at ${entryPath}. ` +
-      "ddd-spec reset the default workspace contract to version 1 and no longer supports legacy version 3 workspaces."
+      "ddd-spec reset the default model schema to version 1. The default workspace now starts at domain-model/index.yaml with version: 1, and legacy version 3 workspaces are no longer supported."
     );
   }
 
   return (
     `Unsupported domain model schema version ${String(version)} at ${entryPath}. ` +
-    `ddd-spec only supports version ${VNEXT_CANONICAL_SCHEMA_VERSION} domain models.`
+    `ddd-spec only supports domain models with version: ${VNEXT_CANONICAL_SCHEMA_VERSION}.`
   );
 }
 

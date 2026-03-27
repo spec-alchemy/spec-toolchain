@@ -18,7 +18,7 @@ import {
 
 const DOMAIN_MODEL_SCHEMA_DIR_PATH = dirname(DOMAIN_MODEL_SCHEMA_PATH);
 
-test("schema validation accepts the minimal vNext canonical fixture", async () => {
+test("schema validation accepts the minimal version 1 domain model fixture", async () => {
   await assert.doesNotReject(async () => {
     await validateVnextCanonicalSchema({
       entryPath: VNEXT_MINIMAL_FIXTURE_ENTRY_PATH,
@@ -27,7 +27,7 @@ test("schema validation accepts the minimal vNext canonical fixture", async () =
   });
 });
 
-test("canonical index schema rejects malformed vNext index structure", async () => {
+test("domain model index schema rejects malformed version 1 index structure", async () => {
   const index = YAML.parse(
     await readFile(VNEXT_MINIMAL_FIXTURE_ENTRY_PATH, "utf8")
   ) as Record<string, unknown>;
@@ -37,11 +37,11 @@ test("canonical index schema rejects malformed vNext index structure", async () 
     validateBusinessSpecSchema(index, {
       schemaPath: DOMAIN_MODEL_SCHEMA_PATH
     }),
-    /Business spec schema validation failed:/
+    /Domain model schema validation failed:/
   );
 });
 
-test("standalone vNext canonical index schema rejects legacy domain keys", async () => {
+test("standalone version 1 domain model index schema rejects legacy domain keys", async () => {
   const validate = await createVnextSchemaValidator("index.schema.json");
   const legacyIndex = {
     version: 1,
@@ -68,7 +68,7 @@ test("standalone vNext canonical index schema rejects legacy domain keys", async
   );
 });
 
-test("standalone vNext scenario schema accepts ordered business steps", async () => {
+test("standalone version 1 scenario schema accepts ordered business steps", async () => {
   const validate = await createVnextSchemaValidator("scenario.schema.json");
   const scenario = {
     kind: "scenario",
@@ -100,7 +100,7 @@ test("standalone vNext scenario schema accepts ordered business steps", async ()
   assertSchemaValidationPasses(validate, scenario);
 });
 
-test("standalone vNext aggregate schema requires transitions to declare ids", async () => {
+test("standalone version 1 aggregate schema requires transitions to declare ids", async () => {
   const validate = await createVnextSchemaValidator("aggregate.schema.json");
   const aggregate = {
     kind: "aggregate",
@@ -135,7 +135,7 @@ test("standalone vNext aggregate schema requires transitions to declare ids", as
   );
 });
 
-test("semantic validation accepts the minimal vNext canonical fixture", async () => {
+test("semantic validation accepts the minimal version 1 domain model fixture", async () => {
   const spec = await loadVnextMinimalFixture();
 
   assert.doesNotThrow(() => {
