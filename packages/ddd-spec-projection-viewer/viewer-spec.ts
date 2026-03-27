@@ -1,19 +1,19 @@
 import type {
-  VnextActorParticipant,
-  VnextAggregateLifecycle,
-  VnextBusinessSpec,
-  VnextBusinessSpecAnalysis,
-  VnextContextBoundary,
-  VnextLifecycleTransition,
-  VnextMessageFlow,
-  VnextMessageKind,
-  VnextMessageStepLink,
-  VnextPolicyCoordination,
-  VnextScenarioSequence,
-  VnextScenarioStep,
-  VnextSystemParticipant
+  ActorParticipant,
+  AggregateLifecycle,
+  BusinessSpec,
+  BusinessSpecAnalysis,
+  ContextBoundary,
+  LifecycleTransition,
+  MessageFlow,
+  MessageKind,
+  MessageStepLink,
+  PolicyCoordination,
+  ScenarioSequence,
+  ScenarioStep,
+  SystemParticipant
 } from "../ddd-spec-core/index.js";
-import { projectVnextLifecycle } from "../ddd-spec-core/index.js";
+import { projectLifecycle } from "../ddd-spec-core/index.js";
 import type {
   BusinessViewerSpec,
   ViewerDetailItem,
@@ -37,7 +37,7 @@ const DIMENSIONS = {
   lifecycleState: { width: 180, minHeight: 96, charsPerLine: 16 }
 } as const;
 
-const VNEXT_VIEWER_DETAIL_SEMANTICS = {
+const VIEWER_DETAIL_SEMANTICS = {
   "context.id": {
     label: "Context",
     description: "当前作为业务所有权边界展示的 bounded context。"
@@ -284,11 +284,11 @@ const VNEXT_VIEWER_DETAIL_SEMANTICS = {
   }
 } as const;
 
-type SemanticKey = keyof typeof VNEXT_VIEWER_DETAIL_SEMANTICS;
+type SemanticKey = keyof typeof VIEWER_DETAIL_SEMANTICS;
 
-export function buildVnextViewerSpec(
-  spec: VnextBusinessSpec,
-  analysis: VnextBusinessSpecAnalysis
+export function buildViewerSpec(
+  spec: BusinessSpec,
+  analysis: BusinessSpecAnalysis
 ): BusinessViewerSpec {
   const views: ViewerViewSpec[] = [
     buildContextMapView(analysis),
@@ -308,7 +308,7 @@ export function buildVnextViewerSpec(
     summary: spec.summary,
     detailHelp: {
       semantic: Object.fromEntries(
-        Object.entries(VNEXT_VIEWER_DETAIL_SEMANTICS).map(([semanticKey, semantic]) => [
+        Object.entries(VIEWER_DETAIL_SEMANTICS).map(([semanticKey, semantic]) => [
           semanticKey,
           semantic.description
         ])
@@ -319,7 +319,7 @@ export function buildVnextViewerSpec(
 }
 
 function buildContextMapView(
-  analysis: VnextBusinessSpecAnalysis
+  analysis: BusinessSpecAnalysis
 ): ViewerViewSpec {
   const nodes: ViewerNodeSpec[] = [];
   const edges: ViewerViewSpec["edges"][number][] = [];
@@ -568,7 +568,7 @@ function buildContextMapView(
 }
 
 function buildScenarioStoryView(
-  analysis: VnextBusinessSpecAnalysis
+  analysis: BusinessSpecAnalysis
 ): ViewerViewSpec {
   const nodes: ViewerNodeSpec[] = [];
   const edges: ViewerViewSpec["edges"][number][] = [];
@@ -657,7 +657,7 @@ function buildScenarioStoryView(
 }
 
 function buildMessageFlowView(
-  analysis: VnextBusinessSpecAnalysis
+  analysis: BusinessSpecAnalysis
 ): ViewerViewSpec {
   const nodes: ViewerNodeSpec[] = [];
   const edges: ViewerViewSpec["edges"][number][] = [];
@@ -984,11 +984,11 @@ function buildMessageFlowView(
 }
 
 function buildLifecycleView(
-  analysis: VnextBusinessSpecAnalysis
+  analysis: BusinessSpecAnalysis
 ): ViewerViewSpec {
   const nodes: ViewerNodeSpec[] = [];
   const edges: ViewerViewSpec["edges"][number][] = [];
-  const lifecycleAggregates = projectVnextLifecycle(analysis.ir);
+  const lifecycleAggregates = projectLifecycle(analysis.ir);
 
   for (const aggregate of lifecycleAggregates) {
     const groupBox = measureGroupNodeBox(
@@ -1058,7 +1058,7 @@ function buildLifecycleView(
 }
 
 function buildPolicySagaView(
-  analysis: VnextBusinessSpecAnalysis
+  analysis: BusinessSpecAnalysis
 ): ViewerViewSpec {
   const nodes: ViewerNodeSpec[] = [];
   const edges: ViewerViewSpec["edges"][number][] = [];
@@ -1127,7 +1127,7 @@ function buildPolicySagaView(
   };
 }
 
-function buildActorDetails(actor: VnextActorParticipant): ViewerDetailItem[] {
+function buildActorDetails(actor: ActorParticipant): ViewerDetailItem[] {
   return [
     detail("actor.type", actor.actorType ?? "unspecified"),
     detail("actor.contexts", formatTextList(actor.contextIds)),
@@ -1143,7 +1143,7 @@ function buildActorDetails(actor: VnextActorParticipant): ViewerDetailItem[] {
   ];
 }
 
-function buildSystemDetails(system: VnextSystemParticipant): ViewerDetailItem[] {
+function buildSystemDetails(system: SystemParticipant): ViewerDetailItem[] {
   return [
     detail("system.boundary", system.boundary ?? "internal"),
     detail("system.capabilities", formatTextList(system.capabilities)),
@@ -1152,7 +1152,7 @@ function buildSystemDetails(system: VnextSystemParticipant): ViewerDetailItem[] 
   ];
 }
 
-function buildScenarioDetails(scenario: VnextScenarioSequence): ViewerDetailItem[] {
+function buildScenarioDetails(scenario: ScenarioSequence): ViewerDetailItem[] {
   return [
     detail("scenario.id", scenario.id),
     detail("scenario.goal", scenario.goal),
@@ -1167,7 +1167,7 @@ function buildScenarioDetails(scenario: VnextScenarioSequence): ViewerDetailItem
   ];
 }
 
-function buildScenarioStepDetails(step: VnextScenarioStep): ViewerDetailItem[] {
+function buildScenarioStepDetails(step: ScenarioStep): ViewerDetailItem[] {
   return [
     detail("step.id", step.id),
     detail("step.context", step.contextId),
@@ -1181,7 +1181,7 @@ function buildScenarioStepDetails(step: VnextScenarioStep): ViewerDetailItem[] {
   ];
 }
 
-function buildMessageDetails(message: VnextMessageFlow): ViewerDetailItem[] {
+function buildMessageDetails(message: MessageFlow): ViewerDetailItem[] {
   return [
     detail("message.kind", message.messageKind),
     detail("message.type", message.id),
@@ -1196,7 +1196,7 @@ function buildMessageDetails(message: VnextMessageFlow): ViewerDetailItem[] {
   ];
 }
 
-function buildAggregateDetails(aggregate: VnextAggregateLifecycle): ViewerDetailItem[] {
+function buildAggregateDetails(aggregate: AggregateLifecycle): ViewerDetailItem[] {
   return [
     detail("aggregate.id", aggregate.id),
     detail("aggregate.context", aggregate.contextId),
@@ -1209,7 +1209,7 @@ function buildAggregateDetails(aggregate: VnextAggregateLifecycle): ViewerDetail
   ];
 }
 
-function buildPolicyDetails(policy: VnextPolicyCoordination): ViewerDetailItem[] {
+function buildPolicyDetails(policy: PolicyCoordination): ViewerDetailItem[] {
   return [
     detail("policy.id", policy.id),
     detail("policy.context", policy.contextId ?? "none"),
@@ -1222,8 +1222,8 @@ function buildPolicyDetails(policy: VnextPolicyCoordination): ViewerDetailItem[]
 }
 
 function toLifecycleTransitionEdge(
-  aggregate: VnextAggregateLifecycle,
-  transition: VnextLifecycleTransition
+  aggregate: AggregateLifecycle,
+  transition: LifecycleTransition
 ): ViewerViewSpec["edges"][number] {
   const edgeLabel = transition.emittedMessageIds.length > 0
     ? `${transition.onMessageId} / ${transition.emittedMessageIds.join(", ")}`
@@ -1248,7 +1248,7 @@ function toLifecycleTransitionEdge(
 
 function ensurePolicyViewMessageNode(
   existingNodes: readonly ViewerNodeSpec[],
-  messages: readonly VnextMessageFlow[],
+  messages: readonly MessageFlow[],
   messageId: string
 ): ViewerNodeSpec[] {
   const nodeId = toPolicyViewMessageId(messageId);
@@ -1278,7 +1278,7 @@ function ensurePolicyViewMessageNode(
   ];
 }
 
-function formatContextRelationships(context: VnextContextBoundary): ViewerDetailValue {
+function formatContextRelationships(context: ContextBoundary): ViewerDetailValue {
   if (context.relationships.length === 0) {
     return textDetailValue("none");
   }
@@ -1287,7 +1287,7 @@ function formatContextRelationships(context: VnextContextBoundary): ViewerDetail
 }
 
 function formatContextRelationship(
-  relationship: VnextContextBoundary["relationships"][number]
+  relationship: ContextBoundary["relationships"][number]
 ): ViewerDetailValue {
   return recordDetailValue([
     recordDetailEntry("Relationship", textDetailValue(relationship.id)),
@@ -1308,7 +1308,7 @@ function formatContextRelationship(
   ]);
 }
 
-function formatSystemDependencies(system: VnextSystemParticipant): ViewerDetailValue {
+function formatSystemDependencies(system: SystemParticipant): ViewerDetailValue {
   if (system.dependencyRefs.length === 0) {
     return textDetailValue("none");
   }
@@ -1338,7 +1338,7 @@ function formatSystemDependencies(system: VnextSystemParticipant): ViewerDetailV
   );
 }
 
-function formatMessageEndpoints(message: VnextMessageFlow): ViewerDetailValue {
+function formatMessageEndpoints(message: MessageFlow): ViewerDetailValue {
   return recordDetailValue([
     recordDetailEntry(
       "Sources",
@@ -1353,7 +1353,7 @@ function formatMessageEndpoints(message: VnextMessageFlow): ViewerDetailValue {
   ]);
 }
 
-function formatMessageStepLinks(stepLinks: readonly VnextMessageStepLink[]): ViewerDetailValue {
+function formatMessageStepLinks(stepLinks: readonly MessageStepLink[]): ViewerDetailValue {
   if (stepLinks.length === 0) {
     return textDetailValue("none");
   }
@@ -1370,7 +1370,7 @@ function formatMessageStepLinks(stepLinks: readonly VnextMessageStepLink[]): Vie
   );
 }
 
-function formatPolicyCoordinates(policy: VnextPolicyCoordination): ViewerDetailValue {
+function formatPolicyCoordinates(policy: PolicyCoordination): ViewerDetailValue {
   if (policy.coordinates.length === 0) {
     return textDetailValue("none");
   }
@@ -1404,7 +1404,7 @@ function formatPayloadFields(
   );
 }
 
-function formatMessageTraceSummary(message: VnextMessageFlow): string {
+function formatMessageTraceSummary(message: MessageFlow): string {
   const producerContexts = message.producerContextIds.join(", ");
   const consumerContexts = message.consumerContextIds.join(", ");
 
@@ -1426,8 +1426,8 @@ function formatMessageTraceSummary(message: VnextMessageFlow): string {
 }
 
 function getScenarioProgressionLabel(
-  sourceStep: VnextScenarioStep,
-  targetStep: VnextScenarioStep
+  sourceStep: ScenarioStep,
+  targetStep: ScenarioStep
 ): string {
   const sharedMessageIds = sourceStep.outgoingMessageIds.filter((messageId) =>
     targetStep.incomingMessageIds.includes(messageId)
@@ -1441,7 +1441,7 @@ function getScenarioProgressionLabel(
 }
 
 function hasEndpoint(
-  message: VnextMessageFlow,
+  message: MessageFlow,
   kind: string,
   id: string
 ): boolean {
@@ -1450,7 +1450,7 @@ function hasEndpoint(
   );
 }
 
-function messageVerbForOutgoing(messageKind: VnextMessageKind): string {
+function messageVerbForOutgoing(messageKind: MessageKind): string {
   switch (messageKind) {
     case "command":
       return "issues";
@@ -1471,7 +1471,7 @@ function detail(
 ): ViewerDetailItem {
   return {
     semanticKey,
-    label: VNEXT_VIEWER_DETAIL_SEMANTICS[semanticKey].label,
+    label: VIEWER_DETAIL_SEMANTICS[semanticKey].label,
     value: typeof value === "string" ? textDetailValue(value) : value
   };
 }

@@ -4,27 +4,27 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 import test from "node:test";
 import {
-  analyzeVnextBusinessSpec,
-  analyzeVnextBusinessSpecSemantics,
-  isVnextBusinessSpec,
+  analyzeBusinessSpec,
+  analyzeBusinessSpecSemantics,
+  isBusinessSpec,
   loadCanonicalSpec,
-  loadVnextBusinessSpec,
-  projectVnextContextMap,
-  projectVnextLifecycle,
-  projectVnextMessageFlow,
-  projectVnextPolicyCoordination,
-  projectVnextScenarioStory,
+  loadBusinessSpec,
+  projectContextMap,
+  projectLifecycle,
+  projectMessageFlow,
+  projectPolicyCoordination,
+  projectScenarioStory,
   validateBusinessSpecSemantics,
-  type VnextMessageSpec
+  type MessageSpec
 } from "./index.js";
 import {
-  VNEXT_MINIMAL_FIXTURE_ENTRY_PATH,
-  loadVnextCrossContextFixture,
-  loadVnextMinimalFixture
+  MINIMAL_FIXTURE_ENTRY_PATH,
+  loadCrossContextFixture,
+  loadMinimalFixture
 } from "./test-fixtures.js";
 
-test("vnext loader reads the minimal canonical into first-class vnext fields", async () => {
-  const spec = await loadVnextMinimalFixture();
+test("domain model loader reads the minimal canonical into first-class business spec fields", async () => {
+  const spec = await loadMinimalFixture();
 
   assert.equal(spec.version, 1);
   assert.equal("model" in spec, false);
@@ -68,13 +68,13 @@ test("vnext loader reads the minimal canonical into first-class vnext fields", a
 
 test("generic canonical loader dispatches version 1 without legacy adaptation", async () => {
   const spec = await loadCanonicalSpec({
-    entryPath: VNEXT_MINIMAL_FIXTURE_ENTRY_PATH
+    entryPath: MINIMAL_FIXTURE_ENTRY_PATH
   });
 
-  assert.equal(isVnextBusinessSpec(spec), true);
+  assert.equal(isBusinessSpec(spec), true);
 
-  if (!isVnextBusinessSpec(spec)) {
-    throw new Error("Expected a vnext business spec");
+  if (!isBusinessSpec(spec)) {
+    throw new Error("Expected a domain model business spec");
   }
 
   assert.equal("domain" in spec, false);
@@ -146,10 +146,10 @@ test("generic canonical loader rejects legacy top-level domain containers", asyn
   }
 });
 
-test("vnext semantic diagnostics expose a clean happy path result", async () => {
-  const spec = await loadVnextMinimalFixture();
-  const analysis = analyzeVnextBusinessSpec(spec);
-  const result = analyzeVnextBusinessSpecSemantics(spec);
+test("semantic diagnostics expose a clean happy path result", async () => {
+  const spec = await loadMinimalFixture();
+  const analysis = analyzeBusinessSpec(spec);
+  const result = analyzeBusinessSpecSemantics(spec);
 
   assert.equal(result.validationVersion, 1);
   assert.equal(result.specId, spec.id);
@@ -160,14 +160,14 @@ test("vnext semantic diagnostics expose a clean happy path result", async () => 
   assert.equal(analysis.summary.errorCount, result.summary.errorCount);
 });
 
-test("vnext analysis IR exposes unified primary-view projections and policy coordination", async () => {
-  const spec = await loadVnextMinimalFixture();
-  const analysis = analyzeVnextBusinessSpec(spec);
-  const contextMap = projectVnextContextMap(analysis.ir);
-  const scenarioStory = projectVnextScenarioStory(analysis.ir);
-  const messageFlow = projectVnextMessageFlow(analysis.ir);
-  const lifecycle = projectVnextLifecycle(analysis.ir);
-  const policyCoordination = projectVnextPolicyCoordination(analysis.ir);
+test("analysis IR exposes unified primary-view projections and policy coordination", async () => {
+  const spec = await loadMinimalFixture();
+  const analysis = analyzeBusinessSpec(spec);
+  const contextMap = projectContextMap(analysis.ir);
+  const scenarioStory = projectScenarioStory(analysis.ir);
+  const messageFlow = projectMessageFlow(analysis.ir);
+  const lifecycle = projectLifecycle(analysis.ir);
+  const policyCoordination = projectPolicyCoordination(analysis.ir);
 
   const approvalsContext = mustFind(
     contextMap.contexts,
@@ -293,13 +293,13 @@ test("vnext analysis IR exposes unified primary-view projections and policy coor
   assert.deepEqual(notificationPolicy.relatedContextIds, ["approvals"]);
 });
 
-test("vnext cross-context example exposes command, event, and query message flow across contexts", async () => {
-  const spec = await loadVnextCrossContextFixture();
-  const analysis = analyzeVnextBusinessSpec(spec);
-  const contextMap = projectVnextContextMap(analysis.ir);
-  const scenarioStory = projectVnextScenarioStory(analysis.ir);
-  const messageFlow = projectVnextMessageFlow(analysis.ir);
-  const lifecycle = projectVnextLifecycle(analysis.ir);
+test("cross-context example exposes command, event, and query message flow across contexts", async () => {
+  const spec = await loadCrossContextFixture();
+  const analysis = analyzeBusinessSpec(spec);
+  const contextMap = projectContextMap(analysis.ir);
+  const scenarioStory = projectScenarioStory(analysis.ir);
+  const messageFlow = projectMessageFlow(analysis.ir);
+  const lifecycle = projectLifecycle(analysis.ir);
 
   const ordersContext = mustFind(
     contextMap.contexts,
@@ -416,8 +416,8 @@ test("vnext cross-context example exposes command, event, and query message flow
   assert.deepEqual(orderLifecycle.reachableStateIds, ["draft", "submitted", "confirmed"]);
 });
 
-test("vnext semantic validation reports missing context ownership", async () => {
-  const spec = cloneVnextBusinessSpec(await loadVnextMinimalFixture());
+test("semantic validation reports missing context ownership", async () => {
+  const spec = cloneBusinessSpec(await loadMinimalFixture());
   const contexts = asMutableArray(spec.contexts);
 
   contexts[0] = {
@@ -425,7 +425,7 @@ test("vnext semantic validation reports missing context ownership", async () => 
     owners: []
   };
 
-  const result = analyzeVnextBusinessSpecSemantics(spec);
+  const result = analyzeBusinessSpecSemantics(spec);
 
   assert.equal(result.summary.errorCount, 1);
   assert.equal(result.diagnostics[0]?.code, "missing-context-owner");
@@ -440,8 +440,8 @@ test("vnext semantic validation reports missing context ownership", async () => 
   );
 });
 
-test("vnext semantic validation rejects broken scenario message linkage", async () => {
-  const spec = cloneVnextBusinessSpec(await loadVnextMinimalFixture());
+test("semantic validation rejects broken scenario message linkage", async () => {
+  const spec = cloneBusinessSpec(await loadMinimalFixture());
   const scenarios = asMutableArray(spec.scenarios);
   const scenario = scenarios.find((candidate) => candidate.id === "approval-request-flow");
 
@@ -453,7 +453,7 @@ test("vnext semantic validation rejects broken scenario message linkage", async 
   assert.ok(reviewStep);
   reviewStep.incomingMessages = ["send-approval-notification"];
 
-  const result = analyzeVnextBusinessSpecSemantics(spec);
+  const result = analyzeBusinessSpecSemantics(spec);
 
   assert.ok(
     result.diagnostics.some(
@@ -472,8 +472,8 @@ test("vnext semantic validation rejects broken scenario message linkage", async 
   );
 });
 
-test("vnext semantic validation rejects broken scenario step topology", async () => {
-  const spec = cloneVnextBusinessSpec(await loadVnextMinimalFixture());
+test("semantic validation rejects broken scenario step topology", async () => {
+  const spec = cloneBusinessSpec(await loadMinimalFixture());
   const scenarios = asMutableArray(spec.scenarios);
   const scenario = scenarios.find((candidate) => candidate.id === "approval-request-flow");
 
@@ -485,7 +485,7 @@ test("vnext semantic validation rejects broken scenario step topology", async ()
   assert.ok(reviewStep);
   reviewStep.next = ["missing-step"];
 
-  const result = analyzeVnextBusinessSpecSemantics(spec);
+  const result = analyzeBusinessSpecSemantics(spec);
 
   assert.ok(
     result.diagnostics.some(
@@ -504,12 +504,12 @@ test("vnext semantic validation rejects broken scenario step topology", async ()
   );
 });
 
-test("vnext semantic validation rejects broken aggregate lifecycle triggers", async () => {
-  const spec = await loadVnextBusinessSpec({
-    entryPath: VNEXT_MINIMAL_FIXTURE_ENTRY_PATH,
+test("semantic validation rejects broken aggregate lifecycle triggers", async () => {
+  const spec = await loadBusinessSpec({
+    entryPath: MINIMAL_FIXTURE_ENTRY_PATH,
     validateSemantics: false
   });
-  const messages = asMutableArray(spec.messages as VnextMessageSpec[]);
+  const messages = asMutableArray(spec.messages as MessageSpec[]);
   const submittedMessage = messages.find((message) => message.id === "submit-approval-request");
 
   assert.ok(submittedMessage);
@@ -520,7 +520,7 @@ test("vnext semantic validation rejects broken aggregate lifecycle triggers", as
     }
   ];
 
-  const result = analyzeVnextBusinessSpecSemantics(spec);
+  const result = analyzeBusinessSpecSemantics(spec);
 
   assert.ok(
     result.diagnostics.some(
@@ -545,8 +545,8 @@ test("vnext semantic validation rejects broken aggregate lifecycle triggers", as
   );
 });
 
-test("vnext semantic validation rejects unreachable aggregate states", async () => {
-  const spec = cloneVnextBusinessSpec(await loadVnextMinimalFixture());
+test("semantic validation rejects unreachable aggregate states", async () => {
+  const spec = cloneBusinessSpec(await loadMinimalFixture());
   const aggregates = asMutableArray(spec.aggregates);
 
   aggregates[0] = {
@@ -554,7 +554,7 @@ test("vnext semantic validation rejects unreachable aggregate states", async () 
     states: [...aggregates[0].states, "abandoned"]
   };
 
-  const result = analyzeVnextBusinessSpecSemantics(spec);
+  const result = analyzeBusinessSpecSemantics(spec);
 
   assert.ok(
     result.diagnostics.some(
@@ -572,8 +572,8 @@ test("vnext semantic validation rejects unreachable aggregate states", async () 
   );
 });
 
-test("vnext semantic validation rejects aggregate transitions that target unknown states", async () => {
-  const spec = cloneVnextBusinessSpec(await loadVnextMinimalFixture());
+test("semantic validation rejects aggregate transitions that target unknown states", async () => {
+  const spec = cloneBusinessSpec(await loadMinimalFixture());
   const aggregates = asMutableArray(spec.aggregates);
   const approvalRequestAggregate = aggregates.find(
     (aggregate) => aggregate.id === "approval-request"
@@ -587,7 +587,7 @@ test("vnext semantic validation rejects aggregate transitions that target unknow
     to: "missing-state"
   };
 
-  const result = analyzeVnextBusinessSpecSemantics(spec);
+  const result = analyzeBusinessSpecSemantics(spec);
 
   assert.ok(
     result.diagnostics.some(
@@ -605,8 +605,8 @@ test("vnext semantic validation rejects aggregate transitions that target unknow
   );
 });
 
-test("vnext semantic validation rejects policies without explicit outcome", async () => {
-  const spec = cloneVnextBusinessSpec(await loadVnextMinimalFixture());
+test("semantic validation rejects policies without explicit outcome", async () => {
+  const spec = cloneBusinessSpec(await loadMinimalFixture());
   const policies = asMutableArray(spec.policies);
 
   policies[0] = {
@@ -614,7 +614,7 @@ test("vnext semantic validation rejects policies without explicit outcome", asyn
     emittedMessages: []
   };
 
-  const result = analyzeVnextBusinessSpecSemantics(spec);
+  const result = analyzeBusinessSpecSemantics(spec);
 
   assert.ok(
     result.diagnostics.some(
@@ -632,7 +632,7 @@ test("vnext semantic validation rejects policies without explicit outcome", asyn
   );
 });
 
-function cloneVnextBusinessSpec(spec: Awaited<ReturnType<typeof loadVnextMinimalFixture>>) {
+function cloneBusinessSpec(spec: Awaited<ReturnType<typeof loadMinimalFixture>>) {
   return structuredClone(spec);
 }
 

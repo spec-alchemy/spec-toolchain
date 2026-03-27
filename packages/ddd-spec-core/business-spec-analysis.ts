@@ -1,28 +1,28 @@
 import type {
-  VnextActorSpec,
-  VnextActorType,
-  VnextAggregateSpec,
-  VnextBusinessSpec,
-  VnextContextRelationshipSpec,
-  VnextContextRelationshipDirection,
-  VnextContextSpec,
-  VnextMessageChannel,
-  VnextMessageKind,
-  VnextMessageSpec,
-  VnextPayloadFieldSpec,
-  VnextPolicySpec,
-  VnextResourceKind,
-  VnextResourceRef,
-  VnextScenarioSpec,
-  VnextScenarioStepSpec,
-  VnextSystemBoundary,
-  VnextSystemSpec
+  ActorSpec,
+  ActorType,
+  AggregateSpec,
+  BusinessSpec,
+  ContextRelationshipSpec,
+  ContextRelationshipDirection,
+  ContextSpec,
+  MessageChannel,
+  MessageKind,
+  MessageSpec,
+  PayloadFieldSpec,
+  PolicySpec,
+  ResourceKind,
+  ResourceRef,
+  ScenarioSpec,
+  ScenarioStepSpec,
+  SystemBoundary,
+  SystemSpec
 } from "./spec.js";
 
-export const VNEXT_BUSINESS_SPEC_ANALYSIS_VERSION = 1 as const;
-export const VNEXT_SEMANTIC_VALIDATION_VERSION = 1 as const;
+export const BUSINESS_SPEC_ANALYSIS_VERSION = 1 as const;
+export const SEMANTIC_VALIDATION_VERSION = 1 as const;
 
-export const VNEXT_ANALYSIS_DIAGNOSTIC_CODES = [
+export const ANALYSIS_DIAGNOSTIC_CODES = [
   "duplicate-resource-id",
   "duplicate-local-id",
   "duplicate-array-value",
@@ -54,27 +54,27 @@ export const VNEXT_ANALYSIS_DIAGNOSTIC_CODES = [
   "policy-target-system-mismatch"
 ] as const;
 
-export type VnextAnalysisDiagnosticCode =
-  (typeof VNEXT_ANALYSIS_DIAGNOSTIC_CODES)[number];
+export type AnalysisDiagnosticCode =
+  (typeof ANALYSIS_DIAGNOSTIC_CODES)[number];
 
-export interface VnextAnalysisDiagnostic {
+export interface AnalysisDiagnostic {
   severity: "error";
-  code: VnextAnalysisDiagnosticCode;
+  code: AnalysisDiagnosticCode;
   path: string;
   message: string;
 }
 
-export interface VnextContextBoundaryRelationship {
+export interface ContextBoundaryRelationship {
   id: string;
   kind: string;
-  target: VnextResourceRef;
-  direction?: VnextContextRelationshipDirection;
+  target: ResourceRef;
+  direction?: ContextRelationshipDirection;
   integration?: string;
   description?: string;
   path: string;
 }
 
-export interface VnextContextBoundary {
+export interface ContextBoundary {
   kind: string;
   id: string;
   title: string;
@@ -86,38 +86,38 @@ export interface VnextContextBoundary {
   policyIds: readonly string[];
   actorIds: readonly string[];
   systemIds: readonly string[];
-  relationships: readonly VnextContextBoundaryRelationship[];
+  relationships: readonly ContextBoundaryRelationship[];
   path: string;
 }
 
-export interface VnextActorStepRef {
+export interface ActorStepRef {
   scenarioId: string;
   stepId: string;
   contextId: string;
   path: string;
 }
 
-export interface VnextActorParticipant {
+export interface ActorParticipant {
   kind: string;
   id: string;
   title: string;
   summary: string;
-  actorType?: VnextActorType;
+  actorType?: ActorType;
   contextIds: readonly string[];
   scenarioIds: readonly string[];
-  stepRefs: readonly VnextActorStepRef[];
+  stepRefs: readonly ActorStepRef[];
   path: string;
 }
 
-export type VnextSystemDependencyKind =
+export type SystemDependencyKind =
   | "context-relationship"
   | "scenario-step"
   | "message-producer"
   | "message-consumer"
   | "policy-target";
 
-export interface VnextSystemDependencyRef {
-  kind: VnextSystemDependencyKind;
+export interface SystemDependencyRef {
+  kind: SystemDependencyKind;
   contextIds: readonly string[];
   path: string;
   description?: string;
@@ -127,19 +127,19 @@ export interface VnextSystemDependencyRef {
   policyId?: string;
 }
 
-export interface VnextSystemParticipant {
+export interface SystemParticipant {
   kind: string;
   id: string;
   title: string;
   summary: string;
-  boundary?: VnextSystemBoundary;
+  boundary?: SystemBoundary;
   capabilities: readonly string[];
   contextIds: readonly string[];
-  dependencyRefs: readonly VnextSystemDependencyRef[];
+  dependencyRefs: readonly SystemDependencyRef[];
   path: string;
 }
 
-export interface VnextScenarioStep {
+export interface ScenarioStep {
   id: string;
   title: string;
   contextId: string;
@@ -155,13 +155,13 @@ export interface VnextScenarioStep {
   path: string;
 }
 
-export interface VnextScenarioSequenceEdge {
+export interface ScenarioSequenceEdge {
   sourceStepId: string;
   targetStepId: string;
   path: string;
 }
 
-export interface VnextScenarioSequence {
+export interface ScenarioSequence {
   kind: string;
   id: string;
   title: string;
@@ -173,19 +173,19 @@ export interface VnextScenarioSequence {
   participatingContextIds: readonly string[];
   actorIds: readonly string[];
   systemIds: readonly string[];
-  steps: readonly VnextScenarioStep[];
-  edges: readonly VnextScenarioSequenceEdge[];
+  steps: readonly ScenarioStep[];
+  edges: readonly ScenarioSequenceEdge[];
   path: string;
 }
 
-export interface VnextMessageEndpoint {
-  kind: VnextResourceKind;
+export interface MessageEndpoint {
+  kind: ResourceKind;
   id: string;
   contextId?: string;
   path: string;
 }
 
-export interface VnextMessageStepLink {
+export interface MessageStepLink {
   scenarioId: string;
   stepId: string;
   contextId: string;
@@ -193,24 +193,24 @@ export interface VnextMessageStepLink {
   path: string;
 }
 
-export interface VnextMessageFlow {
+export interface MessageFlow {
   kind: string;
   id: string;
   title: string;
   summary: string;
-  messageKind: VnextMessageKind;
-  channel?: VnextMessageChannel;
-  producers: readonly VnextMessageEndpoint[];
-  consumers: readonly VnextMessageEndpoint[];
-  payload: readonly VnextPayloadFieldSpec[];
-  stepLinks: readonly VnextMessageStepLink[];
+  messageKind: MessageKind;
+  channel?: MessageChannel;
+  producers: readonly MessageEndpoint[];
+  consumers: readonly MessageEndpoint[];
+  payload: readonly PayloadFieldSpec[];
+  stepLinks: readonly MessageStepLink[];
   producerContextIds: readonly string[];
   consumerContextIds: readonly string[];
   crossesContextBoundary: boolean;
   path: string;
 }
 
-export interface VnextLifecycleState {
+export interface LifecycleState {
   id: string;
   reachableFromInitial: boolean;
   terminal: boolean;
@@ -218,7 +218,7 @@ export interface VnextLifecycleState {
   path: string;
 }
 
-export interface VnextLifecycleTransition {
+export interface LifecycleTransition {
   id: string;
   fromStateId: string;
   toStateId: string;
@@ -228,7 +228,7 @@ export interface VnextLifecycleTransition {
   path: string;
 }
 
-export interface VnextAggregateLifecycle {
+export interface AggregateLifecycle {
   kind: string;
   id: string;
   title: string;
@@ -236,8 +236,8 @@ export interface VnextAggregateLifecycle {
   contextId: string;
   lifecycleComplexity: boolean;
   initialState: string;
-  states: readonly VnextLifecycleState[];
-  transitions: readonly VnextLifecycleTransition[];
+  states: readonly LifecycleState[];
+  transitions: readonly LifecycleTransition[];
   acceptedMessageIds: readonly string[];
   emittedMessageIds: readonly string[];
   reachableStateIds: readonly string[];
@@ -245,7 +245,7 @@ export interface VnextAggregateLifecycle {
   path: string;
 }
 
-export interface VnextPolicyCoordination {
+export interface PolicyCoordination {
   kind: string;
   id: string;
   title: string;
@@ -254,71 +254,71 @@ export interface VnextPolicyCoordination {
   triggerMessageIds: readonly string[];
   emittedMessageIds: readonly string[];
   targetSystemIds: readonly string[];
-  coordinates: readonly VnextResourceRef[];
+  coordinates: readonly ResourceRef[];
   relatedContextIds: readonly string[];
   path: string;
 }
 
-export interface VnextAnalysisIR {
-  contextBoundaries: readonly VnextContextBoundary[];
-  actors: readonly VnextActorParticipant[];
-  systems: readonly VnextSystemParticipant[];
-  scenarioSequences: readonly VnextScenarioSequence[];
-  messageFlows: readonly VnextMessageFlow[];
-  aggregateLifecycles: readonly VnextAggregateLifecycle[];
-  policyCoordinations: readonly VnextPolicyCoordination[];
+export interface AnalysisIR {
+  contextBoundaries: readonly ContextBoundary[];
+  actors: readonly ActorParticipant[];
+  systems: readonly SystemParticipant[];
+  scenarioSequences: readonly ScenarioSequence[];
+  messageFlows: readonly MessageFlow[];
+  aggregateLifecycles: readonly AggregateLifecycle[];
+  policyCoordinations: readonly PolicyCoordination[];
 }
 
-export interface VnextBusinessSpecAnalysis {
-  analysisVersion: typeof VNEXT_BUSINESS_SPEC_ANALYSIS_VERSION;
+export interface BusinessSpecAnalysis {
+  analysisVersion: typeof BUSINESS_SPEC_ANALYSIS_VERSION;
   specId: string;
-  ir: VnextAnalysisIR;
-  diagnostics: readonly VnextAnalysisDiagnostic[];
+  ir: AnalysisIR;
+  diagnostics: readonly AnalysisDiagnostic[];
   summary: {
     errorCount: number;
   };
 }
 
-export interface VnextSemanticValidationResult {
-  validationVersion: typeof VNEXT_SEMANTIC_VALIDATION_VERSION;
+export interface SemanticValidationResult {
+  validationVersion: typeof SEMANTIC_VALIDATION_VERSION;
   specId: string;
-  diagnostics: readonly VnextAnalysisDiagnostic[];
+  diagnostics: readonly AnalysisDiagnostic[];
   summary: {
     errorCount: number;
   };
 }
 
-export interface VnextContextMapProjection {
-  contexts: readonly VnextContextBoundary[];
-  actors: readonly VnextActorParticipant[];
-  systems: readonly VnextSystemParticipant[];
+export interface ContextMapProjection {
+  contexts: readonly ContextBoundary[];
+  actors: readonly ActorParticipant[];
+  systems: readonly SystemParticipant[];
 }
 
 interface RawResourceMaps {
-  contexts: ReadonlyMap<string, VnextContextSpec>;
-  actors: ReadonlyMap<string, VnextActorSpec>;
-  systems: ReadonlyMap<string, VnextSystemSpec>;
-  scenarios: ReadonlyMap<string, VnextScenarioSpec>;
-  messages: ReadonlyMap<string, VnextMessageSpec>;
-  aggregates: ReadonlyMap<string, VnextAggregateSpec>;
-  policies: ReadonlyMap<string, VnextPolicySpec>;
+  contexts: ReadonlyMap<string, ContextSpec>;
+  actors: ReadonlyMap<string, ActorSpec>;
+  systems: ReadonlyMap<string, SystemSpec>;
+  scenarios: ReadonlyMap<string, ScenarioSpec>;
+  messages: ReadonlyMap<string, MessageSpec>;
+  aggregates: ReadonlyMap<string, AggregateSpec>;
+  policies: ReadonlyMap<string, PolicySpec>;
 }
 
 interface AnalysisMaps {
-  contexts: ReadonlyMap<string, VnextContextBoundary>;
-  actors: ReadonlyMap<string, VnextActorParticipant>;
-  systems: ReadonlyMap<string, VnextSystemParticipant>;
-  scenarios: ReadonlyMap<string, VnextScenarioSequence>;
-  messages: ReadonlyMap<string, VnextMessageFlow>;
-  aggregates: ReadonlyMap<string, VnextAggregateLifecycle>;
-  policies: ReadonlyMap<string, VnextPolicyCoordination>;
+  contexts: ReadonlyMap<string, ContextBoundary>;
+  actors: ReadonlyMap<string, ActorParticipant>;
+  systems: ReadonlyMap<string, SystemParticipant>;
+  scenarios: ReadonlyMap<string, ScenarioSequence>;
+  messages: ReadonlyMap<string, MessageFlow>;
+  aggregates: ReadonlyMap<string, AggregateLifecycle>;
+  policies: ReadonlyMap<string, PolicyCoordination>;
 }
 
 type DiagnosticCollector = {
-  push: (diagnostic: VnextAnalysisDiagnostic) => void;
+  push: (diagnostic: AnalysisDiagnostic) => void;
 };
 
-export function buildVnextAnalysisIR(spec: VnextBusinessSpec): VnextAnalysisIR {
+export function buildBusinessSpecAnalysisIR(spec: BusinessSpec): AnalysisIR {
   const rawMaps = createRawResourceMaps(spec);
   const scenarioSequences = buildScenarioSequences(spec);
   const messageFlows = buildMessageFlows(spec, rawMaps);
@@ -343,14 +343,14 @@ export function buildVnextAnalysisIR(spec: VnextBusinessSpec): VnextAnalysisIR {
   };
 }
 
-export function analyzeVnextBusinessSpec(
-  spec: VnextBusinessSpec
-): VnextBusinessSpecAnalysis {
-  const ir = buildVnextAnalysisIR(spec);
-  const diagnostics = collectVnextBusinessSpecAnalysisDiagnostics(ir);
+export function analyzeBusinessSpec(
+  spec: BusinessSpec
+): BusinessSpecAnalysis {
+  const ir = buildBusinessSpecAnalysisIR(spec);
+  const diagnostics = collectBusinessSpecAnalysisDiagnostics(ir);
 
   return {
-    analysisVersion: VNEXT_BUSINESS_SPEC_ANALYSIS_VERSION,
+    analysisVersion: BUSINESS_SPEC_ANALYSIS_VERSION,
     specId: spec.id,
     ir,
     diagnostics,
@@ -360,10 +360,10 @@ export function analyzeVnextBusinessSpec(
   };
 }
 
-export function collectVnextBusinessSpecAnalysisDiagnostics(
-  ir: VnextAnalysisIR
-): readonly VnextAnalysisDiagnostic[] {
-  const diagnostics: VnextAnalysisDiagnostic[] = [];
+export function collectBusinessSpecAnalysisDiagnostics(
+  ir: AnalysisIR
+): readonly AnalysisDiagnostic[] {
+  const diagnostics: AnalysisDiagnostic[] = [];
   const collector: DiagnosticCollector = {
     push(diagnostic) {
       diagnostics.push(diagnostic);
@@ -403,13 +403,13 @@ export function collectVnextBusinessSpecAnalysisDiagnostics(
   return diagnostics;
 }
 
-export function analyzeVnextBusinessSpecSemantics(
-  spec: VnextBusinessSpec
-): VnextSemanticValidationResult {
-  const analysis = analyzeVnextBusinessSpec(spec);
+export function analyzeBusinessSpecSemantics(
+  spec: BusinessSpec
+): SemanticValidationResult {
+  const analysis = analyzeBusinessSpec(spec);
 
   return {
-    validationVersion: VNEXT_SEMANTIC_VALIDATION_VERSION,
+    validationVersion: SEMANTIC_VALIDATION_VERSION,
     specId: analysis.specId,
     diagnostics: analysis.diagnostics,
     summary: {
@@ -418,14 +418,14 @@ export function analyzeVnextBusinessSpecSemantics(
   };
 }
 
-export function collectVnextBusinessSpecSemanticDiagnostics(
-  spec: VnextBusinessSpec
-): readonly VnextAnalysisDiagnostic[] {
-  return analyzeVnextBusinessSpec(spec).diagnostics;
+export function collectBusinessSpecSemanticDiagnostics(
+  spec: BusinessSpec
+): readonly AnalysisDiagnostic[] {
+  return analyzeBusinessSpec(spec).diagnostics;
 }
 
-export function validateVnextBusinessSpecSemantics(spec: VnextBusinessSpec): void {
-  const diagnostics = collectVnextBusinessSpecSemanticDiagnostics(spec);
+export function validateBusinessSpecSemantics(spec: BusinessSpec): void {
+  const diagnostics = collectBusinessSpecSemanticDiagnostics(spec);
 
   if (diagnostics.length === 0) {
     return;
@@ -434,7 +434,7 @@ export function validateVnextBusinessSpecSemantics(spec: VnextBusinessSpec): voi
   throw new Error(formatDiagnostics(diagnostics));
 }
 
-export function projectVnextContextMap(ir: VnextAnalysisIR): VnextContextMapProjection {
+export function projectContextMap(ir: AnalysisIR): ContextMapProjection {
   return {
     contexts: ir.contextBoundaries,
     actors: ir.actors,
@@ -442,31 +442,31 @@ export function projectVnextContextMap(ir: VnextAnalysisIR): VnextContextMapProj
   };
 }
 
-export function projectVnextScenarioStory(
-  ir: VnextAnalysisIR
-): readonly VnextScenarioSequence[] {
+export function projectScenarioStory(
+  ir: AnalysisIR
+): readonly ScenarioSequence[] {
   return ir.scenarioSequences;
 }
 
-export function projectVnextMessageFlow(
-  ir: VnextAnalysisIR
-): readonly VnextMessageFlow[] {
+export function projectMessageFlow(
+  ir: AnalysisIR
+): readonly MessageFlow[] {
   return ir.messageFlows;
 }
 
-export function projectVnextLifecycle(
-  ir: VnextAnalysisIR
-): readonly VnextAggregateLifecycle[] {
+export function projectLifecycle(
+  ir: AnalysisIR
+): readonly AggregateLifecycle[] {
   return ir.aggregateLifecycles.filter((aggregate) => aggregate.lifecycleComplexity);
 }
 
-export function projectVnextPolicyCoordination(
-  ir: VnextAnalysisIR
-): readonly VnextPolicyCoordination[] {
+export function projectPolicyCoordination(
+  ir: AnalysisIR
+): readonly PolicyCoordination[] {
   return ir.policyCoordinations;
 }
 
-function createRawResourceMaps(spec: VnextBusinessSpec): RawResourceMaps {
+function createRawResourceMaps(spec: BusinessSpec): RawResourceMaps {
   return {
     contexts: firstById(spec.contexts),
     actors: firstById(spec.actors),
@@ -479,11 +479,11 @@ function createRawResourceMaps(spec: VnextBusinessSpec): RawResourceMaps {
 }
 
 function buildContextBoundaries(
-  spec: VnextBusinessSpec,
-  scenarios: readonly VnextScenarioSequence[],
-  messages: readonly VnextMessageFlow[],
-  policies: readonly VnextPolicyCoordination[]
-): readonly VnextContextBoundary[] {
+  spec: BusinessSpec,
+  scenarios: readonly ScenarioSequence[],
+  messages: readonly MessageFlow[],
+  policies: readonly PolicyCoordination[]
+): readonly ContextBoundary[] {
   return spec.contexts.map((context) => {
     const aggregateIds = unique(
       spec.aggregates
@@ -543,8 +543,8 @@ function buildContextBoundaries(
 }
 
 function buildActorParticipants(
-  spec: VnextBusinessSpec
-): readonly VnextActorParticipant[] {
+  spec: BusinessSpec
+): readonly ActorParticipant[] {
   return spec.actors.map((actor) => {
     const stepRefs = spec.scenarios.flatMap((scenario) =>
       scenario.steps.flatMap((step) =>
@@ -555,7 +555,7 @@ function buildActorParticipants(
                 stepId: step.id,
                 contextId: step.context,
                 path: scenarioStepPath(scenario.id, step.id, "/actor")
-              } satisfies VnextActorStepRef
+              } satisfies ActorStepRef
             ]
           : []
       )
@@ -576,11 +576,11 @@ function buildActorParticipants(
 }
 
 function buildSystemParticipants(
-  spec: VnextBusinessSpec,
-  messages: readonly VnextMessageFlow[]
-): readonly VnextSystemParticipant[] {
+  spec: BusinessSpec,
+  messages: readonly MessageFlow[]
+): readonly SystemParticipant[] {
   return spec.systems.map((system) => {
-    const dependencyRefs: VnextSystemDependencyRef[] = [];
+    const dependencyRefs: SystemDependencyRef[] = [];
 
     for (const context of spec.contexts) {
       for (const relationship of context.relationships ?? []) {
@@ -669,8 +669,8 @@ function buildSystemParticipants(
 }
 
 function buildScenarioSequences(
-  spec: VnextBusinessSpec
-): readonly VnextScenarioSequence[] {
+  spec: BusinessSpec
+): readonly ScenarioSequence[] {
   return spec.scenarios.map((scenario) => {
     const stepMap = firstById(scenario.steps);
     const incomingStepIds = new Set<string>();
@@ -719,9 +719,9 @@ function buildScenarioSequences(
 }
 
 function buildMessageFlows(
-  spec: VnextBusinessSpec,
+  spec: BusinessSpec,
   rawMaps: RawResourceMaps
-): readonly VnextMessageFlow[] {
+): readonly MessageFlow[] {
   return spec.messages.map((message) => {
     const producers = message.producers.map((producer) =>
       toMessageEndpoint(message.id, "producers", producer, rawMaps)
@@ -759,11 +759,11 @@ function buildMessageFlows(
 }
 
 function buildAggregateLifecycles(
-  spec: VnextBusinessSpec
-): readonly VnextAggregateLifecycle[] {
+  spec: BusinessSpec
+): readonly AggregateLifecycle[] {
   return spec.aggregates.map((aggregate) => {
     const adjacency = new Map<string, string[]>();
-    const transitions: VnextLifecycleTransition[] = aggregate.transitions.map((transition) => {
+    const transitions: LifecycleTransition[] = aggregate.transitions.map((transition) => {
       adjacency.set(
         transition.from,
         [...(adjacency.get(transition.from) ?? []), transition.to]
@@ -825,9 +825,9 @@ function buildAggregateLifecycles(
 }
 
 function buildPolicyCoordinations(
-  spec: VnextBusinessSpec,
+  spec: BusinessSpec,
   rawMaps: RawResourceMaps
-): readonly VnextPolicyCoordination[] {
+): readonly PolicyCoordination[] {
   return spec.policies.map((policy) => {
     const relatedContextIds = uniqueDefined([
       policy.context,
@@ -859,7 +859,7 @@ function buildPolicyCoordinations(
 }
 
 function createAnalysisMaps(
-  ir: VnextAnalysisIR,
+  ir: AnalysisIR,
   collector: DiagnosticCollector
 ): AnalysisMaps {
   return {
@@ -888,7 +888,7 @@ function buildResourceRegistry(maps: AnalysisMaps): ReadonlySet<string> {
 }
 
 function validateContextBoundary(
-  context: VnextContextBoundary,
+  context: ContextBoundary,
   collector: DiagnosticCollector,
   resourceRegistry: ReadonlySet<string>
 ): void {
@@ -941,7 +941,7 @@ function validateContextBoundary(
 }
 
 function validateSystemParticipant(
-  system: VnextSystemParticipant,
+  system: SystemParticipant,
   collector: DiagnosticCollector
 ): void {
   assertKind(system.kind, "system", `System ${system.id}`, system.path, collector);
@@ -954,7 +954,7 @@ function validateSystemParticipant(
 }
 
 function validateScenarioSequence(
-  scenario: VnextScenarioSequence,
+  scenario: ScenarioSequence,
   maps: AnalysisMaps,
   collector: DiagnosticCollector
 ): void {
@@ -1065,10 +1065,10 @@ function validateScenarioSequence(
 }
 
 function validateScenarioStep(
-  scenario: VnextScenarioSequence,
-  step: VnextScenarioStep,
+  scenario: ScenarioSequence,
+  step: ScenarioStep,
   maps: AnalysisMaps,
-  stepMap: ReadonlyMap<string, VnextScenarioStep>,
+  stepMap: ReadonlyMap<string, ScenarioStep>,
   collector: DiagnosticCollector
 ): void {
   if (!maps.contexts.has(step.contextId)) {
@@ -1212,7 +1212,7 @@ function validateScenarioStep(
 }
 
 function validateMessageFlow(
-  message: VnextMessageFlow,
+  message: MessageFlow,
   maps: AnalysisMaps,
   collector: DiagnosticCollector,
   resourceRegistry: ReadonlySet<string>
@@ -1253,7 +1253,7 @@ function validateMessageFlow(
 }
 
 function validateAggregateLifecycle(
-  aggregate: VnextAggregateLifecycle,
+  aggregate: AggregateLifecycle,
   maps: AnalysisMaps,
   collector: DiagnosticCollector
 ): void {
@@ -1394,7 +1394,7 @@ function validateAggregateLifecycle(
 }
 
 function validatePolicyCoordination(
-  policy: VnextPolicyCoordination,
+  policy: PolicyCoordination,
   maps: AnalysisMaps,
   collector: DiagnosticCollector,
   resourceRegistry: ReadonlySet<string>
@@ -1528,7 +1528,7 @@ function validatePolicyCoordination(
 
 function validateMessageRefs(
   resourceRegistry: ReadonlySet<string>,
-  refs: readonly VnextMessageEndpoint[],
+  refs: readonly MessageEndpoint[],
   label: string,
   collector: DiagnosticCollector
 ): void {
@@ -1553,7 +1553,7 @@ function validateMessageRefs(
 }
 
 function validatePayload(
-  payload: readonly VnextPayloadFieldSpec[],
+  payload: readonly PayloadFieldSpec[],
   label: string,
   path: string,
   collector: DiagnosticCollector
@@ -1576,7 +1576,7 @@ function validatePayload(
 }
 
 function validateScenarioBacklinks(
-  message: VnextMessageFlow,
+  message: MessageFlow,
   maps: AnalysisMaps,
   collector: DiagnosticCollector
 ): void {
@@ -1628,8 +1628,8 @@ function validateScenarioBacklinks(
 }
 
 function collectReachableStepIds(
-  entryStep: VnextScenarioStepSpec,
-  stepMap: ReadonlyMap<string, VnextScenarioStepSpec>
+  entryStep: ScenarioStepSpec,
+  stepMap: ReadonlyMap<string, ScenarioStepSpec>
 ): ReadonlySet<string> {
   const visited = new Set<string>();
   const queue = [entryStep];
@@ -1656,8 +1656,8 @@ function collectReachableStepIds(
 }
 
 function collectReachableScenarioStepIds(
-  entryStep: VnextScenarioStep,
-  stepMap: ReadonlyMap<string, VnextScenarioStep>
+  entryStep: ScenarioStep,
+  stepMap: ReadonlyMap<string, ScenarioStep>
 ): ReadonlySet<string> {
   const visited = new Set<string>();
   const queue = [entryStep];
@@ -1684,9 +1684,9 @@ function collectReachableScenarioStepIds(
 }
 
 function stepCanReceiveMessage(
-  scenario: VnextScenarioSequence,
-  step: VnextScenarioStep,
-  message: VnextMessageFlow,
+  scenario: ScenarioSequence,
+  step: ScenarioStep,
+  message: MessageFlow,
   maps: AnalysisMaps
 ): boolean {
   return message.consumers.some((consumer) =>
@@ -1695,9 +1695,9 @@ function stepCanReceiveMessage(
 }
 
 function stepCanProduceMessage(
-  scenario: VnextScenarioSequence,
-  step: VnextScenarioStep,
-  message: VnextMessageFlow,
+  scenario: ScenarioSequence,
+  step: ScenarioStep,
+  message: MessageFlow,
   maps: AnalysisMaps
 ): boolean {
   return message.producers.some((producer) =>
@@ -1706,9 +1706,9 @@ function stepCanProduceMessage(
 }
 
 function isStepCompatibleRef(
-  ref: VnextResourceRef,
-  scenario: VnextScenarioSequence,
-  step: VnextScenarioStep,
+  ref: ResourceRef,
+  scenario: ScenarioSequence,
+  step: ScenarioStep,
   maps: AnalysisMaps
 ): boolean {
   if (ref.kind === "scenario") {
@@ -1739,7 +1739,7 @@ function isStepCompatibleRef(
 }
 
 function resolveRawResourceContext(
-  ref: VnextResourceRef,
+  ref: ResourceRef,
   rawMaps: RawResourceMaps
 ): string | undefined {
   if (ref.kind === "context") {
@@ -1801,7 +1801,7 @@ function indexById<Value extends { id: string; path: string }>(
 
 function registerResourceMap<Value extends { id: string }>(
   registry: Set<string>,
-  kind: VnextResourceKind,
+  kind: ResourceKind,
   values: ReadonlyMap<string, Value>
 ): void {
   for (const value of values.values()) {
@@ -1810,8 +1810,8 @@ function registerResourceMap<Value extends { id: string }>(
 }
 
 function hasResourceEndpoint(
-  refs: readonly VnextMessageEndpoint[],
-  kind: VnextResourceKind,
+  refs: readonly MessageEndpoint[],
+  kind: ResourceKind,
   id: string
 ): boolean {
   return refs.some((ref) => ref.kind === kind && ref.id === id);
@@ -1819,7 +1819,7 @@ function hasResourceEndpoint(
 
 function assertKnownResourceRef(
   resourceRegistry: ReadonlySet<string>,
-  ref: VnextResourceRef,
+  ref: ResourceRef,
   label: string,
   path: string,
   collector: DiagnosticCollector
@@ -1879,11 +1879,11 @@ function reportDuplicateStrings(
 }
 
 function toScenarioStep(
-  step: VnextScenarioStepSpec,
+  step: ScenarioStepSpec,
   scenarioId: string,
   incomingStepIds: ReadonlySet<string>,
   reachableStepIds: ReadonlySet<string>
-): VnextScenarioStep {
+): ScenarioStep {
   return {
     id: step.id,
     title: step.title,
@@ -1903,8 +1903,8 @@ function toScenarioStep(
 
 function toContextBoundaryRelationship(
   contextId: string,
-  relationship: VnextContextRelationshipSpec
-): VnextContextBoundaryRelationship {
+  relationship: ContextRelationshipSpec
+): ContextBoundaryRelationship {
   return {
     id: relationship.id,
     kind: relationship.kind,
@@ -1919,9 +1919,9 @@ function toContextBoundaryRelationship(
 function toMessageEndpoint(
   messageId: string,
   side: "producers" | "consumers",
-  ref: VnextResourceRef,
+  ref: ResourceRef,
   rawMaps: RawResourceMaps
-): VnextMessageEndpoint {
+): MessageEndpoint {
   return {
     kind: ref.kind,
     id: ref.id,
@@ -1931,12 +1931,12 @@ function toMessageEndpoint(
 }
 
 function collectMessageStepLinks(
-  scenarios: readonly VnextScenarioSpec[],
+  scenarios: readonly ScenarioSpec[],
   messageId: string
-): readonly VnextMessageStepLink[] {
+): readonly MessageStepLink[] {
   return scenarios.flatMap((scenario) =>
     scenario.steps.flatMap((step) => {
-      const links: VnextMessageStepLink[] = [];
+      const links: MessageStepLink[] = [];
 
       if (step.incomingMessages?.includes(messageId)) {
         links.push({
@@ -1964,7 +1964,7 @@ function collectMessageStepLinks(
 }
 
 function collectSystemIdsForContext(
-  message: VnextMessageFlow,
+  message: MessageFlow,
   contextId: string
 ): readonly string[] {
   const systemIds: string[] = [];
@@ -1989,7 +1989,7 @@ function collectSystemIdsForContext(
 }
 
 function collectMessageContextIds(
-  message: VnextMessageSpec | undefined,
+  message: MessageSpec | undefined,
   rawMaps: RawResourceMaps
 ): readonly string[] {
   if (!message) {
@@ -2047,11 +2047,11 @@ function uniqueDefined(
   return unique(values.filter((value): value is string => typeof value === "string"));
 }
 
-function toResourceKey(kind: VnextResourceKind, id: string): string {
+function toResourceKey(kind: ResourceKind, id: string): string {
   return `${kind}:${id}`;
 }
 
-function formatDiagnostics(diagnostics: readonly VnextAnalysisDiagnostic[]): string {
+function formatDiagnostics(diagnostics: readonly AnalysisDiagnostic[]): string {
   return [
     `Domain model semantic validation failed with ${diagnostics.length} error(s):`,
     ...diagnostics.map((diagnostic) => `- ${diagnostic.message}`)

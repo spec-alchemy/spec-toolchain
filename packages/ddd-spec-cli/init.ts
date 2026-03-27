@@ -3,7 +3,7 @@ import { resolve } from "node:path";
 import {
   loadCanonicalSpec,
   validateBusinessSpecSemantics,
-  validateVnextCanonicalSchema
+  validateDomainModelWorkspaceSchema
 } from "../ddd-spec-core/index.js";
 import { logArtifact, logInfo } from "./console.js";
 import { DEFAULT_DOMAIN_MODEL_SCHEMA_PATH } from "./config.js";
@@ -120,7 +120,7 @@ async function validateGeneratedSkeleton(entryPath: string): Promise<void> {
     validateSemantics: false
   });
 
-  await validateVnextCanonicalSchema({
+  await validateDomainModelWorkspaceSchema({
     entryPath,
     schemaPath: DEFAULT_DOMAIN_MODEL_SCHEMA_PATH
   });

@@ -3,9 +3,9 @@ import { dirname, resolve } from "node:path";
 import YAML from "yaml";
 import { validateBusinessSpecSemantics } from "./semantic-validation.js";
 
-export const VNEXT_CANONICAL_SCHEMA_VERSION = 1 as const;
+export const DOMAIN_MODEL_SCHEMA_VERSION = 1 as const;
 
-export const VNEXT_RESOURCE_KINDS = [
+export const RESOURCE_KINDS = [
   "context",
   "actor",
   "system",
@@ -15,84 +15,84 @@ export const VNEXT_RESOURCE_KINDS = [
   "policy"
 ] as const;
 
-export type VnextResourceKind = (typeof VNEXT_RESOURCE_KINDS)[number];
+export type ResourceKind = (typeof RESOURCE_KINDS)[number];
 
-export const VNEXT_ACTOR_TYPES = ["person", "role", "team"] as const;
+export const ACTOR_TYPES = ["person", "role", "team"] as const;
 
-export type VnextActorType = (typeof VNEXT_ACTOR_TYPES)[number];
+export type ActorType = (typeof ACTOR_TYPES)[number];
 
-export const VNEXT_SYSTEM_BOUNDARIES = ["internal", "external"] as const;
+export const SYSTEM_BOUNDARIES = ["internal", "external"] as const;
 
-export type VnextSystemBoundary = (typeof VNEXT_SYSTEM_BOUNDARIES)[number];
+export type SystemBoundary = (typeof SYSTEM_BOUNDARIES)[number];
 
-export const VNEXT_MESSAGE_KINDS = ["command", "event", "query"] as const;
+export const MESSAGE_KINDS = ["command", "event", "query"] as const;
 
-export type VnextMessageKind = (typeof VNEXT_MESSAGE_KINDS)[number];
+export type MessageKind = (typeof MESSAGE_KINDS)[number];
 
-export const VNEXT_MESSAGE_CHANNELS = ["sync", "async"] as const;
+export const MESSAGE_CHANNELS = ["sync", "async"] as const;
 
-export type VnextMessageChannel = (typeof VNEXT_MESSAGE_CHANNELS)[number];
+export type MessageChannel = (typeof MESSAGE_CHANNELS)[number];
 
-export const VNEXT_CONTEXT_RELATIONSHIP_DIRECTIONS = [
+export const CONTEXT_RELATIONSHIP_DIRECTIONS = [
   "upstream",
   "downstream",
   "bidirectional"
 ] as const;
 
-export type VnextContextRelationshipDirection =
-  (typeof VNEXT_CONTEXT_RELATIONSHIP_DIRECTIONS)[number];
+export type ContextRelationshipDirection =
+  (typeof CONTEXT_RELATIONSHIP_DIRECTIONS)[number];
 
-export type VnextCollectionRef = string | readonly string[];
+export type CollectionRef = string | readonly string[];
 
-export interface VnextResourceRef {
-  kind: VnextResourceKind;
+export interface ResourceRef {
+  kind: ResourceKind;
   id: string;
 }
 
-export interface VnextPayloadFieldSpec {
+export interface PayloadFieldSpec {
   id: string;
   type: string;
   required: boolean;
   description?: string;
 }
 
-export interface VnextContextRelationshipSpec {
+export interface ContextRelationshipSpec {
   id: string;
   kind: string;
-  target: VnextResourceRef;
-  direction?: VnextContextRelationshipDirection;
+  target: ResourceRef;
+  direction?: ContextRelationshipDirection;
   integration?: string;
   description?: string;
 }
 
-export interface VnextContextSpec {
+export interface ContextSpec {
   kind: "context";
   id: string;
   title: string;
   summary: string;
   owners: readonly string[];
   responsibilities: readonly string[];
-  relationships?: readonly VnextContextRelationshipSpec[];
+  relationships?: readonly ContextRelationshipSpec[];
 }
 
-export interface VnextActorSpec {
+export interface ActorSpec {
   kind: "actor";
   id: string;
   title: string;
   summary: string;
-  actorType?: VnextActorType;
+  actorType?: ActorType;
 }
 
-export interface VnextSystemSpec {
+export interface SystemSpec {
   kind: "system";
   id: string;
   title: string;
   summary: string;
-  boundary?: VnextSystemBoundary;
+  boundary?: SystemBoundary;
   capabilities?: readonly string[];
 }
 
-export interface VnextScenarioStepSpec {
+export interface ScenarioStepSpec {
   id: string;
   title: string;
   context: string;
@@ -105,29 +105,29 @@ export interface VnextScenarioStepSpec {
   outcome?: string;
 }
 
-export interface VnextScenarioSpec {
+export interface ScenarioSpec {
   kind: "scenario";
   id: string;
   title: string;
   summary: string;
   goal: string;
   ownerContext: string;
-  steps: readonly VnextScenarioStepSpec[];
+  steps: readonly ScenarioStepSpec[];
 }
 
-export interface VnextMessageSpec {
+export interface MessageSpec {
   kind: "message";
   id: string;
   title: string;
   summary: string;
-  messageKind: VnextMessageKind;
-  channel?: VnextMessageChannel;
-  producers: readonly VnextResourceRef[];
-  consumers: readonly VnextResourceRef[];
-  payload?: readonly VnextPayloadFieldSpec[];
+  messageKind: MessageKind;
+  channel?: MessageChannel;
+  producers: readonly ResourceRef[];
+  consumers: readonly ResourceRef[];
+  payload?: readonly PayloadFieldSpec[];
 }
 
-export interface VnextAggregateTransitionSpec {
+export interface AggregateTransitionSpec {
   id: string;
   from: string;
   to: string;
@@ -135,7 +135,7 @@ export interface VnextAggregateTransitionSpec {
   emits?: readonly string[];
 }
 
-export interface VnextAggregateSpec {
+export interface AggregateSpec {
   kind: "aggregate";
   id: string;
   title: string;
@@ -144,10 +144,10 @@ export interface VnextAggregateSpec {
   lifecycleComplexity?: boolean;
   states: readonly string[];
   initialState: string;
-  transitions: readonly VnextAggregateTransitionSpec[];
+  transitions: readonly AggregateTransitionSpec[];
 }
 
-export interface VnextPolicySpec {
+export interface PolicySpec {
   kind: "policy";
   id: string;
   title: string;
@@ -156,51 +156,49 @@ export interface VnextPolicySpec {
   triggerMessages: readonly string[];
   emittedMessages?: readonly string[];
   targetSystems?: readonly string[];
-  coordinates?: readonly VnextResourceRef[];
+  coordinates?: readonly ResourceRef[];
 }
 
-export interface VnextBusinessSpec {
-  version: typeof VNEXT_CANONICAL_SCHEMA_VERSION;
+export interface BusinessSpec {
+  version: typeof DOMAIN_MODEL_SCHEMA_VERSION;
   id: string;
   title: string;
   summary: string;
-  contexts: readonly VnextContextSpec[];
-  actors: readonly VnextActorSpec[];
-  systems: readonly VnextSystemSpec[];
-  scenarios: readonly VnextScenarioSpec[];
-  messages: readonly VnextMessageSpec[];
-  aggregates: readonly VnextAggregateSpec[];
-  policies: readonly VnextPolicySpec[];
+  contexts: readonly ContextSpec[];
+  actors: readonly ActorSpec[];
+  systems: readonly SystemSpec[];
+  scenarios: readonly ScenarioSpec[];
+  messages: readonly MessageSpec[];
+  aggregates: readonly AggregateSpec[];
+  policies: readonly PolicySpec[];
 }
 
-export interface VnextCanonicalIndexSpec {
-  version: typeof VNEXT_CANONICAL_SCHEMA_VERSION;
+export interface DomainModelIndexSpec {
+  version: typeof DOMAIN_MODEL_SCHEMA_VERSION;
   id: string;
   title: string;
   summary: string;
   model: {
-    contexts: VnextCollectionRef;
-    actors: VnextCollectionRef;
-    systems: VnextCollectionRef;
-    scenarios: VnextCollectionRef;
-    messages: VnextCollectionRef;
-    aggregates: VnextCollectionRef;
-    policies: VnextCollectionRef;
+    contexts: CollectionRef;
+    actors: CollectionRef;
+    systems: CollectionRef;
+    scenarios: CollectionRef;
+    messages: CollectionRef;
+    aggregates: CollectionRef;
+    policies: CollectionRef;
   };
 }
 
-export type LoadedBusinessSpec = VnextBusinessSpec;
+export type LoadedBusinessSpec = BusinessSpec;
 
 export interface LoadBusinessSpecOptions {
   entryPath: string;
   validateSemantics?: boolean;
 }
 
-export interface LoadVnextBusinessSpecOptions extends LoadBusinessSpecOptions {}
-
 export interface LoadCanonicalSpecOptions extends LoadBusinessSpecOptions {}
 
-const VNEXT_COLLECTION_FILE_SUFFIXES = {
+const DOMAIN_MODEL_COLLECTION_FILE_SUFFIXES = {
   contexts: ".context.yaml",
   actors: ".actor.yaml",
   systems: ".system.yaml",
@@ -210,43 +208,43 @@ const VNEXT_COLLECTION_FILE_SUFFIXES = {
   policies: ".policy.yaml"
 } as const;
 
-export function isVnextBusinessSpec(spec: unknown): spec is VnextBusinessSpec {
+export function isBusinessSpec(spec: unknown): spec is BusinessSpec {
   return (
     typeof spec === "object" &&
     spec !== null &&
     "version" in spec &&
-    (spec as { version?: unknown }).version === VNEXT_CANONICAL_SCHEMA_VERSION
+    (spec as { version?: unknown }).version === DOMAIN_MODEL_SCHEMA_VERSION
   );
 }
 
-export async function loadVnextCanonicalIndexSpec(
+export async function loadDomainModelIndexSpec(
   entryPath: string
-): Promise<VnextCanonicalIndexSpec> {
-  return loadYamlFile<VnextCanonicalIndexSpec>(entryPath);
+): Promise<DomainModelIndexSpec> {
+  return loadYamlFile<DomainModelIndexSpec>(entryPath);
 }
 
 export async function loadCanonicalSpec(
   options: LoadCanonicalSpecOptions
-): Promise<VnextBusinessSpec> {
+): Promise<BusinessSpec> {
   const version = await loadCanonicalVersion(options.entryPath);
 
-  if (version !== VNEXT_CANONICAL_SCHEMA_VERSION) {
+  if (version !== DOMAIN_MODEL_SCHEMA_VERSION) {
     throw new Error(
       formatUnsupportedCanonicalVersionMessage(version, options.entryPath)
     );
   }
 
-  return loadVnextBusinessSpec(options);
+  return loadBusinessSpec(options);
 }
 
-export async function loadVnextBusinessSpec(
-  options: LoadVnextBusinessSpecOptions
-): Promise<VnextBusinessSpec> {
-  const index = await loadVnextCanonicalIndexSpec(options.entryPath);
+export async function loadBusinessSpec(
+  options: LoadBusinessSpecOptions
+): Promise<BusinessSpec> {
+  const index = await loadDomainModelIndexSpec(options.entryPath);
   assertCanonicalModelContainer(
     index as { model?: unknown; domain?: unknown },
     options.entryPath,
-    "loadVnextBusinessSpec"
+    "loadBusinessSpec"
   );
   const baseDir = dirname(options.entryPath);
   const [
@@ -258,46 +256,46 @@ export async function loadVnextBusinessSpec(
     aggregates,
     policies
   ] = await Promise.all([
-    loadVnextCollection<VnextContextSpec>(
+    loadDomainModelCollection<ContextSpec>(
       baseDir,
       index.model.contexts,
-      VNEXT_COLLECTION_FILE_SUFFIXES.contexts
+      DOMAIN_MODEL_COLLECTION_FILE_SUFFIXES.contexts
     ),
-    loadVnextCollection<VnextActorSpec>(
+    loadDomainModelCollection<ActorSpec>(
       baseDir,
       index.model.actors,
-      VNEXT_COLLECTION_FILE_SUFFIXES.actors
+      DOMAIN_MODEL_COLLECTION_FILE_SUFFIXES.actors
     ),
-    loadVnextCollection<VnextSystemSpec>(
+    loadDomainModelCollection<SystemSpec>(
       baseDir,
       index.model.systems,
-      VNEXT_COLLECTION_FILE_SUFFIXES.systems
+      DOMAIN_MODEL_COLLECTION_FILE_SUFFIXES.systems
     ),
-    loadVnextCollection<VnextScenarioSpec>(
+    loadDomainModelCollection<ScenarioSpec>(
       baseDir,
       index.model.scenarios,
-      VNEXT_COLLECTION_FILE_SUFFIXES.scenarios
+      DOMAIN_MODEL_COLLECTION_FILE_SUFFIXES.scenarios
     ),
-    loadVnextCollection<VnextMessageSpec>(
+    loadDomainModelCollection<MessageSpec>(
       baseDir,
       index.model.messages,
-      VNEXT_COLLECTION_FILE_SUFFIXES.messages
+      DOMAIN_MODEL_COLLECTION_FILE_SUFFIXES.messages
     ),
-    loadVnextCollection<VnextAggregateSpec>(
+    loadDomainModelCollection<AggregateSpec>(
       baseDir,
       index.model.aggregates,
-      VNEXT_COLLECTION_FILE_SUFFIXES.aggregates
+      DOMAIN_MODEL_COLLECTION_FILE_SUFFIXES.aggregates
     ),
-    loadVnextCollection<VnextPolicySpec>(
+    loadDomainModelCollection<PolicySpec>(
       baseDir,
       index.model.policies,
-      VNEXT_COLLECTION_FILE_SUFFIXES.policies
+      DOMAIN_MODEL_COLLECTION_FILE_SUFFIXES.policies
     )
   ]);
 
-  assertCanonicalVersion(index.version, options.entryPath, "loadVnextBusinessSpec");
+  assertCanonicalVersion(index.version, options.entryPath, "loadBusinessSpec");
 
-  const businessSpec: VnextBusinessSpec = {
+  const businessSpec: BusinessSpec = {
     version: index.version,
     id: index.id,
     title: index.title,
@@ -324,26 +322,26 @@ async function loadCanonicalVersion(entryPath: string): Promise<number | undefin
   return typeof index.version === "number" ? index.version : undefined;
 }
 
-async function loadVnextCollection<Value>(
+async function loadDomainModelCollection<Value>(
   baseDir: string,
-  reference: VnextCollectionRef,
+  reference: CollectionRef,
   suffix: string
 ): Promise<Value[]> {
-  const absolutePaths = await resolveVnextCollectionPaths(baseDir, reference, suffix);
+  const absolutePaths = await resolveDomainModelCollectionPaths(baseDir, reference, suffix);
 
   return Promise.all(absolutePaths.map((absolutePath) => loadYamlFile<Value>(absolutePath)));
 }
 
-async function resolveVnextCollectionPaths(
+async function resolveDomainModelCollectionPaths(
   baseDir: string,
-  reference: VnextCollectionRef,
+  reference: CollectionRef,
   suffix: string
 ): Promise<readonly string[]> {
   if (typeof reference === "string") {
     const absoluteDir = resolve(baseDir, reference);
     const entries = await readdir(absoluteDir, { withFileTypes: true });
     const fileNames = entries
-      .filter((entry) => entry.isFile() && matchesVnextCollectionFile(entry.name, suffix))
+      .filter((entry) => entry.isFile() && matchesDomainModelCollectionFile(entry.name, suffix))
       .map((entry) => entry.name)
       .sort();
 
@@ -353,7 +351,7 @@ async function resolveVnextCollectionPaths(
   return reference.map((relativePath) => resolve(baseDir, relativePath));
 }
 
-function matchesVnextCollectionFile(fileName: string, suffix: string): boolean {
+function matchesDomainModelCollectionFile(fileName: string, suffix: string): boolean {
   return (
     fileName.endsWith(suffix) ||
     (suffix.endsWith(".yaml") && fileName.endsWith(suffix.replace(/yaml$/, "yml")))
@@ -365,9 +363,9 @@ function assertCanonicalVersion(
   entryPath: string,
   loaderName: string
 ): void {
-  if (actualVersion !== VNEXT_CANONICAL_SCHEMA_VERSION) {
+  if (actualVersion !== DOMAIN_MODEL_SCHEMA_VERSION) {
     throw new Error(
-      `${loaderName} expected version ${VNEXT_CANONICAL_SCHEMA_VERSION} domain model index at ${entryPath}, received ${String(actualVersion)}.`
+      `${loaderName} expected version ${DOMAIN_MODEL_SCHEMA_VERSION} domain model index at ${entryPath}, received ${String(actualVersion)}.`
     );
   }
 }
@@ -383,7 +381,7 @@ function assertCanonicalModelContainer(
 
   if ("domain" in index) {
     throw new Error(
-      `${loaderName} expected top-level \`model\` at ${entryPath}. Legacy top-level \`domain\` is no longer supported in version ${VNEXT_CANONICAL_SCHEMA_VERSION} domain models.`
+      `${loaderName} expected top-level \`model\` at ${entryPath}. Legacy top-level \`domain\` is no longer supported in version ${DOMAIN_MODEL_SCHEMA_VERSION} domain models.`
     );
   }
 
@@ -405,7 +403,7 @@ function formatUnsupportedCanonicalVersionMessage(
 
   return (
     `Unsupported domain model schema version ${String(version)} at ${entryPath}. ` +
-    `ddd-spec only supports domain models with version: ${VNEXT_CANONICAL_SCHEMA_VERSION}.`
+    `ddd-spec only supports domain models with version: ${DOMAIN_MODEL_SCHEMA_VERSION}.`
   );
 }
 

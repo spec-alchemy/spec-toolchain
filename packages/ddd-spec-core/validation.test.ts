@@ -7,21 +7,21 @@ import YAML from "yaml";
 import {
   validateBusinessSpecSchema,
   validateBusinessSpecSemantics,
-  validateVnextCanonicalSchema
+  validateDomainModelWorkspaceSchema
 } from "./index.js";
 import {
   DOMAIN_MODEL_SCHEMA_PATH,
-  VNEXT_MINIMAL_FIXTURE_ENTRY_PATH,
-  cloneVnextBusinessSpec,
-  loadVnextMinimalFixture
+  MINIMAL_FIXTURE_ENTRY_PATH,
+  cloneBusinessSpec,
+  loadMinimalFixture
 } from "./test-fixtures.js";
 
 const DOMAIN_MODEL_SCHEMA_DIR_PATH = dirname(DOMAIN_MODEL_SCHEMA_PATH);
 
 test("schema validation accepts the minimal version 1 domain model fixture", async () => {
   await assert.doesNotReject(async () => {
-    await validateVnextCanonicalSchema({
-      entryPath: VNEXT_MINIMAL_FIXTURE_ENTRY_PATH,
+    await validateDomainModelWorkspaceSchema({
+      entryPath: MINIMAL_FIXTURE_ENTRY_PATH,
       schemaPath: DOMAIN_MODEL_SCHEMA_PATH
     });
   });
@@ -29,7 +29,7 @@ test("schema validation accepts the minimal version 1 domain model fixture", asy
 
 test("domain model index schema rejects malformed version 1 index structure", async () => {
   const index = YAML.parse(
-    await readFile(VNEXT_MINIMAL_FIXTURE_ENTRY_PATH, "utf8")
+    await readFile(MINIMAL_FIXTURE_ENTRY_PATH, "utf8")
   ) as Record<string, unknown>;
   delete index.summary;
 
@@ -42,7 +42,7 @@ test("domain model index schema rejects malformed version 1 index structure", as
 });
 
 test("standalone version 1 domain model index schema rejects legacy domain keys", async () => {
-  const validate = await createVnextSchemaValidator("index.schema.json");
+  const validate = await createDomainModelSchemaValidator("index.schema.json");
   const legacyIndex = {
     version: 1,
     id: "legacy-domain-shape",
@@ -69,7 +69,7 @@ test("standalone version 1 domain model index schema rejects legacy domain keys"
 });
 
 test("standalone version 1 scenario schema accepts ordered business steps", async () => {
-  const validate = await createVnextSchemaValidator("scenario.schema.json");
+  const validate = await createDomainModelSchemaValidator("scenario.schema.json");
   const scenario = {
     kind: "scenario",
     id: "order-review-flow",
@@ -101,7 +101,7 @@ test("standalone version 1 scenario schema accepts ordered business steps", asyn
 });
 
 test("standalone version 1 aggregate schema requires transitions to declare ids", async () => {
-  const validate = await createVnextSchemaValidator("aggregate.schema.json");
+  const validate = await createDomainModelSchemaValidator("aggregate.schema.json");
   const aggregate = {
     kind: "aggregate",
     id: "order",
@@ -136,7 +136,7 @@ test("standalone version 1 aggregate schema requires transitions to declare ids"
 });
 
 test("semantic validation accepts the minimal version 1 domain model fixture", async () => {
-  const spec = await loadVnextMinimalFixture();
+  const spec = await loadMinimalFixture();
 
   assert.doesNotThrow(() => {
     validateBusinessSpecSemantics(spec);
@@ -144,7 +144,7 @@ test("semantic validation accepts the minimal version 1 domain model fixture", a
 });
 
 test("semantic validation rejects scenarios whose owner context does not exist", async () => {
-  const spec = cloneVnextBusinessSpec(await loadVnextMinimalFixture());
+  const spec = cloneBusinessSpec(await loadMinimalFixture());
   const [scenario] = spec.scenarios;
 
   if (!scenario) {
@@ -159,7 +159,7 @@ test("semantic validation rejects scenarios whose owner context does not exist",
 });
 
 test("semantic validation rejects final steps without outcomes", async () => {
-  const spec = cloneVnextBusinessSpec(await loadVnextMinimalFixture());
+  const spec = cloneBusinessSpec(await loadMinimalFixture());
   const [scenario] = spec.scenarios;
   const finalStep = scenario?.steps.find((step) => step.final);
 
@@ -184,7 +184,7 @@ type AjvConstructor = new (options?: Record<string, unknown>) => {
   compile: (schema: object) => JsonSchemaValidator;
 };
 
-async function createVnextSchemaValidator(schemaFileName: string): Promise<JsonSchemaValidator> {
+async function createDomainModelSchemaValidator(schemaFileName: string): Promise<JsonSchemaValidator> {
   const schemaPath = join(DOMAIN_MODEL_SCHEMA_DIR_PATH, schemaFileName);
   const [schemaSource, sharedSchemaSource] = await Promise.all([
     readFile(schemaPath, "utf8"),

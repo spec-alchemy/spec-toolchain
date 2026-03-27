@@ -2,11 +2,11 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 import {
-  analyzeVnextBusinessSpec
+  analyzeBusinessSpec
 } from "../ddd-spec-core/index.js";
 import {
-  VNEXT_CROSS_CONTEXT_VIEWER_GOLDEN_PATH,
-  loadVnextCrossContextFixture
+  CROSS_CONTEXT_VIEWER_GOLDEN_PATH,
+  loadCrossContextFixture
 } from "../ddd-spec-core/test-fixtures.js";
 import type {
   ViewerDetailItem,
@@ -14,24 +14,24 @@ import type {
   ViewerFieldDetailValue
 } from "../ddd-spec-viewer-contract/index.js";
 import { BUSINESS_VIEWER_SPEC_VERSION } from "../ddd-spec-viewer-contract/index.js";
-import { buildVnextViewerSpec } from "./index.js";
+import { buildViewerSpec } from "./index.js";
 
-test("vNext viewer projection matches the checked-in cross-context artifact", async () => {
-  const spec = await loadVnextCrossContextFixture();
-  const analysis = analyzeVnextBusinessSpec(spec);
-  const actualViewerSpec = buildVnextViewerSpec(spec, analysis);
+test("viewer projection matches the checked-in cross-context artifact", async () => {
+  const spec = await loadCrossContextFixture();
+  const analysis = analyzeBusinessSpec(spec);
+  const actualViewerSpec = buildViewerSpec(spec, analysis);
   const expectedViewerSpec = JSON.parse(
-    await readFile(VNEXT_CROSS_CONTEXT_VIEWER_GOLDEN_PATH, "utf8")
+    await readFile(CROSS_CONTEXT_VIEWER_GOLDEN_PATH, "utf8")
   );
 
   assert.equal(actualViewerSpec.viewerVersion, BUSINESS_VIEWER_SPEC_VERSION);
   assert.deepStrictEqual(actualViewerSpec, expectedViewerSpec);
 });
 
-test("vNext viewer projection renders cross-context message flow and query details", async () => {
-  const spec = await loadVnextCrossContextFixture();
-  const analysis = analyzeVnextBusinessSpec(spec);
-  const viewerSpec = buildVnextViewerSpec(spec, analysis);
+test("viewer projection renders cross-context message flow and query details", async () => {
+  const spec = await loadCrossContextFixture();
+  const analysis = analyzeBusinessSpec(spec);
+  const viewerSpec = buildViewerSpec(spec, analysis);
   const contextMapView = mustFind(viewerSpec.views, (view) => view.id === "context-map");
   const messageFlowView = mustFind(viewerSpec.views, (view) => view.id === "message-flow");
   const scenarioStoryView = mustFind(viewerSpec.views, (view) => view.id === "scenario-story");

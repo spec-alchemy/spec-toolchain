@@ -39,8 +39,6 @@ Thumbs.db
 
 # Project-specific excluded docs
 docs/*
-!docs/ddd-spec/
-!docs/ddd-spec/**
 tasks/
 
 # DDD spec generated outputs

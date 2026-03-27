@@ -14,14 +14,14 @@ import {
   REPO_VIEWER_CONFIG_PATH
 } from "./test-support/cli-test-fixtures.js";
 import {
-  copyVnextCanonicalToZeroConfigRoot,
+  copyDomainModelToZeroConfigRoot,
   countMatches
 } from "./test-support/cli-test-helpers.js";
 test("zero-config mode resolves domain-model and disables TypeScript by default", async () => {
-  const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-zero-config-vnext-resolve-"));
+  const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-zero-config-domain-model-resolve-"));
 
   try {
-    await copyVnextCanonicalToZeroConfigRoot(tempDir);
+    await copyDomainModelToZeroConfigRoot(tempDir);
 
     const config = await loadDddSpecConfig({
       cwd: tempDir
@@ -120,7 +120,7 @@ test("zero-config ignores the removed canonical-vnext default workspace path", a
 });
 
 test("config mode defaults the schema path to the domain model schema", async () => {
-  const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-config-vnext-schema-"));
+  const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-config-domain-model-schema-"));
   const configPath = join(tempDir, "ddd-spec.config.yaml");
 
   try {

@@ -1,12 +1,12 @@
 import {
-  analyzeVnextBusinessSpec,
+  analyzeBusinessSpec,
   loadCanonicalSpec,
-  type VnextBusinessSpec,
-  type VnextBusinessSpecAnalysis,
-  validateVnextCanonicalSchema,
+  type BusinessSpec,
+  type BusinessSpecAnalysis,
+  validateDomainModelWorkspaceSchema,
   validateBusinessSpecSemantics
 } from "../ddd-spec-core/index.js";
-import { buildVnextViewerSpec } from "../ddd-spec-projection-viewer/index.js";
+import { buildViewerSpec } from "../ddd-spec-projection-viewer/index.js";
 import {
   removeOutputPath,
   writeJsonArtifact
@@ -41,10 +41,10 @@ export interface RunCliCommandOptions {
 }
 
 interface LoadedSpecContext {
-  spec: VnextBusinessSpec;
+  spec: BusinessSpec;
 }
 
-type LoadedSpecAnalysis = VnextBusinessSpecAnalysis;
+type LoadedSpecAnalysis = BusinessSpecAnalysis;
 
 export async function runCliCommand(
   argv: readonly string[],
@@ -223,7 +223,7 @@ async function loadValidatedSpec(
     validateSemantics: false
   });
 
-  await validateVnextCanonicalSchema({
+  await validateDomainModelWorkspaceSchema({
     entryPath: config.spec.entryPath,
     schemaPath: config.schema.path
   });
@@ -236,7 +236,7 @@ async function loadValidatedSpec(
 
 async function generateTypescriptSpec(
   config: Awaited<ReturnType<typeof loadDddSpecConfig>>,
-  spec: VnextBusinessSpec
+  spec: BusinessSpec
 ): Promise<void> {
   void config;
   void spec;
@@ -248,11 +248,11 @@ async function generateTypescriptSpec(
 
 async function generateViewerSpec(
   config: Awaited<ReturnType<typeof loadDddSpecConfig>>,
-  spec: VnextBusinessSpec,
+  spec: BusinessSpec,
   analysis: LoadedSpecAnalysis
 ): Promise<void> {
   const viewerPath = requireOutputPath(config.outputs.viewerPath, "outputs.viewer");
-  const viewerSpec = buildVnextViewerSpec(spec, analysis);
+  const viewerSpec = buildViewerSpec(spec, analysis);
 
   await writeJsonArtifact(viewerPath, viewerSpec);
   logArtifact("generated viewer spec", viewerPath);
@@ -432,8 +432,8 @@ function uniqueDefined(values: readonly (string | undefined)[]): string[] {
   return [...new Set(values.filter((value): value is string => Boolean(value)))];
 }
 
-function analyzeSpec(spec: VnextBusinessSpec): LoadedSpecAnalysis {
-  return analyzeVnextBusinessSpec(spec);
+function analyzeSpec(spec: BusinessSpec): LoadedSpecAnalysis {
+  return analyzeBusinessSpec(spec);
 }
 
 function formatAnalysisSuccessMessage(analysis: LoadedSpecAnalysis): string {

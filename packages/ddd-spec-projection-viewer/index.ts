@@ -1,1 +1,1 @@
-export { buildVnextViewerSpec } from "./vnext.js";
+export { buildViewerSpec } from "./viewer-spec.js";

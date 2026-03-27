@@ -4,18 +4,18 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
-import type { VnextBusinessSpecAnalysis } from "../ddd-spec-core/index.js";
+import type { BusinessSpecAnalysis } from "../ddd-spec-core/index.js";
 import type { BusinessViewerSpec } from "../ddd-spec-viewer-contract/index.js";
 import { runCliCommand } from "./commands.js";
 import {
   CLI_DIST_VIEWER_DIR_PATH,
   REPO_VIEWER_ENTRY_PATH
 } from "./test-support/cli-test-fixtures.js";
-import { copyVnextCanonicalToZeroConfigRoot } from "./test-support/cli-test-helpers.js";
+import { copyDomainModelToZeroConfigRoot } from "./test-support/cli-test-helpers.js";
 import type { LaunchViewerOptions } from "./viewer.js";
 import YAML from "yaml";
 
-const VNEXT_CROSS_CONTEXT_ENTRY_PATH = fileURLToPath(
+const CROSS_CONTEXT_ENTRY_PATH = fileURLToPath(
   new URL("../../examples/cross-context/domain-model/index.yaml", import.meta.url)
 );
 
@@ -29,7 +29,7 @@ function assertPrimaryViewOrder(
   );
 }
 
-function buildVnextConfigSource(options: {
+function buildConfigSource(options: {
   entryPath?: string;
   rootDir?: string;
   viewerSyncTargets?: readonly string[];
@@ -38,7 +38,7 @@ function buildVnextConfigSource(options: {
   return YAML.stringify({
     version: 1,
     spec: {
-      entry: options.entryPath ?? VNEXT_CROSS_CONTEXT_ENTRY_PATH
+      entry: options.entryPath ?? CROSS_CONTEXT_ENTRY_PATH
     },
     outputs: {
       rootDir: options.rootDir ?? "./artifacts"
@@ -64,7 +64,7 @@ test("CLI build syncs viewer spec to configured sync targets", async () => {
   try {
     await writeFile(
       configPath,
-      buildVnextConfigSource({
+      buildConfigSource({
         viewerSyncTargets: ["./app/public/generated/viewer-spec.json"]
       }),
       "utf8"
@@ -92,7 +92,7 @@ test("CLI validate succeeds in explicit config mode without writing outputs", as
   const configPath = join(tempDir, "ddd-spec.config.yaml");
 
   try {
-    await writeFile(configPath, buildVnextConfigSource(), "utf8");
+    await writeFile(configPath, buildConfigSource(), "utf8");
 
     await runCliCommand(["validate", "--config", configPath], {
       cwd: tempDir
@@ -115,7 +115,7 @@ test("CLI validate and build succeed in zero-config mode with the reset domain m
   const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-zero-config-build-"));
 
   try {
-    await copyVnextCanonicalToZeroConfigRoot(tempDir);
+    await copyDomainModelToZeroConfigRoot(tempDir);
 
     await runCliCommand(["validate"], { cwd: tempDir });
 
@@ -137,7 +137,7 @@ test("CLI validate and build succeed in zero-config mode with the reset domain m
         join(tempDir, ".ddd-spec", "artifacts", "business-spec.analysis.json"),
         "utf8"
       )
-    ) as VnextBusinessSpecAnalysis;
+    ) as BusinessSpecAnalysis;
     const viewer = JSON.parse(
       await readFile(join(tempDir, ".ddd-spec", "artifacts", "viewer-spec.json"), "utf8")
     ) as BusinessViewerSpec;
@@ -167,7 +167,7 @@ test("CLI viewer rebuilds the zero-config viewer artifact and launches the packa
   let launchOptions: LaunchViewerOptions | undefined;
 
   try {
-    await copyVnextCanonicalToZeroConfigRoot(tempDir);
+    await copyDomainModelToZeroConfigRoot(tempDir);
 
     await runCliCommand(["viewer", "--", "--host", "0.0.0.0"], {
       cwd: tempDir,
@@ -208,7 +208,7 @@ test("CLI viewer rebuilds the explicit-config viewer artifact and launches the p
   let launchOptions: LaunchViewerOptions | undefined;
 
   try {
-    await writeFile(configPath, buildVnextConfigSource(), "utf8");
+    await writeFile(configPath, buildConfigSource(), "utf8");
 
     await runCliCommand(["viewer", "--config", configPath, "--", "--host", "0.0.0.0", "--port", "0"], {
       cwd: tempDir,
@@ -250,7 +250,7 @@ test("CLI dev rebuilds the zero-config viewer artifact and enables browser auto-
   let launchOptions: LaunchViewerOptions | undefined;
 
   try {
-    await copyVnextCanonicalToZeroConfigRoot(tempDir);
+    await copyDomainModelToZeroConfigRoot(tempDir);
 
     await runCliCommand(["dev", "--", "--host", "0.0.0.0"], {
       cwd: tempDir,
@@ -289,14 +289,14 @@ test("CLI dev rebuilds the zero-config viewer artifact and enables browser auto-
 });
 
 test("CLI build supports version 1 domain models when viewer projection is enabled without TypeScript output", async () => {
-  const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-vnext-build-"));
+  const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-domain-model-build-"));
   const configPath = join(tempDir, "ddd-spec.config.yaml");
 
   try {
     await writeFile(
       configPath,
-      buildVnextConfigSource({
-        entryPath: VNEXT_CROSS_CONTEXT_ENTRY_PATH
+      buildConfigSource({
+        entryPath: CROSS_CONTEXT_ENTRY_PATH
       }),
       "utf8"
     );
@@ -310,7 +310,7 @@ test("CLI build supports version 1 domain models when viewer projection is enabl
     ) as { version: 1 };
     const analysis = JSON.parse(
       await readFile(join(tempDir, "artifacts", "business-spec.analysis.json"), "utf8")
-    ) as VnextBusinessSpecAnalysis;
+    ) as BusinessSpecAnalysis;
     const viewer = JSON.parse(
       await readFile(
         join(tempDir, "artifacts", "business-viewer", "viewer-spec.json"),
@@ -338,14 +338,14 @@ test("CLI build supports version 1 domain models when viewer projection is enabl
 });
 
 test("CLI viewer supports version 1 domain models through the packaged viewer path", async () => {
-  const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-vnext-viewer-"));
+  const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-domain-model-viewer-"));
   const configPath = join(tempDir, "ddd-spec.config.yaml");
   let launchOptions: LaunchViewerOptions | undefined;
 
   try {
     await writeFile(
       configPath,
-      buildVnextConfigSource({
+      buildConfigSource({
         entryPath: REPO_VIEWER_ENTRY_PATH
       }),
       "utf8"

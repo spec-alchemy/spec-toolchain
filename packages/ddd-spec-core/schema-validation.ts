@@ -3,8 +3,8 @@ import { basename, dirname, join, resolve } from "node:path";
 import type { ErrorObject } from "ajv";
 import YAML from "yaml";
 import {
-  loadVnextCanonicalIndexSpec,
-  type VnextCollectionRef
+  loadDomainModelIndexSpec,
+  type CollectionRef
 } from "./spec.js";
 
 type AjvConstructor = new (options?: Record<string, unknown>) => {
@@ -24,12 +24,12 @@ export interface ValidateBusinessSpecSchemaOptions {
   schemaPath: string;
 }
 
-export interface ValidateVnextCanonicalSchemaOptions {
+export interface ValidateDomainModelWorkspaceSchemaOptions {
   entryPath: string;
   schemaPath: string;
 }
 
-const VNEXT_COLLECTION_VALIDATION = {
+const DOMAIN_MODEL_COLLECTION_VALIDATION = {
   contexts: {
     schemaFileName: "context.schema.json",
     suffix: ".context.yaml"
@@ -77,10 +77,10 @@ export async function validateBusinessSpecSchema(
   }
 }
 
-export async function validateVnextCanonicalSchema(
-  options: ValidateVnextCanonicalSchemaOptions
+export async function validateDomainModelWorkspaceSchema(
+  options: ValidateDomainModelWorkspaceSchemaOptions
 ): Promise<void> {
-  const index = await loadVnextCanonicalIndexSpec(options.entryPath);
+  const index = await loadDomainModelIndexSpec(options.entryPath);
   const schemaDirPath = dirname(options.schemaPath);
   const baseDir = dirname(options.entryPath);
 
@@ -88,9 +88,9 @@ export async function validateVnextCanonicalSchema(
     schemaPath: options.schemaPath
   });
 
-  for (const [collectionKey, config] of Object.entries(VNEXT_COLLECTION_VALIDATION)) {
+  for (const [collectionKey, config] of Object.entries(DOMAIN_MODEL_COLLECTION_VALIDATION)) {
     const reference = index.model[collectionKey as keyof typeof index.model];
-    const absolutePaths = await resolveVnextCollectionPaths(baseDir, reference, config.suffix);
+    const absolutePaths = await resolveDomainModelCollectionPaths(baseDir, reference, config.suffix);
 
     for (const absolutePath of absolutePaths) {
       const source = await readFile(absolutePath, "utf8");
@@ -137,16 +137,16 @@ async function createSchemaValidator(schemaPath: string): Promise<JsonSchemaVali
   return ajv.compile(JSON.parse(schemaSource) as object);
 }
 
-async function resolveVnextCollectionPaths(
+async function resolveDomainModelCollectionPaths(
   baseDir: string,
-  reference: VnextCollectionRef,
+  reference: CollectionRef,
   suffix: string
 ): Promise<readonly string[]> {
   if (typeof reference === "string") {
     const absoluteDir = resolve(baseDir, reference);
     const entries = await readdir(absoluteDir, { withFileTypes: true });
     const fileNames = entries
-      .filter((entry) => entry.isFile() && matchesVnextCollectionFile(entry.name, suffix))
+      .filter((entry) => entry.isFile() && matchesDomainModelCollectionFile(entry.name, suffix))
       .map((entry) => entry.name)
       .sort();
 
@@ -156,7 +156,7 @@ async function resolveVnextCollectionPaths(
   return reference.map((relativePath) => resolve(baseDir, relativePath));
 }
 
-function matchesVnextCollectionFile(fileName: string, suffix: string): boolean {
+function matchesDomainModelCollectionFile(fileName: string, suffix: string): boolean {
   return (
     fileName.endsWith(suffix) ||
     (suffix.endsWith(".yaml") && fileName.endsWith(suffix.replace(/yaml$/, "yml")))

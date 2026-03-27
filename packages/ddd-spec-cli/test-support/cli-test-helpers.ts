@@ -13,7 +13,7 @@ import {
 import { dirname, join, relative, resolve } from "node:path";
 import { tmpdir } from "node:os";
 import { parse, type ParseError } from "jsonc-parser";
-import { isVnextBusinessSpec, loadCanonicalSpec } from "../../ddd-spec-core/index.js";
+import { isBusinessSpec, loadCanonicalSpec } from "../../ddd-spec-core/index.js";
 import type { ViewerDevSessionStatus } from "../viewer-dev-session.js";
 import {
   CORE_SCHEMA_DIR_PATH,
@@ -26,7 +26,7 @@ import {
   WORKSPACE_SCHEMA_DIR_RELATIVE_PATH
 } from "./cli-test-fixtures.js";
 
-export async function copyVnextCanonicalToZeroConfigRoot(
+export async function copyDomainModelToZeroConfigRoot(
   targetRootPath: string,
   exampleId: "minimal" | "cross-context" = "minimal"
 ): Promise<void> {
@@ -306,7 +306,7 @@ export async function assertGeneratedInitSkeleton(rootPath: string): Promise<voi
     validateSemantics: false
   });
 
-  if (!isVnextBusinessSpec(spec)) {
+  if (!isBusinessSpec(spec)) {
     throw new Error("Expected the init scaffold to load as the default domain model");
   }
 
