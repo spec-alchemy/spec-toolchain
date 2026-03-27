@@ -14,6 +14,7 @@ after each iteration and it's included in prompts for context.
 - When vNext validation needs to feed later IR or CLI layers, collect structured diagnostics (`code`, `path`, `message`) first and layer the throwing validator on top, rather than forcing downstream code to parse error strings.
 - For vNext modeling, keep one analysis layer as the source of truth for normalization, view projections, and diagnostics; compatibility wrappers such as `vnext-semantic-validation.ts` should delegate instead of re-encoding rules.
 - For vNext lifecycle work, keep all aggregates in the shared analysis IR and filter lifecycle-only visibility in `projectVnextLifecycle()` via explicit aggregate metadata such as `lifecycleComplexity`, so context/message views retain full aggregate coverage.
+- For packaged vNext viewer verification, do not rely on root `repo:viewer`; it is pinned to the repo's legacy scenario config. Launch the packaged viewer against an example-specific vNext config such as `examples/vnext-cross-context/ddd-spec.config.yaml` when you need browser-facing evidence for vNext views.
 
 ---
 
@@ -38,8 +39,6 @@ after each iteration and it's included in prompts for context.
     - Lifecycle visibility belongs at the vNext projection seam, not in the shared IR shape; explicit aggregate metadata keeps the lifecycle view focused without erasing aggregate data from context or message projections.
   - Gotchas encountered
     - Headless Chrome launch was blocked by the current sandbox, so the practical fallback was to rely on packaged viewer path tests plus viewer inspector UI tests after confirming the packaged `viewer` command still served the vNext example correctly.
----
-
 ## 2026-03-27 - knowledge-alchemy-app-v2-jq7
 - Implemented a formal `ddd-spec` vNext documentation entrypoint and a normative product design spec that turns the roadmap into an implementation-ready product definition.
 - Captured the new core concepts, 4 primary views, 2 secondary views, default user path, modeling order, analysis IR expectations, validation scope, and package-boundary decision in one place.
@@ -211,4 +210,15 @@ after each iteration and it's included in prompts for context.
   - Gotchas encountered
     - The CLI's previous schema-validation path was validating the post-load vNext bundle against the legacy canonical index schema, which produced the wrong failure mode; validating raw source files fixed repo gates without weakening legacy validation.
     - TypeScript projection is still legacy-only, so vNext example configs need to disable it explicitly until a separate vNext projection path exists.
+---
+## 2026-03-27 - knowledge-alchemy-app-v2-k42
+- Verified the pre-existing `Scenario Story` implementation for vNext: `buildVnextViewerSpec()` emits `scenario-story`, step detail data includes `context` / `actor` / `system`, and the cross-context vNext example expresses ordered progression plus terminal outcomes through scenario sequence edges.
+- Re-ran targeted viewer/CLI regressions plus the repo-level gates (`repo:validate`, `repo:build`, `pkg:test`, `verify`), and confirmed the packaged viewer path serves the vNext example config with `scenario-story` content in the generated viewer spec.
+- Files changed:
+  - `.ralph-tui/progress.md`
+- **Learnings:**
+  - Patterns discovered
+    - vNext manual viewer checks need an example-specific packaged viewer config because the root maintainer viewer entry is intentionally version-locked to the legacy repo scenario.
+  - Gotchas encountered
+    - The current sandbox denies launching the local Chrome binary, so interactive browser validation could only go as far as packaged viewer server availability plus the existing packaged-viewer/runtime tests for v3 scenarios.
 ---
