@@ -11,10 +11,11 @@ import {
   SelectTrigger,
 } from "@/components/ui/select";
 import {
-  getPrimaryModelingPath,
+  getPrimaryModelingFlow,
   getSelectedViewExperience,
   getViewerNavigationExperience
 } from "@/lib/view-experience";
+import { DEFAULT_DOMAIN_MODEL_ENTRY_PATH } from "@/lib/viewer-constants";
 import { cn } from "@/lib/utils";
 
 interface ViewerHeaderProps {
@@ -38,7 +39,7 @@ export function ViewerHeader({
 }: ViewerHeaderProps) {
   const navigation = getViewerNavigationExperience(viewerSpec);
   const selectedView = getSelectedViewExperience(viewerSpec, selectedViewId);
-  const defaultPath = getPrimaryModelingPath(viewerSpec);
+  const primaryModelingFlow = getPrimaryModelingFlow(viewerSpec);
 
   return (
     <header
@@ -49,20 +50,32 @@ export function ViewerHeader({
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0 flex-1 space-y-1.5" data-slot="title-block">
             <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-muted-foreground">
-              Modeling Workspace
+              Domain Model Workspace
             </p>
             <h1 className="text-xl font-semibold tracking-[-0.02em] text-foreground">
               {viewerSpec?.title ?? "DDD Spec Viewer"}
             </h1>
             <p className="max-w-3xl text-[13px] leading-6 text-muted-foreground">
               {viewerSpec?.summary ??
-                "Open a generated workspace to inspect boundaries, stories, messages, and lifecycle decisions as one modeling flow."}
+                "Open a generated domain model workspace to inspect boundaries, stories, messages, and lifecycle decisions as one modeling flow."}
             </p>
-            <p className="max-w-3xl text-[12px] leading-5 text-muted-foreground">
-              Default path: {defaultPath}
+            <p
+              className="max-w-3xl text-[12px] leading-5 text-muted-foreground"
+              data-slot="default-entry"
+            >
+              Default entry: {DEFAULT_DOMAIN_MODEL_ENTRY_PATH}
             </p>
-            <p className="max-w-3xl break-all text-[12px] leading-5 text-muted-foreground">
-              Source: {specSourceLabel}
+            <p
+              className="max-w-3xl text-[12px] leading-5 text-muted-foreground"
+              data-slot="primary-modeling-flow"
+            >
+              Primary modeling flow: {primaryModelingFlow}
+            </p>
+            <p
+              className="max-w-3xl break-all text-[12px] leading-5 text-muted-foreground"
+              data-slot="viewer-artifact"
+            >
+              Viewer artifact: {specSourceLabel}
             </p>
             {devSessionMessage ? (
               <p
@@ -165,7 +178,7 @@ export function ViewerHeader({
               </p>
 
               <Button type="button" variant="outline" onClick={onReload} className="w-full">
-                Reload Spec
+                Reload Viewer
               </Button>
             </div>
           </div>

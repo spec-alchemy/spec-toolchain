@@ -60,13 +60,13 @@ export function getViewerDevSessionMessage(
 
   if (status.buildState === "failed") {
     return {
-      message: `Auto-reload paused after a rebuild failure: ${status.lastFailureMessage ?? "Unknown error"}. Showing the last successful viewer spec until the next build passes.`,
+      message: `Auto-reload paused after a rebuild failure: ${status.lastFailureMessage ?? "Unknown error"}. Showing the last successful viewer artifact until the next build passes.`,
       tone: "warning"
     };
   }
 
   return {
-    message: "Auto-reload is active for the current workspace viewer spec.",
+    message: "Auto-reload is active for the current domain model workspace.",
     tone: "info"
   };
 }

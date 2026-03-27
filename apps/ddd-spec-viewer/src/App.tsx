@@ -29,6 +29,7 @@ import {
   VIEWER_DEV_SESSION_POLL_INTERVAL_MS,
   type ViewerDevSessionStatus
 } from "@/lib/viewer-dev-session";
+import { DEFAULT_DOMAIN_MODEL_ENTRY_PATH } from "@/lib/viewer-constants";
 import type {
   BusinessViewerSpec,
   InspectorSelection,
@@ -44,7 +45,9 @@ export default function App() {
   const deferredViewId = useDeferredValue(selectedViewId);
   const [layoutedView, setLayoutedView] = useState<LayoutedView | null>(null);
   const [selection, setSelection] = useState<InspectorSelection | null>(null);
-  const [loadingMessage, setLoadingMessage] = useState("Loading modeling workspace...");
+  const [loadingMessage, setLoadingMessage] = useState(
+    `Loading the domain model workspace from ${DEFAULT_DOMAIN_MODEL_ENTRY_PATH}...`
+  );
   const [devSessionStatus, setDevSessionStatus] = useState<ViewerDevSessionStatus | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const lastLoadedBuildRevisionRef = useRef(0);
@@ -63,7 +66,7 @@ export default function App() {
       const nextSource = resolveViewerSpecSource();
 
       setSpecSource(nextSource);
-      setLoadingMessage(`Loading modeling workspace from ${nextSource.label}...`);
+      setLoadingMessage(getWorkspaceLoadingMessage(nextSource));
       const nextSpec = await loadViewerSpec(nextSource);
 
       setViewerSpec(nextSpec);
@@ -131,7 +134,7 @@ export default function App() {
     let cancelled = false;
     setLayoutedView(null);
     setSelection(null);
-    setLoadingMessage(`Preparing the ${currentView.title} map...`);
+    setLoadingMessage(getMapPreparationMessage(currentView.title, specSource));
 
     void layoutViewerView(currentView)
       .then((nextLayout) => {
@@ -153,7 +156,7 @@ export default function App() {
     return () => {
       cancelled = true;
     };
-  }, [viewerSpec, deferredViewId]);
+  }, [viewerSpec, deferredViewId, specSource]);
 
   useEffect(() => {
     if (!specSource.isDefault) {
@@ -209,15 +212,17 @@ export default function App() {
               lines={[
                 errorMessage,
                 specSource.isDefault
-                  ? "Run `ddd-spec build` or `npm run repo:build` to regenerate the modeling workspace."
-                  : `Check the external spec source: ${specSource.label}`
+                  ? `Run \`ddd-spec build\` or \`npm run repo:build\` to regenerate viewer data from ${DEFAULT_DOMAIN_MODEL_ENTRY_PATH}.`
+                  : `Check the external viewer artifact: ${specSource.label}`
               ]}
               primaryViewGuide={navigation.primary}
               activeViewId={selectedView?.id}
             />
           ) : !layoutedView ? (
             <ViewerEmptyState
-              title={selectedView ? `Preparing ${selectedView.title}` : "Preparing Viewer"}
+              title={
+                selectedView ? `Preparing ${selectedView.title}` : "Preparing Domain Model Workspace"
+              }
               lines={[loadingMessage]}
               primaryViewGuide={navigation.primary}
               activeViewId={selectedView?.id}
@@ -258,6 +263,22 @@ function getDefaultView(views: readonly ViewerViewSpec[]): ViewerViewSpec | null
     [...views].sort((left, right) => left.navigation.order - right.navigation.order)[0] ??
     null
   );
+}
+
+function getWorkspaceLoadingMessage(source: ViewerSpecSource): string {
+  if (source.isDefault) {
+    return `Loading the domain model workspace from ${DEFAULT_DOMAIN_MODEL_ENTRY_PATH}...`;
+  }
+
+  return `Loading viewer data from ${source.label}...`;
+}
+
+function getMapPreparationMessage(viewTitle: string, source: ViewerSpecSource): string {
+  if (source.isDefault) {
+    return `Preparing the ${viewTitle} map from ${DEFAULT_DOMAIN_MODEL_ENTRY_PATH}...`;
+  }
+
+  return `Preparing the ${viewTitle} map from ${source.label}...`;
 }
 
 function getDefaultViewId(views: readonly ViewerViewSpec[]): string {

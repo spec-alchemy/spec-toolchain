@@ -484,10 +484,13 @@ test("viewer header surfaces the primary modeling path and map questions", () =>
     })
   );
 
+  assert.match(markup, /Domain Model Workspace/);
+  assert.match(markup, /Default entry: domain-model\/index\.yaml/);
   assert.match(
     markup,
-    /Default path: Context Map -&gt; Scenario Story -&gt; Message Flow \/ Trace -&gt; Lifecycle/
+    /Primary modeling flow: Context Map -&gt; Scenario Story -&gt; Message Flow \/ Trace -&gt; Lifecycle/
   );
+  assert.match(markup, /Viewer artifact: demo-source/);
   assert.match(markup, /Where are the business boundaries, and who collaborates across them\?/);
   assert.match(markup, /How does the business story move from trigger to outcome\?/);
   assert.match(
@@ -495,14 +498,15 @@ test("viewer header surfaces the primary modeling path and map questions", () =>
     /Which commands, events, and queries move work between steps, contexts, and systems\?/
   );
   assert.match(markup, /How does a core aggregate change state over time\?/);
+  assert.match(markup, /Reload Viewer/);
   assert.equal((markup.match(/data-slot="primary-map"/g) ?? []).length, 4);
 });
 
 test("viewer empty state explains the four primary maps", () => {
   const markup = renderToStaticMarkup(
     createElement(ViewerEmptyState, {
-      title: "Preparing Viewer",
-      lines: ["Loading modeling workspace..."],
+      title: "Preparing Domain Model Workspace",
+      lines: ["Loading the domain model workspace from domain-model/index.yaml..."],
       primaryViewGuide: getViewerNavigationExperience(DEMO_VIEWER_SPEC).primary,
       activeViewId: "context-map"
     })
@@ -514,6 +518,27 @@ test("viewer empty state explains the four primary maps", () => {
   assert.match(markup, /Scenario Story/);
   assert.match(markup, /Message Flow \/ Trace/);
   assert.match(markup, /Lifecycle/);
+});
+
+test("inspector no-view state points back to the default domain model entry", () => {
+  const markup = renderToStaticMarkup(
+    createElement(
+      TooltipProvider,
+      { delayDuration: 0 },
+      createElement(InspectorPanel, {
+        view: null,
+        selection: null,
+        semanticDetailHelp: {}
+      })
+    )
+  );
+
+  assert.match(markup, /No View Loaded/);
+  assert.match(markup, /domain-model\/index\.yaml/);
+  assert.match(
+    markup,
+    /primary modeling flow: Context Map -&gt; Scenario Story -&gt; Message Flow \/ Trace -&gt; Lifecycle\./
+  );
 });
 
 test("inspector empty selection explains what the current map answers and how to read it", () => {

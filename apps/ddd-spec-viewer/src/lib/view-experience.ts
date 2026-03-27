@@ -161,7 +161,7 @@ export function getSelectedViewExperience(
   );
 }
 
-export function getPrimaryModelingPath(viewerSpec: BusinessViewerSpec | null): string {
+export function getPrimaryModelingFlow(viewerSpec: BusinessViewerSpec | null): string {
   const primaryViews = getViewerNavigationExperience(viewerSpec).primary;
   const orderedPrimaryViews =
     primaryViews.length > 0

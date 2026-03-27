@@ -1,7 +1,6 @@
 import { BUSINESS_VIEWER_SPEC_VERSION } from "@knowledge-alchemy/ddd-spec-viewer-contract";
 import type { BusinessViewerSpec } from "../types";
-
-const DEFAULT_VIEWER_SPEC_PATH = "generated/viewer-spec.json";
+import { DEFAULT_VIEWER_SPEC_PATH } from "./viewer-constants";
 const SPEC_QUERY_PARAM = "spec";
 
 export interface ViewerSpecSource {

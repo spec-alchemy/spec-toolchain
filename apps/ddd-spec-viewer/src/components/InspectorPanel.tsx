@@ -2,7 +2,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { InfoTooltip } from "./InfoTooltip";
 import { DetailValueRenderer } from "./DetailValueRenderer";
 import { getInspectorDetailHelp } from "../lib/inspector-detail-help";
-import { getPrimaryModelingPath, getViewExperience } from "../lib/view-experience";
+import { getPrimaryModelingFlow, getViewExperience } from "../lib/view-experience";
+import { DEFAULT_DOMAIN_MODEL_ENTRY_PATH } from "../lib/viewer-constants";
 import type { InspectorSelection, ViewerViewSpec } from "../types";
 
 interface InspectorPanelProps {
@@ -26,7 +27,8 @@ export function InspectorPanel({
           No View Loaded
         </h2>
         <p className="text-[13px] leading-6 text-muted-foreground [overflow-wrap:anywhere]">
-          Load a viewer spec to inspect the default modeling path: {getPrimaryModelingPath(null)}.
+          Load generated viewer data for {DEFAULT_DOMAIN_MODEL_ENTRY_PATH} to inspect the
+          primary modeling flow: {getPrimaryModelingFlow(null)}.
         </p>
       </section>
     );

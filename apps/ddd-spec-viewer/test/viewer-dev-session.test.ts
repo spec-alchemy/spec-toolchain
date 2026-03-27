@@ -28,7 +28,7 @@ test("viewer dev session auto-reload only reacts to newer successful builds", ()
   );
 });
 
-test("viewer dev session messaging stays scoped to the default workspace spec", () => {
+test("viewer dev session messaging stays scoped to the default domain model workspace", () => {
   const readyMessage = getViewerDevSessionMessage(READY_STATUS, {
     isDefaultSpecSource: true
   });
@@ -47,10 +47,14 @@ test("viewer dev session messaging stays scoped to the default workspace spec", 
   });
 
   assert.equal(readyMessage.tone, "info");
-  assert.ok(readyMessage.message);
+  assert.equal(
+    readyMessage.message,
+    "Auto-reload is active for the current domain model workspace."
+  );
   assert.equal(failedMessage.tone, "warning");
   assert.ok(failedMessage.message);
   assert.match(failedMessage.message, /bad yaml/);
+  assert.match(failedMessage.message, /last successful viewer artifact/);
   assert.deepEqual(externalMessage, {
     message: null,
     tone: null
