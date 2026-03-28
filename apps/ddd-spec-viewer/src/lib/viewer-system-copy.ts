@@ -221,14 +221,6 @@ const VIEWER_SYSTEM_COPY: Readonly<Record<ViewerLocale, ViewerSystemCopy>> = {
         howToRead:
           "Read each aggregate as a lifecycle, then inspect states and transitions to see trigger messages, emitted follow-up work, and valid business progression."
       },
-      "domain-structure": {
-        defaultTitle: "Domain Structure",
-        question: "What lives inside each aggregate boundary, and what is shared outside it?",
-        overview:
-          "Use this secondary map to inspect fields, owned objects, shared types, and structural references.",
-        howToRead:
-          "Start from an aggregate root, then follow composition, association, and reference edges to understand structural ownership and shared dependencies."
-      },
       "policy-saga": {
         defaultTitle: "Policy / Saga",
         question: "Which policies coordinate follow-up work after a message arrives?",
@@ -359,14 +351,6 @@ const VIEWER_SYSTEM_COPY: Readonly<Record<ViewerLocale, ViewerSystemCopy>> = {
           "当你需要理解业务故事和消息流背后的状态机时，先看这里。",
         howToRead:
           "把每个聚合当作一条生命周期来阅读，再查看状态与迁移，理解触发消息、发出的后续工作以及合法的业务推进。"
-      },
-      "domain-structure": {
-        defaultTitle: "领域结构",
-        question: "每个聚合边界内包含什么，边界外共享什么？",
-        overview:
-          "用这张次级视图检查字段、自有对象、共享类型和结构引用。",
-        howToRead:
-          "从聚合根开始，再沿着组合、关联和引用连线理解结构所有权与共享依赖。"
       },
       "policy-saga": {
         defaultTitle: "策略 / Saga",

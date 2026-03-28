@@ -154,6 +154,14 @@ test("viewer projection renders cross-context message flow and query details", a
     viewerSpec.views.map((view) => view.id),
     ["context-map", "scenario-story", "message-flow", "lifecycle"]
   );
+  assert.equal(
+    viewerSpec.views.some((view) => view.kind === "policy-saga"),
+    false
+  );
+  assert.equal(
+    viewerSpec.views.some((view) => view.id === "domain-structure"),
+    false
+  );
   assert.equal(getTextDetailValue(ledgerGatewayNode.details, "system.boundary"), "external");
   assert.deepEqual(
     getRecordListDetailEntries(ordersContextNode.details, "context.relationships"),

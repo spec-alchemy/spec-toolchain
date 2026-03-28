@@ -14,7 +14,6 @@ export type ViewerViewKind =
   | "scenario-story"
   | "message-flow"
   | "lifecycle"
-  | "domain-structure"
   | "policy-saga";
 
 export type ViewerViewTier = "primary" | "secondary";

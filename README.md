@@ -1,26 +1,89 @@
-# DDD Spec Modeling Workbench Monorepo
+# Design Alchemy
 
-`@knowledge-alchemy/ddd-spec` currently ships a DDD modeling workbench: a zero-config CLI plus a packaged viewer that take teams from `Context Map` to `Scenario Story` to `Message Flow / Trace` to `Lifecycle`.
+本仓库已从 `knowledge-alchemy-app-v2` 重命名为 `design-alchemy`。它的定位是通用的 design-as-code 基础设施，而不是任何单一业务产品本身。
 
-In a consumer workspace, the default path is `domain-model/` and the default entry is `domain-model/index.yaml`: define the model, validate and build into `.ddd-spec/`, then open the local viewer to inspect the same four primary views. This repository is the private maintainer monorepo for that toolchain; the installed-package workflow below is the path ordinary users should follow in their own projects.
+## 仓库定位
 
-## Consumer Quick Start
+`design-alchemy` 当前聚焦于业务建模 as code，并将逐步扩展到：
 
-Start here if you want to use `@knowledge-alchemy/ddd-spec` inside your own project. The package requires Node `>=18`.
+- UI as code
+- 前端架构 as code
+- 后端架构 as code
 
-Install the package into your workspace:
+产品核心不是 viewer，而是设计资产本身：
+
+- 可编写
+- 可分析
+- 可 diff
+- 可 review
+- 可生成
+- 可进入执行约束
+
+viewer 只是 projection layer。
+
+## 与 Knowledge Alchemy App 的关系
+
+同级仓库 [`knowledge-alchemy-app`](/Users/tella/Development/knowledge-alchemy-app/README.md) 是真实业务产品。`design-alchemy` 负责把那个产品中反复出现、值得沉淀的设计问题提炼成通用能力：
+
+- 共享设计资产 contract
+- analysis IR
+- diagnostics
+- diff / review 能力
+- generation 与 projection 工具链
+
+协作边界如下：
+
+1. `knowledge-alchemy-app` 提供真实问题、真实约束与真实验证场景。
+2. `design-alchemy` 只抽象稳定、重复、值得复用的模式。
+3. 业务产品不会作为本仓库里的内嵌 demo 长期承载。
+4. 本仓库的 `examples/` 只保留最小化、通用化样本，用于回归和文档。
+
+## 联合推进方式
+
+两个仓库联合推进，但职责不同：
+
+- `knowledge-alchemy-app`：负责产品策略、业务建模、UI、应用架构与真实实现
+- `design-alchemy`：负责建模 contract、analysis、diagnostics、diff/review、generation、projection
+
+推荐工作循环：
+
+1. 先在 `knowledge-alchemy-app` 中设计并实现真实功能
+2. 识别当前设计资产或工具能力的不足
+3. 将稳定且重复出现的模式提炼到 `design-alchemy`
+4. 再把增强后的能力回灌到业务产品中
+
+## 当前产品表面
+
+当前公开产品仍然是 `@knowledge-alchemy/ddd-spec`：一个零配置 CLI 加打包 viewer 的 DDD 建模工作台。默认工作区为 `domain-model/`，默认入口为 `domain-model/index.yaml`。
+
+默认阅读路径与教学路径保持一致：
+
+1. `Context Map`
+2. `Scenario Story`
+3. `Message Flow / Trace`
+4. `Lifecycle`
+
+二级扩展图当前包括：
+
+- `Policy / Saga`
+
+## 面向使用者的快速开始
+
+如果你要在自己的项目中使用当前公开包，要求 Node `>=18`。
+
+安装：
 
 ```sh
 npm install --save-dev @knowledge-alchemy/ddd-spec
 ```
 
-Initialize the default starter:
+初始化默认工作区：
 
 ```sh
 npm exec ddd-spec init
 ```
 
-That creates a modeling tree under `domain-model/`:
+将创建如下结构：
 
 ```text
 domain-model/
@@ -34,14 +97,13 @@ domain-model/
   policies/
 ```
 
-The standard day-to-day workflow is:
+日常开发流程：
 
 ```sh
-# edit domain-model/
 npm exec ddd-spec dev
 ```
 
-If you want the explicit step-by-step flow instead of the watch loop:
+显式分步流程：
 
 ```sh
 npm exec ddd-spec validate
@@ -49,179 +111,61 @@ npm exec ddd-spec build
 npm exec ddd-spec viewer -- --port 4173
 ```
 
-## What You Model
+## 默认建模内容
 
-The default domain model lives in `domain-model/`, with `domain-model/index.yaml` as the entry file:
+`domain-model/` 中的核心内容如下：
 
-- `index.yaml`: the default entry point that wires the domain model collections together
-- `contexts/`: bounded contexts and their relationships
-- `actors/`: people or roles that trigger business behavior
-- `systems/`: external systems that participate in flows
-- `scenarios/`: ordered business stories and step sequences
-- `messages/`: commands, events, and queries that connect the story
-- `aggregates/`: lifecycle-bearing boundaries inside a context
-- `policies/`: explicit coordination rules for follow-up behavior
+- `contexts/`：bounded contexts 及其关系
+- `actors/`：触发业务行为的人或角色
+- `systems/`：参与协作的外部系统
+- `scenarios/`：按步骤展开的业务故事
+- `messages/`：command、event、query 等统一消息抽象
+- `aggregates/`：需要生命周期建模的边界
+- `policies/`：显式协调规则
 
-The default authoring order is the same one taught by the product:
+默认 authoring 顺序：
 
-1. define context boundaries, actors, and systems
-2. model one core scenario story
-3. attach the message flow to that scenario
-4. add lifecycle detail only where state complexity is real
+1. 先定义 context、actor、system
+2. 再建一个核心 scenario
+3. 为 scenario 绑定 message flow
+4. 只在状态复杂度真实存在时补 lifecycle
 
-## What You See
+## 仓库边界
 
-The packaged viewer default surface is the four primary views:
+- 根仓库是 maintainer monorepo，不是普通消费方项目模板
+- `packages/ddd-spec-cli/` 是当前唯一公开 npm 包边界
+- `apps/ddd-spec-viewer/` 是私有 viewer 源码
+- `examples/` 是仓库内维护资产，不随产品 tarball 发布
 
-- `Context Map`
-- `Scenario Story`
-- `Message Flow / Trace`
-- `Lifecycle`
+## 维护者命令
 
-The viewer also keeps two secondary expansions available when needed:
+| 任务 | 命令 |
+|------|------|
+| 验证仓库示例流程 | `npm run repo:validate` |
+| 构建仓库示例输出 | `npm run repo:build` |
+| 启动仓库示例 viewer | `npm run repo:viewer` |
+| 运行包级回归测试 | `npm run pkg:test` |
+| 验证打包 CLI 与 viewer 工作区 | `npm run verify` |
+| 启动 viewer 开发服务器 | `npm run dev --workspace=apps/ddd-spec-viewer` |
+| 构建 viewer 工作区 | `npm run build --workspace=apps/ddd-spec-viewer` |
 
-- `Aggregate Boundary / Domain Structure`
-- `Policy / Saga`
+## 仓库结构
 
-If you want concrete examples before starting from scratch, inspect:
+- [`packages/ddd-spec-core/`](./packages/ddd-spec-core/)：模型加载、schema 校验、语义校验、analysis
+- [`packages/ddd-spec-cli/`](./packages/ddd-spec-cli/)：当前唯一公开包边界，包含 CLI、配置加载、构建编排与 viewer 启动
+- [`packages/ddd-spec-projection-viewer/`](./packages/ddd-spec-projection-viewer/)：viewer projection 实现
+- [`packages/ddd-spec-projection-typescript/`](./packages/ddd-spec-projection-typescript/)：TypeScript projection 实现
+- [`packages/ddd-spec-viewer-contract/`](./packages/ddd-spec-viewer-contract/)：viewer contract 类型
+- [`apps/ddd-spec-viewer/`](./apps/ddd-spec-viewer/)：私有 React viewer 源码
+- [`examples/`](./examples/)：仓库内最小样本与跨上下文样本
 
-- [`examples/minimal/domain-model/index.yaml`](./examples/minimal/domain-model/index.yaml): the smallest repo-owned example and the closest match to `ddd-spec init`
-- [`examples/cross-context/README.md`](./examples/cross-context/README.md): a fuller cross-context example that walks all four primary views end to end
+## 文档策略
 
-## Init To Viewer Demo
+- 默认不维护设计稿、路线图、状态快照或浏览器验证文档
+- 代码、测试、示例、schema 与脚本是权威来源
+- 面向外部使用者时，只保留最小必要的包 README 与操作入口
 
-For the normal installed-package demo, the product path remains:
+## 进一步阅读
 
-```sh
-npm install --save-dev @knowledge-alchemy/ddd-spec
-npm exec ddd-spec init
-npm exec ddd-spec dev
-```
-
-For a repo-local demonstration against the tracked cross-context example, use the root maintainer scripts:
-
-```sh
-npm run repo:validate
-npm run repo:build
-npm run repo:viewer -- --port 4173
-```
-
-These commands resolve through [`apps/ddd-spec-viewer/ddd-spec.config.yaml`](./apps/ddd-spec-viewer/ddd-spec.config.yaml), which now points at the tracked [`examples/cross-context/`](./examples/cross-context/) `domain-model/` input while still syncing the app fallback asset into [`apps/ddd-spec-viewer/public/generated/viewer-spec.json`](./apps/ddd-spec-viewer/public/generated/viewer-spec.json).
-
-## What You Get
-
-`npm exec ddd-spec build` writes the default generated outputs into `.ddd-spec/`:
-
-- `.ddd-spec/artifacts/business-spec.json`: bundled domain model spec
-- `.ddd-spec/artifacts/business-spec.analysis.json`: analysis output and diagnostics
-- `.ddd-spec/artifacts/viewer-spec.json`: viewer projection consumed by the packaged viewer
-- `.ddd-spec/generated/business-spec.generated.ts`: generated TypeScript source when TypeScript projection is enabled
-
-On the default path, the viewer artifact is the main generated product surface. TypeScript projection is not part of the zero-config starter yet, so `.ddd-spec/generated/business-spec.generated.ts` is intentionally absent for now.
-
-`npm exec ddd-spec dev` runs the initial validation/build, opens the packaged viewer automatically by default, and keeps rebuilding when domain model files change.
-
-`npm exec ddd-spec viewer` rebuilds the workspace viewer artifact if needed and then serves the packaged viewer at `http://localhost:4173/` by default when you want the explicit one-shot flow instead.
-
-## Advanced Config
-
-Zero-config is the default product path. Reach for `--config <path>` only when your workspace needs custom entry paths, output locations, or viewer sync targets.
-
-```sh
-npm exec ddd-spec validate --config ./ddd-spec.config.yaml
-npm exec ddd-spec build --config ./ddd-spec.config.yaml
-npm exec ddd-spec viewer --config ./ddd-spec.config.yaml -- --host 0.0.0.0
-```
-
-The published package README at [`packages/ddd-spec-cli/README.md`](./packages/ddd-spec-cli/README.md) documents the consumer command surface in more detail.
-
-## About This Repo
-
-The repo root stays `private: true` and should be read as maintainer infrastructure, not as the example of a normal consumer workspace.
-
-## Package Boundary
-
-- The repo root stays `private: true`; it is the maintainer workspace shell, not the external product package.
-- [`packages/ddd-spec-cli/`](./packages/ddd-spec-cli/) is the single public npm package boundary, published under the current package name `@knowledge-alchemy/ddd-spec`.
-- The current domain model schema version and viewer spec version both reset to `1` on the product-contract axis.
-- The schema version reset and viewer spec version reset belong to product contract evolution, not npm package naming. This reset does not rename `@knowledge-alchemy/ddd-spec` or the `ddd-spec` CLI, and it does not imply a package semver reset.
-- The consumer README for installed-package usage lives at [`packages/ddd-spec-cli/README.md`](./packages/ddd-spec-cli/README.md).
-- [`apps/ddd-spec-viewer/`](./apps/ddd-spec-viewer/) remains private source. The shipped viewer is the static bundle emitted into `packages/ddd-spec-cli/dist/ddd-spec-cli/static/viewer/` during package build.
-- [`examples/`](./examples/) and [`docs/ddd-spec/`](./docs/ddd-spec/) are repo-only maintainer example and design materials. They do not ship in the published tarball.
-- All other workspace packages remain private implementation units behind the CLI package boundary.
-
-## Maintainer Workflow
-
-| Task | Command |
-|------|---------|
-| Validate repo-local example flow | `npm run repo:validate` |
-| Build repo-local example outputs | `npm run repo:build` |
-| Run package regressions | `npm run pkg:test` |
-| Verify packaged CLI and viewer workspace | `npm run verify` |
-| Launch packaged viewer against the tracked repo example | `npm run repo:viewer` |
-| Run the viewer Vite dev server | `npm run dev --workspace=apps/ddd-spec-viewer` |
-| Build the viewer workspace only | `npm run build --workspace=apps/ddd-spec-viewer` |
-
-The root `repo:*` scripts target [`apps/ddd-spec-viewer/ddd-spec.config.yaml`](./apps/ddd-spec-viewer/ddd-spec.config.yaml). That repo-local config builds the tracked [`examples/cross-context/`](./examples/cross-context/) input into `./.ddd-spec/` and syncs the internal app fallback asset into [`apps/ddd-spec-viewer/public/generated/viewer-spec.json`](./apps/ddd-spec-viewer/public/generated/viewer-spec.json).
-These root scripts are maintainer workflows for repo-local example validation and regression around the public package boundary, not consumer install instructions. `npm run pkg:test` exercises the packaged CLI contract, while `npm run verify` adds the private viewer workspace build on top.
-
-## Viewer Delivery
-
-`npm run repo:viewer` builds the public package, regenerates the repo-local viewer artifact through the explicit config above, and then launches the packaged CLI viewer server. That server serves the bundled SPA plus the current workspace viewer output at `/generated/viewer-spec.json`, so the same frontend path works for install-mode product usage and repo-local maintainer example validation.
-
-`npm run dev --workspace=apps/ddd-spec-viewer` stays separate on purpose. It is the private Vite development path for [`apps/ddd-spec-viewer/`](./apps/ddd-spec-viewer/), and it reads [`apps/ddd-spec-viewer/public/generated/viewer-spec.json`](./apps/ddd-spec-viewer/public/generated/viewer-spec.json) after a repo-local `npm run repo:build`.
-
-## Release Dry Run
-
-Use changesets at the repo root to manage versions for the single public package boundary:
-
-1. `npm run changeset`
-2. `npm run changeset:status`
-3. `npm run release:dry-run`
-
-The release toolchain still targets the existing public package boundary only: `@knowledge-alchemy/ddd-spec` and the `ddd-spec` CLI name remain unchanged for this reset. Schema version and viewer spec version resets are documented product-contract changes inside the existing package history; they do not reset npm semver and they do not imply a package rename. Any future public-package rename or split must be proposed as a separate story or PRD.
-
-`npm run release:dry-run` is designed for a disposable checkout or the reusable
-[`release-dry-run.yml`](./.github/workflows/release-dry-run.yml) workflow. It runs the normal
-repo verification flow, applies `changeset version`, and then executes
-`npm publish --dry-run --workspace=packages/ddd-spec-cli` without publishing anything.
-
-The real publish handoff stays manual or CI-controlled on purpose: review the dry-run output,
-commit the version and changelog files produced by `changeset version`, merge that release commit,
-and then publish `packages/ddd-spec-cli` from a trusted environment with npm credentials.
-See [`RELEASING.md`](./RELEASING.md) for the full maintainer checklist and workflow details.
-
-## Near-Term Roadmap
-
-These items are maintainer backlog, not a public product promise:
-
-- Formalize public contract compatibility for the domain model schema, diagnostics, and viewer JSON, including a clearer deprecation and migration policy.
-- Keep hardening install-mode and release-mode verification so tarball smoke, packaged viewer delivery, and release dry-runs stay trustworthy as the CLI evolves.
-- Expand downstream projection and integration guidance only after the current bundle, TypeScript, and viewer outputs remain stable across more consumer workspaces.
-- Evaluate viewer enhancements such as deep links, focused filtering, and relationship highlighting without breaking the current single-workspace default flow.
-- Improve maintainer-facing docs around long-term package boundaries, extension points, and what remains intentionally private inside the monorepo.
-
-## Repository Layout
-
-- [`packages/ddd-spec-core/`](./packages/ddd-spec-core/): domain model loading, schema validation, semantic validation, graph IR, and analysis
-- [`packages/ddd-spec-cli/`](./packages/ddd-spec-cli/): the single external package boundary for `@knowledge-alchemy/ddd-spec`, including CLI commands, config loading, build orchestration, and viewer launch helpers
-- `packages/ddd-spec-cli/dist/ddd-spec-cli/static/viewer/`: packaged static viewer assets built from [`apps/ddd-spec-viewer/`](./apps/ddd-spec-viewer/) and shipped inside the public package output
-- [`packages/ddd-spec-projection-viewer/`](./packages/ddd-spec-projection-viewer/): private viewer JSON projection implementation
-- [`packages/ddd-spec-projection-typescript/`](./packages/ddd-spec-projection-typescript/): private TypeScript projection implementation
-- [`packages/ddd-spec-viewer-contract/`](./packages/ddd-spec-viewer-contract/): private shared viewer contract types
-- [`apps/ddd-spec-viewer/`](./apps/ddd-spec-viewer/): private React viewer source used for repo-local example validation and packaged bundle generation
-- [`examples/minimal/`](./examples/minimal/): minimal repo-owned example that mirrors the zero-config starter; not published
-- [`examples/cross-context/`](./examples/cross-context/): full cross-context example for the default four-view product story; not published
-- [`docs/ddd-spec/`](./docs/ddd-spec/): tracked maintainer notes and supporting internals; not published
-- [`./.ddd-spec/artifacts/`](./.ddd-spec/artifacts/): generated bundle, analysis, and viewer outputs
-- [`./.ddd-spec/generated/`](./.ddd-spec/generated/): generated TypeScript outputs
-
-## Consumer Note
-
-Consumer usage belongs to [`packages/ddd-spec-cli/README.md`](./packages/ddd-spec-cli/README.md): start with zero-config `ddd-spec init`, model under `domain-model/`, and let the viewer walk through `Context Map`, `Scenario Story`, `Message Flow / Trace`, and `Lifecycle`. Use `--config <path>` only as an advanced consumer path when a workspace needs custom layout. This repo root keeps the maintainer workflow only.
-
-## Further Reading
-
-- [`RELEASING.md`](./RELEASING.md): maintainer release dry-run and publish handoff
-- [`docs/ddd-spec/README.md`](./docs/ddd-spec/README.md): repo internals, boundaries, and supporting notes
-- [`apps/ddd-spec-viewer/README.md`](./apps/ddd-spec-viewer/README.md): viewer-specific behavior and app-local development notes
+- [`packages/ddd-spec-cli/README.md`](./packages/ddd-spec-cli/README.md)
+- [`.changeset/README.md`](./.changeset/README.md)
