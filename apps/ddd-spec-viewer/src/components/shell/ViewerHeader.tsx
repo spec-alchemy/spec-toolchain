@@ -1,5 +1,5 @@
 import { startTransition } from "react";
-import type { BusinessViewerSpec } from "@/types";
+import type { BusinessViewerSpec, ViewerLocale } from "@/types";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -19,21 +19,27 @@ import { DEFAULT_DOMAIN_MODEL_ENTRY_PATH } from "@/lib/viewer-constants";
 import { cn } from "@/lib/utils";
 
 interface ViewerHeaderProps {
+  currentLocale: ViewerLocale;
   devSessionMessage?: string | null;
   devSessionTone?: "info" | "warning" | null;
+  localeFallbackNotice?: string | null;
   viewerSpec: BusinessViewerSpec | null;
   specSourceLabel: string;
   selectedViewId: string;
+  onSelectLocale: (nextLocale: ViewerLocale) => void;
   onSelectView: (nextViewId: string) => void;
   onReload: () => void;
 }
 
 export function ViewerHeader({
+  currentLocale,
   devSessionMessage,
   devSessionTone,
+  localeFallbackNotice,
   viewerSpec,
   specSourceLabel,
   selectedViewId,
+  onSelectLocale,
   onSelectView,
   onReload
 }: ViewerHeaderProps) {
@@ -88,6 +94,14 @@ export function ViewerHeader({
                 data-tone={devSessionTone ?? "info"}
               >
                 {devSessionMessage}
+              </p>
+            ) : null}
+            {localeFallbackNotice ? (
+              <p
+                className="max-w-3xl rounded-xl border border-sky-200 bg-sky-50 px-3 py-2 text-[12px] leading-5 text-sky-900"
+                data-slot="locale-fallback-message"
+              >
+                {localeFallbackNotice}
               </p>
             ) : null}
           </div>
@@ -176,6 +190,41 @@ export function ViewerHeader({
                 This map answers:{" "}
                 <span className="text-foreground">{selectedView?.question}</span>
               </p>
+
+              <div className="space-y-2" data-slot="language-selector-panel">
+                <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-muted-foreground">
+                  Language
+                </p>
+                <Select
+                  value={currentLocale}
+                  onValueChange={(nextLocale) => {
+                    if (nextLocale === "en" || nextLocale === "zh-CN") {
+                      onSelectLocale(nextLocale);
+                    }
+                  }}
+                >
+                  <SelectTrigger
+                    className="h-auto min-h-[56px] w-full bg-white/90 px-3 py-3"
+                    data-slot="language-selector"
+                  >
+                    <div className="flex min-w-0 flex-col items-start text-left">
+                      <span className="text-[11px] font-bold uppercase tracking-[0.06em] text-muted-foreground">
+                        Viewer language
+                      </span>
+                      <span className="text-sm font-semibold text-foreground">
+                        {currentLocale === "zh-CN" ? "中文" : "English"}
+                      </span>
+                    </div>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectLabel>System language</SelectLabel>
+                      <SelectItem value="en">English</SelectItem>
+                      <SelectItem value="zh-CN">中文</SelectItem>
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </div>
 
               <Button type="button" variant="outline" onClick={onReload} className="w-full">
                 Reload Viewer

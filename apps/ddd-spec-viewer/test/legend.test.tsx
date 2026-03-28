@@ -18,7 +18,7 @@ test("legend keeps stable DOM markers across layout variants", () => {
 
   assert.match(overlayMarkup, /data-component="legend"/);
   assert.match(overlayMarkup, /data-variant="overlay"/);
-  assert.equal((overlayMarkup.match(/data-slot="legend-item"/g) ?? []).length, 12);
+  assert.equal((overlayMarkup.match(/data-slot="legend-item"/g) ?? []).length, 14);
   assert.match(stackedMarkup, /data-component="legend"/);
   assert.match(stackedMarkup, /data-variant="stacked"/);
 });

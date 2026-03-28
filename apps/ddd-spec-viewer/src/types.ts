@@ -15,6 +15,7 @@ export type {
   ViewerFieldDetailValue,
   ViewerFieldRelationDetailValue,
   ViewerListDetailValue,
+  ViewerLocale,
   ViewerNodeKind,
   ViewerNodeSpec,
   ViewerRecordDetailEntry,

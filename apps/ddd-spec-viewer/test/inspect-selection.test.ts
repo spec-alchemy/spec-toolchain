@@ -114,13 +114,16 @@ test("viewer spec loader accepts version 1 payloads", async (t) => {
       }
     );
 
-  const spec = await loadViewerSpec({
-    url: new URL("https://example.com/generated/viewer-spec.json"),
-    label: "generated/viewer-spec.json",
-    isDefault: true
+  const result = await loadViewerSpec({
+    locationUrl: new URL("https://example.com/viewer"),
+    source: {
+      url: new URL("https://example.com/generated/viewer-spec.json"),
+      label: "generated/viewer-spec.json",
+      isDefault: true
+    }
   });
 
-  assert.equal(spec.viewerVersion, 1);
+  assert.equal(result.spec.viewerVersion, 1);
 });
 
 test("viewer spec loader rejects unsupported viewer versions with the reset expectation", async (t) => {
@@ -152,9 +155,12 @@ test("viewer spec loader rejects unsupported viewer versions with the reset expe
 
   await assert.rejects(
     loadViewerSpec({
-      url: new URL("https://example.com/generated/viewer-spec.json"),
-      label: "generated/viewer-spec.json",
-      isDefault: true
+      locationUrl: new URL("https://example.com/viewer"),
+      source: {
+        url: new URL("https://example.com/generated/viewer-spec.json"),
+        label: "generated/viewer-spec.json",
+        isDefault: true
+      }
     }),
     /Unsupported viewer spec version 3; expected 1/
   );
@@ -474,11 +480,14 @@ test("detail renderer recursively renders structured field sections", () => {
 test("viewer header surfaces the primary modeling path and map questions", () => {
   const markup = renderToStaticMarkup(
     createElement(ViewerHeader, {
+      currentLocale: "en",
       devSessionMessage: null,
       devSessionTone: null,
+      localeFallbackNotice: "Localized viewer artifact unavailable for zh-CN. Showing demo-source instead.",
       viewerSpec: DEMO_VIEWER_SPEC,
       specSourceLabel: "demo-source",
       selectedViewId: "message-flow",
+      onSelectLocale: () => {},
       onSelectView: () => {},
       onReload: () => {}
     })
@@ -491,6 +500,10 @@ test("viewer header surfaces the primary modeling path and map questions", () =>
     /Primary modeling flow: Context Map -&gt; Scenario Story -&gt; Message Flow \/ Trace -&gt; Lifecycle/
   );
   assert.match(markup, /Viewer artifact: demo-source/);
+  assert.match(markup, /Localized viewer artifact unavailable for zh-CN/);
+  assert.match(markup, /Language/);
+  assert.match(markup, /Viewer language/);
+  assert.match(markup, /English/);
   assert.match(markup, /Where are the business boundaries, and who collaborates across them\?/);
   assert.match(markup, /How does the business story move from trigger to outcome\?/);
   assert.match(

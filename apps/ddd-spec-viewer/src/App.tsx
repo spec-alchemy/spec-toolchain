@@ -23,6 +23,11 @@ import {
   type ViewerSpecSource
 } from "@/lib/load-viewer-spec";
 import {
+  resolveViewerLocale,
+  syncViewerLocaleUrl,
+  writeViewerLocalePreference
+} from "@/lib/viewer-locale";
+import {
   getViewerDevSessionMessage,
   loadViewerDevSessionStatus,
   shouldReloadViewerSpec,
@@ -33,6 +38,7 @@ import { DEFAULT_DOMAIN_MODEL_ENTRY_PATH } from "@/lib/viewer-constants";
 import type {
   BusinessViewerSpec,
   InspectorSelection,
+  ViewerLocale,
   ViewerViewSpec
 } from "@/types";
 
@@ -40,7 +46,10 @@ const EMPTY_SEMANTIC_DETAIL_HELP: Readonly<Record<string, string>> = {};
 
 export default function App() {
   const [viewerSpec, setViewerSpec] = useState<BusinessViewerSpec | null>(null);
+  const [viewerLocale, setViewerLocale] = useState<ViewerLocale>(() => resolveViewerLocale().locale);
   const [specSource, setSpecSource] = useState<ViewerSpecSource>(() => resolveViewerSpecSource());
+  const [specSourceLabel, setSpecSourceLabel] = useState(() => resolveViewerSpecSource().label);
+  const [specFallbackNotice, setSpecFallbackNotice] = useState<string | null>(null);
   const [selectedViewId, setSelectedViewId] = useState("");
   const deferredViewId = useDeferredValue(selectedViewId);
   const [layoutedView, setLayoutedView] = useState<LayoutedView | null>(null);
@@ -56,20 +65,39 @@ export default function App() {
 
   useEffect(() => {
     stopDevSessionPollingRef.current = false;
-    void refreshViewerSpec();
+    syncViewerLocaleUrl(viewerLocale, {
+      history: window.history
+    });
+    void refreshViewerSpec({
+      locale: viewerLocale
+    });
   }, []);
 
   async function refreshViewerSpec(
-    options: { loadedBuildRevision?: number } = {}
+    options: { loadedBuildRevision?: number; locale?: ViewerLocale } = {}
   ): Promise<void> {
+    const nextLocale = options.locale ?? viewerLocale;
+
     try {
       const nextSource = resolveViewerSpecSource();
 
+      syncViewerLocaleUrl(nextLocale, {
+        history: window.history
+      });
+      setViewerLocale(nextLocale);
       setSpecSource(nextSource);
+      setSpecSourceLabel(nextSource.label);
+      setSpecFallbackNotice(null);
       setLoadingMessage(getWorkspaceLoadingMessage(nextSource));
-      const nextSpec = await loadViewerSpec(nextSource);
+      const loadResult = await loadViewerSpec({
+        locale: nextLocale,
+        source: nextSource
+      });
+      const nextSpec = loadResult.spec;
 
       setViewerSpec(nextSpec);
+      setSpecSourceLabel(loadResult.loadedLabel);
+      setSpecFallbackNotice(loadResult.fallback?.notice ?? null);
       setSelectedViewId((current) =>
         nextSpec.views.some((view) => view.id === current)
           ? current
@@ -81,6 +109,7 @@ export default function App() {
         lastLoadedBuildRevisionRef.current = options.loadedBuildRevision;
       }
     } catch (error: unknown) {
+      setSpecFallbackNotice(null);
       setErrorMessage(toErrorMessage(error));
     } finally {
       if (typeof options.loadedBuildRevision === "number") {
@@ -116,6 +145,17 @@ export default function App() {
     } catch (error: unknown) {
       stopDevSessionPollingRef.current = true;
     }
+  });
+
+  const handleSelectLocale = useEffectEvent((nextLocale: ViewerLocale): void => {
+    writeViewerLocalePreference(nextLocale);
+    syncViewerLocaleUrl(nextLocale, {
+      history: window.history
+    });
+    setViewerLocale(nextLocale);
+    void refreshViewerSpec({
+      locale: nextLocale
+    });
   });
 
   useEffect(() => {
@@ -194,14 +234,19 @@ export default function App() {
         data-component="viewer-app"
       >
         <ViewerHeader
+          currentLocale={viewerLocale}
           devSessionMessage={devSessionMessage.message}
           devSessionTone={devSessionMessage.tone}
+          localeFallbackNotice={specFallbackNotice}
           viewerSpec={viewerSpec}
-          specSourceLabel={specSource.label}
+          specSourceLabel={specSourceLabel}
           selectedViewId={selectedViewId}
+          onSelectLocale={handleSelectLocale}
           onSelectView={setSelectedViewId}
           onReload={() => {
-            void refreshViewerSpec();
+            void refreshViewerSpec({
+              locale: viewerLocale
+            });
           }}
         />
 
