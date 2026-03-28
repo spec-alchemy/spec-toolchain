@@ -36,6 +36,7 @@ export function mapLayoutedGraphToFlow(
         source: edge.source,
         target: edge.target,
         type: "viewerEdge",
+        zIndex: edge.renderLabel ? 10 : undefined,
         animated: edge.kind === "message-flow",
         selectable: true,
         markerEnd:

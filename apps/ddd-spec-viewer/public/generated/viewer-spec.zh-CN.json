@@ -204,21 +204,21 @@
                         "label": "类型",
                         "value": {
                           "kind": "text",
-                          "text": "depends-on"
+                          "text": "依赖"
                         }
                       },
                       {
                         "label": "方向",
                         "value": {
                           "kind": "text",
-                          "text": "downstream"
+                          "text": "下游"
                         }
                       },
                       {
                         "label": "集成方式",
                         "value": {
                           "kind": "text",
-                          "text": "customer-supplier"
+                          "text": "客户方-供应方"
                         }
                       },
                       {
@@ -567,7 +567,7 @@
                         "label": "方向",
                         "value": {
                           "kind": "text",
-                          "text": "downstream"
+                          "text": "下游"
                         }
                       },
                       {
@@ -716,7 +716,7 @@
               "label": "参与者类型",
               "value": {
                 "kind": "text",
-                "text": "person"
+                "text": "个人"
               }
             },
             {
@@ -765,7 +765,7 @@
           "kind": "system",
           "label": "Ledger Gateway",
           "subtitle": "ledger-gateway",
-          "summary": "external",
+          "summary": "外部",
           "width": 220,
           "height": 123,
           "details": [
@@ -774,7 +774,7 @@
               "label": "边界",
               "value": {
                 "kind": "text",
-                "text": "external"
+                "text": "外部"
               }
             },
             {
@@ -824,7 +824,7 @@
                         "label": "类型",
                         "value": {
                           "kind": "text",
-                          "text": "context-relationship"
+                          "text": "上下文关系"
                         }
                       },
                       {
@@ -855,7 +855,7 @@
                         "label": "类型",
                         "value": {
                           "kind": "text",
-                          "text": "scenario-step"
+                          "text": "场景步骤"
                         }
                       },
                       {
@@ -893,7 +893,7 @@
                         "label": "类型",
                         "value": {
                           "kind": "text",
-                          "text": "message-consumer"
+                          "text": "消息消费方"
                         }
                       },
                       {
@@ -924,7 +924,7 @@
                         "label": "类型",
                         "value": {
                           "kind": "text",
-                          "text": "message-producer"
+                          "text": "消息生产方"
                         }
                       },
                       {
@@ -1120,7 +1120,7 @@
           "kind": "collaboration",
           "source": "context-map:context:orders",
           "target": "context-map:context:payments",
-          "label": "depends-on",
+          "label": "依赖",
           "description": "Orders depends on the payments context to authorize settlement before confirmation.",
           "details": [
             {
@@ -1164,21 +1164,21 @@
                     "label": "类型",
                     "value": {
                       "kind": "text",
-                      "text": "depends-on"
+                      "text": "依赖"
                     }
                   },
                   {
                     "label": "方向",
                     "value": {
                       "kind": "text",
-                      "text": "downstream"
+                      "text": "下游"
                     }
                   },
                   {
                     "label": "集成方式",
                     "value": {
                       "kind": "text",
-                      "text": "customer-supplier"
+                      "text": "客户方-供应方"
                     }
                   },
                   {
@@ -1256,7 +1256,7 @@
                     "label": "方向",
                     "value": {
                       "kind": "text",
-                      "text": "downstream"
+                      "text": "下游"
                     }
                   },
                   {
@@ -2343,7 +2343,7 @@
               "label": "边界",
               "value": {
                 "kind": "text",
-                "text": "external"
+                "text": "外部"
               }
             },
             {
@@ -2393,7 +2393,7 @@
                         "label": "类型",
                         "value": {
                           "kind": "text",
-                          "text": "context-relationship"
+                          "text": "上下文关系"
                         }
                       },
                       {
@@ -2424,7 +2424,7 @@
                         "label": "类型",
                         "value": {
                           "kind": "text",
-                          "text": "scenario-step"
+                          "text": "场景步骤"
                         }
                       },
                       {
@@ -2462,7 +2462,7 @@
                         "label": "类型",
                         "value": {
                           "kind": "text",
-                          "text": "message-consumer"
+                          "text": "消息消费方"
                         }
                       },
                       {
@@ -2493,7 +2493,7 @@
                         "label": "类型",
                         "value": {
                           "kind": "text",
-                          "text": "message-producer"
+                          "text": "消息生产方"
                         }
                       },
                       {
@@ -2746,7 +2746,7 @@
           "id": "message-flow:message:authorize-payment",
           "kind": "message",
           "label": "Authorize Payment",
-          "subtitle": "authorize-payment | command | sync",
+          "subtitle": "authorize-payment | 命令 | 同步",
           "summary": "payments",
           "parentId": "message-flow:context:payments",
           "width": 228,
@@ -2757,7 +2757,7 @@
               "label": "消息类型",
               "value": {
                 "kind": "text",
-                "text": "command"
+                "text": "命令"
               }
             },
             {
@@ -2773,7 +2773,7 @@
               "label": "通道",
               "value": {
                 "kind": "text",
-                "text": "sync"
+                "text": "同步"
               }
             },
             {
@@ -2854,7 +2854,7 @@
                         "label": "方向",
                         "value": {
                           "kind": "text",
-                          "text": "outgoing"
+                          "text": "流出"
                         }
                       },
                       {
@@ -2905,7 +2905,7 @@
           "id": "message-flow:message:fetch-ledger-status",
           "kind": "message",
           "label": "Fetch Ledger Status",
-          "subtitle": "fetch-ledger-status | query | sync",
+          "subtitle": "fetch-ledger-status | 查询 | 同步",
           "summary": "orders -> 外部",
           "parentId": "message-flow:context:orders",
           "width": 228,
@@ -2916,7 +2916,7 @@
               "label": "消息类型",
               "value": {
                 "kind": "text",
-                "text": "query"
+                "text": "查询"
               }
             },
             {
@@ -2932,7 +2932,7 @@
               "label": "通道",
               "value": {
                 "kind": "text",
-                "text": "sync"
+                "text": "同步"
               }
             },
             {
@@ -3008,7 +3008,7 @@
                         "label": "方向",
                         "value": {
                           "kind": "text",
-                          "text": "outgoing"
+                          "text": "流出"
                         }
                       },
                       {
@@ -3059,7 +3059,7 @@
           "id": "message-flow:message:ledger-status-fetched",
           "kind": "message",
           "label": "Ledger Status Fetched",
-          "subtitle": "ledger-status-fetched | event | async",
+          "subtitle": "ledger-status-fetched | 事件 | 异步",
           "summary": "外部 -> orders",
           "parentId": "message-flow:context:orders",
           "width": 228,
@@ -3070,7 +3070,7 @@
               "label": "消息类型",
               "value": {
                 "kind": "text",
-                "text": "event"
+                "text": "事件"
               }
             },
             {
@@ -3086,7 +3086,7 @@
               "label": "通道",
               "value": {
                 "kind": "text",
-                "text": "async"
+                "text": "异步"
               }
             },
             {
@@ -3166,7 +3166,7 @@
                         "label": "方向",
                         "value": {
                           "kind": "text",
-                          "text": "incoming"
+                          "text": "流入"
                         }
                       },
                       {
@@ -3224,7 +3224,7 @@
           "id": "message-flow:message:order-submitted",
           "kind": "message",
           "label": "Order Submitted",
-          "subtitle": "order-submitted | event | async",
+          "subtitle": "order-submitted | 事件 | 异步",
           "summary": "orders -> payments",
           "width": 228,
           "height": 139,
@@ -3234,7 +3234,7 @@
               "label": "消息类型",
               "value": {
                 "kind": "text",
-                "text": "event"
+                "text": "事件"
               }
             },
             {
@@ -3250,7 +3250,7 @@
               "label": "通道",
               "value": {
                 "kind": "text",
-                "text": "async"
+                "text": "异步"
               }
             },
             {
@@ -3331,7 +3331,7 @@
                         "label": "方向",
                         "value": {
                           "kind": "text",
-                          "text": "incoming"
+                          "text": "流入"
                         }
                       },
                       {
@@ -3382,7 +3382,7 @@
           "id": "message-flow:message:payment-authorized",
           "kind": "message",
           "label": "Payment Authorized",
-          "subtitle": "payment-authorized | event | async",
+          "subtitle": "payment-authorized | 事件 | 异步",
           "summary": "payments -> orders",
           "width": 228,
           "height": 139,
@@ -3392,7 +3392,7 @@
               "label": "消息类型",
               "value": {
                 "kind": "text",
-                "text": "event"
+                "text": "事件"
               }
             },
             {
@@ -3408,7 +3408,7 @@
               "label": "通道",
               "value": {
                 "kind": "text",
-                "text": "async"
+                "text": "异步"
               }
             },
             {
@@ -3489,7 +3489,7 @@
                         "label": "方向",
                         "value": {
                           "kind": "text",
-                          "text": "incoming"
+                          "text": "流入"
                         }
                       },
                       {
@@ -3540,7 +3540,7 @@
           "id": "message-flow:message:submit-order",
           "kind": "message",
           "label": "Submit Order",
-          "subtitle": "submit-order | command | sync",
+          "subtitle": "submit-order | 命令 | 同步",
           "summary": "orders",
           "parentId": "message-flow:context:orders",
           "width": 228,
@@ -3551,7 +3551,7 @@
               "label": "消息类型",
               "value": {
                 "kind": "text",
-                "text": "command"
+                "text": "命令"
               }
             },
             {
@@ -3567,7 +3567,7 @@
               "label": "通道",
               "value": {
                 "kind": "text",
-                "text": "sync"
+                "text": "同步"
               }
             },
             {
@@ -3648,7 +3648,7 @@
                         "label": "方向",
                         "value": {
                           "kind": "text",
-                          "text": "outgoing"
+                          "text": "流出"
                         }
                       },
                       {

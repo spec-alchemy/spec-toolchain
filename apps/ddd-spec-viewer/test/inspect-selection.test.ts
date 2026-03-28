@@ -11,9 +11,7 @@ import { WorkspaceContextBar } from "../src/components/shell/WorkspaceContextBar
 import { TooltipProvider } from "../src/components/ui/tooltip";
 import { loadViewerSpec } from "../src/lib/load-viewer-spec";
 import { activateSelectableEdge } from "../src/lib/view-layout/edge-activation";
-import { buildElkGraph } from "../src/lib/view-layout/build-elk-graph";
 import { getViewerNavigationExperience } from "../src/lib/view-experience";
-import { mapLayoutedGraphToFlow } from "../src/lib/view-layout/map-layout-to-flow";
 import { projectViewGraph } from "../src/lib/view-layout/project-view-graph";
 import {
   selectionFromEdgeData,
@@ -80,9 +78,9 @@ const DEMO_VIEWER_SPEC: BusinessViewerSpec = {
       order: 40
     }),
     createDemoView({
-      id: "domain-structure",
-      kind: "domain-structure",
-      title: "Domain Structure",
+      id: "policy-saga",
+      kind: "policy-saga",
+      title: "Policy / Saga",
       tier: "secondary",
       order: 50
     })
@@ -214,42 +212,57 @@ test("relation node reuses edge details without injecting duplicate kind metadat
   assert.deepEqual(relationNode.details, RELATION_DETAILS);
 });
 
-test("domain structure projects direct labeled edges without relation nodes", () => {
+test("context map ownership and collaboration render as direct labeled edges", () => {
   const view: ViewerViewSpec = {
-    id: "domain-structure",
-    kind: "domain-structure",
+    id: "context-map",
+    kind: "context-map",
     navigation: {
-      tier: "secondary",
-      order: 50
+      tier: "primary",
+      order: 10
     },
-    title: "Domain Structure",
+    title: "Context Map",
     description: "demo",
     nodes: [
       {
-        id: "domain-structure:object:Card",
-        kind: "entity",
-        label: "Card",
-        width: 200,
+        id: "context-map:context:graph",
+        kind: "context",
+        label: "Knowledge Graph",
+        width: 320,
+        height: 180,
+        details: []
+      },
+      {
+        id: "context-map:actor:learner",
+        kind: "actor",
+        label: "Learner",
+        width: 180,
         height: 100,
         details: []
       },
       {
-        id: "domain-structure:object:CardContent",
-        kind: "value-object",
-        label: "Card Content",
-        width: 200,
+        id: "context-map:aggregate:connection",
+        kind: "aggregate",
+        label: "Connection",
+        width: 180,
         height: 100,
         details: []
       }
     ],
     edges: [
       {
-        id: "domain-structure:Card:field:content:target:CardContent",
-        kind: "composition",
-        source: "domain-structure:object:Card",
-        target: "domain-structure:object:CardContent",
-        label: "content",
-        cardinality: "1",
+        id: "context-map:collaboration:actor:learner:context:graph",
+        kind: "collaboration",
+        source: "context-map:actor:learner",
+        target: "context-map:context:graph",
+        label: "participates",
+        details: RELATION_DETAILS
+      },
+      {
+        id: "context-map:ownership:context:graph:aggregate:connection",
+        kind: "ownership",
+        source: "context-map:context:graph",
+        target: "context-map:aggregate:connection",
+        label: "owns",
         details: RELATION_DETAILS
       }
     ]
@@ -257,95 +270,26 @@ test("domain structure projects direct labeled edges without relation nodes", ()
 
   const projected = projectViewGraph(view);
 
-  assert.equal(projected.nodes.some((node) => node.kind === "relation"), false);
-  assert.equal(projected.edges.length, 1);
-  assert.equal(projected.edges[0]?.renderLabel, true);
-  assert.equal(projected.edges[0]?.summary, "1");
-});
-
-test("domain structure direct edges use ELK label boxes instead of midpoint heuristics", () => {
-  const view: ViewerViewSpec = {
-    id: "domain-structure",
-    kind: "domain-structure",
-    navigation: {
-      tier: "secondary",
-      order: 50
-    },
-    title: "Domain Structure",
-    description: "demo",
-    nodes: [
-      {
-        id: "domain-structure:object:Card",
-        kind: "entity",
-        label: "Card",
-        width: 200,
-        height: 100,
-        details: []
-      },
-      {
-        id: "domain-structure:object:CardContent",
-        kind: "value-object",
-        label: "Card Content",
-        width: 200,
-        height: 100,
-        details: []
-      }
-    ],
-    edges: [
-      {
-        id: "domain-structure:Card:field:content:target:CardContent",
-        kind: "composition",
-        source: "domain-structure:object:Card",
-        target: "domain-structure:object:CardContent",
-        label: "content",
-        cardinality: "1",
-        details: RELATION_DETAILS
-      }
-    ]
-  };
-  const projected = projectViewGraph(view);
-  const elkGraph = buildElkGraph(projected);
-  const elkEdge = elkGraph.edges?.[0];
-
-  assert.ok(elkEdge?.labels?.[0]);
-  assert.equal(elkEdge.labels[0]?.text, "content");
-  assert.equal(typeof elkEdge.labels[0]?.width, "number");
-  assert.equal(typeof elkEdge.labels[0]?.height, "number");
-
-  const layoutedGraph = {
-    ...elkGraph,
-    children: (elkGraph.children ?? []).map((child, index) => ({
-      ...child,
-      x: index * 260,
-      y: 0
+  assert.equal(projected.nodes.filter((node) => node.kind === "relation").length, 0);
+  assert.deepEqual(
+    projected.edges.map((edge) => ({
+      id: edge.id,
+      renderLabel: edge.renderLabel,
+      isTerminalSegment: edge.isTerminalSegment
     })),
-    edges: elkGraph.edges?.map((edge) => ({
-      ...edge,
-      container: "root",
-      labels: edge.labels?.map((label) => ({
-        ...label,
-        x: 140,
-        y: 56
-      })),
-      sections: [
-        {
-          id: `${edge.id}_s0`,
-          startPoint: { x: 200, y: 50 },
-          endPoint: { x: 260, y: 50 },
-          incomingShape: edge.sources[0],
-          outgoingShape: edge.targets[0]
-        }
-      ]
-    }))
-  };
-  const flow = mapLayoutedGraphToFlow(projected, layoutedGraph);
-
-  assert.deepEqual(flow.edges[0]?.data.labelLayout, {
-    x: 140,
-    y: 56,
-    width: elkEdge.labels[0]?.width ?? 0,
-    height: elkEdge.labels[0]?.height ?? 0
-  });
+    [
+      {
+        id: "context-map:collaboration:actor:learner:context:graph",
+        renderLabel: true,
+        isTerminalSegment: true
+      },
+      {
+        id: "context-map:ownership:context:graph:aggregate:connection",
+        renderLabel: true,
+        isTerminalSegment: true
+      }
+    ]
+  );
 });
 
 test("relation selections hide redundant label and kind details", () => {

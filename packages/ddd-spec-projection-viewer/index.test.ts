@@ -211,6 +211,88 @@ test("viewer projection renders cross-context message flow and query details", a
   );
 });
 
+test("viewer projection localizes enum-backed values in zh-CN artifacts", async () => {
+  const spec = await loadCrossContextFixture();
+  const analysis = analyzeBusinessSpec(spec);
+  const viewerSpec = buildViewerSpec(spec, analysis, "zh-CN");
+  const contextMapView = mustFind(viewerSpec.views, (view) => view.id === "context-map");
+  const messageFlowView = mustFind(viewerSpec.views, (view) => view.id === "message-flow");
+  const customerNode = mustFind(
+    contextMapView.nodes,
+    (node) => node.kind === "actor" && node.subtitle === "customer"
+  );
+  const ledgerGatewayNode = mustFind(
+    contextMapView.nodes,
+    (node) => node.kind === "system" && node.subtitle === "ledger-gateway"
+  );
+  const ordersPaymentsEdge = mustFind(
+    contextMapView.edges,
+    (edge) => edge.id === "context-map:relationship:orders:requests-payment-authorization"
+  );
+  const fetchLedgerStatusNode = mustFind(
+    messageFlowView.nodes,
+    (node) =>
+      node.kind === "message" &&
+      getTextDetailValue(node.details, "message.type") === "fetch-ledger-status"
+  );
+
+  assert.equal(getTextDetailValue(customerNode.details, "actor.type"), "个人");
+  assert.equal(ledgerGatewayNode.summary, "外部");
+  assert.equal(getTextDetailValue(ledgerGatewayNode.details, "system.boundary"), "外部");
+  assert.deepEqual(
+    getStructuredRecordListDetailEntries(ledgerGatewayNode.details, "system.dependencies"),
+    [
+      {
+        类型: "上下文关系",
+        上下文: ["payments"],
+        说明: "Payments and orders rely on the shared ledger gateway for reconciliation details."
+      },
+      {
+        类型: "场景步骤",
+        上下文: ["orders"],
+        场景: "order-settlement-flow",
+        步骤: "reconcile-order"
+      },
+      {
+        类型: "消息消费方",
+        上下文: ["orders"],
+        消息: "fetch-ledger-status"
+      },
+      {
+        类型: "消息生产方",
+        上下文: ["orders"],
+        消息: "ledger-status-fetched"
+      }
+    ]
+  );
+  assert.equal(ordersPaymentsEdge.label, "依赖");
+  assert.deepEqual(
+    getRecordDetailEntries(ordersPaymentsEdge.details, "context.relationships"),
+    {
+      关系: "requests-payment-authorization",
+      类型: "依赖",
+      方向: "下游",
+      集成方式: "客户方-供应方",
+      目标: "context:payments",
+      说明: "Orders depends on the payments context to authorize settlement before confirmation."
+    }
+  );
+  assert.equal(fetchLedgerStatusNode.subtitle, "fetch-ledger-status | 查询 | 同步");
+  assert.equal(getTextDetailValue(fetchLedgerStatusNode.details, "message.kind"), "查询");
+  assert.equal(getTextDetailValue(fetchLedgerStatusNode.details, "message.channel"), "同步");
+  assert.deepEqual(
+    getRecordListDetailEntries(fetchLedgerStatusNode.details, "message.step_links"),
+    [
+      {
+        方向: "流出",
+        场景: "order-settlement-flow",
+        步骤: "reconcile-order",
+        上下文: "orders"
+      }
+    ]
+  );
+});
+
 function mustFind<Value>(
   values: readonly Value[],
   predicate: (value: Value) => boolean
@@ -259,6 +341,19 @@ function getRecordListDetailEntries(
   return detail.value.items.map((item) => getRecordEntries(item));
 }
 
+function getStructuredRecordListDetailEntries(
+  details: readonly ViewerDetailItem[],
+  semanticKey: string
+): readonly Record<string, string | readonly string[]>[] {
+  const detail = mustFind(details, (item) => item.semanticKey === semanticKey);
+
+  if (detail.value.kind !== "list") {
+    throw new Error(`Expected ${semanticKey} to be a list detail.`);
+  }
+
+  return detail.value.items.map((item) => getStructuredRecordEntries(item));
+}
+
 function getRecordDetailEntries(
   details: readonly ViewerDetailItem[],
   semanticKey: string
@@ -276,6 +371,26 @@ function getRecordEntries(value: ViewerDetailValue): Record<string, string> {
   return Object.fromEntries(
     value.entries.map((entry) => [entry.label, getTextValue(entry.value)])
   );
+}
+
+function getStructuredRecordEntries(
+  value: ViewerDetailValue
+): Record<string, string | readonly string[]> {
+  if (value.kind !== "record") {
+    throw new Error("Expected a record detail value.");
+  }
+
+  return Object.fromEntries(
+    value.entries.map((entry) => [entry.label, getStructuredValue(entry.value)])
+  );
+}
+
+function getStructuredValue(value: ViewerDetailValue): string | readonly string[] {
+  if (value.kind === "list") {
+    return value.items.map((item) => getTextValue(item));
+  }
+
+  return getTextValue(value);
 }
 
 function getTextValue(value: ViewerDetailValue): string {

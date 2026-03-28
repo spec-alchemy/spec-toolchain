@@ -28,6 +28,15 @@ import {
 } from "../ddd-spec-viewer-contract/index.js";
 import {
   getViewerProjectionCopy,
+  localizeViewerActorType,
+  localizeViewerDependencyKind,
+  localizeViewerMessageChannel,
+  localizeViewerMessageKind,
+  localizeViewerRelationshipDirection,
+  localizeViewerRelationshipIntegration,
+  localizeViewerRelationshipKind,
+  localizeViewerStepLinkDirection,
+  localizeViewerSystemBoundary,
   type ViewerSemanticKey
 } from "./viewer-i18n.js";
 
@@ -264,7 +273,10 @@ function buildContextMapView(
   }
 
   for (const system of analysis.ir.systems) {
-    const boundarySummary = system.boundary ?? copy.values.internal;
+    const boundarySummary = localizeViewerSystemBoundary(
+      locale,
+      system.boundary ?? copy.values.internal
+    );
     const box = measureLeafNodeBox(
       DIMENSIONS.system,
       system.title,
@@ -310,7 +322,7 @@ function buildContextMapView(
         kind: "collaboration",
         source: toContextMapContextId(context.id),
         target: targetId,
-        label: relationship.kind,
+        label: localizeViewerRelationshipKind(locale, relationship.kind),
         ...(relationship.description ? { description: relationship.description } : {}),
         details: [
           detail(locale, "context.id", context.id),
@@ -636,10 +648,10 @@ function buildMessageFlowView(
       ...message.producerContextIds,
       ...message.consumerContextIds
     ]);
-    const subtitleParts = [message.id, message.messageKind];
+    const subtitleParts = [message.id, localizeViewerMessageKind(locale, message.messageKind)];
 
     if (message.channel) {
-      subtitleParts.push(message.channel);
+      subtitleParts.push(localizeViewerMessageChannel(locale, message.channel));
     }
 
     const messageBox = measureLeafNodeBox(
@@ -931,7 +943,13 @@ function buildActorDetails(
   const copy = getViewerProjectionCopy(locale);
 
   return [
-    detail(locale, "actor.type", actor.actorType ?? copy.values.unspecified),
+    detail(
+      locale,
+      "actor.type",
+      actor.actorType
+        ? localizeViewerActorType(locale, actor.actorType)
+        : copy.values.unspecified
+    ),
     detail(locale, "actor.contexts", formatTextList(locale, actor.contextIds)),
     detail(locale, "actor.scenarios", formatTextList(locale, actor.scenarioIds)),
     detail(
@@ -954,7 +972,11 @@ function buildSystemDetails(
   const copy = getViewerProjectionCopy(locale);
 
   return [
-    detail(locale, "system.boundary", system.boundary ?? copy.values.internal),
+    detail(
+      locale,
+      "system.boundary",
+      localizeViewerSystemBoundary(locale, system.boundary ?? copy.values.internal)
+    ),
     detail(locale, "system.capabilities", formatTextList(locale, system.capabilities)),
     detail(locale, "system.contexts", formatTextList(locale, system.contextIds)),
     detail(locale, "system.dependencies", formatSystemDependencies(locale, system))
@@ -1006,9 +1028,15 @@ function buildMessageDetails(
   const copy = getViewerProjectionCopy(locale);
 
   return [
-    detail(locale, "message.kind", message.messageKind),
+    detail(locale, "message.kind", localizeViewerMessageKind(locale, message.messageKind)),
     detail(locale, "message.type", message.id),
-    detail(locale, "message.channel", message.channel ?? copy.values.unspecified),
+    detail(
+      locale,
+      "message.channel",
+      message.channel
+        ? localizeViewerMessageChannel(locale, message.channel)
+        : copy.values.unspecified
+    ),
     detail(locale, "message.endpoints", formatMessageEndpoints(locale, message)),
     detail(
       locale,
@@ -1135,12 +1163,25 @@ function formatContextRelationship(
 
   return recordDetailValue([
     recordDetailEntry(copy.recordLabels.relationship, textDetailValue(relationship.id)),
-    recordDetailEntry(copy.recordLabels.kind, textDetailValue(relationship.kind)),
+    recordDetailEntry(
+      copy.recordLabels.kind,
+      textDetailValue(localizeViewerRelationshipKind(locale, relationship.kind))
+    ),
     ...(relationship.direction
-      ? [recordDetailEntry(copy.recordLabels.direction, textDetailValue(relationship.direction))]
+      ? [
+          recordDetailEntry(
+            copy.recordLabels.direction,
+            textDetailValue(localizeViewerRelationshipDirection(locale, relationship.direction))
+          )
+        ]
       : []),
     ...(relationship.integration
-      ? [recordDetailEntry(copy.recordLabels.integration, textDetailValue(relationship.integration))]
+      ? [
+          recordDetailEntry(
+            copy.recordLabels.integration,
+            textDetailValue(localizeViewerRelationshipIntegration(locale, relationship.integration))
+          )
+        ]
       : []),
     recordDetailEntry(
       copy.recordLabels.target,
@@ -1165,7 +1206,10 @@ function formatSystemDependencies(
   return listDetailValue(
     system.dependencyRefs.map((dependency) =>
       recordDetailValue([
-        recordDetailEntry(copy.recordLabels.kind, textDetailValue(dependency.kind)),
+        recordDetailEntry(
+          copy.recordLabels.kind,
+          textDetailValue(localizeViewerDependencyKind(locale, dependency.kind))
+        ),
         recordDetailEntry(copy.recordLabels.contexts, formatTextList(locale, dependency.contextIds)),
         ...(dependency.scenarioId
           ? [recordDetailEntry(copy.recordLabels.scenario, textDetailValue(dependency.scenarioId))]
@@ -1220,7 +1264,10 @@ function formatMessageStepLinks(
   return listDetailValue(
     stepLinks.map((link) =>
       recordDetailValue([
-        recordDetailEntry(copy.recordLabels.direction, textDetailValue(link.direction)),
+        recordDetailEntry(
+          copy.recordLabels.direction,
+          textDetailValue(localizeViewerStepLinkDirection(locale, link.direction))
+        ),
         recordDetailEntry(copy.recordLabels.scenario, textDetailValue(link.scenarioId)),
         recordDetailEntry(copy.recordLabels.step, textDetailValue(link.stepId)),
         recordDetailEntry(copy.recordLabels.context, textDetailValue(link.contextId))

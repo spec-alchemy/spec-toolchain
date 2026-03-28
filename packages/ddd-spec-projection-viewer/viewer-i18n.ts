@@ -588,6 +588,117 @@ interface ViewerProjectionCopy {
   }>;
 }
 
+interface ViewerEnumCopy {
+  actorTypes: Readonly<Record<string, string>>;
+  systemBoundaries: Readonly<Record<string, string>>;
+  messageKinds: Readonly<Record<string, string>>;
+  messageChannels: Readonly<Record<string, string>>;
+  relationshipKinds: Readonly<Record<string, string>>;
+  relationshipDirections: Readonly<Record<string, string>>;
+  relationshipIntegrations: Readonly<Record<string, string>>;
+  dependencyKinds: Readonly<Record<string, string>>;
+  stepLinkDirections: Readonly<Record<string, string>>;
+}
+
+const VIEWER_ENUM_COPY: Record<ViewerLocale, ViewerEnumCopy> = {
+  en: {
+    actorTypes: {
+      person: "person",
+      role: "role",
+      team: "team"
+    },
+    systemBoundaries: {
+      internal: "internal",
+      external: "external"
+    },
+    messageKinds: {
+      command: "command",
+      event: "event",
+      query: "query"
+    },
+    messageChannels: {
+      sync: "sync",
+      async: "async"
+    },
+    relationshipKinds: {
+      "depends-on": "depends-on"
+    },
+    relationshipDirections: {
+      upstream: "upstream",
+      downstream: "downstream",
+      bidirectional: "bidirectional"
+    },
+    relationshipIntegrations: {
+      "customer-supplier": "customer-supplier",
+      partnership: "partnership",
+      conformist: "conformist",
+      "anti-corruption-layer": "anti-corruption-layer",
+      "open-host-service": "open-host-service",
+      "published-language": "published-language",
+      "shared-kernel": "shared-kernel"
+    },
+    dependencyKinds: {
+      "context-relationship": "context-relationship",
+      "scenario-step": "scenario-step",
+      "message-producer": "message-producer",
+      "message-consumer": "message-consumer",
+      "policy-target": "policy-target"
+    },
+    stepLinkDirections: {
+      incoming: "incoming",
+      outgoing: "outgoing"
+    }
+  },
+  "zh-CN": {
+    actorTypes: {
+      person: "个人",
+      role: "角色",
+      team: "团队"
+    },
+    systemBoundaries: {
+      internal: "内部",
+      external: "外部"
+    },
+    messageKinds: {
+      command: "命令",
+      event: "事件",
+      query: "查询"
+    },
+    messageChannels: {
+      sync: "同步",
+      async: "异步"
+    },
+    relationshipKinds: {
+      "depends-on": "依赖"
+    },
+    relationshipDirections: {
+      upstream: "上游",
+      downstream: "下游",
+      bidirectional: "双向"
+    },
+    relationshipIntegrations: {
+      "customer-supplier": "客户方-供应方",
+      partnership: "伙伴协作",
+      conformist: "顺应者",
+      "anti-corruption-layer": "防腐层",
+      "open-host-service": "开放主机服务",
+      "published-language": "发布语言",
+      "shared-kernel": "共享内核"
+    },
+    dependencyKinds: {
+      "context-relationship": "上下文关系",
+      "scenario-step": "场景步骤",
+      "message-producer": "消息生产方",
+      "message-consumer": "消息消费方",
+      "policy-target": "策略目标"
+    },
+    stepLinkDirections: {
+      incoming: "流入",
+      outgoing: "流出"
+    }
+  }
+};
+
 const VIEWER_PROJECTION_COPY: Record<ViewerLocale, ViewerProjectionCopy> = {
   en: {
     detailSemantics: VIEWER_DETAIL_SEMANTICS_EN,
@@ -853,4 +964,58 @@ const VIEWER_PROJECTION_COPY: Record<ViewerLocale, ViewerProjectionCopy> = {
 
 export function getViewerProjectionCopy(locale: ViewerLocale): ViewerProjectionCopy {
   return VIEWER_PROJECTION_COPY[locale] ?? VIEWER_PROJECTION_COPY[DEFAULT_VIEWER_LOCALE];
+}
+
+function getViewerEnumCopy(locale: ViewerLocale): ViewerEnumCopy {
+  return VIEWER_ENUM_COPY[locale] ?? VIEWER_ENUM_COPY[DEFAULT_VIEWER_LOCALE];
+}
+
+function localizeEnumValue(
+  locale: ViewerLocale,
+  table: Readonly<Record<string, string>>,
+  value: string
+): string {
+  return table[value] ?? value;
+}
+
+export function localizeViewerActorType(locale: ViewerLocale, value: string): string {
+  return localizeEnumValue(locale, getViewerEnumCopy(locale).actorTypes, value);
+}
+
+export function localizeViewerSystemBoundary(locale: ViewerLocale, value: string): string {
+  return localizeEnumValue(locale, getViewerEnumCopy(locale).systemBoundaries, value);
+}
+
+export function localizeViewerMessageKind(locale: ViewerLocale, value: string): string {
+  return localizeEnumValue(locale, getViewerEnumCopy(locale).messageKinds, value);
+}
+
+export function localizeViewerMessageChannel(locale: ViewerLocale, value: string): string {
+  return localizeEnumValue(locale, getViewerEnumCopy(locale).messageChannels, value);
+}
+
+export function localizeViewerRelationshipKind(locale: ViewerLocale, value: string): string {
+  return localizeEnumValue(locale, getViewerEnumCopy(locale).relationshipKinds, value);
+}
+
+export function localizeViewerRelationshipDirection(
+  locale: ViewerLocale,
+  value: string
+): string {
+  return localizeEnumValue(locale, getViewerEnumCopy(locale).relationshipDirections, value);
+}
+
+export function localizeViewerRelationshipIntegration(
+  locale: ViewerLocale,
+  value: string
+): string {
+  return localizeEnumValue(locale, getViewerEnumCopy(locale).relationshipIntegrations, value);
+}
+
+export function localizeViewerDependencyKind(locale: ViewerLocale, value: string): string {
+  return localizeEnumValue(locale, getViewerEnumCopy(locale).dependencyKinds, value);
+}
+
+export function localizeViewerStepLinkDirection(locale: ViewerLocale, value: string): string {
+  return localizeEnumValue(locale, getViewerEnumCopy(locale).stepLinkDirections, value);
 }

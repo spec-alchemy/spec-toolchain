@@ -1,16 +1,9 @@
 import {
-  EDGE_LABEL_CHARS_PER_LINE,
-  EDGE_LABEL_MAX_WIDTH,
-  EDGE_LABEL_MIN_WIDTH,
   RELATION_NODE_CHARS_PER_LINE,
   RELATION_NODE_MAX_WIDTH,
   RELATION_NODE_MIN_WIDTH
 } from "../viewer-constants";
-import type {
-  ViewerViewKind,
-  ViewerEdgeSpec,
-  ViewerViewSpec
-} from "../../types";
+import type { ViewerEdgeSpec, ViewerViewSpec } from "../../types";
 import {
   mustGet,
   type LayoutEdgeSpec,
@@ -23,20 +16,17 @@ export function projectViewGraph(view: ViewerViewSpec): ProjectedViewGraph {
     ...node,
     kind: node.kind
   }));
-  const viewKind = getViewerViewKind(view);
-
-  if (viewKind === "domain-structure") {
-    return {
-      nodes: baseNodes,
-      edges: view.edges.map((edge) => createDirectEdge(view, edge))
-    };
-  }
 
   const baseNodeMap = new Map(baseNodes.map((node) => [node.id, node] as const));
   const relationNodes: LayoutNodeSpec[] = [];
   const relationEdges: LayoutEdgeSpec[] = [];
 
   for (const edge of view.edges) {
+    if (shouldRenderInlineEdgeLabel(view, edge)) {
+      relationEdges.push(createDirectEdge(edge, view));
+      continue;
+    }
+
     const sourceNode = mustGet(baseNodeMap, edge.source, "viewer node");
     const targetNode = mustGet(baseNodeMap, edge.target, "viewer node");
     const presentation = createRelationPresentation(view, edge);
@@ -64,6 +54,25 @@ export function projectViewGraph(view: ViewerViewSpec): ProjectedViewGraph {
   return {
     nodes: [...baseNodes, ...relationNodes],
     edges: relationEdges
+  };
+}
+
+function createDirectEdge(edge: ViewerEdgeSpec, view: ViewerViewSpec): LayoutEdgeSpec {
+  const presentation = createRelationPresentation(view, edge);
+  const size = measureRelationNode(presentation.label, presentation.summary);
+
+  return {
+    id: edge.id,
+    kind: edge.kind,
+    source: edge.source,
+    target: edge.target,
+    label: edge.label,
+    labelWidth: size.width,
+    labelHeight: size.height,
+    summary: presentation.summary,
+    renderLabel: true,
+    details: edge.details,
+    isTerminalSegment: true
   };
 }
 
@@ -112,26 +121,14 @@ function createRelationEdgeSegment(
   };
 }
 
-function createDirectEdge(
+function shouldRenderInlineEdgeLabel(
   view: ViewerViewSpec,
   edge: ViewerEdgeSpec
-): LayoutEdgeSpec {
-  const presentation = createRelationPresentation(view, edge);
-  const size = measureEdgeLabel(presentation.label, presentation.summary);
-
-  return {
-    id: edge.id,
-    kind: edge.kind,
-    source: edge.source,
-    target: edge.target,
-    label: presentation.label,
-    labelWidth: size.width,
-    labelHeight: size.height,
-    summary: presentation.summary,
-    renderLabel: true,
-    details: edge.details,
-    isTerminalSegment: true
-  };
+): boolean {
+  return (
+    view.kind === "context-map" &&
+    (edge.kind === "collaboration" || edge.kind === "ownership")
+  );
 }
 
 function measureRelationNode(
@@ -155,27 +152,6 @@ function measureRelationNode(
   return { width, height };
 }
 
-function measureEdgeLabel(
-  label: string,
-  summary?: string
-): { width: number; height: number } {
-  const lineTexts = summary ? [label, summary] : [label];
-  const lines = lineTexts.reduce(
-    (count, lineText) =>
-      count + Math.max(1, Math.ceil(lineText.length / EDGE_LABEL_CHARS_PER_LINE)),
-    0
-  );
-  const longestLine = lineTexts.reduce(
-    (maxLength, lineText) =>
-      Math.max(maxLength, Math.min(lineText.length, EDGE_LABEL_CHARS_PER_LINE)),
-    0
-  );
-  const width = clamp(longestLine * 6 + 24, EDGE_LABEL_MIN_WIDTH, EDGE_LABEL_MAX_WIDTH);
-  const height = 24 + lines * 12;
-
-  return { width, height };
-}
-
 function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
 }
@@ -184,7 +160,7 @@ function createRelationPresentation(
   view: ViewerViewSpec,
   edge: ViewerEdgeSpec
 ): { label: string; summary?: string } {
-  const viewKind = getViewerViewKind(view);
+  const viewKind = view.kind;
 
   switch (edge.kind) {
     case "collaboration":
@@ -212,10 +188,6 @@ function createRelationPresentation(
         summary: edge.cardinality ?? edge.description
       };
   }
-}
-
-function getViewerViewKind(view: ViewerViewSpec): ViewerViewKind {
-  return view.kind;
 }
 
 function shortenEventLabel(label: string): string {
