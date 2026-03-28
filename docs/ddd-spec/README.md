@@ -26,6 +26,8 @@
   - 记录顶部语言切换入口、菜单选项、手动切换与外部 artifact fallback 提示的浏览器验证证据
 - [`browser-validation/viewer-system-i18n-us005.md`](./browser-validation/viewer-system-i18n-us005.md)
   - 记录 viewer 前端系统文案在 `zh-CN` 下的浏览器验证证据，以及业务文本保持原样的边界
+- [`browser-validation/viewer-system-i18n-us007.md`](./browser-validation/viewer-system-i18n-us007.md)
+  - 汇总 viewer i18n contract、回归测试、`npm run verify` 与浏览器关键路径，作为 US-007 收尾验证记录
 
 ## 2. 推荐阅读顺序
 
@@ -39,6 +41,7 @@
 8. [`browser-validation/viewer-system-i18n-us003.md`](./browser-validation/viewer-system-i18n-us003.md)
 9. [`browser-validation/viewer-system-i18n-us004.md`](./browser-validation/viewer-system-i18n-us004.md)
 10. [`browser-validation/viewer-system-i18n-us005.md`](./browser-validation/viewer-system-i18n-us005.md)
+11. [`browser-validation/viewer-system-i18n-us007.md`](./browser-validation/viewer-system-i18n-us007.md)
 
 ## 3. 当前稳定结论
 
@@ -74,6 +77,6 @@
 
 ---
 
-*文档版本：v1.7*
+*文档版本：v1.8*
 *最后更新：2026-03-28*
-*状态：主入口、schema authority、viewer 系统级 i18n authority 与关键浏览器验证记录已建立，并补齐 US-005 前端系统文案证据*
+*状态：主入口、schema authority、viewer 系统级 i18n authority 与关键浏览器验证记录已建立，并补齐 US-007 的聚合验证收尾记录*
