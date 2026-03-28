@@ -67,6 +67,8 @@ export interface ViewerInspectorCopy {
 
 export interface ViewerLegendCopy {
   title: string;
+  collapsedLabel: string;
+  expandedLabel: string;
   itemLabels: Readonly<Record<string, string>>;
 }
 
@@ -164,6 +166,8 @@ const VIEWER_SYSTEM_COPY: Readonly<Record<ViewerLocale, ViewerSystemCopy>> = {
     },
     legend: {
       title: "Legend",
+      collapsedLabel: "Show legend",
+      expandedLabel: "Hide legend",
       itemLabels: {
         context: "Context",
         scenario: "Scenario",
@@ -302,6 +306,8 @@ const VIEWER_SYSTEM_COPY: Readonly<Record<ViewerLocale, ViewerSystemCopy>> = {
     },
     legend: {
       title: "图例",
+      collapsedLabel: "展开图例",
+      expandedLabel: "收起图例",
       itemLabels: {
         context: "上下文",
         scenario: "场景",

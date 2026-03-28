@@ -3,6 +3,7 @@ import test from "node:test";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { Legend } from "../src/components/Legend";
+import { getViewerLegendCopy } from "../src/lib/viewer-system-copy";
 
 test("legend keeps stable DOM markers across layout variants", () => {
   const overlayMarkup = renderToStaticMarkup(
@@ -36,4 +37,11 @@ test("legend localizes system item labels without changing DOM markers", () => {
   assert.match(markup, /场景步骤/);
   assert.match(markup, /值对象/);
   assert.equal((markup.match(/data-slot="legend-item"/g) ?? []).length, 14);
+});
+
+test("legend copy includes collapse labels for supported locales", () => {
+  assert.equal(getViewerLegendCopy("en").collapsedLabel, "Show legend");
+  assert.equal(getViewerLegendCopy("en").expandedLabel, "Hide legend");
+  assert.equal(getViewerLegendCopy("zh-CN").collapsedLabel, "展开图例");
+  assert.equal(getViewerLegendCopy("zh-CN").expandedLabel, "收起图例");
 });

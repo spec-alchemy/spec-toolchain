@@ -86,12 +86,14 @@ const LEGEND_ITEMS = [
 
 interface LegendProps {
   className?: string;
+  id?: string;
   locale?: ViewerLocale;
   variant?: "overlay" | "stacked";
 }
 
 export function Legend({
   className,
+  id,
   locale = "en",
   variant = "overlay"
 }: LegendProps) {
@@ -109,6 +111,7 @@ export function Legend({
       )}
       data-component="legend"
       data-variant={variant}
+      id={id}
     >
       <CardContent className="min-w-0 p-3">
         <div className="space-y-2" data-slot="items">

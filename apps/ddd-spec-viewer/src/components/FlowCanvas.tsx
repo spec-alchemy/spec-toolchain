@@ -6,13 +6,16 @@ import {
   ReactFlowProvider,
   type ReactFlowInstance
 } from "@xyflow/react";
-import { useCallback, useEffect, useRef } from "react";
+import { ChevronDown, ChevronUp } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Button } from "@/components/ui/button";
 import { GroupNode } from "@/components/GroupNode";
 import { ItemNode } from "@/components/ItemNode";
 import { Legend } from "@/components/Legend";
 import { RelationNode } from "@/components/RelationNode";
 import { ViewerEdge } from "@/components/ViewerEdge";
 import { FlowCanvasContextProvider } from "@/components/flow-canvas-context";
+import { getViewerLegendCopy } from "@/lib/viewer-system-copy";
 import {
   getMiniMapNodeColor,
   VIEWER_GRID_COLOR
@@ -50,9 +53,11 @@ export function FlowCanvas({
   locale = "en",
   onSelectSelection
 }: FlowCanvasProps) {
+  const [isLegendOpen, setIsLegendOpen] = useState(false);
   const reactFlowRef = useRef<ReactFlowInstance<FlowNode, FlowEdge> | null>(
     null
   );
+  const legendCopy = getViewerLegendCopy(locale);
 
   useEffect(() => {
     if (!reactFlowRef.current) {
@@ -119,18 +124,69 @@ export function FlowCanvas({
               className="pointer-events-none absolute right-3 top-3 z-10 hidden md:block"
               data-slot="legend-overlay"
             >
-              <Legend
-                className="pointer-events-auto max-h-[calc(100vh-14rem)] overflow-auto"
-                locale={locale}
-                variant="overlay"
-              />
+              <div className="pointer-events-auto flex flex-col items-end gap-2">
+                <Button
+                  aria-controls="flow-canvas-legend-overlay"
+                  aria-expanded={isLegendOpen}
+                  className="gap-2 rounded-full border-border/80 bg-white/92 shadow-viewer backdrop-blur supports-[backdrop-filter]:bg-white/82"
+                  data-slot="legend-toggle"
+                  onClick={() => {
+                    setIsLegendOpen((current) => !current);
+                  }}
+                  size="sm"
+                  type="button"
+                  variant="outline"
+                >
+                  <span>{isLegendOpen ? legendCopy.expandedLabel : legendCopy.collapsedLabel}</span>
+                  {isLegendOpen ? (
+                    <ChevronUp className="h-3.5 w-3.5" />
+                  ) : (
+                    <ChevronDown className="h-3.5 w-3.5" />
+                  )}
+                </Button>
+                {isLegendOpen ? (
+                  <Legend
+                    className="max-h-[calc(100vh-14rem)] overflow-auto"
+                    id="flow-canvas-legend-overlay"
+                    locale={locale}
+                    variant="overlay"
+                  />
+                ) : null}
+              </div>
             </div>
           </div>
           <div
             className="border-t border-border/70 bg-card/60 p-3 md:hidden"
             data-slot="legend-panel"
           >
-            <Legend locale={locale} variant="stacked" />
+            <div className="space-y-3">
+              <Button
+                aria-controls="flow-canvas-legend-panel"
+                aria-expanded={isLegendOpen}
+                className="w-full justify-between rounded-xl border-border/80 bg-white/88"
+                data-slot="legend-toggle"
+                onClick={() => {
+                  setIsLegendOpen((current) => !current);
+                }}
+                size="sm"
+                type="button"
+                variant="outline"
+              >
+                <span>{legendCopy.title}</span>
+                {isLegendOpen ? (
+                  <ChevronUp className="h-4 w-4" />
+                ) : (
+                  <ChevronDown className="h-4 w-4" />
+                )}
+              </Button>
+              {isLegendOpen ? (
+                <Legend
+                  id="flow-canvas-legend-panel"
+                  locale={locale}
+                  variant="stacked"
+                />
+              ) : null}
+            </div>
           </div>
         </div>
       </FlowCanvasContextProvider>
