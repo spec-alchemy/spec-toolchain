@@ -121,6 +121,17 @@ ddd-spec dev
 ddd-spec viewer -- --host 0.0.0.0
 ```
 
+For local package development with `npm link`, link the public package from `packages/ddd-spec-cli`:
+
+```sh
+# in design-alchemy/packages/ddd-spec-cli
+npm link
+
+# in the consumer workspace
+npm link @knowledge-alchemy/ddd-spec
+npm exec ddd-spec init
+```
+
 For a project-local install, use `npm exec` or `npx --no-install` after adding the package:
 
 ```sh
