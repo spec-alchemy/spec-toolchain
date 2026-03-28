@@ -17,6 +17,7 @@ import {
   getSelectedViewExperience,
   getViewerNavigationExperience
 } from "@/lib/view-experience";
+import { getViewerAppCopy } from "@/lib/viewer-system-copy";
 import {
   loadViewerSpec,
   resolveViewerSpecSource,
@@ -54,8 +55,8 @@ export default function App() {
   const deferredViewId = useDeferredValue(selectedViewId);
   const [layoutedView, setLayoutedView] = useState<LayoutedView | null>(null);
   const [selection, setSelection] = useState<InspectorSelection | null>(null);
-  const [loadingMessage, setLoadingMessage] = useState(
-    `Loading the domain model workspace from ${DEFAULT_DOMAIN_MODEL_ENTRY_PATH}...`
+  const [loadingMessage, setLoadingMessage] = useState(() =>
+    getWorkspaceLoadingMessage(resolveViewerSpecSource(), resolveViewerLocale().locale)
   );
   const [devSessionStatus, setDevSessionStatus] = useState<ViewerDevSessionStatus | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -88,7 +89,7 @@ export default function App() {
       setSpecSource(nextSource);
       setSpecSourceLabel(nextSource.label);
       setSpecFallbackNotice(null);
-      setLoadingMessage(getWorkspaceLoadingMessage(nextSource));
+      setLoadingMessage(getWorkspaceLoadingMessage(nextSource, nextLocale));
       const loadResult = await loadViewerSpec({
         locale: nextLocale,
         source: nextSource
@@ -110,7 +111,7 @@ export default function App() {
       }
     } catch (error: unknown) {
       setSpecFallbackNotice(null);
-      setErrorMessage(toErrorMessage(error));
+      setErrorMessage(toErrorMessage(error, nextLocale));
     } finally {
       if (typeof options.loadedBuildRevision === "number") {
         pendingBuildRevisionRef.current = null;
@@ -174,7 +175,7 @@ export default function App() {
     let cancelled = false;
     setLayoutedView(null);
     setSelection(null);
-    setLoadingMessage(getMapPreparationMessage(currentView.title, specSource));
+    setLoadingMessage(getMapPreparationMessage(currentView.title, specSource, viewerLocale));
 
     void layoutViewerView(currentView)
       .then((nextLayout) => {
@@ -190,7 +191,7 @@ export default function App() {
           return;
         }
 
-        setErrorMessage(toErrorMessage(error));
+        setErrorMessage(toErrorMessage(error, viewerLocale));
       });
 
     return () => {
@@ -221,8 +222,9 @@ export default function App() {
   const currentView =
     viewerSpec?.views.find((view) => view.id === deferredViewId) ??
     (viewerSpec ? getDefaultView(viewerSpec.views) : null);
-  const navigation = getViewerNavigationExperience(viewerSpec);
-  const selectedView = getSelectedViewExperience(viewerSpec, selectedViewId);
+  const navigation = getViewerNavigationExperience(viewerSpec, viewerLocale);
+  const selectedView = getSelectedViewExperience(viewerSpec, selectedViewId, viewerLocale);
+  const appCopy = getViewerAppCopy(viewerLocale);
   const devSessionMessage = getViewerDevSessionMessage(devSessionStatus, {
     isDefaultSpecSource: specSource.isDefault
   });
@@ -253,20 +255,24 @@ export default function App() {
         <Card className="min-h-0 overflow-hidden" data-slot="canvas-panel">
           {errorMessage ? (
             <ViewerEmptyState
-              title="Viewer Load Failed"
+              locale={viewerLocale}
+              title={appCopy.loadFailedTitle}
               lines={[
                 errorMessage,
                 specSource.isDefault
-                  ? `Run \`ddd-spec build\` or \`npm run repo:build\` to regenerate viewer data from ${DEFAULT_DOMAIN_MODEL_ENTRY_PATH}.`
-                  : `Check the external viewer artifact: ${specSource.label}`
+                  ? appCopy.regenerateDefaultViewerData(DEFAULT_DOMAIN_MODEL_ENTRY_PATH)
+                  : appCopy.checkExternalViewerArtifact(specSource.label)
               ]}
               primaryViewGuide={navigation.primary}
               activeViewId={selectedView?.id}
             />
           ) : !layoutedView ? (
             <ViewerEmptyState
+              locale={viewerLocale}
               title={
-                selectedView ? `Preparing ${selectedView.title}` : "Preparing Domain Model Workspace"
+                selectedView
+                  ? getMapPreparationTitle(selectedView.title, viewerLocale)
+                  : appCopy.preparingWorkspaceTitle
               }
               lines={[loadingMessage]}
               primaryViewGuide={navigation.primary}
@@ -275,6 +281,7 @@ export default function App() {
           ) : (
             <FlowCanvas
               layoutedView={layoutedView}
+              locale={viewerLocale}
               onSelectSelection={setSelection}
             />
           )}
@@ -284,6 +291,7 @@ export default function App() {
           <ScrollArea className="h-full min-w-0">
             <aside className="min-w-0 space-y-4 p-4" data-component="viewer-sidebar">
               <InspectorPanel
+                locale={viewerLocale}
                 view={currentView as ViewerViewSpec | null}
                 selection={selection}
                 semanticDetailHelp={
@@ -298,8 +306,8 @@ export default function App() {
   );
 }
 
-function toErrorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : "Unknown error";
+function toErrorMessage(error: unknown, locale: ViewerLocale): string {
+  return error instanceof Error ? error.message : getViewerAppCopy(locale).unknownError;
 }
 
 function getDefaultView(views: readonly ViewerViewSpec[]): ViewerViewSpec | null {
@@ -310,20 +318,32 @@ function getDefaultView(views: readonly ViewerViewSpec[]): ViewerViewSpec | null
   );
 }
 
-function getWorkspaceLoadingMessage(source: ViewerSpecSource): string {
+function getWorkspaceLoadingMessage(source: ViewerSpecSource, locale: ViewerLocale): string {
+  const copy = getViewerAppCopy(locale);
+
   if (source.isDefault) {
-    return `Loading the domain model workspace from ${DEFAULT_DOMAIN_MODEL_ENTRY_PATH}...`;
+    return copy.loadingDefaultWorkspace(DEFAULT_DOMAIN_MODEL_ENTRY_PATH);
   }
 
-  return `Loading viewer data from ${source.label}...`;
+  return copy.loadingExternalWorkspace(source.label);
 }
 
-function getMapPreparationMessage(viewTitle: string, source: ViewerSpecSource): string {
+function getMapPreparationMessage(
+  viewTitle: string,
+  source: ViewerSpecSource,
+  locale: ViewerLocale
+): string {
+  const copy = getViewerAppCopy(locale);
+
   if (source.isDefault) {
-    return `Preparing the ${viewTitle} map from ${DEFAULT_DOMAIN_MODEL_ENTRY_PATH}...`;
+    return copy.preparingDefaultMap(viewTitle, DEFAULT_DOMAIN_MODEL_ENTRY_PATH);
   }
 
-  return `Preparing the ${viewTitle} map from ${source.label}...`;
+  return copy.preparingExternalMap(viewTitle, source.label);
+}
+
+function getMapPreparationTitle(viewTitle: string, locale: ViewerLocale): string {
+  return locale === "zh-CN" ? `正在准备 ${viewTitle} 视图` : `Preparing ${viewTitle}`;
 }
 
 function getDefaultViewId(views: readonly ViewerViewSpec[]): string {

@@ -4,37 +4,44 @@ import { DetailValueRenderer } from "./DetailValueRenderer";
 import { getInspectorDetailHelp } from "../lib/inspector-detail-help";
 import { getPrimaryModelingFlow, getViewExperience } from "../lib/view-experience";
 import { DEFAULT_DOMAIN_MODEL_ENTRY_PATH } from "../lib/viewer-constants";
-import type { InspectorSelection, ViewerViewSpec } from "../types";
+import { getViewerInspectorCopy } from "../lib/viewer-system-copy";
+import type { InspectorSelection, ViewerLocale, ViewerViewSpec } from "../types";
 
 interface InspectorPanelProps {
+  locale?: ViewerLocale;
   view: ViewerViewSpec | null;
   selection: InspectorSelection | null;
   semanticDetailHelp: Readonly<Record<string, string>>;
 }
 
 export function InspectorPanel({
+  locale = "en",
   view,
   selection,
   semanticDetailHelp
 }: InspectorPanelProps) {
+  const copy = getViewerInspectorCopy(locale);
+
   if (!view) {
     return (
       <section className="min-w-0 space-y-2" data-component="inspector-panel" data-state="no-view">
         <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-muted-foreground">
-          Status
+          {copy.statusLabel}
         </p>
         <h2 className="text-base font-semibold tracking-[-0.02em] text-foreground">
-          No View Loaded
+          {copy.noViewTitle}
         </h2>
         <p className="text-[13px] leading-6 text-muted-foreground [overflow-wrap:anywhere]">
-          Load generated viewer data for {DEFAULT_DOMAIN_MODEL_ENTRY_PATH} to inspect the
-          primary modeling flow: {getPrimaryModelingFlow(null)}.
+          {copy.noViewDescription({
+            entryPath: DEFAULT_DOMAIN_MODEL_ENTRY_PATH,
+            primaryModelingFlow: getPrimaryModelingFlow(null, locale)
+          })}
         </p>
       </section>
     );
   }
 
-  const viewExperience = getViewExperience(view);
+  const viewExperience = getViewExperience(view, locale);
 
   if (!selection) {
     return (
@@ -45,7 +52,7 @@ export function InspectorPanel({
       >
         <div className="min-w-0 space-y-2" data-slot="selection-summary">
           <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-muted-foreground">
-            {view.navigation.tier === "primary" ? "Primary Map" : "Secondary Map"}
+            {view.navigation.tier === "primary" ? copy.primaryMapLabel : copy.secondaryMapLabel}
           </p>
           <h2 className="text-base font-semibold tracking-[-0.02em] text-foreground">
             {view.title}
@@ -66,11 +73,11 @@ export function InspectorPanel({
                 data-slot="card-header"
               >
                 <span className="min-w-0 text-[11px] font-bold uppercase tracking-[0.04em] text-muted-foreground [overflow-wrap:anywhere]">
-                  Question This Map Answers
+                  {copy.viewQuestionLabel}
                 </span>
                 <InfoTooltip
-                  label="Question This Map Answers"
-                  description={getInspectorDetailHelp("ui.view_question", semanticDetailHelp)}
+                  label={copy.viewQuestionLabel}
+                  description={getInspectorDetailHelp("ui.view_question", semanticDetailHelp, locale)}
                 />
               </div>
               <div className="min-w-0 text-[13px] leading-6 text-foreground/90 [overflow-wrap:anywhere]">
@@ -89,11 +96,11 @@ export function InspectorPanel({
                 data-slot="card-header"
               >
                 <span className="min-w-0 text-[11px] font-bold uppercase tracking-[0.04em] text-muted-foreground [overflow-wrap:anywhere]">
-                  How To Read
+                  {copy.howToReadLabel}
                 </span>
                 <InfoTooltip
-                  label="How To Read"
-                  description={getInspectorDetailHelp("ui.how_to_read", semanticDetailHelp)}
+                  label={copy.howToReadLabel}
+                  description={getInspectorDetailHelp("ui.how_to_read", semanticDetailHelp, locale)}
                 />
               </div>
               <div className="min-w-0 text-[13px] leading-6 text-foreground/90 [overflow-wrap:anywhere]">
@@ -145,7 +152,7 @@ export function InspectorPanel({
                   </span>
                   <InfoTooltip
                     label={item.label}
-                    description={getInspectorDetailHelp(item.semanticKey, semanticDetailHelp)}
+                    description={getInspectorDetailHelp(item.semanticKey, semanticDetailHelp, locale)}
                   />
                 </div>
                 <DetailValueRenderer value={item.value} />
@@ -164,15 +171,15 @@ export function InspectorPanel({
                 data-slot="card-header"
               >
                 <span className="min-w-0 text-[11px] font-bold uppercase tracking-[0.04em] text-muted-foreground [overflow-wrap:anywhere]">
-                  Details
+                  {copy.detailsLabel}
                 </span>
                 <InfoTooltip
-                  label="Details"
-                  description={getInspectorDetailHelp("ui.details", semanticDetailHelp)}
+                  label={copy.detailsLabel}
+                  description={getInspectorDetailHelp("ui.details", semanticDetailHelp, locale)}
                 />
               </div>
               <div className="min-w-0 text-[13px] leading-6 text-foreground/90 [overflow-wrap:anywhere]">
-                No details available.
+                {copy.noDetailsAvailable}
               </div>
             </CardContent>
           </Card>

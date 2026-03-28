@@ -22,3 +22,18 @@ test("legend keeps stable DOM markers across layout variants", () => {
   assert.match(stackedMarkup, /data-component="legend"/);
   assert.match(stackedMarkup, /data-variant="stacked"/);
 });
+
+test("legend localizes system item labels without changing DOM markers", () => {
+  const markup = renderToStaticMarkup(
+    createElement(Legend, {
+      locale: "zh-CN",
+      variant: "overlay"
+    })
+  );
+
+  assert.match(markup, /图例/);
+  assert.match(markup, /上下文/);
+  assert.match(markup, /场景步骤/);
+  assert.match(markup, /值对象/);
+  assert.equal((markup.match(/data-slot="legend-item"/g) ?? []).length, 14);
+});

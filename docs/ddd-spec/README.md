@@ -24,6 +24,8 @@
   - 记录 viewer 语言 URL 解析、刷新持久化与外部 artifact locale fallback 的浏览器验证证据
 - [`browser-validation/viewer-system-i18n-us004.md`](./browser-validation/viewer-system-i18n-us004.md)
   - 记录顶部语言切换入口、菜单选项、手动切换与外部 artifact fallback 提示的浏览器验证证据
+- [`browser-validation/viewer-system-i18n-us005.md`](./browser-validation/viewer-system-i18n-us005.md)
+  - 记录 viewer 前端系统文案在 `zh-CN` 下的浏览器验证证据，以及业务文本保持原样的边界
 
 ## 2. 推荐阅读顺序
 
@@ -36,6 +38,7 @@
 7. [`browser-validation/domain-model-surface-reset.md`](./browser-validation/domain-model-surface-reset.md)
 8. [`browser-validation/viewer-system-i18n-us003.md`](./browser-validation/viewer-system-i18n-us003.md)
 9. [`browser-validation/viewer-system-i18n-us004.md`](./browser-validation/viewer-system-i18n-us004.md)
+10. [`browser-validation/viewer-system-i18n-us005.md`](./browser-validation/viewer-system-i18n-us005.md)
 
 ## 3. 当前稳定结论
 
@@ -71,6 +74,6 @@
 
 ---
 
-*文档版本：v1.6*
+*文档版本：v1.7*
 *最后更新：2026-03-28*
-*状态：主入口、schema authority、viewer 系统级 i18n authority 与关键浏览器验证记录已建立并补齐 US-004 证据*
+*状态：主入口、schema authority、viewer 系统级 i18n authority 与关键浏览器验证记录已建立，并补齐 US-005 前端系统文案证据*

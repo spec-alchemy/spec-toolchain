@@ -25,11 +25,13 @@ import type { LayoutedView } from "@/lib/layout";
 import type {
   FlowEdge,
   FlowNode,
-  InspectorSelection
+  InspectorSelection,
+  ViewerLocale
 } from "@/types";
 
 interface FlowCanvasProps {
   layoutedView: LayoutedView;
+  locale?: ViewerLocale;
   onSelectSelection: (selection: InspectorSelection | null) => void;
 }
 
@@ -45,6 +47,7 @@ const edgeTypes = {
 
 export function FlowCanvas({
   layoutedView,
+  locale = "en",
   onSelectSelection
 }: FlowCanvasProps) {
   const reactFlowRef = useRef<ReactFlowInstance<FlowNode, FlowEdge> | null>(
@@ -118,6 +121,7 @@ export function FlowCanvas({
             >
               <Legend
                 className="pointer-events-auto max-h-[calc(100vh-14rem)] overflow-auto"
+                locale={locale}
                 variant="overlay"
               />
             </div>
@@ -126,7 +130,7 @@ export function FlowCanvas({
             className="border-t border-border/70 bg-card/60 p-3 md:hidden"
             data-slot="legend-panel"
           >
-            <Legend variant="stacked" />
+            <Legend locale={locale} variant="stacked" />
           </div>
         </div>
       </FlowCanvasContextProvider>

@@ -1,4 +1,6 @@
 import { cn } from "@/lib/utils";
+import { getViewerEmptyStateCopy } from "@/lib/viewer-system-copy";
+import type { ViewerLocale } from "@/types";
 
 interface ViewerEmptyStateGuideItem {
   id: string;
@@ -7,6 +9,7 @@ interface ViewerEmptyStateGuideItem {
 }
 
 interface ViewerEmptyStateProps {
+  locale?: ViewerLocale;
   title: string;
   lines: readonly string[];
   primaryViewGuide?: readonly ViewerEmptyStateGuideItem[];
@@ -14,11 +17,14 @@ interface ViewerEmptyStateProps {
 }
 
 export function ViewerEmptyState({
+  locale = "en",
   title,
   lines,
   primaryViewGuide = [],
   activeViewId
 }: ViewerEmptyStateProps) {
+  const copy = getViewerEmptyStateCopy(locale);
+
   return (
     <div
       className="grid h-full place-content-center px-6 py-10 text-center"
@@ -39,7 +45,7 @@ export function ViewerEmptyState({
         {primaryViewGuide.length > 0 ? (
           <div className="space-y-3" data-slot="view-tour">
             <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-muted-foreground">
-              Primary Maps
+              {copy.primaryMapsLabel}
             </p>
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
               {primaryViewGuide.map((view, index) => (
@@ -53,7 +59,7 @@ export function ViewerEmptyState({
                   data-state={activeViewId === view.id ? "active" : "idle"}
                 >
                   <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-muted-foreground">
-                    Map {index + 1}
+                    {copy.mapLabel(index + 1)}
                   </p>
                   <p className="mt-1 text-sm font-semibold text-foreground">{view.title}</p>
                   <p className="mt-1 text-[12px] leading-5 text-muted-foreground">

@@ -565,6 +565,23 @@ test("viewer empty state explains the four primary maps", () => {
   assert.match(markup, /Lifecycle/);
 });
 
+test("viewer empty state localizes system guide copy in zh-CN", () => {
+  const markup = renderToStaticMarkup(
+    createElement(ViewerEmptyState, {
+      locale: "zh-CN",
+      title: "正在准备领域模型工作区",
+      lines: ["正在从 domain-model/index.yaml 加载领域模型工作区……"],
+      primaryViewGuide: getViewerNavigationExperience(DEMO_VIEWER_SPEC, "zh-CN").primary,
+      activeViewId: "context-map"
+    })
+  );
+
+  assert.match(markup, /主视图/);
+  assert.match(markup, /视图 1/);
+  assert.match(markup, /Context Map/);
+  assert.match(markup, /业务边界在哪里/);
+});
+
 test("inspector no-view state points back to the default domain model entry", () => {
   const markup = renderToStaticMarkup(
     createElement(
@@ -584,6 +601,25 @@ test("inspector no-view state points back to the default domain model entry", ()
     markup,
     /primary modeling flow: Context Map -&gt; Scenario Story -&gt; Message Flow \/ Trace -&gt; Lifecycle\./
   );
+});
+
+test("inspector no-view state localizes UI-owned copy in zh-CN", () => {
+  const markup = renderToStaticMarkup(
+    createElement(
+      TooltipProvider,
+      { delayDuration: 0 },
+      createElement(InspectorPanel, {
+        locale: "zh-CN",
+        view: null,
+        selection: null,
+        semanticDetailHelp: {}
+      })
+    )
+  );
+
+  assert.match(markup, /状态/);
+  assert.match(markup, /尚未加载视图/);
+  assert.match(markup, /加载 domain-model\/index\.yaml 生成的 viewer 数据后，即可查看主建模路径：上下文地图 -&gt; 场景故事 -&gt; 消息流 \/ 追踪 -&gt; 生命周期。/);
 });
 
 test("inspector empty selection explains what the current map answers and how to read it", () => {
@@ -608,6 +644,52 @@ test("inspector empty selection explains what the current map answers and how to
     markup,
     /Inspect a message to see its source, target, and scenario links, then follow message-flow edges to understand where contracts cross context boundaries\./
   );
+});
+
+test("inspector empty selection localizes UI-owned labels while preserving view business text", () => {
+  const markup = renderToStaticMarkup(
+    createElement(
+      TooltipProvider,
+      { delayDuration: 0 },
+      createElement(InspectorPanel, {
+        locale: "zh-CN",
+        view: DEMO_VIEWER_SPEC.views[2] as ViewerViewSpec,
+        selection: null,
+        semanticDetailHelp: {}
+      })
+    )
+  );
+
+  assert.match(markup, /主视图/);
+  assert.match(markup, /Message Flow \/ Trace/);
+  assert.match(markup, /当前视图回答的问题/);
+  assert.match(markup, /如何阅读/);
+  assert.match(markup, /查看消息的来源、目标与场景关联/);
+});
+
+test("inspector empty detail fallback localizes system copy but keeps user-authored detail labels", () => {
+  const selection = {
+    type: "scenario-step",
+    label: "Draft Order",
+    details: []
+  };
+
+  const markup = renderToStaticMarkup(
+    createElement(
+      TooltipProvider,
+      { delayDuration: 0 },
+      createElement(InspectorPanel, {
+        locale: "zh-CN",
+        view: DEMO_VIEWER_SPEC.views[0] as ViewerViewSpec,
+        selection,
+        semanticDetailHelp: {}
+      })
+    )
+  );
+
+  assert.match(markup, /Draft Order/);
+  assert.match(markup, /详情/);
+  assert.match(markup, /当前没有可显示的详情。/);
 });
 
 test("edge label activation mirrors single-select edge clicks", () => {

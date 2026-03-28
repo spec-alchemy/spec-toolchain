@@ -27,6 +27,40 @@ interface ViewerHeaderCopy {
   primaryTourLabel: (index: number) => string;
 }
 
+export interface ViewerAppCopy {
+  loadFailedTitle: string;
+  preparingWorkspaceTitle: string;
+  loadingDefaultWorkspace: (entryPath: string) => string;
+  loadingExternalWorkspace: (sourceLabel: string) => string;
+  preparingDefaultMap: (viewTitle: string, entryPath: string) => string;
+  preparingExternalMap: (viewTitle: string, sourceLabel: string) => string;
+  regenerateDefaultViewerData: (entryPath: string) => string;
+  checkExternalViewerArtifact: (sourceLabel: string) => string;
+  unknownError: string;
+}
+
+export interface ViewerEmptyStateCopy {
+  primaryMapsLabel: string;
+  mapLabel: (index: number) => string;
+}
+
+export interface ViewerInspectorCopy {
+  statusLabel: string;
+  noViewTitle: string;
+  noViewDescription: (options: { entryPath: string; primaryModelingFlow: string }) => string;
+  primaryMapLabel: string;
+  secondaryMapLabel: string;
+  viewQuestionLabel: string;
+  howToReadLabel: string;
+  detailsLabel: string;
+  noDetailsAvailable: string;
+}
+
+export interface ViewerLegendCopy {
+  title: string;
+  itemLabels: Readonly<Record<string, string>>;
+}
+
 export interface ViewerViewCopy {
   defaultTitle: string;
   question: string;
@@ -35,7 +69,11 @@ export interface ViewerViewCopy {
 }
 
 interface ViewerSystemCopy {
+  app: ViewerAppCopy;
+  emptyState: ViewerEmptyStateCopy;
   header: ViewerHeaderCopy;
+  inspector: ViewerInspectorCopy;
+  legend: ViewerLegendCopy;
   localeFallbackNotice: (options: {
     locale: ViewerLocale;
     requestedLabel: string;
@@ -51,6 +89,26 @@ const VIEWER_LOCALE_LABELS: Readonly<Record<ViewerLocale, string>> = {
 
 const VIEWER_SYSTEM_COPY: Readonly<Record<ViewerLocale, ViewerSystemCopy>> = {
   en: {
+    app: {
+      loadFailedTitle: "Viewer Load Failed",
+      preparingWorkspaceTitle: "Preparing Domain Model Workspace",
+      loadingDefaultWorkspace: (entryPath) =>
+        `Loading the domain model workspace from ${entryPath}...`,
+      loadingExternalWorkspace: (sourceLabel) => `Loading viewer data from ${sourceLabel}...`,
+      preparingDefaultMap: (viewTitle, entryPath) =>
+        `Preparing the ${viewTitle} map from ${entryPath}...`,
+      preparingExternalMap: (viewTitle, sourceLabel) =>
+        `Preparing the ${viewTitle} map from ${sourceLabel}...`,
+      regenerateDefaultViewerData: (entryPath) =>
+        `Run \`ddd-spec build\` or \`npm run repo:build\` to regenerate viewer data from ${entryPath}.`,
+      checkExternalViewerArtifact: (sourceLabel) =>
+        `Check the external viewer artifact: ${sourceLabel}`,
+      unknownError: "Unknown error"
+    },
+    emptyState: {
+      primaryMapsLabel: "Primary Maps",
+      mapLabel: (index) => `Map ${index}`
+    },
     header: {
       workspaceLabel: "Domain Model Workspace",
       titleFallback: "DDD Spec Viewer",
@@ -73,6 +131,37 @@ const VIEWER_SYSTEM_COPY: Readonly<Record<ViewerLocale, ViewerSystemCopy>> = {
       reloadViewerLabel: "Reload Viewer",
       localeLabels: VIEWER_LOCALE_LABELS,
       primaryTourLabel: (index) => `Primary ${index}`
+    },
+    inspector: {
+      statusLabel: "Status",
+      noViewTitle: "No View Loaded",
+      noViewDescription: ({ entryPath, primaryModelingFlow }) =>
+        `Load generated viewer data for ${entryPath} to inspect the primary modeling flow: ${primaryModelingFlow}.`,
+      primaryMapLabel: "Primary Map",
+      secondaryMapLabel: "Secondary Map",
+      viewQuestionLabel: "Question This Map Answers",
+      howToReadLabel: "How To Read",
+      detailsLabel: "Details",
+      noDetailsAvailable: "No details available."
+    },
+    legend: {
+      title: "Legend",
+      itemLabels: {
+        context: "Context",
+        scenario: "Scenario",
+        "scenario-step": "Scenario Step",
+        message: "Message",
+        aggregate: "Aggregate",
+        "lifecycle-state": "Lifecycle State",
+        "shared-type-group": "Shared Types",
+        relation: "Relation",
+        actor: "Actor",
+        system: "System",
+        policy: "Policy",
+        entity: "Entity",
+        "value-object": "Value Object",
+        enum: "Enum"
+      }
     },
     localeFallbackNotice: ({ locale, requestedLabel, fallbackLabel }) =>
       `Localized viewer artifact unavailable for ${locale} (${requestedLabel}). Showing ${fallbackLabel} instead.`,
@@ -129,6 +218,26 @@ const VIEWER_SYSTEM_COPY: Readonly<Record<ViewerLocale, ViewerSystemCopy>> = {
     }
   },
   "zh-CN": {
+    app: {
+      loadFailedTitle: "Viewer 加载失败",
+      preparingWorkspaceTitle: "正在准备领域模型工作区",
+      loadingDefaultWorkspace: (entryPath) =>
+        `正在从 ${entryPath} 加载领域模型工作区……`,
+      loadingExternalWorkspace: (sourceLabel) => `正在从 ${sourceLabel} 加载 viewer 数据……`,
+      preparingDefaultMap: (viewTitle, entryPath) =>
+        `正在从 ${entryPath} 准备 ${viewTitle} 视图……`,
+      preparingExternalMap: (viewTitle, sourceLabel) =>
+        `正在从 ${sourceLabel} 准备 ${viewTitle} 视图……`,
+      regenerateDefaultViewerData: (entryPath) =>
+        `运行 \`ddd-spec build\` 或 \`npm run repo:build\`，从 ${entryPath} 重新生成 viewer 数据。`,
+      checkExternalViewerArtifact: (sourceLabel) =>
+        `请检查外部 viewer 产物：${sourceLabel}`,
+      unknownError: "未知错误"
+    },
+    emptyState: {
+      primaryMapsLabel: "主视图",
+      mapLabel: (index) => `视图 ${index}`
+    },
     header: {
       workspaceLabel: "领域模型工作区",
       titleFallback: "DDD Spec 查看器",
@@ -151,6 +260,37 @@ const VIEWER_SYSTEM_COPY: Readonly<Record<ViewerLocale, ViewerSystemCopy>> = {
       reloadViewerLabel: "重新加载 Viewer",
       localeLabels: VIEWER_LOCALE_LABELS,
       primaryTourLabel: (index) => `主视图 ${index}`
+    },
+    inspector: {
+      statusLabel: "状态",
+      noViewTitle: "尚未加载视图",
+      noViewDescription: ({ entryPath, primaryModelingFlow }) =>
+        `加载 ${entryPath} 生成的 viewer 数据后，即可查看主建模路径：${primaryModelingFlow}。`,
+      primaryMapLabel: "主视图",
+      secondaryMapLabel: "次级视图",
+      viewQuestionLabel: "当前视图回答的问题",
+      howToReadLabel: "如何阅读",
+      detailsLabel: "详情",
+      noDetailsAvailable: "当前没有可显示的详情。"
+    },
+    legend: {
+      title: "图例",
+      itemLabels: {
+        context: "上下文",
+        scenario: "场景",
+        "scenario-step": "场景步骤",
+        message: "消息",
+        aggregate: "聚合",
+        "lifecycle-state": "生命周期状态",
+        "shared-type-group": "共享类型",
+        relation: "关系",
+        actor: "参与者",
+        system: "系统",
+        policy: "策略",
+        entity: "实体",
+        "value-object": "值对象",
+        enum: "枚举"
+      }
     },
     localeFallbackNotice: ({ locale, requestedLabel, fallbackLabel }) =>
       `未找到 ${locale} 对应的本地化 viewer 产物（${requestedLabel}），当前改为显示 ${fallbackLabel}。`,
@@ -209,6 +349,22 @@ const VIEWER_SYSTEM_COPY: Readonly<Record<ViewerLocale, ViewerSystemCopy>> = {
 
 export function getViewerHeaderCopy(locale: ViewerLocale): ViewerHeaderCopy {
   return getViewerSystemCopy(locale).header;
+}
+
+export function getViewerAppCopy(locale: ViewerLocale): ViewerAppCopy {
+  return getViewerSystemCopy(locale).app;
+}
+
+export function getViewerEmptyStateCopy(locale: ViewerLocale): ViewerEmptyStateCopy {
+  return getViewerSystemCopy(locale).emptyState;
+}
+
+export function getViewerInspectorCopy(locale: ViewerLocale): ViewerInspectorCopy {
+  return getViewerSystemCopy(locale).inspector;
+}
+
+export function getViewerLegendCopy(locale: ViewerLocale): ViewerLegendCopy {
+  return getViewerSystemCopy(locale).legend;
 }
 
 export function getViewerViewCopy(

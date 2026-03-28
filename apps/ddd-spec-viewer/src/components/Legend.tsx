@@ -1,9 +1,11 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { getViewerLegendCopy } from "@/lib/viewer-system-copy";
 import {
   VIEWER_NODE_COLOR_BY_KIND,
   VIEWER_RELATION_COLOR
 } from "@/lib/viewer-colors";
+import type { ViewerLocale } from "@/types";
 
 const LEGEND_ITEMS = [
   {
@@ -84,14 +86,17 @@ const LEGEND_ITEMS = [
 
 interface LegendProps {
   className?: string;
+  locale?: ViewerLocale;
   variant?: "overlay" | "stacked";
 }
 
 export function Legend({
   className,
+  locale = "en",
   variant = "overlay"
 }: LegendProps) {
   const isOverlay = variant === "overlay";
+  const copy = getViewerLegendCopy(locale);
 
   return (
     <Card
@@ -108,7 +113,7 @@ export function Legend({
       <CardContent className="min-w-0 p-3">
         <div className="space-y-2" data-slot="items">
           <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-muted-foreground">
-            Legend
+            {copy.title}
           </p>
           <div className="grid gap-2">
             {LEGEND_ITEMS.map((item) => (
@@ -122,7 +127,7 @@ export function Legend({
                   className={`inline-block h-3.5 w-3.5 rounded-[4px] border bg-white/90 ${item.className}`}
                   style={{ borderColor: item.borderColor }}
                 />
-                <span>{item.label}</span>
+                <span>{copy.itemLabels[item.kind] ?? item.label}</span>
               </div>
             ))}
           </div>
