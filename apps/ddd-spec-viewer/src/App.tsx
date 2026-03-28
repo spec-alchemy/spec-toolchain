@@ -10,10 +10,13 @@ import { FlowCanvas } from "@/components/FlowCanvas";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { InspectorPanel } from "@/components/InspectorPanel";
+import { AppHeader } from "@/components/shell/AppHeader";
+import { ViewNavigation } from "@/components/shell/ViewNavigation";
 import { ViewerEmptyState } from "@/components/shell/ViewerEmptyState";
-import { ViewerHeader } from "@/components/shell/ViewerHeader";
+import { WorkspaceContextBar } from "@/components/shell/WorkspaceContextBar";
 import { layoutViewerView, type LayoutedView } from "@/lib/layout";
 import {
+  getPrimaryModelingFlow,
   getSelectedViewExperience,
   getViewerNavigationExperience
 } from "@/lib/view-experience";
@@ -60,6 +63,7 @@ export default function App() {
   );
   const [devSessionStatus, setDevSessionStatus] = useState<ViewerDevSessionStatus | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isWorkspaceContextExpanded, setIsWorkspaceContextExpanded] = useState(false);
   const lastLoadedBuildRevisionRef = useRef(0);
   const pendingBuildRevisionRef = useRef<number | null>(null);
   const stopDevSessionPollingRef = useRef(false);
@@ -228,63 +232,84 @@ export default function App() {
   const devSessionMessage = getViewerDevSessionMessage(devSessionStatus, {
     isDefaultSpecSource: specSource.isDefault
   });
+  const primaryModelingFlow = getPrimaryModelingFlow(viewerSpec, viewerLocale);
 
   return (
     <TooltipProvider delayDuration={120}>
       <div
-        className="grid h-full grid-cols-[minmax(0,1fr)_320px] grid-rows-[auto_minmax(0,1fr)] gap-3 p-3 max-[1080px]:grid-cols-1 max-[1080px]:grid-rows-[auto_minmax(420px,1fr)_auto]"
+        className="grid h-full grid-cols-[minmax(0,1fr)_320px] grid-rows-[auto_auto_minmax(0,1fr)] gap-3 p-3 max-[1080px]:grid-cols-1 max-[1080px]:grid-rows-[auto_auto_minmax(420px,1fr)_auto]"
         data-component="viewer-app"
       >
-        <ViewerHeader
+        <AppHeader
           currentLocale={viewerLocale}
-          devSessionMessage={devSessionMessage.message}
           devSessionTone={devSessionMessage.tone}
-          localeFallbackNotice={specFallbackNotice}
           viewerSpec={viewerSpec}
-          specSourceLabel={specSourceLabel}
-          selectedViewId={selectedViewId}
+          currentViewTitle={selectedView?.title ?? null}
           onSelectLocale={handleSelectLocale}
-          onSelectView={setSelectedViewId}
           onReload={() => {
             void refreshViewerSpec({
               locale: viewerLocale
             });
           }}
         />
+        <WorkspaceContextBar
+          currentLocale={viewerLocale}
+          devSessionMessage={devSessionMessage.message}
+          devSessionTone={devSessionMessage.tone}
+          localeFallbackNotice={specFallbackNotice}
+          summary={viewerSpec?.summary ?? null}
+          specSourceLabel={specSourceLabel}
+          primaryModelingFlow={primaryModelingFlow}
+          isExpanded={isWorkspaceContextExpanded}
+          onToggleExpanded={() => {
+            setIsWorkspaceContextExpanded((current) => !current);
+          }}
+        />
 
         <Card className="min-h-0 overflow-hidden" data-slot="canvas-panel">
-          {errorMessage ? (
-            <ViewerEmptyState
-              locale={viewerLocale}
-              title={appCopy.loadFailedTitle}
-              lines={[
-                errorMessage,
-                specSource.isDefault
-                  ? appCopy.regenerateDefaultViewerData(DEFAULT_DOMAIN_MODEL_ENTRY_PATH)
-                  : appCopy.checkExternalViewerArtifact(specSource.label)
-              ]}
-              primaryViewGuide={navigation.primary}
-              activeViewId={selectedView?.id}
+          <div className="flex h-full min-h-0 flex-col" data-component="canvas-panel-layout">
+            <ViewNavigation
+              currentLocale={viewerLocale}
+              navigation={navigation}
+              selectedView={selectedView}
+              selectedViewId={selectedViewId}
+              onSelectView={setSelectedViewId}
             />
-          ) : !layoutedView ? (
-            <ViewerEmptyState
-              locale={viewerLocale}
-              title={
-                selectedView
-                  ? getMapPreparationTitle(selectedView.title, viewerLocale)
-                  : appCopy.preparingWorkspaceTitle
-              }
-              lines={[loadingMessage]}
-              primaryViewGuide={navigation.primary}
-              activeViewId={selectedView?.id}
-            />
-          ) : (
-            <FlowCanvas
-              layoutedView={layoutedView}
-              locale={viewerLocale}
-              onSelectSelection={setSelection}
-            />
-          )}
+            <div className="min-h-0 flex-1">
+              {errorMessage ? (
+                <ViewerEmptyState
+                  locale={viewerLocale}
+                  title={appCopy.loadFailedTitle}
+                  lines={[
+                    errorMessage,
+                    specSource.isDefault
+                      ? appCopy.regenerateDefaultViewerData(DEFAULT_DOMAIN_MODEL_ENTRY_PATH)
+                      : appCopy.checkExternalViewerArtifact(specSource.label)
+                  ]}
+                  primaryViewGuide={navigation.primary}
+                  activeViewId={selectedView?.id}
+                />
+              ) : !layoutedView ? (
+                <ViewerEmptyState
+                  locale={viewerLocale}
+                  title={
+                    selectedView
+                      ? getMapPreparationTitle(selectedView.title, viewerLocale)
+                      : appCopy.preparingWorkspaceTitle
+                  }
+                  lines={[loadingMessage]}
+                  primaryViewGuide={navigation.primary}
+                  activeViewId={selectedView?.id}
+                />
+              ) : (
+                <FlowCanvas
+                  layoutedView={layoutedView}
+                  locale={viewerLocale}
+                  onSelectSelection={setSelection}
+                />
+              )}
+            </div>
+          </div>
         </Card>
 
         <Card className="min-h-0 min-w-0 overflow-hidden" data-slot="sidebar-panel">

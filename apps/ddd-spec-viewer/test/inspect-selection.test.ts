@@ -4,8 +4,10 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { DetailValueRenderer } from "../src/components/DetailValueRenderer";
 import { InspectorPanel } from "../src/components/InspectorPanel";
+import { AppHeader } from "../src/components/shell/AppHeader";
+import { ViewNavigation } from "../src/components/shell/ViewNavigation";
 import { ViewerEmptyState } from "../src/components/shell/ViewerEmptyState";
-import { ViewerHeader } from "../src/components/shell/ViewerHeader";
+import { WorkspaceContextBar } from "../src/components/shell/WorkspaceContextBar";
 import { TooltipProvider } from "../src/components/ui/tooltip";
 import { loadViewerSpec } from "../src/lib/load-viewer-spec";
 import { activateSelectableEdge } from "../src/lib/view-layout/edge-activation";
@@ -477,74 +479,86 @@ test("detail renderer recursively renders structured field sections", () => {
   assert.match(markup, /content/);
 });
 
-test("viewer header surfaces the primary modeling path and map questions", () => {
+test("app header keeps global identity and controls lightweight", () => {
   const markup = renderToStaticMarkup(
-    createElement(ViewerHeader, {
+    createElement(AppHeader, {
       currentLocale: "en",
-      devSessionMessage: null,
       devSessionTone: null,
-      localeFallbackNotice: "Localized viewer artifact unavailable for zh-CN. Showing demo-source instead.",
       viewerSpec: DEMO_VIEWER_SPEC,
-      specSourceLabel: "demo-source",
-      selectedViewId: "message-flow",
+      currentViewTitle: "Message Flow / Trace",
       onSelectLocale: () => {},
-      onSelectView: () => {},
       onReload: () => {}
     })
   );
 
   assert.match(markup, /Domain Model Workspace/);
-  assert.match(markup, /Default entry: domain-model\/index\.yaml/);
-  assert.match(
-    markup,
-    /Primary modeling flow: Context Map -&gt; Scenario Story -&gt; Message Flow \/ Trace -&gt; Lifecycle/
-  );
-  assert.match(markup, /Viewer artifact: demo-source/);
-  assert.match(markup, /Localized viewer artifact unavailable for zh-CN/);
-  assert.match(markup, /Language/);
-  assert.match(markup, /Viewer language/);
+  assert.match(markup, /Demo Workspace/);
+  assert.match(markup, /Message Flow \/ Trace/);
+  assert.match(markup, /Workspace status/);
+  assert.match(markup, /Ready/);
+  assert.match(markup, /data-slot="workspace-status-dot"/);
   assert.match(markup, /English/);
-  assert.match(markup, /Where are the business boundaries, and who collaborates across them\?/);
-  assert.match(markup, /How does the business story move from trigger to outcome\?/);
-  assert.match(
-    markup,
-    /Which commands, events, and queries move work between steps, contexts, and systems\?/
-  );
-  assert.match(markup, /How does a core aggregate change state over time\?/);
+  assert.match(markup, /data-slot="language-selector"/);
   assert.match(markup, /Reload Viewer/);
-  assert.equal((markup.match(/data-slot="primary-map"/g) ?? []).length, 4);
+  assert.match(markup, /data-slot="toolbar-row"/);
+  assert.match(markup, /data-slot="reload-button"/);
+  assert.equal((markup.match(/data-slot="identity-separator"/g) ?? []).length, 2);
+  assert.doesNotMatch(markup, /Current view:/);
+  assert.doesNotMatch(markup, /Primary modeling flow/);
 });
 
-test("viewer header localizes its own language switcher copy for zh-CN", () => {
+test("workspace context bar owns metadata and notices outside the app header", () => {
   const markup = renderToStaticMarkup(
-    createElement(ViewerHeader, {
-      currentLocale: "zh-CN",
-      devSessionMessage: null,
-      devSessionTone: null,
+    createElement(WorkspaceContextBar, {
+      currentLocale: "en",
+      devSessionMessage: "Watching the default workspace for fresh builds.",
+      devSessionTone: "info",
       localeFallbackNotice:
-        "未找到 zh-CN 对应的本地化 viewer 产物（demo-source），当前改为显示 demo-source。",
-      viewerSpec: null,
+        "Localized viewer artifact unavailable for zh-CN. Showing demo-source instead.",
+      summary: "Demo summary",
       specSourceLabel: "demo-source",
-      selectedViewId: "message-flow",
-      onSelectLocale: () => {},
-      onSelectView: () => {},
-      onReload: () => {}
+      primaryModelingFlow:
+        "Context Map -> Scenario Story -> Message Flow / Trace -> Lifecycle",
+      isExpanded: true,
+      onToggleExpanded: () => {}
     })
   );
 
-  assert.match(markup, /领域模型工作区/);
-  assert.match(markup, /DDD Spec 查看器/);
-  assert.match(markup, /默认入口: domain-model\/index\.yaml/);
-  assert.match(markup, /主建模路径: 上下文地图 -&gt; 场景故事 -&gt; 消息流 \/ 追踪 -&gt; 生命周期/);
+  assert.match(markup, /Default entry/);
+  assert.match(markup, /domain-model\/index\.yaml/);
+  assert.match(
+    markup,
+    /Primary modeling flow/
+  );
+  assert.match(markup, /Context Map -&gt; Scenario Story -&gt; Message Flow \/ Trace -&gt; Lifecycle/);
+  assert.match(markup, /Viewer artifact/);
+  assert.match(markup, /demo-source/);
+  assert.match(markup, /Watching the default workspace for fresh builds\./);
+  assert.match(markup, /Localized viewer artifact unavailable for zh-CN/);
+  assert.match(markup, /Workspace info/);
+  assert.match(markup, /Demo summary/);
+  assert.match(markup, /Hide details/);
+});
+
+test("view navigation owns map switching outside the app header", () => {
+  const navigation = getViewerNavigationExperience(DEMO_VIEWER_SPEC, "zh-CN");
+  const markup = renderToStaticMarkup(
+    createElement(ViewNavigation, {
+      currentLocale: "zh-CN",
+      navigation,
+      selectedView: navigation.primary[2],
+      selectedViewId: "message-flow",
+      onSelectView: () => {}
+    })
+  );
+
   assert.match(markup, /视图切换/);
   assert.match(markup, /当前视图回答：/);
   assert.match(markup, /哪些 command、event 和 query 在步骤、context 与系统之间传递工作？/);
-  assert.match(markup, /语言/);
-  assert.match(markup, /Viewer 语言/);
-  assert.match(markup, /data-slot="language-selector"/);
-  assert.match(markup, /重新加载 Viewer/);
-  assert.match(markup, /未找到 zh-CN 对应的本地化 viewer 产物/);
-  assert.equal((markup.match(/data-slot="primary-map"/g) ?? []).length, 4);
+  assert.match(markup, /data-slot="primary-map-tab"/);
+  assert.equal((markup.match(/data-slot="primary-map-tab"/g) ?? []).length, 4);
+  assert.match(markup, /更多视图/);
+  assert.match(markup, /data-slot="secondary-view-selector"/);
 });
 
 test("viewer empty state explains the four primary maps", () => {

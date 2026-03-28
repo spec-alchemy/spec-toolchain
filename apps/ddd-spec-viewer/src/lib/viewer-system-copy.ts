@@ -8,12 +8,21 @@ interface ViewerHeaderCopy {
   workspaceLabel: string;
   titleFallback: string;
   summaryFallback: string;
+  currentViewLabel: string;
+  currentViewFallback: string;
+  workspaceStatusLabel: string;
+  workspaceStatusReadyLabel: string;
+  workspaceStatusWarningLabel: string;
   defaultEntryLabel: string;
   primaryModelingFlowLabel: string;
   viewerArtifactLabel: string;
+  workspaceInfoLabel: string;
+  showWorkspaceInfoLabel: string;
+  hideWorkspaceInfoLabel: string;
   viewSelectorLabel: string;
   primaryMapLabel: string;
   secondaryMapLabel: string;
+  secondaryViewsLabel: string;
   selectViewFallback: string;
   selectViewPrompt: string;
   primaryMapsGroupLabel: string;
@@ -114,12 +123,21 @@ const VIEWER_SYSTEM_COPY: Readonly<Record<ViewerLocale, ViewerSystemCopy>> = {
       titleFallback: "DDD Spec Viewer",
       summaryFallback:
         "Open a generated domain model workspace to inspect boundaries, stories, messages, and lifecycle decisions as one modeling flow.",
+      currentViewLabel: "Current view",
+      currentViewFallback: "No map selected",
+      workspaceStatusLabel: "Workspace status",
+      workspaceStatusReadyLabel: "Ready",
+      workspaceStatusWarningLabel: "Attention needed",
       defaultEntryLabel: "Default entry",
       primaryModelingFlowLabel: "Primary modeling flow",
       viewerArtifactLabel: "Viewer artifact",
+      workspaceInfoLabel: "Workspace info",
+      showWorkspaceInfoLabel: "Show details",
+      hideWorkspaceInfoLabel: "Hide details",
       viewSelectorLabel: "View Selector",
       primaryMapLabel: "Primary map",
       secondaryMapLabel: "Secondary map",
+      secondaryViewsLabel: "More views",
       selectViewFallback: "Select a view",
       selectViewPrompt: "Choose a map to inspect the modeled business story.",
       primaryMapsGroupLabel: "Primary maps",
@@ -243,12 +261,21 @@ const VIEWER_SYSTEM_COPY: Readonly<Record<ViewerLocale, ViewerSystemCopy>> = {
       titleFallback: "DDD Spec 查看器",
       summaryFallback:
         "打开已生成的领域模型工作区，在一条建模主线上查看边界、故事、消息以及生命周期决策。",
+      currentViewLabel: "当前视图",
+      currentViewFallback: "尚未选择视图",
+      workspaceStatusLabel: "工作区状态",
+      workspaceStatusReadyLabel: "正常",
+      workspaceStatusWarningLabel: "需要关注",
       defaultEntryLabel: "默认入口",
       primaryModelingFlowLabel: "主建模路径",
       viewerArtifactLabel: "Viewer 产物",
+      workspaceInfoLabel: "工作区信息",
+      showWorkspaceInfoLabel: "展开详情",
+      hideWorkspaceInfoLabel: "收起详情",
       viewSelectorLabel: "视图切换",
       primaryMapLabel: "主视图",
       secondaryMapLabel: "次级视图",
+      secondaryViewsLabel: "更多视图",
       selectViewFallback: "选择一个视图",
       selectViewPrompt: "选择一个视图以检查当前建模业务故事。",
       primaryMapsGroupLabel: "主视图",
