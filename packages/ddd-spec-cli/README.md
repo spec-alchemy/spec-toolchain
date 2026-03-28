@@ -3,8 +3,6 @@
 `@knowledge-alchemy/ddd-spec` is the external CLI package for the DDD modeling workbench.
 Zero-config is the default product path: run `ddd-spec init`, model under `domain-model/`, keep `domain-model/index.yaml` as the default entry, and let the CLI write build outputs into `.ddd-spec/`. Use `--config <path>` only when a workspace needs custom entry paths, output locations, or viewer sync targets.
 
-Package naming and versioning stay on a separate axis from schema contracts: the current domain model schema version and viewer spec version both start at `1`, but this reset does not rename the package, does not rename the `ddd-spec` CLI command, and does not imply an npm semver reset just because schema or viewer contract versions change.
-
 ## Preferred Onboarding
 
 Start here for a normal consumer workspace. The preferred path is `install -> init -> dev`.
@@ -82,8 +80,6 @@ npm exec ddd-spec build
 npm exec ddd-spec viewer -- --port 4173
 ```
 
-The `viewer` command launches a local static server backed by packaged assets under `dist/ddd-spec-cli/static/viewer/`. It serves the current workspace viewer output at `/generated/viewer-spec.json`, so the same command works after `npm install`, `npm exec`, or `npx`.
-
 ## Supported Published-Package Commands
 
 The published package supports these commands:
@@ -118,17 +114,6 @@ npm install -g @knowledge-alchemy/ddd-spec
 ddd-spec init
 ddd-spec dev
 ddd-spec viewer -- --host 0.0.0.0
-```
-
-For local package development with `npm link`, link the public package from `packages/ddd-spec-cli`:
-
-```sh
-# in design-alchemy/packages/ddd-spec-cli
-npm link
-
-# in the consumer workspace
-npm link @knowledge-alchemy/ddd-spec
-npm exec ddd-spec init
 ```
 
 For a project-local install, use `npm exec` or `npx --no-install` after adding the package:
