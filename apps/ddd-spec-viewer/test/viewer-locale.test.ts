@@ -166,7 +166,8 @@ test("viewer spec loader falls back to the original external artifact when the l
   assert.equal(result.locale, "zh-CN");
   assert.equal(result.loadedUrl.href, "https://example.com/artifacts/viewer-spec.json");
   assert.equal(result.fallback?.fallbackLabel, "/artifacts/viewer-spec.json");
-  assert.match(result.fallback?.notice ?? "", /Localized viewer artifact unavailable for zh-CN/);
+  assert.match(result.fallback?.notice ?? "", /未找到 zh-CN 对应的本地化 viewer 产物/);
+  assert.match(result.fallback?.notice ?? "", /当前改为显示 \/artifacts\/viewer-spec\.json/);
 });
 
 test("viewer spec loader silently falls back to the default artifact when the localized default spec is invalid", async () => {

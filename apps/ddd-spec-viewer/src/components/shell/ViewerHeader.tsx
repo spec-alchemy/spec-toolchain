@@ -16,6 +16,7 @@ import {
   getViewerNavigationExperience
 } from "@/lib/view-experience";
 import { DEFAULT_DOMAIN_MODEL_ENTRY_PATH } from "@/lib/viewer-constants";
+import { getViewerHeaderCopy } from "@/lib/viewer-system-copy";
 import { cn } from "@/lib/utils";
 
 interface ViewerHeaderProps {
@@ -43,9 +44,10 @@ export function ViewerHeader({
   onSelectView,
   onReload
 }: ViewerHeaderProps) {
-  const navigation = getViewerNavigationExperience(viewerSpec);
-  const selectedView = getSelectedViewExperience(viewerSpec, selectedViewId);
-  const primaryModelingFlow = getPrimaryModelingFlow(viewerSpec);
+  const copy = getViewerHeaderCopy(currentLocale);
+  const navigation = getViewerNavigationExperience(viewerSpec, currentLocale);
+  const selectedView = getSelectedViewExperience(viewerSpec, selectedViewId, currentLocale);
+  const primaryModelingFlow = getPrimaryModelingFlow(viewerSpec, currentLocale);
 
   return (
     <header
@@ -56,32 +58,32 @@ export function ViewerHeader({
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0 flex-1 space-y-1.5" data-slot="title-block">
             <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-muted-foreground">
-              Domain Model Workspace
+              {copy.workspaceLabel}
             </p>
             <h1 className="text-xl font-semibold tracking-[-0.02em] text-foreground">
-              {viewerSpec?.title ?? "DDD Spec Viewer"}
+              {viewerSpec?.title ?? copy.titleFallback}
             </h1>
             <p className="max-w-3xl text-[13px] leading-6 text-muted-foreground">
               {viewerSpec?.summary ??
-                "Open a generated domain model workspace to inspect boundaries, stories, messages, and lifecycle decisions as one modeling flow."}
+                copy.summaryFallback}
             </p>
             <p
               className="max-w-3xl text-[12px] leading-5 text-muted-foreground"
               data-slot="default-entry"
             >
-              Default entry: {DEFAULT_DOMAIN_MODEL_ENTRY_PATH}
+              {copy.defaultEntryLabel}: {DEFAULT_DOMAIN_MODEL_ENTRY_PATH}
             </p>
             <p
               className="max-w-3xl text-[12px] leading-5 text-muted-foreground"
               data-slot="primary-modeling-flow"
             >
-              Primary modeling flow: {primaryModelingFlow}
+              {copy.primaryModelingFlowLabel}: {primaryModelingFlow}
             </p>
             <p
               className="max-w-3xl break-all text-[12px] leading-5 text-muted-foreground"
               data-slot="viewer-artifact"
             >
-              Viewer artifact: {specSourceLabel}
+              {copy.viewerArtifactLabel}: {specSourceLabel}
             </p>
             {devSessionMessage ? (
               <p
@@ -111,7 +113,7 @@ export function ViewerHeader({
             data-slot="view-selector-panel"
           >
             <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-muted-foreground">
-              View Selector
+              {copy.viewSelectorLabel}
             </p>
             <div className="mt-2 space-y-3">
               <Select
@@ -126,21 +128,22 @@ export function ViewerHeader({
                 <SelectTrigger className="h-auto min-h-[76px] w-full bg-white/90 px-3 py-3">
                   <div className="flex min-w-0 flex-col items-start text-left">
                     <span className="text-[11px] font-bold uppercase tracking-[0.06em] text-muted-foreground">
-                      {selectedView?.tier === "secondary" ? "Secondary map" : "Primary map"}
+                      {selectedView?.tier === "secondary"
+                        ? copy.secondaryMapLabel
+                        : copy.primaryMapLabel}
                     </span>
                     <span className="min-w-0 text-sm font-semibold text-foreground [overflow-wrap:anywhere]">
-                      {selectedView?.title ?? "Select a view"}
+                      {selectedView?.title ?? copy.selectViewFallback}
                     </span>
                     <span className="min-w-0 text-[12px] leading-5 text-muted-foreground [overflow-wrap:anywhere]">
-                      {selectedView?.question ??
-                        "Choose a map to inspect the modeled business story."}
+                      {selectedView?.question ?? copy.selectViewPrompt}
                     </span>
                   </div>
                 </SelectTrigger>
                 <SelectContent className="w-[360px]">
                   {navigation.primary.length > 0 ? (
                     <SelectGroup>
-                      <SelectLabel>Primary maps</SelectLabel>
+                      <SelectLabel>{copy.primaryMapsGroupLabel}</SelectLabel>
                       {navigation.primary.map((view) => (
                         <SelectItem
                           key={view.id}
@@ -162,7 +165,7 @@ export function ViewerHeader({
                     <>
                       <SelectSeparator />
                       <SelectGroup>
-                        <SelectLabel>Secondary maps</SelectLabel>
+                        <SelectLabel>{copy.secondaryMapsGroupLabel}</SelectLabel>
                         {navigation.secondary.map((view) => (
                           <SelectItem
                             key={view.id}
@@ -187,13 +190,13 @@ export function ViewerHeader({
                 className="text-[12px] leading-5 text-muted-foreground"
                 data-slot="selected-view-question"
               >
-                This map answers:{" "}
+                {copy.selectedViewQuestionLabel}{" "}
                 <span className="text-foreground">{selectedView?.question}</span>
               </p>
 
               <div className="space-y-2" data-slot="language-selector-panel">
                 <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-muted-foreground">
-                  Language
+                  {copy.languageLabel}
                 </p>
                 <Select
                   value={currentLocale}
@@ -209,25 +212,25 @@ export function ViewerHeader({
                   >
                     <div className="flex min-w-0 flex-col items-start text-left">
                       <span className="text-[11px] font-bold uppercase tracking-[0.06em] text-muted-foreground">
-                        Viewer language
+                        {copy.viewerLanguageLabel}
                       </span>
                       <span className="text-sm font-semibold text-foreground">
-                        {currentLocale === "zh-CN" ? "中文" : "English"}
+                        {copy.localeLabels[currentLocale]}
                       </span>
                     </div>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
-                      <SelectLabel>System language</SelectLabel>
-                      <SelectItem value="en">English</SelectItem>
-                      <SelectItem value="zh-CN">中文</SelectItem>
+                      <SelectLabel>{copy.systemLanguageLabel}</SelectLabel>
+                      <SelectItem value="en">{copy.localeLabels.en}</SelectItem>
+                      <SelectItem value="zh-CN">{copy.localeLabels["zh-CN"]}</SelectItem>
                     </SelectGroup>
                   </SelectContent>
                 </Select>
               </div>
 
               <Button type="button" variant="outline" onClick={onReload} className="w-full">
-                Reload Viewer
+                {copy.reloadViewerLabel}
               </Button>
             </div>
           </div>
@@ -246,7 +249,7 @@ export function ViewerHeader({
                 data-state={selectedView?.id === view.id ? "active" : "idle"}
               >
                 <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-muted-foreground">
-                  Primary {index + 1}
+                  {copy.primaryTourLabel(index + 1)}
                 </p>
                 <p className="mt-1 text-sm font-semibold text-foreground">{view.title}</p>
                 <p className="mt-1 text-[12px] leading-5 text-muted-foreground">

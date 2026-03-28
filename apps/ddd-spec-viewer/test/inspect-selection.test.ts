@@ -515,6 +515,38 @@ test("viewer header surfaces the primary modeling path and map questions", () =>
   assert.equal((markup.match(/data-slot="primary-map"/g) ?? []).length, 4);
 });
 
+test("viewer header localizes its own language switcher copy for zh-CN", () => {
+  const markup = renderToStaticMarkup(
+    createElement(ViewerHeader, {
+      currentLocale: "zh-CN",
+      devSessionMessage: null,
+      devSessionTone: null,
+      localeFallbackNotice:
+        "未找到 zh-CN 对应的本地化 viewer 产物（demo-source），当前改为显示 demo-source。",
+      viewerSpec: null,
+      specSourceLabel: "demo-source",
+      selectedViewId: "message-flow",
+      onSelectLocale: () => {},
+      onSelectView: () => {},
+      onReload: () => {}
+    })
+  );
+
+  assert.match(markup, /领域模型工作区/);
+  assert.match(markup, /DDD Spec 查看器/);
+  assert.match(markup, /默认入口: domain-model\/index\.yaml/);
+  assert.match(markup, /主建模路径: 上下文地图 -&gt; 场景故事 -&gt; 消息流 \/ 追踪 -&gt; 生命周期/);
+  assert.match(markup, /视图切换/);
+  assert.match(markup, /当前视图回答：/);
+  assert.match(markup, /哪些 command、event 和 query 在步骤、context 与系统之间传递工作？/);
+  assert.match(markup, /语言/);
+  assert.match(markup, /Viewer 语言/);
+  assert.match(markup, /data-slot="language-selector"/);
+  assert.match(markup, /重新加载 Viewer/);
+  assert.match(markup, /未找到 zh-CN 对应的本地化 viewer 产物/);
+  assert.equal((markup.match(/data-slot="primary-map"/g) ?? []).length, 4);
+});
+
 test("viewer empty state explains the four primary maps", () => {
   const markup = renderToStaticMarkup(
     createElement(ViewerEmptyState, {

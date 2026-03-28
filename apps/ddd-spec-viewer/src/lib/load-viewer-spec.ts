@@ -9,6 +9,7 @@ import {
   resolveViewerLocale,
   toViewerLocaleSpecUrl
 } from "./viewer-locale";
+import { formatViewerLocaleFallbackNotice } from "./viewer-system-copy";
 const SPEC_QUERY_PARAM = "spec";
 
 export interface ViewerSpecSource {
@@ -110,7 +111,11 @@ export async function loadViewerSpec(
           fallbackUrl: source.url,
           notice: source.isDefault
             ? null
-            : `Localized viewer artifact unavailable for ${locale} (${requestedLabel}). Showing ${source.label} instead.`
+            : formatViewerLocaleFallbackNotice({
+                locale,
+                requestedLabel,
+                fallbackLabel: source.label
+              })
         }
       };
     } catch (fallbackError: unknown) {

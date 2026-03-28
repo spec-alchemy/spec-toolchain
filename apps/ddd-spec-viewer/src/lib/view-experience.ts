@@ -1,15 +1,11 @@
+import { DEFAULT_VIEWER_LOCALE } from "@knowledge-alchemy/ddd-spec-viewer-contract";
 import type {
   BusinessViewerSpec,
+  ViewerLocale,
   ViewerViewKind,
   ViewerViewSpec
 } from "@/types";
-
-interface ViewerViewCopy {
-  defaultTitle: string;
-  question: string;
-  overview: string;
-  howToRead: string;
-}
+import { getViewerViewCopy } from "./viewer-system-copy";
 
 export interface ViewerViewExperience {
   id: string;
@@ -32,63 +28,11 @@ interface ViewerViewSeed {
   isDefault?: boolean;
 }
 
-const VIEW_COPY_BY_KIND: Readonly<Record<ViewerViewKind, ViewerViewCopy>> = {
-  "context-map": {
-    defaultTitle: "Context Map",
-    question: "Where are the business boundaries, and who collaborates across them?",
-    overview:
-      "Start here to identify bounded contexts, ownership boundaries, and the actors or systems each context works with.",
-    howToRead:
-      "Read each context as an ownership boundary, then inspect the surrounding actors, systems, and collaboration edges to see who depends on whom."
-  },
-  "scenario-story": {
-    defaultTitle: "Scenario Story",
-    question: "How does the business story move from trigger to outcome?",
-    overview:
-      "Use this map to follow the default business narrative step by step across contexts.",
-    howToRead:
-      "Start at the entry step, follow sequence edges, and inspect each step to see the acting role, touched context, and resulting outcome."
-  },
-  "message-flow": {
-    defaultTitle: "Message Flow / Trace",
-    question:
-      "Which commands, events, and queries move work between steps, contexts, and systems?",
-    overview:
-      "Use this map to trace the contracts that request work, report facts, and hand business work across boundaries.",
-    howToRead:
-      "Inspect a message to see its source, target, and scenario links, then follow message-flow edges to understand where contracts cross context boundaries."
-  },
-  lifecycle: {
-    defaultTitle: "Lifecycle",
-    question: "How does a core aggregate change state over time?",
-    overview:
-      "Focus here when you need the state machine behind the business story and message flow.",
-    howToRead:
-      "Read each aggregate as a lifecycle, then inspect states and transitions to see trigger messages, emitted follow-up work, and valid business progression."
-  },
-  "domain-structure": {
-    defaultTitle: "Domain Structure",
-    question: "What lives inside each aggregate boundary, and what is shared outside it?",
-    overview:
-      "Use this secondary map to inspect fields, owned objects, shared types, and structural references.",
-    howToRead:
-      "Start from an aggregate root, then follow composition, association, and reference edges to understand structural ownership and shared dependencies."
-  },
-  "policy-saga": {
-    defaultTitle: "Policy / Saga",
-    question: "Which policies coordinate follow-up work after a message arrives?",
-    overview:
-      "Use this secondary map to inspect coordination logic, follow-up messages, and external system handoffs.",
-    howToRead:
-      "Read from trigger messages into policy nodes, then follow outgoing messages and target systems to understand orchestration responsibilities."
-  }
-};
-
 const DEFAULT_VIEW_SEEDS: readonly ViewerViewSeed[] = [
   {
     id: "context-map",
     kind: "context-map",
-    title: VIEW_COPY_BY_KIND["context-map"].defaultTitle,
+    title: "",
     tier: "primary",
     order: 10,
     isDefault: true
@@ -96,28 +40,29 @@ const DEFAULT_VIEW_SEEDS: readonly ViewerViewSeed[] = [
   {
     id: "scenario-story",
     kind: "scenario-story",
-    title: VIEW_COPY_BY_KIND["scenario-story"].defaultTitle,
+    title: "",
     tier: "primary",
     order: 20
   },
   {
     id: "message-flow",
     kind: "message-flow",
-    title: VIEW_COPY_BY_KIND["message-flow"].defaultTitle,
+    title: "",
     tier: "primary",
     order: 30
   },
   {
     id: "lifecycle",
     kind: "lifecycle",
-    title: VIEW_COPY_BY_KIND.lifecycle.defaultTitle,
+    title: "",
     tier: "primary",
     order: 40
   }
 ];
 
 export function getViewExperience(
-  view: Pick<ViewerViewSpec, "id" | "kind" | "title" | "navigation">
+  view: Pick<ViewerViewSpec, "id" | "kind" | "title" | "navigation">,
+  locale: ViewerLocale = DEFAULT_VIEWER_LOCALE
 ): ViewerViewExperience {
   return buildViewExperience({
     id: view.id,
@@ -126,18 +71,19 @@ export function getViewExperience(
     tier: view.navigation.tier,
     order: view.navigation.order,
     isDefault: view.navigation.default
-  });
+  }, locale);
 }
 
 export function getViewerNavigationExperience(
-  viewerSpec: BusinessViewerSpec | null
+  viewerSpec: BusinessViewerSpec | null,
+  locale: ViewerLocale = DEFAULT_VIEWER_LOCALE
 ): {
   primary: readonly ViewerViewExperience[];
   secondary: readonly ViewerViewExperience[];
 } {
   const views = viewerSpec
-    ? viewerSpec.views.map((view) => getViewExperience(view))
-    : DEFAULT_VIEW_SEEDS.map((view) => buildViewExperience(view));
+    ? viewerSpec.views.map((view) => getViewExperience(view, locale))
+    : DEFAULT_VIEW_SEEDS.map((view) => buildViewExperience(view, locale));
   const orderedViews = [...views].sort((left, right) => left.order - right.order);
 
   return {
@@ -148,9 +94,10 @@ export function getViewerNavigationExperience(
 
 export function getSelectedViewExperience(
   viewerSpec: BusinessViewerSpec | null,
-  selectedViewId: string
+  selectedViewId: string,
+  locale: ViewerLocale = DEFAULT_VIEWER_LOCALE
 ): ViewerViewExperience | null {
-  const navigation = getViewerNavigationExperience(viewerSpec);
+  const navigation = getViewerNavigationExperience(viewerSpec, locale);
   const allViews = [...navigation.primary, ...navigation.secondary];
 
   return (
@@ -161,18 +108,24 @@ export function getSelectedViewExperience(
   );
 }
 
-export function getPrimaryModelingFlow(viewerSpec: BusinessViewerSpec | null): string {
-  const primaryViews = getViewerNavigationExperience(viewerSpec).primary;
+export function getPrimaryModelingFlow(
+  viewerSpec: BusinessViewerSpec | null,
+  locale: ViewerLocale = DEFAULT_VIEWER_LOCALE
+): string {
+  const primaryViews = getViewerNavigationExperience(viewerSpec, locale).primary;
   const orderedPrimaryViews =
     primaryViews.length > 0
       ? primaryViews
-      : DEFAULT_VIEW_SEEDS.map((view) => buildViewExperience(view));
+      : DEFAULT_VIEW_SEEDS.map((view) => buildViewExperience(view, locale));
 
   return orderedPrimaryViews.map((view) => view.title).join(" -> ");
 }
 
-function buildViewExperience(seed: ViewerViewSeed): ViewerViewExperience {
-  const copy = VIEW_COPY_BY_KIND[seed.kind];
+function buildViewExperience(
+  seed: ViewerViewSeed,
+  locale: ViewerLocale = DEFAULT_VIEWER_LOCALE
+): ViewerViewExperience {
+  const copy = getViewerViewCopy(locale, seed.kind);
 
   return {
     id: seed.id,
