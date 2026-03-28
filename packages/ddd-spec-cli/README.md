@@ -45,7 +45,6 @@ The packaged viewer default surface is the four primary product views:
 
 Secondary views stay available when the primary path is no longer enough:
 
-- `Aggregate Boundary / Domain Structure`
 - `Policy / Saga`
 
 ## Init To Viewer Demo
