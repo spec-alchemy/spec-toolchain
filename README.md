@@ -2,7 +2,7 @@
 
 Spec Toolchain is the `spec-alchemy` workspace for building and publishing AI-native spec tooling. This repository contains the shared modeling, analysis, generation, and viewer capabilities behind the public `@spec-alchemy/ddd-spec` package.
 
-Chinese documentation: [README.zh-CN.md](./README.zh-CN.md)
+[中文版](./README.zh-CN.md)
 
 ## Public Package
 
@@ -11,7 +11,6 @@ The current public package is [`@spec-alchemy/ddd-spec`](./packages/ddd-spec-cli
 - Default workspace: `domain-model/`
 - Default entry: `domain-model/index.yaml`
 - Default generated output: `.ddd-spec/`
-- Package runtime Node.js: `>=18`
 
 Install it in your project with:
 

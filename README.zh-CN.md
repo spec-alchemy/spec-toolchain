@@ -11,7 +11,6 @@ English README: [README.md](./README.md)
 - 默认工作区：`domain-model/`
 - 默认入口：`domain-model/index.yaml`
 - 默认生成输出：`.ddd-spec/`
-- 公开包运行时 Node.js：`>=18`
 
 在你的项目中安装：
 
