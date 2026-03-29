@@ -14,6 +14,8 @@
    当准备引入新的 family 时，用这份模板组织提案与评审材料。
 5. [术语表](./terminology.md)
    用于统一品牌、产品结构、运行时能力与评审文档中的严格术语写法。
+6. [ddd-spec shared kernel candidate baseline](./ddd-spec-shared-kernel-candidate-baseline.md)
+   当需要评审 `ddd-spec -> shared kernel` 拆分时，先看这份能力拆分基线。
 
 目录原则：
 
