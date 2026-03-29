@@ -1,0 +1,5 @@
+{
+  "name": "@spec-alchemy/spec-toolchain-shared-kernel",
+  "private": true,
+  "type": "module"
+}

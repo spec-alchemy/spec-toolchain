@@ -16,6 +16,8 @@
    用于统一品牌、产品结构、运行时能力与评审文档中的严格术语写法。
 6. [ddd-spec shared kernel candidate baseline](./ddd-spec-shared-kernel-candidate-baseline.md)
    当需要评审 `ddd-spec -> shared kernel` 拆分时，先看这份能力拆分基线。
+7. [shared kernel directory and ownership plan](./shared-kernel-directory-ownership.md)
+   当需要确定 landing zone、ownership 和 orchestration 边界时，先看这份目录方案。
 
 目录原则：
 
