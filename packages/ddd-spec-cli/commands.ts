@@ -52,6 +52,33 @@ interface CliCommandOptions {
   config?: string;
 }
 
+type ConfiguredCommand = Awaited<ReturnType<typeof loadDddSpecConfig>>;
+type ConfigTargetHandler = (config: ConfiguredCommand) => Promise<void>;
+type TargetHandler = () => Promise<void>;
+
+const LEGACY_COMMAND_MIGRATIONS = new Map<string, string>([
+  [
+    "viewer",
+    "The `viewer` command was removed. Use `ddd-spec serve` to serve existing viewer output, or `ddd-spec dev` for the watch-and-serve loop."
+  ],
+  [
+    "bundle",
+    "The top-level `bundle` command was removed. Use `ddd-spec generate bundle`."
+  ],
+  [
+    "analyze",
+    "The top-level `analyze` command was removed. Use `ddd-spec generate analysis`."
+  ],
+  [
+    "generate-viewer",
+    "The `generate-viewer` command was removed. Use `ddd-spec generate viewer`."
+  ],
+  [
+    "generate-typescript",
+    "The `generate-typescript` command was removed. Use `ddd-spec generate typescript`."
+  ]
+]);
+
 export async function runCliCommand(
   argv: readonly string[],
   options: RunCliCommandOptions = {}
@@ -62,14 +89,15 @@ export async function runCliCommand(
     passthroughArgs
   });
 
-  assertSupportedCommandSurface(commandArgv);
-
   if (commandArgv.length === 0) {
     cli.outputHelp();
     return;
   }
 
-  if (isUnknownTopLevelCommand(commandArgv)) {
+  throwIfLegacyCommand(commandArgv);
+  assertNoUnexpectedPassthrough(commandArgv, passthroughArgs);
+
+  if (isUnknownHelpRequest(cli, commandArgv)) {
     throw new Error(`Unknown command: ${commandArgv.join(" ")}`);
   }
 
@@ -127,11 +155,7 @@ function createCli(context: CliRunContext) {
     .command("init", "Scaffold the default domain-model workspace")
     .usage("init [options]")
     .example("ddd-spec init")
-    .action(async (commandOptions: CliCommandOptions) => {
-      if (commandOptions.config) {
-        throw new Error("The init command does not accept --config");
-      }
-
+    .action(async () => {
       await initDddSpec({
         cwd: context.options.cwd
       });
@@ -146,23 +170,23 @@ function createCli(context: CliRunContext) {
     .example("ddd-spec validate semantics --config ./ddd-spec.config.yaml")
     .action(async (target: string | undefined, commandOptions: CliCommandOptions) => {
       const config = await loadResolvedConfig(commandOptions, context.options);
-
-      switch (target) {
-        case undefined:
-          await runValidateCommand(config);
-          return;
-        case "schema":
-          await runValidateSchemaCommand(config);
-          return;
-        case "semantics":
-          await runValidateSemanticsCommand(config);
-          return;
-        case "analysis":
-          await runValidateAnalysisCommand(config);
-          return;
-        default:
-          throw new Error(`Unknown validate target: ${target}`);
-      }
+      await runConfiguredTargetCommand(
+        "validate",
+        target,
+        config,
+        new Map<string, ConfigTargetHandler>([
+          ["", async (resolvedConfig) => {
+            await runValidateCommand(resolvedConfig);
+          }],
+          ["schema", runValidateSchemaCommand],
+          ["semantics", async (resolvedConfig) => {
+            await runValidateSemanticsCommand(resolvedConfig);
+          }],
+          ["analysis", async (resolvedConfig) => {
+            await runValidateAnalysisCommand(resolvedConfig);
+          }]
+        ])
+      );
     });
 
   cli
@@ -174,23 +198,17 @@ function createCli(context: CliRunContext) {
     .example("ddd-spec generate viewer --config ./ddd-spec.config.yaml")
     .action(async (target: string, commandOptions: CliCommandOptions) => {
       const config = await loadResolvedConfig(commandOptions, context.options);
-
-      switch (target) {
-        case "bundle":
-          await runGenerateBundleCommand(config);
-          return;
-        case "analysis":
-          await runGenerateAnalysisCommand(config);
-          return;
-        case "viewer":
-          await runGenerateViewerCommand(config);
-          return;
-        case "typescript":
-          await runGenerateTypescriptCommand(config);
-          return;
-        default:
-          throw new Error(`Unknown generate target: ${target}`);
-      }
+      await runConfiguredTargetCommand(
+        "generate",
+        target,
+        config,
+        new Map<string, ConfigTargetHandler>([
+          ["bundle", runGenerateBundleCommand],
+          ["analysis", runGenerateAnalysisCommand],
+          ["viewer", runGenerateViewerCommand],
+          ["typescript", runGenerateTypescriptCommand]
+        ])
+      );
     });
 
   cli
@@ -258,20 +276,16 @@ function createCli(context: CliRunContext) {
     .command("editor [target]", "Editor integration commands")
     .usage("editor [target]")
     .example("ddd-spec editor setup")
-    .action(async (target: string | undefined, commandOptions: CliCommandOptions) => {
-      if (commandOptions.config) {
-        throw new Error("The editor setup command does not accept --config");
-      }
-
-      if (!target) {
-        throw new Error("Missing editor target. Run `ddd-spec editor --help` to see the supported commands.");
-      }
-
-      if (target !== "setup") {
-        throw new Error(`Unknown editor command: editor ${target}`);
-      }
-
-      await runEditorSetupCommand(context.options);
+    .action(async (target: string | undefined) => {
+      await runTargetCommand(
+        "editor",
+        target,
+        new Map<string, TargetHandler>([
+          ["setup", async () => {
+            await runEditorSetupCommand(context.options);
+          }]
+        ])
+      );
     });
 
   cli
@@ -280,16 +294,13 @@ function createCli(context: CliRunContext) {
     .option("--config <path>", "Load an explicit ddd-spec config file")
     .example("ddd-spec config print")
     .action(async (target: string | undefined, commandOptions: CliCommandOptions) => {
-      if (!target) {
-        throw new Error("Missing config target. Run `ddd-spec config --help` to see the supported commands.");
-      }
-
-      if (target !== "print") {
-        throw new Error(`Unknown config command: config ${target}`);
-      }
-
       const config = await loadResolvedConfig(commandOptions, context.options);
-      await runConfigPrintCommand(config);
+      await runConfiguredTargetCommand(
+        "config",
+        target,
+        config,
+        new Map<string, ConfigTargetHandler>([["print", runConfigPrintCommand]])
+      );
     });
 
   return cli;
@@ -662,78 +673,35 @@ function splitPassthroughArgs(argv: readonly string[]): {
   };
 }
 
-function assertSupportedCommandSurface(argv: readonly string[]): void {
-  if (argv.includes("--template")) {
-    throw new Error("Legacy init templates were removed. Use plain `ddd-spec init`.");
-  }
-
-  if (argv.length === 0) {
-    return;
-  }
-
-  const [first, second] = argv;
-
-  if (first === "viewer") {
-    throw new Error(
-      "The `viewer` command was removed. Use `ddd-spec serve` to serve existing viewer output, or `ddd-spec dev` for the watch-and-serve loop."
-    );
-  }
-
-  if (first === "bundle") {
-    throw new Error(
-      "The top-level `bundle` command was removed. Use `ddd-spec generate bundle`."
-    );
-  }
-
-  if (first === "analyze") {
-    throw new Error(
-      "The top-level `analyze` command was removed. Use `ddd-spec generate analysis`."
-    );
-  }
-
-  if (first === "generate-viewer") {
-    throw new Error("The `generate-viewer` command was removed. Use `ddd-spec generate viewer`.");
-  }
-
-  if (first === "generate-typescript") {
-    throw new Error(
-      "The `generate-typescript` command was removed. Use `ddd-spec generate typescript`."
-    );
-  }
-
-  if (first === "editor" && second !== undefined && !isHelpFlag(second) && second !== "setup") {
-    throw new Error(`Unknown editor command: editor ${second}`);
-  }
-
-  if (first === "config" && second !== undefined && !isHelpFlag(second) && second !== "print") {
-    throw new Error(`Unknown config command: config ${second}`);
-  }
-}
-
 function isHelpFlag(value: string): boolean {
   return value === "--help" || value === "-h";
 }
 
-function isUnknownTopLevelCommand(argv: readonly string[]): boolean {
+function isUnknownHelpRequest(
+  cli: ReturnType<typeof cac>,
+  argv: readonly string[]
+): boolean {
+  if (!argv.some((arg) => isHelpFlag(arg))) {
+    return false;
+  }
+
+  if (isRootHelpRequest(argv) || isGroupedHelpRequest(argv)) {
+    return false;
+  }
+
   const first = argv[0];
 
   if (!first || isHelpFlag(first) || first.startsWith("-")) {
     return false;
   }
 
-  return !new Set([
-    "init",
-    "validate",
-    "generate",
-    "build",
-    "serve",
-    "watch",
-    "dev",
-    "clean",
-    "doctor",
-    "editor",
-    "config"
-  ]).has(first);
+  const registeredTopLevelCommands = new Set(
+    cli.commands
+      .map((command) => command.rawName.split(" ")[0])
+      .filter((commandName) => commandName.length > 0)
+  );
+
+  return !registeredTopLevelCommands.has(first);
 }
 
 function isRootHelpRequest(argv: readonly string[]): boolean {
@@ -746,6 +714,81 @@ function isGroupedHelpRequest(argv: readonly string[]): boolean {
     isHelpFlag(argv[1]) &&
     (argv[0] === "editor" || argv[0] === "config")
   );
+}
+
+function assertNoUnexpectedPassthrough(
+  commandArgv: readonly string[],
+  passthroughArgs: readonly string[]
+): void {
+  if (passthroughArgs.length === 0) {
+    return;
+  }
+
+  const command = commandArgv[0];
+
+  if (command === "serve" || command === "dev") {
+    return;
+  }
+
+  throw new Error(
+    `The ${command ?? "selected"} command does not accept arguments after \`--\`. Only \`ddd-spec serve\` and \`ddd-spec dev\` forward passthrough args to the viewer server.`
+  );
+}
+
+function throwIfLegacyCommand(argv: readonly string[]): void {
+  if (argv.includes("--template")) {
+    throw new Error("Legacy init templates were removed. Use plain `ddd-spec init`.");
+  }
+
+  const first = argv[0];
+
+  if (!first) {
+    return;
+  }
+
+  const migrationMessage = LEGACY_COMMAND_MIGRATIONS.get(first);
+
+  if (migrationMessage) {
+    throw new Error(migrationMessage);
+  }
+}
+
+async function runConfiguredTargetCommand(
+  commandName: string,
+  target: string | undefined,
+  config: ConfiguredCommand,
+  handlers: ReadonlyMap<string, ConfigTargetHandler>
+): Promise<void> {
+  const handler = resolveTargetHandler(commandName, target, handlers);
+  await handler(config);
+}
+
+async function runTargetCommand(
+  commandName: string,
+  target: string | undefined,
+  handlers: ReadonlyMap<string, TargetHandler>
+): Promise<void> {
+  const handler = resolveTargetHandler(commandName, target, handlers);
+  await handler();
+}
+
+function resolveTargetHandler<Handler>(
+  commandName: string,
+  target: string | undefined,
+  handlers: ReadonlyMap<string, Handler>
+): Handler {
+  const normalizedTarget = target ?? "";
+  const handler = handlers.get(normalizedTarget);
+
+  if (handler) {
+    return handler;
+  }
+
+  if (!target) {
+    throw new Error(`Missing ${commandName} target. Run \`ddd-spec ${commandName} --help\` to see the supported commands.`);
+  }
+
+  throw new Error(`Unknown ${commandName} target: ${target}`);
 }
 
 async function generateTypescriptSpec(

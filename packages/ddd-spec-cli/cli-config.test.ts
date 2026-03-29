@@ -332,6 +332,30 @@ test("CLI rejects unknown commands instead of succeeding silently", async () => 
   assert.equal(output, "");
 });
 
+test("CLI rejects passthrough args for commands that do not forward viewer options", async () => {
+  await assert.rejects(
+    runCliCommand([
+      "validate",
+      "--config",
+      REPO_VIEWER_CONFIG_PATH,
+      "--",
+      "--bogus"
+    ]),
+    /Only `ddd-spec serve` and `ddd-spec dev` forward passthrough args/
+  );
+
+  await assert.rejects(
+    runCliCommand([
+      "doctor",
+      "--config",
+      REPO_VIEWER_CONFIG_PATH,
+      "--",
+      "--bogus"
+    ]),
+    /The doctor command does not accept arguments after `--`/
+  );
+});
+
 test("CLI grouped command help remains discoverable", async () => {
   const originalWrite = process.stdout.write.bind(process.stdout);
   let output = "";
