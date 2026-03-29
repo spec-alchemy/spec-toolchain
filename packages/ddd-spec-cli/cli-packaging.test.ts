@@ -140,6 +140,7 @@ test("public package manifest includes npm metadata for the GitHub launch surfac
     homepage?: string;
     keywords?: string[];
     bin?: Record<string, string>;
+    specToolchain?: { maturity?: string };
     repository?: { directory?: string; type?: string; url?: string };
   };
 
@@ -164,6 +165,9 @@ test("public package manifest includes npm metadata for the GitHub launch surfac
   });
   assert.deepEqual(packageJson.bin, {
     "ddd-spec": "dist/ddd-spec-cli/cli.js"
+  });
+  assert.deepEqual(packageJson.specToolchain, {
+    maturity: "beta"
   });
   assert.equal(
     packageJson.homepage,
