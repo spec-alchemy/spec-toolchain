@@ -1,0 +1,19 @@
+kind: context
+id: orders
+title: Orders
+summary: Owns order capture, customer confirmation, and the final business outcome.
+owners:
+  - orders-team
+responsibilities:
+  - Capture customer order intent
+  - Coordinate with payments before confirmation
+  - Confirm the order after ledger reconciliation
+relationships:
+  - id: requests-payment-authorization
+    kind: depends-on
+    target:
+      kind: context
+      id: payments
+    direction: downstream
+    integration: customer-supplier
+    description: Orders depends on the payments context to authorize settlement before confirmation.

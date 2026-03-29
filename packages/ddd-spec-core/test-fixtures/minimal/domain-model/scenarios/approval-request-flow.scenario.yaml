@@ -1,0 +1,32 @@
+kind: scenario
+id: approval-request-flow
+title: Approval Request Flow
+summary: Happy-path business story from submission to approval.
+goal: Get an approval request from draft to approved and notify the requester.
+ownerContext: approvals
+steps:
+  - id: draft-request
+    title: Draft request
+    context: approvals
+    actor: requester
+    outgoingMessages:
+      - submit-approval-request
+    next:
+      - awaiting-review
+  - id: awaiting-review
+    title: Review request
+    context: approvals
+    actor: approver
+    incomingMessages:
+      - approval-request-submitted
+    outgoingMessages:
+      - approve-request
+    next:
+      - request-approved
+  - id: request-approved
+    title: Request approved
+    context: approvals
+    incomingMessages:
+      - approval-request-approved
+    final: true
+    outcome: request-approved

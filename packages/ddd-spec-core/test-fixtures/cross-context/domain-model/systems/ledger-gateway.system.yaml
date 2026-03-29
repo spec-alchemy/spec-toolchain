@@ -1,0 +1,8 @@
+kind: system
+id: ledger-gateway
+title: Ledger Gateway
+summary: External ledger service that answers reconciliation queries for final order confirmation.
+boundary: external
+capabilities:
+  - Respond to ledger reconciliation queries
+  - Publish reconciliation result events

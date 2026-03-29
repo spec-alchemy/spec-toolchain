@@ -29,6 +29,7 @@ export const ANALYSIS_DIAGNOSTIC_CODES = [
   "missing-required-link",
   "missing-context-owner",
   "unknown-resource-reference",
+  "unsupported-resource-kind-reference",
   "scenario-owner-context-missing",
   "scenario-owner-context-unused",
   "scenario-entry-step-missing",
@@ -258,6 +259,28 @@ export interface PolicyCoordination {
   relatedContextIds: readonly string[];
   path: string;
 }
+
+const ALLOWED_CONTEXT_RELATIONSHIP_TARGET_KINDS = new Set<ResourceKind>([
+  "context",
+  "system"
+]);
+
+const ALLOWED_MESSAGE_ENDPOINT_KINDS = new Set<ResourceKind>([
+  "context",
+  "actor",
+  "system",
+  "scenario",
+  "aggregate",
+  "policy"
+]);
+
+const ALLOWED_POLICY_COORDINATE_KINDS = new Set<ResourceKind>([
+  "context",
+  "system",
+  "scenario",
+  "aggregate",
+  "policy"
+]);
 
 export interface AnalysisIR {
   contextBoundaries: readonly ContextBoundary[];
@@ -930,6 +953,13 @@ function validateContextBoundary(
     }
 
     relationshipIds.add(relationship.id);
+    assertAllowedResourceRefKind(
+      ALLOWED_CONTEXT_RELATIONSHIP_TARGET_KINDS,
+      relationship.target,
+      `Context ${context.id} relationship ${relationship.id} target`,
+      `${relationship.path}/target`,
+      collector
+    );
     assertKnownResourceRef(
       resourceRegistry,
       relationship.target,
@@ -1222,12 +1252,14 @@ function validateMessageFlow(
   validateMessageRefs(
     resourceRegistry,
     message.producers,
+    ALLOWED_MESSAGE_ENDPOINT_KINDS,
     `Message ${message.id} producer`,
     collector
   );
   validateMessageRefs(
     resourceRegistry,
     message.consumers,
+    ALLOWED_MESSAGE_ENDPOINT_KINDS,
     `Message ${message.id} consumer`,
     collector
   );
@@ -1516,6 +1548,13 @@ function validatePolicyCoordination(
   }
 
   for (const coordinate of policy.coordinates) {
+    assertAllowedResourceRefKind(
+      ALLOWED_POLICY_COORDINATE_KINDS,
+      coordinate,
+      `Policy ${policy.id} coordinate`,
+      `${policy.path}/coordinates/${coordinate.kind}:${coordinate.id}`,
+      collector
+    );
     assertKnownResourceRef(
       resourceRegistry,
       coordinate,
@@ -1529,6 +1568,7 @@ function validatePolicyCoordination(
 function validateMessageRefs(
   resourceRegistry: ReadonlySet<string>,
   refs: readonly MessageEndpoint[],
+  allowedKinds: ReadonlySet<ResourceKind>,
   label: string,
   collector: DiagnosticCollector
 ): void {
@@ -1548,6 +1588,7 @@ function validateMessageRefs(
     }
 
     seenRefs.add(key);
+    assertAllowedResourceRefKind(allowedKinds, ref, label, ref.path, collector);
     assertKnownResourceRef(resourceRegistry, ref, label, ref.path, collector);
   }
 }
@@ -1832,6 +1873,27 @@ function assertKnownResourceRef(
       message: `${label} ${ref.kind} ${ref.id} must reference existing ${ref.kind}`
     });
   }
+}
+
+function assertAllowedResourceRefKind(
+  allowedKinds: ReadonlySet<ResourceKind>,
+  ref: ResourceRef,
+  label: string,
+  path: string,
+  collector: DiagnosticCollector
+): void {
+  if (allowedKinds.has(ref.kind)) {
+    return;
+  }
+
+  collector.push({
+    severity: "error",
+    code: "unsupported-resource-kind-reference",
+    path,
+    message: `${label} kind ${ref.kind} is not allowed here; expected one of ${[
+      ...allowedKinds
+    ].join(", ")}`
+  });
 }
 
 function assertKind(

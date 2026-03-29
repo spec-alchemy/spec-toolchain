@@ -1,0 +1,21 @@
+kind: message
+id: approval-request-approved
+title: Approval Request Approved
+summary: Event recording that the approval decision has completed successfully.
+messageKind: event
+channel: async
+producers:
+  - kind: aggregate
+    id: approval-request
+consumers:
+  - kind: scenario
+    id: approval-request-flow
+  - kind: policy
+    id: notify-requester-after-approval
+payload:
+  - id: request-id
+    type: uuid
+    required: true
+  - id: approver-id
+    type: uuid
+    required: true

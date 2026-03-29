@@ -1,0 +1,16 @@
+kind: aggregate
+id: payment
+title: Payment
+summary: Tracks payment authorization lifecycle for a submitted order.
+context: payments
+states:
+  - pending
+  - authorized
+initialState: pending
+transitions:
+  - id: authorize-payment
+    from: pending
+    to: authorized
+    onMessage: authorize-payment
+    emits:
+      - payment-authorized

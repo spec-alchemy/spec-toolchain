@@ -17,6 +17,12 @@ export const DEFAULT_DOMAIN_MODEL_SCHEMA_PATH = toAbsolutePath(
 export const REPO_VIEWER_ENTRY_PATH = toAbsolutePath(
   "../../../examples/cross-context/domain-model/index.yaml"
 );
+export const TEST_CROSS_CONTEXT_ENTRY_PATH = toAbsolutePath(
+  "../../ddd-spec-core/test-fixtures/cross-context/domain-model/index.yaml"
+);
+export const TEST_FIXTURES_ROOT_PATH = toAbsolutePath(
+  "../../ddd-spec-core/test-fixtures"
+);
 export const CLI_DIST_ENTRY_PATH = toAbsolutePath("../dist/ddd-spec-cli/cli.js");
 export const CLI_DIST_INDEX_PATH = toAbsolutePath("../dist/ddd-spec-cli/index.js");
 export const CLI_DIST_SCHEMA_DIR_PATH = toAbsolutePath("../dist/ddd-spec-core/schema");

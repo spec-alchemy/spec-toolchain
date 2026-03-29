@@ -1,0 +1,718 @@
+{
+  "analysisVersion": 1,
+  "specId": "order-settlement",
+  "ir": {
+    "contextBoundaries": [
+      {
+        "kind": "context",
+        "id": "orders",
+        "title": "Orders",
+        "summary": "Owns order capture, customer confirmation, and the final business outcome.",
+        "owners": [
+          "orders-team"
+        ],
+        "responsibilities": [
+          "Capture customer order intent",
+          "Coordinate with payments before confirmation",
+          "Confirm the order after ledger reconciliation"
+        ],
+        "aggregateIds": [
+          "order"
+        ],
+        "scenarioIds": [
+          "order-settlement-flow"
+        ],
+        "policyIds": [],
+        "actorIds": [
+          "customer"
+        ],
+        "systemIds": [
+          "ledger-gateway"
+        ],
+        "relationships": [
+          {
+            "id": "requests-payment-authorization",
+            "kind": "depends-on",
+            "target": {
+              "kind": "context",
+              "id": "payments"
+            },
+            "direction": "downstream",
+            "integration": "customer-supplier",
+            "description": "Orders depends on the payments context to authorize settlement before confirmation.",
+            "path": "/contexts/orders/relationships/requests-payment-authorization"
+          }
+        ],
+        "path": "/contexts/orders"
+      },
+      {
+        "kind": "context",
+        "id": "payments",
+        "title": "Payments",
+        "summary": "Owns payment authorization and publishes settlement outcomes back to orders.",
+        "owners": [
+          "payments-team"
+        ],
+        "responsibilities": [
+          "Authorize payment",
+          "Publish payment authorization result"
+        ],
+        "aggregateIds": [
+          "payment"
+        ],
+        "scenarioIds": [],
+        "policyIds": [],
+        "actorIds": [],
+        "systemIds": [
+          "ledger-gateway"
+        ],
+        "relationships": [
+          {
+            "id": "queries-ledger",
+            "kind": "queries",
+            "target": {
+              "kind": "system",
+              "id": "ledger-gateway"
+            },
+            "direction": "downstream",
+            "integration": "synchronous-query",
+            "description": "Payments and orders rely on the shared ledger gateway for reconciliation details.",
+            "path": "/contexts/payments/relationships/queries-ledger"
+          }
+        ],
+        "path": "/contexts/payments"
+      }
+    ],
+    "actors": [
+      {
+        "kind": "actor",
+        "id": "customer",
+        "title": "Customer",
+        "summary": "Places the order and expects a confirmed outcome.",
+        "actorType": "person",
+        "contextIds": [
+          "orders"
+        ],
+        "scenarioIds": [
+          "order-settlement-flow"
+        ],
+        "stepRefs": [
+          {
+            "scenarioId": "order-settlement-flow",
+            "stepId": "capture-order",
+            "contextId": "orders",
+            "path": "/scenarios/order-settlement-flow/steps/capture-order/actor"
+          }
+        ],
+        "path": "/actors/customer"
+      }
+    ],
+    "systems": [
+      {
+        "kind": "system",
+        "id": "ledger-gateway",
+        "title": "Ledger Gateway",
+        "summary": "External ledger service that answers reconciliation queries for final order confirmation.",
+        "boundary": "external",
+        "capabilities": [
+          "Respond to ledger reconciliation queries",
+          "Publish reconciliation result events"
+        ],
+        "contextIds": [
+          "payments",
+          "orders"
+        ],
+        "dependencyRefs": [
+          {
+            "kind": "context-relationship",
+            "contextIds": [
+              "payments"
+            ],
+            "path": "/contexts/payments/relationships/queries-ledger",
+            "description": "Payments and orders rely on the shared ledger gateway for reconciliation details."
+          },
+          {
+            "kind": "scenario-step",
+            "contextIds": [
+              "orders"
+            ],
+            "path": "/scenarios/order-settlement-flow/steps/reconcile-order/system",
+            "scenarioId": "order-settlement-flow",
+            "stepId": "reconcile-order"
+          },
+          {
+            "kind": "message-consumer",
+            "contextIds": [
+              "orders"
+            ],
+            "path": "/messages/fetch-ledger-status/consumers/system:ledger-gateway",
+            "messageId": "fetch-ledger-status"
+          },
+          {
+            "kind": "message-producer",
+            "contextIds": [
+              "orders"
+            ],
+            "path": "/messages/ledger-status-fetched/producers/system:ledger-gateway",
+            "messageId": "ledger-status-fetched"
+          }
+        ],
+        "path": "/systems/ledger-gateway"
+      }
+    ],
+    "scenarioSequences": [
+      {
+        "kind": "scenario",
+        "id": "order-settlement-flow",
+        "title": "Order Settlement Flow",
+        "summary": "Customer submits an order, payments authorizes it, and orders reconciles the final ledger state.",
+        "goal": "Capture an order, settle payment in another context, and confirm the order after reconciliation.",
+        "ownerContextId": "orders",
+        "entryStepIds": [
+          "capture-order"
+        ],
+        "finalStepIds": [
+          "order-confirmed"
+        ],
+        "participatingContextIds": [
+          "orders",
+          "payments"
+        ],
+        "actorIds": [
+          "customer"
+        ],
+        "systemIds": [
+          "ledger-gateway"
+        ],
+        "steps": [
+          {
+            "id": "capture-order",
+            "title": "Capture order",
+            "contextId": "orders",
+            "actorId": "customer",
+            "incomingMessageIds": [],
+            "outgoingMessageIds": [
+              "submit-order"
+            ],
+            "nextStepIds": [
+              "await-payment-authorization"
+            ],
+            "final": false,
+            "entry": true,
+            "reachableFromEntry": true,
+            "path": "/scenarios/order-settlement-flow/steps/capture-order"
+          },
+          {
+            "id": "await-payment-authorization",
+            "title": "Authorize payment",
+            "contextId": "payments",
+            "incomingMessageIds": [
+              "order-submitted"
+            ],
+            "outgoingMessageIds": [
+              "authorize-payment"
+            ],
+            "nextStepIds": [
+              "reconcile-order"
+            ],
+            "final": false,
+            "entry": false,
+            "reachableFromEntry": true,
+            "path": "/scenarios/order-settlement-flow/steps/await-payment-authorization"
+          },
+          {
+            "id": "reconcile-order",
+            "title": "Reconcile order",
+            "contextId": "orders",
+            "systemId": "ledger-gateway",
+            "incomingMessageIds": [
+              "payment-authorized"
+            ],
+            "outgoingMessageIds": [
+              "fetch-ledger-status"
+            ],
+            "nextStepIds": [
+              "order-confirmed"
+            ],
+            "final": false,
+            "entry": false,
+            "reachableFromEntry": true,
+            "path": "/scenarios/order-settlement-flow/steps/reconcile-order"
+          },
+          {
+            "id": "order-confirmed",
+            "title": "Order confirmed",
+            "contextId": "orders",
+            "incomingMessageIds": [
+              "ledger-status-fetched"
+            ],
+            "outgoingMessageIds": [],
+            "nextStepIds": [],
+            "final": true,
+            "outcome": "order-confirmed",
+            "entry": false,
+            "reachableFromEntry": true,
+            "path": "/scenarios/order-settlement-flow/steps/order-confirmed"
+          }
+        ],
+        "edges": [
+          {
+            "sourceStepId": "capture-order",
+            "targetStepId": "await-payment-authorization",
+            "path": "/scenarios/order-settlement-flow/steps/capture-order/next/await-payment-authorization"
+          },
+          {
+            "sourceStepId": "await-payment-authorization",
+            "targetStepId": "reconcile-order",
+            "path": "/scenarios/order-settlement-flow/steps/await-payment-authorization/next/reconcile-order"
+          },
+          {
+            "sourceStepId": "reconcile-order",
+            "targetStepId": "order-confirmed",
+            "path": "/scenarios/order-settlement-flow/steps/reconcile-order/next/order-confirmed"
+          }
+        ],
+        "path": "/scenarios/order-settlement-flow"
+      }
+    ],
+    "messageFlows": [
+      {
+        "kind": "message",
+        "id": "authorize-payment",
+        "title": "Authorize Payment",
+        "summary": "Command asking the payments aggregate to authorize settlement for the submitted order.",
+        "messageKind": "command",
+        "channel": "sync",
+        "producers": [
+          {
+            "kind": "context",
+            "id": "payments",
+            "contextId": "payments",
+            "path": "/messages/authorize-payment/producers/context:payments"
+          }
+        ],
+        "consumers": [
+          {
+            "kind": "aggregate",
+            "id": "payment",
+            "contextId": "payments",
+            "path": "/messages/authorize-payment/consumers/aggregate:payment"
+          }
+        ],
+        "payload": [
+          {
+            "id": "order-id",
+            "type": "uuid",
+            "required": true,
+            "description": "Correlates the payment authorization with the submitted order."
+          }
+        ],
+        "stepLinks": [
+          {
+            "scenarioId": "order-settlement-flow",
+            "stepId": "await-payment-authorization",
+            "contextId": "payments",
+            "direction": "outgoing",
+            "path": "/scenarios/order-settlement-flow/steps/await-payment-authorization/outgoingMessages/authorize-payment"
+          }
+        ],
+        "producerContextIds": [
+          "payments"
+        ],
+        "consumerContextIds": [
+          "payments"
+        ],
+        "crossesContextBoundary": false,
+        "path": "/messages/authorize-payment"
+      },
+      {
+        "kind": "message",
+        "id": "fetch-ledger-status",
+        "title": "Fetch Ledger Status",
+        "summary": "Query asking the external ledger gateway to confirm the final reconciliation state for the order.",
+        "messageKind": "query",
+        "channel": "sync",
+        "producers": [
+          {
+            "kind": "context",
+            "id": "orders",
+            "contextId": "orders",
+            "path": "/messages/fetch-ledger-status/producers/context:orders"
+          }
+        ],
+        "consumers": [
+          {
+            "kind": "system",
+            "id": "ledger-gateway",
+            "path": "/messages/fetch-ledger-status/consumers/system:ledger-gateway"
+          }
+        ],
+        "payload": [
+          {
+            "id": "order-id",
+            "type": "uuid",
+            "required": true,
+            "description": "Identifies which order should be reconciled in the ledger."
+          }
+        ],
+        "stepLinks": [
+          {
+            "scenarioId": "order-settlement-flow",
+            "stepId": "reconcile-order",
+            "contextId": "orders",
+            "direction": "outgoing",
+            "path": "/scenarios/order-settlement-flow/steps/reconcile-order/outgoingMessages/fetch-ledger-status"
+          }
+        ],
+        "producerContextIds": [
+          "orders"
+        ],
+        "consumerContextIds": [],
+        "crossesContextBoundary": false,
+        "path": "/messages/fetch-ledger-status"
+      },
+      {
+        "kind": "message",
+        "id": "ledger-status-fetched",
+        "title": "Ledger Status Fetched",
+        "summary": "Event from the ledger gateway confirming that the order can move into its final confirmed state.",
+        "messageKind": "event",
+        "channel": "async",
+        "producers": [
+          {
+            "kind": "system",
+            "id": "ledger-gateway",
+            "path": "/messages/ledger-status-fetched/producers/system:ledger-gateway"
+          }
+        ],
+        "consumers": [
+          {
+            "kind": "context",
+            "id": "orders",
+            "contextId": "orders",
+            "path": "/messages/ledger-status-fetched/consumers/context:orders"
+          },
+          {
+            "kind": "aggregate",
+            "id": "order",
+            "contextId": "orders",
+            "path": "/messages/ledger-status-fetched/consumers/aggregate:order"
+          }
+        ],
+        "payload": [
+          {
+            "id": "order-id",
+            "type": "uuid",
+            "required": true,
+            "description": "Stable order identifier used to finish reconciliation and confirmation."
+          },
+          {
+            "id": "ledger-status",
+            "type": "text",
+            "required": true,
+            "description": "Final reconciliation result returned by the ledger gateway."
+          }
+        ],
+        "stepLinks": [
+          {
+            "scenarioId": "order-settlement-flow",
+            "stepId": "order-confirmed",
+            "contextId": "orders",
+            "direction": "incoming",
+            "path": "/scenarios/order-settlement-flow/steps/order-confirmed/incomingMessages/ledger-status-fetched"
+          }
+        ],
+        "producerContextIds": [],
+        "consumerContextIds": [
+          "orders"
+        ],
+        "crossesContextBoundary": false,
+        "path": "/messages/ledger-status-fetched"
+      },
+      {
+        "kind": "message",
+        "id": "order-submitted",
+        "title": "Order Submitted",
+        "summary": "Async event telling the payments context that a submitted order is ready for authorization.",
+        "messageKind": "event",
+        "channel": "async",
+        "producers": [
+          {
+            "kind": "aggregate",
+            "id": "order",
+            "contextId": "orders",
+            "path": "/messages/order-submitted/producers/aggregate:order"
+          }
+        ],
+        "consumers": [
+          {
+            "kind": "context",
+            "id": "payments",
+            "contextId": "payments",
+            "path": "/messages/order-submitted/consumers/context:payments"
+          }
+        ],
+        "payload": [
+          {
+            "id": "order-id",
+            "type": "uuid",
+            "required": true,
+            "description": "Order identifier routed into the payments context."
+          }
+        ],
+        "stepLinks": [
+          {
+            "scenarioId": "order-settlement-flow",
+            "stepId": "await-payment-authorization",
+            "contextId": "payments",
+            "direction": "incoming",
+            "path": "/scenarios/order-settlement-flow/steps/await-payment-authorization/incomingMessages/order-submitted"
+          }
+        ],
+        "producerContextIds": [
+          "orders"
+        ],
+        "consumerContextIds": [
+          "payments"
+        ],
+        "crossesContextBoundary": true,
+        "path": "/messages/order-submitted"
+      },
+      {
+        "kind": "message",
+        "id": "payment-authorized",
+        "title": "Payment Authorized",
+        "summary": "Async event telling the orders context that payment settlement succeeded in the payments context.",
+        "messageKind": "event",
+        "channel": "async",
+        "producers": [
+          {
+            "kind": "aggregate",
+            "id": "payment",
+            "contextId": "payments",
+            "path": "/messages/payment-authorized/producers/aggregate:payment"
+          }
+        ],
+        "consumers": [
+          {
+            "kind": "context",
+            "id": "orders",
+            "contextId": "orders",
+            "path": "/messages/payment-authorized/consumers/context:orders"
+          }
+        ],
+        "payload": [
+          {
+            "id": "order-id",
+            "type": "uuid",
+            "required": true,
+            "description": "Correlates the authorization outcome back to the order context."
+          }
+        ],
+        "stepLinks": [
+          {
+            "scenarioId": "order-settlement-flow",
+            "stepId": "reconcile-order",
+            "contextId": "orders",
+            "direction": "incoming",
+            "path": "/scenarios/order-settlement-flow/steps/reconcile-order/incomingMessages/payment-authorized"
+          }
+        ],
+        "producerContextIds": [
+          "payments"
+        ],
+        "consumerContextIds": [
+          "orders"
+        ],
+        "crossesContextBoundary": true,
+        "path": "/messages/payment-authorized"
+      },
+      {
+        "kind": "message",
+        "id": "submit-order",
+        "title": "Submit Order",
+        "summary": "Command asking the orders aggregate to persist a new order and publish the submission event.",
+        "messageKind": "command",
+        "channel": "sync",
+        "producers": [
+          {
+            "kind": "context",
+            "id": "orders",
+            "contextId": "orders",
+            "path": "/messages/submit-order/producers/context:orders"
+          }
+        ],
+        "consumers": [
+          {
+            "kind": "aggregate",
+            "id": "order",
+            "contextId": "orders",
+            "path": "/messages/submit-order/consumers/aggregate:order"
+          }
+        ],
+        "payload": [
+          {
+            "id": "order-id",
+            "type": "uuid",
+            "required": true,
+            "description": "Stable order identifier shared across the full settlement flow."
+          },
+          {
+            "id": "customer-id",
+            "type": "uuid",
+            "required": true,
+            "description": "Customer who submitted the order."
+          }
+        ],
+        "stepLinks": [
+          {
+            "scenarioId": "order-settlement-flow",
+            "stepId": "capture-order",
+            "contextId": "orders",
+            "direction": "outgoing",
+            "path": "/scenarios/order-settlement-flow/steps/capture-order/outgoingMessages/submit-order"
+          }
+        ],
+        "producerContextIds": [
+          "orders"
+        ],
+        "consumerContextIds": [
+          "orders"
+        ],
+        "crossesContextBoundary": false,
+        "path": "/messages/submit-order"
+      }
+    ],
+    "aggregateLifecycles": [
+      {
+        "kind": "aggregate",
+        "id": "order",
+        "title": "Order",
+        "summary": "Tracks the customer order from draft capture to final confirmation.",
+        "contextId": "orders",
+        "lifecycleComplexity": true,
+        "initialState": "draft",
+        "states": [
+          {
+            "id": "draft",
+            "reachableFromInitial": true,
+            "terminal": false,
+            "outgoingTransitionIds": [
+              "submit-order"
+            ],
+            "path": "/aggregates/order/states/draft"
+          },
+          {
+            "id": "submitted",
+            "reachableFromInitial": true,
+            "terminal": false,
+            "outgoingTransitionIds": [
+              "confirm-order"
+            ],
+            "path": "/aggregates/order/states/submitted"
+          },
+          {
+            "id": "confirmed",
+            "reachableFromInitial": true,
+            "terminal": true,
+            "outgoingTransitionIds": [],
+            "path": "/aggregates/order/states/confirmed"
+          }
+        ],
+        "transitions": [
+          {
+            "id": "submit-order",
+            "fromStateId": "draft",
+            "toStateId": "submitted",
+            "onMessageId": "submit-order",
+            "emittedMessageIds": [
+              "order-submitted"
+            ],
+            "reachableFromInitial": true,
+            "path": "/aggregates/order/transitions/submit-order"
+          },
+          {
+            "id": "confirm-order",
+            "fromStateId": "submitted",
+            "toStateId": "confirmed",
+            "onMessageId": "ledger-status-fetched",
+            "emittedMessageIds": [],
+            "reachableFromInitial": true,
+            "path": "/aggregates/order/transitions/confirm-order"
+          }
+        ],
+        "acceptedMessageIds": [
+          "submit-order",
+          "ledger-status-fetched"
+        ],
+        "emittedMessageIds": [
+          "order-submitted"
+        ],
+        "reachableStateIds": [
+          "draft",
+          "submitted",
+          "confirmed"
+        ],
+        "unreachableStateIds": [],
+        "path": "/aggregates/order"
+      },
+      {
+        "kind": "aggregate",
+        "id": "payment",
+        "title": "Payment",
+        "summary": "Tracks payment authorization lifecycle for a submitted order.",
+        "contextId": "payments",
+        "lifecycleComplexity": false,
+        "initialState": "pending",
+        "states": [
+          {
+            "id": "pending",
+            "reachableFromInitial": true,
+            "terminal": false,
+            "outgoingTransitionIds": [
+              "authorize-payment"
+            ],
+            "path": "/aggregates/payment/states/pending"
+          },
+          {
+            "id": "authorized",
+            "reachableFromInitial": true,
+            "terminal": true,
+            "outgoingTransitionIds": [],
+            "path": "/aggregates/payment/states/authorized"
+          }
+        ],
+        "transitions": [
+          {
+            "id": "authorize-payment",
+            "fromStateId": "pending",
+            "toStateId": "authorized",
+            "onMessageId": "authorize-payment",
+            "emittedMessageIds": [
+              "payment-authorized"
+            ],
+            "reachableFromInitial": true,
+            "path": "/aggregates/payment/transitions/authorize-payment"
+          }
+        ],
+        "acceptedMessageIds": [
+          "authorize-payment"
+        ],
+        "emittedMessageIds": [
+          "payment-authorized"
+        ],
+        "reachableStateIds": [
+          "pending",
+          "authorized"
+        ],
+        "unreachableStateIds": [],
+        "path": "/aggregates/payment"
+      }
+    ],
+    "policyCoordinations": []
+  },
+  "diagnostics": [],
+  "summary": {
+    "errorCount": 0
+  }
+}

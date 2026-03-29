@@ -43,6 +43,8 @@
 - Root package is a private maintainer workspace
 - The only public npm package boundary is [`packages/ddd-spec-cli/`](./packages/ddd-spec-cli/)
 - `npm pack`, `npm publish`, and `npm link` for `@knowledge-alchemy/ddd-spec` must all run from [`packages/ddd-spec-cli/`](./packages/ddd-spec-cli/)
+- Any add/remove/change to the domain-model YAML contract, schema, resource kinds, or allowed references MUST update semantic validation and regression tests in the same change.
+- Do not treat schema validation as sufficient for domain-model changes; cross-file references, ownership rules, and topology constraints belong in semantic validation.
 - Keep business-product-specific assets out of this repo; they belong in sibling consumer repos such as `knowledge-alchemy-app`
 - Root `repo:*` scripts always target [`apps/ddd-spec-viewer/ddd-spec.config.yaml`](./apps/ddd-spec-viewer/ddd-spec.config.yaml); do not add a repo-root maintainer modeling tree outside [`examples/`](./examples/)
 - The root viewer config now targets the tracked [`examples/cross-context/`](./examples/cross-context/) `domain-model/` input; keep repo-local maintainer docs and tests aligned with that default path

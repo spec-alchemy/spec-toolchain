@@ -1,0 +1,12 @@
+version: 1
+id: order-settlement
+title: Order Settlement
+summary: Cross-context domain model example centered on command, event, and query flow across orders and payments.
+model:
+  contexts: ./contexts
+  actors: ./actors
+  systems: ./systems
+  scenarios: ./scenarios
+  messages: ./messages
+  aggregates: ./aggregates
+  policies: ./policies

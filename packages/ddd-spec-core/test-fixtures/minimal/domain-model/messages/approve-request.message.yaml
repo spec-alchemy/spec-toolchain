@@ -1,0 +1,19 @@
+kind: message
+id: approve-request
+title: Approve Request
+summary: Command asking the aggregate to close the request with an approved decision.
+messageKind: command
+channel: sync
+producers:
+  - kind: actor
+    id: approver
+consumers:
+  - kind: aggregate
+    id: approval-request
+payload:
+  - id: request-id
+    type: uuid
+    required: true
+  - id: approver-id
+    type: uuid
+    required: true

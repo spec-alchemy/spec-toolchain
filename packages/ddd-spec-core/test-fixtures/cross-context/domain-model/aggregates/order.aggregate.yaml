@@ -1,0 +1,22 @@
+kind: aggregate
+id: order
+title: Order
+summary: Tracks the customer order from draft capture to final confirmation.
+context: orders
+lifecycleComplexity: true
+states:
+  - draft
+  - submitted
+  - confirmed
+initialState: draft
+transitions:
+  - id: submit-order
+    from: draft
+    to: submitted
+    onMessage: submit-order
+    emits:
+      - order-submitted
+  - id: confirm-order
+    from: submitted
+    to: confirmed
+    onMessage: ledger-status-fetched

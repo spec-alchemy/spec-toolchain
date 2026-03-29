@@ -1,0 +1,5 @@
+kind: actor
+id: customer
+title: Customer
+summary: Places the order and expects a confirmed outcome.
+actorType: person

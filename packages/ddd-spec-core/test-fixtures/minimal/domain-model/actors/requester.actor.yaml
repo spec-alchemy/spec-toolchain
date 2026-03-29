@@ -1,0 +1,5 @@
+kind: actor
+id: requester
+title: Requester
+summary: Starts an approval request and waits for the final decision.
+actorType: role
