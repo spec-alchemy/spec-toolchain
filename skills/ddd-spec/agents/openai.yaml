@@ -1,4 +1,4 @@
 interface:
   display_name: "DDD Spec"
   short_description: "Guide consumer ddd-spec usage and modeling"
-  default_prompt: "Use $ddd-spec to guide consumer setup, modeling, validation, and diagnostics for @knowledge-alchemy/ddd-spec."
+  default_prompt: "Use $ddd-spec to guide consumer setup, modeling, validation, and diagnostics for @spec-alchemy/ddd-spec."

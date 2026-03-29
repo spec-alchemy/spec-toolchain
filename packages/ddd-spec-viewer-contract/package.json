@@ -1,5 +1,5 @@
 {
-  "name": "@knowledge-alchemy/ddd-spec-viewer-contract",
+  "name": "@spec-alchemy/spec-viewer-contract",
   "private": true,
   "type": "module"
 }

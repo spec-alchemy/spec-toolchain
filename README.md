@@ -1,12 +1,12 @@
-# Design Alchemy
+# Spec Toolchain
 
-Design Alchemy is a design-as-code infrastructure workspace. It extracts durable modeling, analysis, generation, and projection capabilities from real product work without embedding product-specific assets in this repository.
+Spec Toolchain is the `spec-alchemy` maintainer monorepo. It extracts durable modeling, analysis, generation, and projection capabilities for AI-readable specs without embedding product-specific assets in this repository.
 
 Chinese documentation: [README.zh-CN.md](./README.zh-CN.md)
 
 ## Public Package
 
-The current public package is [`@knowledge-alchemy/ddd-spec`](./packages/ddd-spec-cli/README.md), a zero-config CLI and packaged viewer for DDD modeling.
+The current public package is [`@spec-alchemy/ddd-spec`](./packages/ddd-spec-cli/README.md), a zero-config CLI and packaged viewer for DDD modeling.
 
 - Default workspace: `domain-model/`
 - Default entry: `domain-model/index.yaml`
@@ -16,7 +16,7 @@ The current public package is [`@knowledge-alchemy/ddd-spec`](./packages/ddd-spe
 Install it in your project with:
 
 ```sh
-npm install --save-dev @knowledge-alchemy/ddd-spec
+npm install --save-dev @spec-alchemy/ddd-spec
 ```
 
 ## Quick Start
@@ -24,7 +24,7 @@ npm install --save-dev @knowledge-alchemy/ddd-spec
 For a normal consumer workspace, use the zero-config path:
 
 ```sh
-npm install --save-dev @knowledge-alchemy/ddd-spec
+npm install --save-dev @spec-alchemy/ddd-spec
 npm exec ddd-spec init
 npm exec ddd-spec editor setup
 npm exec ddd-spec dev
@@ -56,7 +56,7 @@ This repository is a maintainer workspace, not a consumer project template.
 - [`examples/`](./examples/) contains repo-local dogfood inputs used for regression coverage and maintainer workflows.
 - Reusable modeling logic belongs in [`packages/ddd-spec-core/`](./packages/ddd-spec-core/).
 
-Design Alchemy develops general-purpose design infrastructure. Business-specific implementation belongs in separate consumer repositories rather than inside this monorepo.
+Spec Alchemy develops general-purpose spec infrastructure. Business-specific implementation belongs in separate consumer repositories rather than inside this monorepo.
 
 ## Maintainer Commands
 

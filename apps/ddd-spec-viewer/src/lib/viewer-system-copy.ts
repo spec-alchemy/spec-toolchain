@@ -2,7 +2,7 @@ import {
   DEFAULT_VIEWER_LOCALE,
   type ViewerLocale,
   type ViewerViewKind
-} from "@knowledge-alchemy/ddd-spec-viewer-contract";
+} from "@spec-alchemy/spec-viewer-contract";
 
 interface ViewerHeaderCopy {
   workspaceLabel: string;

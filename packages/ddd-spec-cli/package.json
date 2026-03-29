@@ -1,17 +1,17 @@
 {
-  "name": "@knowledge-alchemy/ddd-spec",
-  "version": "0.1.5",
+  "name": "@spec-alchemy/ddd-spec",
+  "version": "0.0.1",
   "description": "Zero-config DDD modeling CLI with validation, build generation, and a packaged viewer.",
-  "author": "Knowledge Alchemy",
+  "author": "Spec Alchemy",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/knowledge-alchemy/design-alchemy.git",
+    "url": "git+https://github.com/spec-alchemy/spec-toolchain.git",
     "directory": "packages/ddd-spec-cli"
   },
-  "homepage": "https://github.com/knowledge-alchemy/design-alchemy/tree/main/packages/ddd-spec-cli#readme",
+  "homepage": "https://github.com/spec-alchemy/spec-toolchain/tree/main/packages/ddd-spec-cli#readme",
   "bugs": {
-    "url": "https://github.com/knowledge-alchemy/design-alchemy/issues"
+    "url": "https://github.com/spec-alchemy/spec-toolchain/issues"
   },
   "keywords": [
     "ddd",

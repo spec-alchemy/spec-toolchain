@@ -4,7 +4,7 @@ Describe the change and the reason for it.
 
 ## Scope
 
-- [ ] Affects the public npm package `@knowledge-alchemy/ddd-spec`
+- [ ] Affects the public npm package `@spec-alchemy/ddd-spec`
 - [ ] Affects maintainer-only repository workflows or private workspace code
 - [ ] Requires updates to `skills/ddd-spec/` because public package behavior or AI guidance changed
 

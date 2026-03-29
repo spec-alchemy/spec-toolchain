@@ -92,7 +92,7 @@ export async function installPublishedCliTarball(consumerRootPath: string): Prom
   const installedPackagePath = join(
     consumerRootPath,
     "node_modules",
-    "@knowledge-alchemy",
+    "@spec-alchemy",
     "ddd-spec"
   );
   const targetNodeModulesPath = join(consumerRootPath, "node_modules");

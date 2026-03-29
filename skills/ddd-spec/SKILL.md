@@ -1,17 +1,17 @@
 ---
 name: ddd-spec
-description: Guide consumer use of @knowledge-alchemy/ddd-spec and teach how to write, validate, and fix domain-model YAML correctly. Use when an AI agent needs to help a user install the package, run init/validate/generate/build/serve/watch/dev/doctor/editor setup/config print, explain the zero-config workflow, teach how to author contexts, actors, systems, scenarios, messages, aggregates, or policies, or diagnose schema, semantic, analysis, and viewer-artifact issues in a consumer workspace.
+description: Guide consumer use of @spec-alchemy/ddd-spec and teach how to write, validate, and fix domain-model YAML correctly. Use when an AI agent needs to help a user install the package, run init/validate/generate/build/serve/watch/dev/doctor/editor setup/config print, explain the zero-config workflow, teach how to author contexts, actors, systems, scenarios, messages, aggregates, or policies, or diagnose schema, semantic, analysis, and viewer-artifact issues in a consumer workspace.
 ---
 
 # DDD Spec
 
-Guide the user as a consumer of `@knowledge-alchemy/ddd-spec`, not as a maintainer of this monorepo. Treat `domain-model/` as the product surface and treat the viewer as a projection layer over generated artifacts.
+Guide the user as a consumer of `@spec-alchemy/ddd-spec`, not as a maintainer of this monorepo. Treat `domain-model/` as the product surface and treat the viewer as a projection layer over generated artifacts.
 
 ## Start Here
 
 Use the zero-config consumer path by default:
 
-1. Install `@knowledge-alchemy/ddd-spec`
+1. Install `@spec-alchemy/ddd-spec`
 2. Run `ddd-spec init`
 3. Edit `domain-model/`
 4. Prefer `ddd-spec dev` for the main loop

@@ -42,7 +42,7 @@ test("ddd-spec-cli workspace registers the public package so a consumer can npm 
       cwd: packageRootPath,
       env: npmEnv
     });
-    await runCommand(NPM_COMMAND, ["link", "@knowledge-alchemy/ddd-spec"], {
+    await runCommand(NPM_COMMAND, ["link", "@spec-alchemy/ddd-spec"], {
       cwd: consumerRootPath,
       env: npmEnv
     });
@@ -50,7 +50,7 @@ test("ddd-spec-cli workspace registers the public package so a consumer can npm 
     const linkedCliEntryPath = join(
       consumerRootPath,
       "node_modules",
-      "@knowledge-alchemy",
+      "@spec-alchemy",
       "ddd-spec",
       "dist",
       "ddd-spec-cli",

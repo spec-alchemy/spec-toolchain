@@ -1,10 +1,10 @@
-# Contributing to Design Alchemy
+# Contributing to Spec Toolchain
 
-Thanks for contributing to `design-alchemy`.
+Thanks for contributing to `spec-toolchain`.
 
-This repository is a maintainer workspace for design-as-code tooling. The only public npm package
+This repository is a maintainer workspace for AI-readable spec tooling. The only public npm package
 boundary is [`packages/ddd-spec-cli/`](./packages/ddd-spec-cli/), published as
-`@knowledge-alchemy/ddd-spec`. Other workspaces support that package and are not separate public
+`@spec-alchemy/ddd-spec`. Other workspaces support that package and are not separate public
 package surfaces.
 
 The release lanes are intentionally simple:
@@ -22,7 +22,7 @@ The release lanes are intentionally simple:
 ## Ways To Contribute
 
 - Bug reports and feature requests for the public package or repository workflows.
-- Tests, fixes, and refactors that improve the current `@knowledge-alchemy/ddd-spec` workflow.
+- Tests, fixes, and refactors that improve the current `@spec-alchemy/ddd-spec` workflow.
 - Documentation corrections when code, tests, examples, or scripts are not already a better source
   of truth.
 
@@ -57,7 +57,7 @@ changes that affect the public package release surface.
 
 - Keep pull requests focused and explain the user-visible or maintainer-visible impact.
 - Add or update tests when behavior changes.
-- Add a Changeset when the change should affect the published `@knowledge-alchemy/ddd-spec`
+- Add a Changeset when the change should affect the published `@spec-alchemy/ddd-spec`
   package version or changelog.
 - Make sure the branch passes `npm run verify` and `npm run release:dry-run` before asking for
   review.

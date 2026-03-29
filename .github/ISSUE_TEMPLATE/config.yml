@@ -1,8 +1,8 @@
 blank_issues_enabled: false
 contact_links:
   - name: Security vulnerability report
-    url: https://github.com/knowledge-alchemy/design-alchemy/security/advisories/new
+    url: https://github.com/spec-alchemy/spec-toolchain/security/advisories/new
     about: Report private security vulnerabilities through GitHub Security Advisories instead of public issues.
   - name: Package and repository guidance
-    url: https://github.com/knowledge-alchemy/design-alchemy/blob/main/CONTRIBUTING.md
+    url: https://github.com/spec-alchemy/spec-toolchain/blob/main/CONTRIBUTING.md
     about: Read the maintainer and package-boundary contribution guidance before opening a request.

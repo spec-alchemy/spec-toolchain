@@ -1,5 +1,5 @@
 {
-  "name": "@knowledge-alchemy/ddd-spec-projection-viewer",
+  "name": "@spec-alchemy/spec-viewer",
   "private": true,
   "type": "module"
 }

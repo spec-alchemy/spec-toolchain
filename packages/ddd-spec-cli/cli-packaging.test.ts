@@ -147,7 +147,7 @@ test("public package manifest includes npm metadata for the GitHub launch surfac
     packageJson.description,
     "Zero-config DDD modeling CLI with validation, build generation, and a packaged viewer."
   );
-  assert.equal(packageJson.author, "Knowledge Alchemy");
+  assert.equal(packageJson.author, "Spec Alchemy");
   assert.deepEqual(packageJson.keywords, [
     "ddd",
     "domain-driven-design",
@@ -159,7 +159,7 @@ test("public package manifest includes npm metadata for the GitHub launch surfac
   ]);
   assert.deepEqual(packageJson.repository, {
     type: "git",
-    url: "git+https://github.com/knowledge-alchemy/design-alchemy.git",
+    url: "git+https://github.com/spec-alchemy/spec-toolchain.git",
     directory: "packages/ddd-spec-cli"
   });
   assert.deepEqual(packageJson.bin, {
@@ -167,9 +167,9 @@ test("public package manifest includes npm metadata for the GitHub launch surfac
   });
   assert.equal(
     packageJson.homepage,
-    "https://github.com/knowledge-alchemy/design-alchemy/tree/main/packages/ddd-spec-cli#readme"
+    "https://github.com/spec-alchemy/spec-toolchain/tree/main/packages/ddd-spec-cli#readme"
   );
   assert.deepEqual(packageJson.bugs, {
-    url: "https://github.com/knowledge-alchemy/design-alchemy/issues"
+    url: "https://github.com/spec-alchemy/spec-toolchain/issues"
   });
 });

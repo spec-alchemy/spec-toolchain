@@ -1,7 +1,7 @@
 import {
   DEFAULT_VIEWER_LOCALE,
   type ViewerLocale
-} from "@knowledge-alchemy/ddd-spec-viewer-contract";
+} from "@spec-alchemy/spec-viewer-contract";
 
 const UI_DETAIL_HELP_BY_LOCALE: Readonly<Record<ViewerLocale, Record<string, string>>> = {
   en: {

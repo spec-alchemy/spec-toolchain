@@ -1,5 +1,5 @@
 {
-  "name": "@knowledge-alchemy/ddd-spec-projection-typescript",
+  "name": "@spec-alchemy/spec-schema",
   "private": true,
   "type": "module"
 }

@@ -1,16 +1,16 @@
-# `@knowledge-alchemy/ddd-spec`
+# `@spec-alchemy/ddd-spec`
 
-`@knowledge-alchemy/ddd-spec` is the external CLI package for the DDD modeling workbench.
+`@spec-alchemy/ddd-spec` is the external CLI package for the DDD modeling workbench.
 Zero-config is the default product path: run `ddd-spec init`, model under `domain-model/`, keep `domain-model/index.yaml` as the default entry, and let the CLI write build outputs into `.ddd-spec/`. Use `ddd-spec editor setup` when you want VS Code YAML schema integration. Use `--config <path>` only when a workspace needs custom entry paths, output locations, or viewer sync targets.
 
-Repository and maintainer documentation live in the root [Design Alchemy README](../../README.md). This package README is the npm-facing usage guide.
+Repository and maintainer documentation live in the root [Spec Toolchain README](../../README.md). This package README is the npm-facing usage guide.
 
 ## Preferred Onboarding
 
 Start here for a normal consumer workspace. The preferred path is `install -> init -> editor setup -> dev`.
 
 ```sh
-npm install --save-dev @knowledge-alchemy/ddd-spec
+npm install --save-dev @spec-alchemy/ddd-spec
 npm exec ddd-spec init
 npm exec ddd-spec editor setup
 # edit the generated starter in domain-model/
@@ -53,7 +53,7 @@ Secondary views stay available when the primary path is no longer enough:
 For the normal zero-config path:
 
 ```sh
-npm install --save-dev @knowledge-alchemy/ddd-spec
+npm install --save-dev @spec-alchemy/ddd-spec
 npm exec ddd-spec init
 npm exec ddd-spec editor setup
 npm exec ddd-spec dev
@@ -122,7 +122,7 @@ npm exec ddd-spec serve --config ./ddd-spec.config.yaml -- --host 0.0.0.0
 Install the package globally if you want a direct `ddd-spec` shell command with the same zero-config defaults:
 
 ```sh
-npm install -g @knowledge-alchemy/ddd-spec
+npm install -g @spec-alchemy/ddd-spec
 ddd-spec init
 ddd-spec editor setup
 ddd-spec dev
@@ -132,7 +132,7 @@ ddd-spec serve -- --host 0.0.0.0
 For a project-local install, use `npm exec` or `npx --no-install` after adding the package:
 
 ```sh
-npm install --save-dev @knowledge-alchemy/ddd-spec
+npm install --save-dev @spec-alchemy/ddd-spec
 npm exec ddd-spec init
 npm exec ddd-spec editor setup
 npm exec ddd-spec dev

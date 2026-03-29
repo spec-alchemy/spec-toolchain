@@ -1,5 +1,5 @@
 {
-  "name": "knowledge-alchemy-ddd-spec-workspace",
+  "name": "spec-alchemy-spec-toolchain",
   "private": true,
   "workspaces": [
     "packages/*",

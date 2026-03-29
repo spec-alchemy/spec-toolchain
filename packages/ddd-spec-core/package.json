@@ -1,5 +1,5 @@
 {
-  "name": "@knowledge-alchemy/ddd-spec-core",
+  "name": "@spec-alchemy/spec-core",
   "private": true,
   "type": "module"
 }

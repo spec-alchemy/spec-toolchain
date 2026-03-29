@@ -1,12 +1,12 @@
-# Design Alchemy
+# Spec Toolchain
 
-`design-alchemy` 是一个 design-as-code 基础设施仓库，用来沉淀真实产品工作中可复用的建模、分析、生成与投影视图能力，而不是承载某个业务产品本身。
+`spec-toolchain` 是 `spec-alchemy` 的维护者 monorepo，用来沉淀面向 AI 可读 spec 的建模、分析、生成与投影视图能力，而不是承载某个业务产品本身。
 
 English README: [README.md](./README.md)
 
 ## 当前公开包
 
-当前公开 npm 包是 [`@knowledge-alchemy/ddd-spec`](./packages/ddd-spec-cli/README.md)，它提供零配置 DDD 建模 CLI 与打包 viewer。
+当前公开 npm 包是 [`@spec-alchemy/ddd-spec`](./packages/ddd-spec-cli/README.md)，它提供零配置 DDD 建模 CLI 与打包 viewer。
 
 - 默认工作区：`domain-model/`
 - 默认入口：`domain-model/index.yaml`
@@ -16,7 +16,7 @@ English README: [README.md](./README.md)
 安装方式：
 
 ```sh
-npm install --save-dev @knowledge-alchemy/ddd-spec
+npm install --save-dev @spec-alchemy/ddd-spec
 ```
 
 ## 快速开始
@@ -24,7 +24,7 @@ npm install --save-dev @knowledge-alchemy/ddd-spec
 面向普通使用者的零配置路径：
 
 ```sh
-npm install --save-dev @knowledge-alchemy/ddd-spec
+npm install --save-dev @spec-alchemy/ddd-spec
 npm exec ddd-spec init
 npm exec ddd-spec editor setup
 npm exec ddd-spec dev

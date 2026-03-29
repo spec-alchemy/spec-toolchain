@@ -2,7 +2,7 @@ import {
   BUSINESS_VIEWER_SPEC_VERSION,
   DEFAULT_VIEWER_LOCALE,
   type ViewerLocale
-} from "@knowledge-alchemy/ddd-spec-viewer-contract";
+} from "@spec-alchemy/spec-viewer-contract";
 import type { BusinessViewerSpec } from "../types";
 import { DEFAULT_VIEWER_SPEC_PATH } from "./viewer-constants";
 import {

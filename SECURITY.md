@@ -3,7 +3,7 @@
 ## Supported Surface
 
 Security reports should focus on the currently maintained repository and the published
-`@knowledge-alchemy/ddd-spec` package.
+`@spec-alchemy/ddd-spec` package.
 
 In scope:
 

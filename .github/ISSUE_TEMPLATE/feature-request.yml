@@ -1,5 +1,5 @@
 name: Feature request
-description: Propose a new capability or change for the design-alchemy repo or the published ddd-spec package.
+description: Propose a new capability or change for the spec-toolchain repo or the published ddd-spec package.
 title: "feat: "
 labels:
   - enhancement
@@ -14,8 +14,8 @@ body:
       label: Requested target
       description: Clarify whether this is a package-consumer request or a maintainer-repo request.
       options:
-        - "@knowledge-alchemy/ddd-spec package consumer workflow"
-        - "design-alchemy maintainer repository workflow"
+        - "@spec-alchemy/ddd-spec package consumer workflow"
+        - "spec-toolchain maintainer repository workflow"
         - "Both"
     validations:
       required: true

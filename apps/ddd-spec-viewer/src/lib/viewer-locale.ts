@@ -2,7 +2,7 @@ import {
   DEFAULT_VIEWER_LOCALE,
   VIEWER_LOCALES,
   type ViewerLocale
-} from "@knowledge-alchemy/ddd-spec-viewer-contract";
+} from "@spec-alchemy/spec-viewer-contract";
 
 export const VIEWER_LOCALE_QUERY_PARAM = "lang";
 export const VIEWER_LOCALE_STORAGE_KEY = "ddd-spec-viewer.locale";

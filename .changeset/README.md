@@ -3,12 +3,10 @@
 This repo uses Changesets to manage versions for the single public package boundary at
 [`../packages/ddd-spec-cli/`](../packages/ddd-spec-cli/).
 Private workspaces stay unversioned, so every maintainer-authored changeset should target
-`@knowledge-alchemy/ddd-spec` only.
+`@spec-alchemy/ddd-spec` only.
 
-Schema version resets and viewer spec version resets are product-contract changes inside that
-existing public package history. They do not rename `@knowledge-alchemy/ddd-spec`, they do not
-rename the `ddd-spec` CLI, and they do not imply an npm semver reset. Any future public-package
-rename or split needs a separate story or PRD plus dedicated release planning.
+This repository is launching under a fresh public identity. The public package line starts at
+`@spec-alchemy/ddd-spec@0.0.1`, and private workspaces remain unpublished implementation detail.
 
 ## Release Lanes
 
@@ -19,7 +17,7 @@ rename or split needs a separate story or PRD plus dedicated release planning.
 
 ## Stable Maintainer Flow
 
-1. Run `npm run changeset` and select `@knowledge-alchemy/ddd-spec`.
+1. Run `npm run changeset` and select `@spec-alchemy/ddd-spec`.
 2. Commit the generated `.changeset/*.md` file with the feature or fix.
 3. Review the pending release plan with `npm run changeset:status`.
 4. Run `npm run release:dry-run` locally or via
@@ -48,7 +46,7 @@ rename or split needs a separate story or PRD plus dedicated release planning.
 
 ## Trusted Publishing Setup
 
-Configure npm trusted publishing for `@knowledge-alchemy/ddd-spec` against the exact GitHub
+Configure npm trusted publishing for `@spec-alchemy/ddd-spec` against the exact GitHub
 Actions workflow file [`release.yml`](../.github/workflows/release.yml). npm validates the
 workflow filename exactly, so renaming the workflow file requires updating npm package settings.
 

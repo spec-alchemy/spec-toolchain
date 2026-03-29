@@ -1,4 +1,4 @@
-import { DEFAULT_VIEWER_LOCALE } from "@knowledge-alchemy/ddd-spec-viewer-contract";
+import { DEFAULT_VIEWER_LOCALE } from "@spec-alchemy/spec-viewer-contract";
 import type {
   BusinessViewerSpec,
   ViewerLocale,

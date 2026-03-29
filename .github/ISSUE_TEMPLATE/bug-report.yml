@@ -1,5 +1,5 @@
 name: Bug report
-description: Report a reproducible defect in the design-alchemy repo or the published ddd-spec package.
+description: Report a reproducible defect in the spec-toolchain repo or the published ddd-spec package.
 title: "bug: "
 labels:
   - bug
@@ -7,7 +7,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Use this form for defects in this repository or in the published `@knowledge-alchemy/ddd-spec` package.
+        Use this form for defects in this repository or in the published `@spec-alchemy/ddd-spec` package.
         If the issue is a private security vulnerability, do not file it here. Follow `SECURITY.md` instead.
   - type: dropdown
     id: surface
@@ -15,8 +15,8 @@ body:
       label: Affected surface
       description: Distinguish package-consumer problems from maintainer-repo problems.
       options:
-        - "@knowledge-alchemy/ddd-spec package consumer workflow"
-        - "design-alchemy maintainer repository workflow"
+        - "@spec-alchemy/ddd-spec package consumer workflow"
+        - "spec-toolchain maintainer repository workflow"
         - "Both"
     validations:
       required: true
@@ -34,7 +34,7 @@ body:
       label: Reproduction
       description: Provide the smallest reproducible command sequence or repository setup.
       placeholder: |
-        1. npm install --save-dev @knowledge-alchemy/ddd-spec
+        1. npm install --save-dev @spec-alchemy/ddd-spec
         2. npm exec ddd-spec init
         3. npm exec ddd-spec build
     validations:
@@ -47,7 +47,7 @@ body:
       placeholder: |
         Node: 22.14.0
         OS: macOS 15.4
-        Package: 0.1.5
+        Package: 0.0.1
         Context: repo maintainer checkout / external consumer project
     validations:
       required: true

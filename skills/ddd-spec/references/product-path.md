@@ -2,7 +2,7 @@
 
 ## Product Boundary
 
-Guide usage through the public package `@knowledge-alchemy/ddd-spec`.
+Guide usage through the public package `@spec-alchemy/ddd-spec`.
 
 - Treat `domain-model/` as the user-owned design asset.
 - Treat `.ddd-spec/` as generated output.
@@ -14,7 +14,7 @@ Guide usage through the public package `@knowledge-alchemy/ddd-spec`.
 Prefer this path for a normal consumer workspace:
 
 ```sh
-npm install --save-dev @knowledge-alchemy/ddd-spec
+npm install --save-dev @spec-alchemy/ddd-spec
 npm exec ddd-spec init
 npm exec ddd-spec dev
 ```
