@@ -22,7 +22,9 @@
    当需要评审第一版 shared `contract` skeleton 是否过薄或语义泄漏时，先看这份边界说明。
 9. [ddd-spec shared kernel readiness checklist](./ddd-spec-shared-kernel-readiness-checklist.md)
    当需要判断当前 `ddd-spec` 是否已经足够成为后续 family 的 shared-kernel 样板时，先看这份 checklist。
-10. [qa-spec shared kernel preflight](./qa-spec-shared-kernel-preflight.md)
+10. [ui-spec shared kernel preflight](./ui-spec-shared-kernel-preflight.md)
+   当需要评审 `ui-spec` 对 `validation`、`analysis`、`generation`、`viewer` 四个 runtime surfaces 的 shared needs 时，先看这份预演结果。
+11. [qa-spec shared kernel preflight](./qa-spec-shared-kernel-preflight.md)
    当需要评审 `qa-spec` 对 `traceability`、`evidence chain` 与 gate seam 的 shared needs 时，先看这份预演结果。
 
 目录原则：
