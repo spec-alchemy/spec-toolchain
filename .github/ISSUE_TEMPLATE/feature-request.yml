@@ -1,0 +1,59 @@
+name: Feature request
+description: Propose a new capability or change for the design-alchemy repo or the published ddd-spec package.
+title: "feat: "
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this form for feature requests. Keep the request tied to the public package boundary or a maintainer-relevant repository concern.
+  - type: dropdown
+    id: target
+    attributes:
+      label: Requested target
+      description: Clarify whether this is a package-consumer request or a maintainer-repo request.
+      options:
+        - "@knowledge-alchemy/ddd-spec package consumer workflow"
+        - "design-alchemy maintainer repository workflow"
+        - "Both"
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem to solve
+      description: Describe the user problem or maintainer pain, not just the proposed solution.
+      placeholder: It is hard to...
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change
+      description: Describe the capability or behavior you want.
+      placeholder: Add support for...
+    validations:
+      required: true
+  - type: textarea
+    id: impact
+    attributes:
+      label: Expected impact
+      description: Explain who benefits and what workflow changes.
+      placeholder: This would help package consumers by...
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Note any workarounds or adjacent approaches.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I searched existing issues and discussions first.
+          required: true
+        - label: This request is not a private security report.
+          required: true
+        - label: I described the problem and expected impact, not only the implementation idea.
+          required: true

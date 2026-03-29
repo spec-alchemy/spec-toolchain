@@ -1,0 +1,70 @@
+name: Bug report
+description: Report a reproducible defect in the design-alchemy repo or the published ddd-spec package.
+title: "bug: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this form for defects in this repository or in the published `@knowledge-alchemy/ddd-spec` package.
+        If the issue is a private security vulnerability, do not file it here. Follow `SECURITY.md` instead.
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Affected surface
+      description: Distinguish package-consumer problems from maintainer-repo problems.
+      options:
+        - "@knowledge-alchemy/ddd-spec package consumer workflow"
+        - "design-alchemy maintainer repository workflow"
+        - "Both"
+    validations:
+      required: true
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: State the broken behavior and the expected behavior.
+      placeholder: Running `npm exec ddd-spec build` should succeed, but it fails with...
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction
+      description: Provide the smallest reproducible command sequence or repository setup.
+      placeholder: |
+        1. npm install --save-dev @knowledge-alchemy/ddd-spec
+        2. npm exec ddd-spec init
+        3. npm exec ddd-spec build
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Include Node version, OS, package version, and whether this is repo-local or a consumer workspace.
+      placeholder: |
+        Node: 22.14.0
+        OS: macOS 15.4
+        Package: 0.1.5
+        Context: repo maintainer checkout / external consumer project
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Diagnostics or logs
+      description: Paste the relevant output, stack trace, or screenshots.
+      render: shell
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I confirmed this is not a request for a new feature.
+          required: true
+        - label: I searched existing issues and did not find the same report.
+          required: true
+        - label: I can reproduce this on the current `main` branch or with the current published package version.
+          required: true
