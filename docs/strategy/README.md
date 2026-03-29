@@ -18,6 +18,8 @@
    当需要评审 `ddd-spec -> shared kernel` 拆分时，先看这份能力拆分基线。
 7. [shared kernel directory and ownership plan](./shared-kernel-directory-ownership.md)
    当需要确定 landing zone、ownership 和 orchestration 边界时，先看这份目录方案。
+8. [shared kernel contract skeleton](./shared-kernel-contract-skeleton.md)
+   当需要评审第一版 shared `contract` skeleton 是否过薄或语义泄漏时，先看这份边界说明。
 
 目录原则：
 
