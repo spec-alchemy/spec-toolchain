@@ -10,7 +10,14 @@ existing public package history. They do not rename `@knowledge-alchemy/ddd-spec
 rename the `ddd-spec` CLI, and they do not imply an npm semver reset. Any future public-package
 rename or split needs a separate story or PRD plus dedicated release planning.
 
-## Maintainer Flow
+## Release Lanes
+
+- `main` is the stable release lane and publishes to npm dist-tag `latest`.
+- `beta` is the prerelease lane and publishes to npm dist-tag `beta`.
+- This repo does not maintain separate long-lived `release/*` branches at this stage.
+- Use Changesets prerelease mode on `beta`; keep normal stable versioning on `main`.
+
+## Stable Maintainer Flow
 
 1. Run `npm run changeset` and select `@knowledge-alchemy/ddd-spec`.
 2. Commit the generated `.changeset/*.md` file with the feature or fix.
@@ -26,6 +33,19 @@ rename or split needs a separate story or PRD plus dedicated release planning.
 7. Merge the release PR when the version/changelog diff is correct. The next `main` push triggers
    the publish path automatically.
 
+## Beta Prerelease Flow
+
+1. Branch from the current stable line onto `beta` when you need a prerelease train.
+2. Enter Changesets prerelease mode on `beta` with `npm exec changeset pre enter beta`.
+3. Merge prerelease-ready changes into `beta`, keeping their Changesets files in place.
+4. Run `npm run release:dry-run` on `beta` to verify the prerelease version plan and npm publish
+   dry run against dist-tag `beta`.
+5. Let [`../.github/workflows/release.yml`](../.github/workflows/release.yml) run on `beta`:
+   it verifies the repo and publishes prerelease packages with npm dist-tag `beta`.
+6. When the prerelease train is ready to promote, exit prerelease mode on `beta` with
+   `npm exec changeset pre exit`, then merge the finalized release back to `main` for the stable
+   `latest` publish path.
+
 ## Trusted Publishing Setup
 
 Configure npm trusted publishing for `@knowledge-alchemy/ddd-spec` against the exact GitHub
@@ -36,13 +56,16 @@ The release workflow is intentionally split:
 
 - `release-dry-run.yml` is verification-only and never publishes.
 - `release.yml` runs `npm run verify` first, then performs version-PR or publish actions.
+- `main` publishes stable releases to npm dist-tag `latest`.
+- `beta` publishes prereleases to npm dist-tag `beta`.
 
 `release.yml` uses GitHub Actions OIDC with `id-token: write` and publishes with
-`npm publish --provenance --access public`. Per npm's trusted publishing guidance, provenance is
-generated automatically when the package is published from a public repository via trusted
-publishing. If the repository is still private during prelaunch testing, the publish can still use
-trusted publishing, but npm provenance attestations will not be emitted until the repository is
-public.
+`npm publish --provenance --access public` on `main` and
+`npm publish --tag beta --provenance --access public` on `beta`. Per npm's trusted publishing
+guidance, provenance is generated automatically when the package is published from a public
+repository via trusted publishing. If the repository is still private during prelaunch testing,
+the publish can still use trusted publishing, but npm provenance attestations will not be emitted
+until the repository is public.
 
 After trusted publishing is confirmed, npm recommends enabling "Require two-factor authentication
 and disallow tokens" for the package and revoking any no-longer-needed automation tokens.

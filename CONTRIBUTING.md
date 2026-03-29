@@ -7,6 +7,11 @@ boundary is [`packages/ddd-spec-cli/`](./packages/ddd-spec-cli/), published as
 `@knowledge-alchemy/ddd-spec`. Other workspaces support that package and are not separate public
 package surfaces.
 
+The release lanes are intentionally simple:
+
+- `main` publishes stable releases to npm dist-tag `latest`.
+- `beta` publishes prereleases to npm dist-tag `beta`.
+
 ## Before You Start
 
 - Read [`README.md`](./README.md) for the current product and repository boundaries.
@@ -60,7 +65,8 @@ changes that affect the public package release surface.
 ## Release Notes
 
 This repo uses Changesets for the public package. For maintainers, the release flow is documented
-in [`.changeset/README.md`](./.changeset/README.md).
+in [`.changeset/README.md`](./.changeset/README.md), including the `main` stable lane and the
+`beta` prerelease lane.
 
 ## Conduct
 

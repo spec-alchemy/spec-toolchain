@@ -9,6 +9,7 @@ const packageRootPath = join(repoRootPath, "packages", "ddd-spec-cli");
 const packageJsonPath = join(packageRootPath, "package.json");
 const changelogPath = join(packageRootPath, "CHANGELOG.md");
 const changesetDirPath = join(repoRootPath, ".changeset");
+const releaseDistTag = await resolveReleaseDistTag();
 
 await runNpm(["run", "verify"], repoRootPath, "verify");
 await runNpm(["run", "changeset:status"], repoRootPath, "changeset status");
@@ -17,9 +18,49 @@ const snapshot = await createSnapshot();
 
 try {
   await runNpm(["run", "changeset:version"], repoRootPath, "changeset version");
-  await runNpm(["publish", "--dry-run"], packageRootPath, "npm publish --dry-run");
+  const publishArgs = ["publish", "--dry-run"];
+  const publishLabel =
+    releaseDistTag === "latest"
+      ? "npm publish --dry-run"
+      : `npm publish --dry-run --tag ${releaseDistTag}`;
+
+  if (releaseDistTag !== "latest") {
+    publishArgs.push("--tag", releaseDistTag);
+  }
+
+  await runNpm(publishArgs, packageRootPath, publishLabel);
 } finally {
   await restoreSnapshot(snapshot);
+}
+
+async function resolveReleaseDistTag() {
+  const branchName = await readGitBranchName();
+  return branchName === "beta" ? "beta" : "latest";
+}
+
+async function readGitBranchName() {
+  return new Promise((resolve) => {
+    const child = spawn("git", ["rev-parse", "--abbrev-ref", "HEAD"], {
+      cwd: repoRootPath,
+      stdio: ["ignore", "pipe", "ignore"]
+    });
+
+    let stdout = "";
+
+    child.stdout.on("data", (chunk) => {
+      stdout += String(chunk);
+    });
+
+    child.once("error", () => resolve("HEAD"));
+    child.once("exit", (code) => {
+      if (code === 0) {
+        resolve(stdout.trim() || "HEAD");
+        return;
+      }
+
+      resolve("HEAD");
+    });
+  });
 }
 
 async function createSnapshot() {

@@ -37,8 +37,8 @@ Thumbs.db
 .ralph-tui/
 .beads/
 
-# Project-specific excluded docs
-docs/*
+# Task orchestration artifacts
+# `tasks/` is reserved for ralph-tui PRDs and task breakdown inputs used during planning/execution.
 tasks/
 
 # DDD spec generated outputs

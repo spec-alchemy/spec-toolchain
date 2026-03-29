@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - beta
   workflow_dispatch:
 
 concurrency: ${{ github.workflow }}-${{ github.ref }}
@@ -62,7 +63,12 @@ jobs:
         uses: changesets/action@v1
         with:
           createGithubReleases: true
-          publish: cd packages/ddd-spec-cli && npm publish --provenance --access public
+          publish: |
+            if [ "$GITHUB_REF_NAME" = "beta" ]; then
+              cd packages/ddd-spec-cli && npm publish --tag beta --provenance --access public
+            else
+              cd packages/ddd-spec-cli && npm publish --provenance --access public
+            fi
           title: chore(release): version packages
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

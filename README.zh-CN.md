@@ -76,3 +76,4 @@ npm exec ddd-spec serve -- --port 4173
 - 行为准则：[CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md)
 - 安全报告：[SECURITY.md](./SECURITY.md)
 - 发布流程：[`.changeset/README.md`](./.changeset/README.md)
+- 发布通道：`main` -> npm `latest`，`beta` -> npm `beta`
