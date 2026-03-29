@@ -3,6 +3,8 @@
 `@knowledge-alchemy/ddd-spec` is the external CLI package for the DDD modeling workbench.
 Zero-config is the default product path: run `ddd-spec init`, model under `domain-model/`, keep `domain-model/index.yaml` as the default entry, and let the CLI write build outputs into `.ddd-spec/`. Use `ddd-spec editor setup` when you want VS Code YAML schema integration. Use `--config <path>` only when a workspace needs custom entry paths, output locations, or viewer sync targets.
 
+Repository and maintainer documentation live in the root [Design Alchemy README](../../README.md). This package README is the npm-facing usage guide.
+
 ## Preferred Onboarding
 
 Start here for a normal consumer workspace. The preferred path is `install -> init -> editor setup -> dev`.
