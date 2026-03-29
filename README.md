@@ -47,6 +47,14 @@ The recommended viewer walkthrough is:
 
 `Policy / Saga` remains available as a secondary view when the primary path is no longer enough.
 
+## AI Skill
+
+Install the companion `ddd-spec` skill with:
+
+```sh
+npx skills add spec-alchemy/spec-toolchain --skill ddd-spec
+```
+
 ## Repository Scope
 
 This repository is a maintainer workspace, not a consumer project template.
