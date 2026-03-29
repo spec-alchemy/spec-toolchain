@@ -1,0 +1,17 @@
+kind: message
+id: payment-authorized
+title: Payment Authorized
+summary: Async event telling the orders context that payment settlement succeeded in the payments context.
+messageKind: event
+channel: async
+producers:
+  - kind: aggregate
+    id: payment
+consumers:
+  - kind: context
+    id: orders
+payload:
+  - id: order-id
+    type: uuid
+    required: true
+    description: Correlates the authorization outcome back to the order context.

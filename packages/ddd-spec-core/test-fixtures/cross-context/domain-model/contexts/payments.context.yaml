@@ -1,0 +1,18 @@
+kind: context
+id: payments
+title: Payments
+summary: Owns payment authorization and publishes settlement outcomes back to orders.
+owners:
+  - payments-team
+responsibilities:
+  - Authorize payment
+  - Publish payment authorization result
+relationships:
+  - id: queries-ledger
+    kind: queries
+    target:
+      kind: system
+      id: ledger-gateway
+    direction: downstream
+    integration: synchronous-query
+    description: Payments and orders rely on the shared ledger gateway for reconciliation details.

@@ -1,0 +1,41 @@
+kind: scenario
+id: order-settlement-flow
+title: Order Settlement Flow
+summary: Customer submits an order, payments authorizes it, and orders reconciles the final ledger state.
+goal: Capture an order, settle payment in another context, and confirm the order after reconciliation.
+ownerContext: orders
+steps:
+  - id: capture-order
+    title: Capture order
+    context: orders
+    actor: customer
+    outgoingMessages:
+      - submit-order
+    next:
+      - await-payment-authorization
+  - id: await-payment-authorization
+    title: Authorize payment
+    context: payments
+    incomingMessages:
+      - order-submitted
+    outgoingMessages:
+      - authorize-payment
+    next:
+      - reconcile-order
+  - id: reconcile-order
+    title: Reconcile order
+    context: orders
+    system: ledger-gateway
+    incomingMessages:
+      - payment-authorized
+    outgoingMessages:
+      - fetch-ledger-status
+    next:
+      - order-confirmed
+  - id: order-confirmed
+    title: Order confirmed
+    context: orders
+    incomingMessages:
+      - ledger-status-fetched
+    final: true
+    outcome: order-confirmed

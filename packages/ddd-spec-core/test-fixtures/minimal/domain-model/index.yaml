@@ -1,0 +1,12 @@
+version: 1
+id: approval-flow
+title: Approval Flow
+summary: Minimal domain model example centered on context, scenario, message flow, lifecycle, and a follow-up policy.
+model:
+  contexts: ./contexts
+  actors: ./actors
+  systems: ./systems
+  scenarios: ./scenarios
+  messages: ./messages
+  aggregates: ./aggregates
+  policies: ./policies

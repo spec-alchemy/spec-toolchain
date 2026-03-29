@@ -25,7 +25,7 @@
     "build": "node ./scripts/build.mjs",
     "repo:cli": "node ./scripts/run-from-repo-root.mjs",
     "prepack": "npm run build",
-    "test": "npm run build && node --import tsx --test ../ddd-spec-core/output.test.ts ../ddd-spec-core/validation.test.ts ../ddd-spec-core/business-spec-loader.test.ts ./viewer-dev-session.test.ts ./cli-config.test.ts ./cli-init.test.ts ./cli-packaging.test.ts ./cli-installed-smoke.test.ts ./cli-link.test.ts ./cli-runtime.test.ts ../ddd-spec-projection-viewer/index.test.ts && TSX_TSCONFIG_PATH=../../apps/ddd-spec-viewer/tsconfig.json node --import tsx --test ../../apps/ddd-spec-viewer/test/*.test.ts ../../apps/ddd-spec-viewer/test/*.test.tsx"
+    "test": "npm run build && node --import tsx --test ../ddd-spec-core/*.test.ts ./viewer-dev-session.test.ts ./cli-config.test.ts ./cli-init.test.ts ./cli-packaging.test.ts ./cli-installed-smoke.test.ts ./cli-link.test.ts ./cli-runtime.test.ts ../ddd-spec-projection-viewer/index.test.ts && TSX_TSCONFIG_PATH=../../apps/ddd-spec-viewer/tsconfig.json node --import tsx --test ../../apps/ddd-spec-viewer/test/*.test.ts ../../apps/ddd-spec-viewer/test/*.test.tsx"
   },
   "dependencies": {
     "ajv": "^8.18.0",

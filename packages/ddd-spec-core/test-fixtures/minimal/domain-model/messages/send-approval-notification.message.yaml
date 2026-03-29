@@ -1,0 +1,19 @@
+kind: message
+id: send-approval-notification
+title: Send Approval Notification
+summary: Command asking the external notification hub to notify the requester after approval.
+messageKind: command
+channel: async
+producers:
+  - kind: policy
+    id: notify-requester-after-approval
+consumers:
+  - kind: system
+    id: notification-hub
+payload:
+  - id: request-id
+    type: uuid
+    required: true
+  - id: requester-id
+    type: uuid
+    required: true

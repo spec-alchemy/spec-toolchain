@@ -1,0 +1,389 @@
+{
+  "version": 1,
+  "id": "order-settlement",
+  "title": "Order Settlement",
+  "summary": "Cross-context domain model example centered on command, event, and query flow across orders and payments.",
+  "contexts": [
+    {
+      "kind": "context",
+      "id": "orders",
+      "title": "Orders",
+      "summary": "Owns order capture, customer confirmation, and the final business outcome.",
+      "owners": [
+        "orders-team"
+      ],
+      "responsibilities": [
+        "Capture customer order intent",
+        "Coordinate with payments before confirmation",
+        "Confirm the order after ledger reconciliation"
+      ],
+      "relationships": [
+        {
+          "id": "requests-payment-authorization",
+          "kind": "depends-on",
+          "target": {
+            "kind": "context",
+            "id": "payments"
+          },
+          "direction": "downstream",
+          "integration": "customer-supplier",
+          "description": "Orders depends on the payments context to authorize settlement before confirmation."
+        }
+      ]
+    },
+    {
+      "kind": "context",
+      "id": "payments",
+      "title": "Payments",
+      "summary": "Owns payment authorization and publishes settlement outcomes back to orders.",
+      "owners": [
+        "payments-team"
+      ],
+      "responsibilities": [
+        "Authorize payment",
+        "Publish payment authorization result"
+      ],
+      "relationships": [
+        {
+          "id": "queries-ledger",
+          "kind": "queries",
+          "target": {
+            "kind": "system",
+            "id": "ledger-gateway"
+          },
+          "direction": "downstream",
+          "integration": "synchronous-query",
+          "description": "Payments and orders rely on the shared ledger gateway for reconciliation details."
+        }
+      ]
+    }
+  ],
+  "actors": [
+    {
+      "kind": "actor",
+      "id": "customer",
+      "title": "Customer",
+      "summary": "Places the order and expects a confirmed outcome.",
+      "actorType": "person"
+    }
+  ],
+  "systems": [
+    {
+      "kind": "system",
+      "id": "ledger-gateway",
+      "title": "Ledger Gateway",
+      "summary": "External ledger service that answers reconciliation queries for final order confirmation.",
+      "boundary": "external",
+      "capabilities": [
+        "Respond to ledger reconciliation queries",
+        "Publish reconciliation result events"
+      ]
+    }
+  ],
+  "scenarios": [
+    {
+      "kind": "scenario",
+      "id": "order-settlement-flow",
+      "title": "Order Settlement Flow",
+      "summary": "Customer submits an order, payments authorizes it, and orders reconciles the final ledger state.",
+      "goal": "Capture an order, settle payment in another context, and confirm the order after reconciliation.",
+      "ownerContext": "orders",
+      "steps": [
+        {
+          "id": "capture-order",
+          "title": "Capture order",
+          "context": "orders",
+          "actor": "customer",
+          "outgoingMessages": [
+            "submit-order"
+          ],
+          "next": [
+            "await-payment-authorization"
+          ]
+        },
+        {
+          "id": "await-payment-authorization",
+          "title": "Authorize payment",
+          "context": "payments",
+          "incomingMessages": [
+            "order-submitted"
+          ],
+          "outgoingMessages": [
+            "authorize-payment"
+          ],
+          "next": [
+            "reconcile-order"
+          ]
+        },
+        {
+          "id": "reconcile-order",
+          "title": "Reconcile order",
+          "context": "orders",
+          "system": "ledger-gateway",
+          "incomingMessages": [
+            "payment-authorized"
+          ],
+          "outgoingMessages": [
+            "fetch-ledger-status"
+          ],
+          "next": [
+            "order-confirmed"
+          ]
+        },
+        {
+          "id": "order-confirmed",
+          "title": "Order confirmed",
+          "context": "orders",
+          "incomingMessages": [
+            "ledger-status-fetched"
+          ],
+          "final": true,
+          "outcome": "order-confirmed"
+        }
+      ]
+    }
+  ],
+  "messages": [
+    {
+      "kind": "message",
+      "id": "authorize-payment",
+      "title": "Authorize Payment",
+      "summary": "Command asking the payments aggregate to authorize settlement for the submitted order.",
+      "messageKind": "command",
+      "channel": "sync",
+      "producers": [
+        {
+          "kind": "context",
+          "id": "payments"
+        }
+      ],
+      "consumers": [
+        {
+          "kind": "aggregate",
+          "id": "payment"
+        }
+      ],
+      "payload": [
+        {
+          "id": "order-id",
+          "type": "uuid",
+          "required": true,
+          "description": "Correlates the payment authorization with the submitted order."
+        }
+      ]
+    },
+    {
+      "kind": "message",
+      "id": "fetch-ledger-status",
+      "title": "Fetch Ledger Status",
+      "summary": "Query asking the external ledger gateway to confirm the final reconciliation state for the order.",
+      "messageKind": "query",
+      "channel": "sync",
+      "producers": [
+        {
+          "kind": "context",
+          "id": "orders"
+        }
+      ],
+      "consumers": [
+        {
+          "kind": "system",
+          "id": "ledger-gateway"
+        }
+      ],
+      "payload": [
+        {
+          "id": "order-id",
+          "type": "uuid",
+          "required": true,
+          "description": "Identifies which order should be reconciled in the ledger."
+        }
+      ]
+    },
+    {
+      "kind": "message",
+      "id": "ledger-status-fetched",
+      "title": "Ledger Status Fetched",
+      "summary": "Event from the ledger gateway confirming that the order can move into its final confirmed state.",
+      "messageKind": "event",
+      "channel": "async",
+      "producers": [
+        {
+          "kind": "system",
+          "id": "ledger-gateway"
+        }
+      ],
+      "consumers": [
+        {
+          "kind": "context",
+          "id": "orders"
+        },
+        {
+          "kind": "aggregate",
+          "id": "order"
+        }
+      ],
+      "payload": [
+        {
+          "id": "order-id",
+          "type": "uuid",
+          "required": true,
+          "description": "Stable order identifier used to finish reconciliation and confirmation."
+        },
+        {
+          "id": "ledger-status",
+          "type": "text",
+          "required": true,
+          "description": "Final reconciliation result returned by the ledger gateway."
+        }
+      ]
+    },
+    {
+      "kind": "message",
+      "id": "order-submitted",
+      "title": "Order Submitted",
+      "summary": "Async event telling the payments context that a submitted order is ready for authorization.",
+      "messageKind": "event",
+      "channel": "async",
+      "producers": [
+        {
+          "kind": "aggregate",
+          "id": "order"
+        }
+      ],
+      "consumers": [
+        {
+          "kind": "context",
+          "id": "payments"
+        }
+      ],
+      "payload": [
+        {
+          "id": "order-id",
+          "type": "uuid",
+          "required": true,
+          "description": "Order identifier routed into the payments context."
+        }
+      ]
+    },
+    {
+      "kind": "message",
+      "id": "payment-authorized",
+      "title": "Payment Authorized",
+      "summary": "Async event telling the orders context that payment settlement succeeded in the payments context.",
+      "messageKind": "event",
+      "channel": "async",
+      "producers": [
+        {
+          "kind": "aggregate",
+          "id": "payment"
+        }
+      ],
+      "consumers": [
+        {
+          "kind": "context",
+          "id": "orders"
+        }
+      ],
+      "payload": [
+        {
+          "id": "order-id",
+          "type": "uuid",
+          "required": true,
+          "description": "Correlates the authorization outcome back to the order context."
+        }
+      ]
+    },
+    {
+      "kind": "message",
+      "id": "submit-order",
+      "title": "Submit Order",
+      "summary": "Command asking the orders aggregate to persist a new order and publish the submission event.",
+      "messageKind": "command",
+      "channel": "sync",
+      "producers": [
+        {
+          "kind": "context",
+          "id": "orders"
+        }
+      ],
+      "consumers": [
+        {
+          "kind": "aggregate",
+          "id": "order"
+        }
+      ],
+      "payload": [
+        {
+          "id": "order-id",
+          "type": "uuid",
+          "required": true,
+          "description": "Stable order identifier shared across the full settlement flow."
+        },
+        {
+          "id": "customer-id",
+          "type": "uuid",
+          "required": true,
+          "description": "Customer who submitted the order."
+        }
+      ]
+    }
+  ],
+  "aggregates": [
+    {
+      "kind": "aggregate",
+      "id": "order",
+      "title": "Order",
+      "summary": "Tracks the customer order from draft capture to final confirmation.",
+      "context": "orders",
+      "lifecycleComplexity": true,
+      "states": [
+        "draft",
+        "submitted",
+        "confirmed"
+      ],
+      "initialState": "draft",
+      "transitions": [
+        {
+          "id": "submit-order",
+          "from": "draft",
+          "to": "submitted",
+          "onMessage": "submit-order",
+          "emits": [
+            "order-submitted"
+          ]
+        },
+        {
+          "id": "confirm-order",
+          "from": "submitted",
+          "to": "confirmed",
+          "onMessage": "ledger-status-fetched"
+        }
+      ]
+    },
+    {
+      "kind": "aggregate",
+      "id": "payment",
+      "title": "Payment",
+      "summary": "Tracks payment authorization lifecycle for a submitted order.",
+      "context": "payments",
+      "states": [
+        "pending",
+        "authorized"
+      ],
+      "initialState": "pending",
+      "transitions": [
+        {
+          "id": "authorize-payment",
+          "from": "pending",
+          "to": "authorized",
+          "onMessage": "authorize-payment",
+          "emits": [
+            "payment-authorized"
+          ]
+        }
+      ]
+    }
+  ],
+  "policies": []
+}

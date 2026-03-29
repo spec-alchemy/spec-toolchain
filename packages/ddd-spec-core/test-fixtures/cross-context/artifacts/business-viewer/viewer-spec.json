@@ -1,0 +1,4846 @@
+{
+  "viewerVersion": 1,
+  "specId": "order-settlement",
+  "title": "Order Settlement",
+  "summary": "Cross-context domain model example centered on command, event, and query flow across orders and payments.",
+  "detailHelp": {
+    "semantic": {
+      "context.id": "The bounded context currently shown as the business ownership boundary.",
+      "context.owners": "Teams, roles, or organizations that carry business responsibility for this context.",
+      "context.responsibilities": "The business responsibilities explicitly assigned to this context.",
+      "context.owned_aggregates": "Aggregates modeled inside this context boundary.",
+      "context.scenarios": "Scenarios on the default learning path for this context.",
+      "context.related_actors": "Actors that initiate or participate in steps inside this context.",
+      "context.related_systems": "Systems this context collaborates with, depends on, or calls.",
+      "context.relationships": "External collaborations or dependencies explicitly declared for this context.",
+      "actor.type": "The participant type for this actor, such as person, role, or team.",
+      "actor.contexts": "Contexts where this actor participates in at least one step.",
+      "actor.scenarios": "Scenarios where this actor appears.",
+      "actor.scenario_steps": "Scenario steps where this actor explicitly participates.",
+      "system.boundary": "Whether this system is modeled as an internal capability or an external dependency.",
+      "system.capabilities": "Capabilities this system explicitly provides to the business model.",
+      "system.contexts": "Contexts that depend on this system or collaborate with it through messages.",
+      "system.dependencies": "Which contexts, messages, or policies refer to this system and how.",
+      "scenario.id": "The end-to-end business scenario used as the default reading storyline.",
+      "scenario.goal": "The business goal this scenario tries to achieve.",
+      "scenario.owner_context": "The context that owns the main narrative and responsibility for this scenario.",
+      "scenario.participating_contexts": "Contexts touched while this scenario advances.",
+      "scenario.actors": "Actors that appear in this scenario.",
+      "scenario.systems": "Systems that appear in this scenario.",
+      "scenario.final_steps": "Final steps where this scenario can conclude.",
+      "step.id": "A single business step inside the scenario story.",
+      "step.context": "The business context that owns this step.",
+      "step.actor": "The actor that initiates or leads this step.",
+      "step.system": "The system directly touched or invoked by this step.",
+      "step.entry": "Whether this step is marked as the scenario entry point.",
+      "step.final": "Whether this step is a final business outcome instead of ongoing work.",
+      "step.incoming_messages": "Messages this step receives or observes.",
+      "step.outgoing_messages": "Messages this step sends, triggers, or requests.",
+      "step.outcome": "A short description of the business result when the scenario ends at this step.",
+      "message.kind": "The message category, such as command, event, or query.",
+      "message.type": "The business message identifier shown in this view.",
+      "message.channel": "Whether the message is expected to travel through sync or async delivery.",
+      "message.endpoints": "The source, target, and their owning contexts for this message.",
+      "message.crosses_context_boundary": "Whether this message crosses more than one business context.",
+      "message.step_links": "Scenario steps linked to this message as incoming or outgoing references.",
+      "message.payload_fields": "Payload fields defined on this message contract and the meaning of each field.",
+      "aggregate.id": "The aggregate that owns this node or relation.",
+      "aggregate.context": "The business context that owns this aggregate lifecycle.",
+      "aggregate.initial_state": "The default state at the beginning of the aggregate lifecycle.",
+      "aggregate.lifecycle": "All lifecycle states defined for this aggregate.",
+      "aggregate.accepted_messages": "Messages that drive transitions in this aggregate lifecycle.",
+      "aggregate.emitted_messages": "Messages this aggregate emits during lifecycle transitions.",
+      "aggregate.reachable_states": "States that can be reached legally from the initial state.",
+      "aggregate.unreachable_states": "States that remain unreachable in the current lifecycle.",
+      "aggregate.state.id": "The lifecycle state currently being shown.",
+      "aggregate.state.reachable": "Whether this state can be reached from the initial state.",
+      "aggregate.state.outgoing_messages": "Messages emitted by transitions that leave this state.",
+      "transition.trigger_message": "The message that triggers this lifecycle transition.",
+      "transition.emitted_messages": "Additional messages emitted by this lifecycle transition.",
+      "relation.from": "The source state, source step, or source node for this relation.",
+      "relation.to": "The target state, target step, or target node for this relation.",
+      "policy.id": "The identifier of the current coordination policy or saga.",
+      "policy.context": "The business context where this policy is declared or owned.",
+      "policy.trigger_messages": "Messages that trigger this policy.",
+      "policy.emitted_messages": "Messages this policy emits as follow-up work.",
+      "policy.target_systems": "Systems this policy calls or coordinates.",
+      "policy.related_contexts": "Contexts this policy touches or coordinates.",
+      "policy.coordinates": "Business resources explicitly coordinated by this policy."
+    }
+  },
+  "views": [
+    {
+      "id": "context-map",
+      "kind": "context-map",
+      "navigation": {
+        "tier": "primary",
+        "order": 10,
+        "default": true
+      },
+      "title": "Context Map",
+      "description": "Shows bounded contexts, the actors and systems they collaborate with, and which scenarios, aggregates, and policies each context owns.",
+      "nodes": [
+        {
+          "id": "context-map:context:orders",
+          "kind": "context",
+          "label": "Orders",
+          "subtitle": "orders",
+          "summary": "1 aggregate(s), 1 scenario(s), 0 policy(s)",
+          "width": 360,
+          "height": 240,
+          "headerHeight": 123,
+          "details": [
+            {
+              "semanticKey": "context.id",
+              "label": "Context",
+              "value": {
+                "kind": "text",
+                "text": "orders"
+              }
+            },
+            {
+              "semanticKey": "context.owners",
+              "label": "Owners",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "orders-team"
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "context.responsibilities",
+              "label": "Responsibilities",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "Capture customer order intent"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "Coordinate with payments before confirmation"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "Confirm the order after ledger reconciliation"
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "context.owned_aggregates",
+              "label": "Owned aggregates",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "order"
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "context.scenarios",
+              "label": "Scenarios",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "order-settlement-flow"
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "context.related_actors",
+              "label": "Actors",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "customer"
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "context.related_systems",
+              "label": "Systems",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "ledger-gateway"
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "context.relationships",
+              "label": "Relationships",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "record",
+                    "entries": [
+                      {
+                        "label": "Relationship",
+                        "value": {
+                          "kind": "text",
+                          "text": "requests-payment-authorization"
+                        }
+                      },
+                      {
+                        "label": "Kind",
+                        "value": {
+                          "kind": "text",
+                          "text": "depends-on"
+                        }
+                      },
+                      {
+                        "label": "Direction",
+                        "value": {
+                          "kind": "text",
+                          "text": "downstream"
+                        }
+                      },
+                      {
+                        "label": "Integration",
+                        "value": {
+                          "kind": "text",
+                          "text": "customer-supplier"
+                        }
+                      },
+                      {
+                        "label": "Target",
+                        "value": {
+                          "kind": "text",
+                          "text": "context:payments"
+                        }
+                      },
+                      {
+                        "label": "Description",
+                        "value": {
+                          "kind": "text",
+                          "text": "Orders depends on the payments context to authorize settlement before confirmation."
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "context-map:aggregate:order",
+          "kind": "aggregate",
+          "label": "Order",
+          "subtitle": "order",
+          "summary": "initial: draft",
+          "parentId": "context-map:context:orders",
+          "width": 220,
+          "height": 123,
+          "details": [
+            {
+              "semanticKey": "aggregate.id",
+              "label": "Aggregate",
+              "value": {
+                "kind": "text",
+                "text": "order"
+              }
+            },
+            {
+              "semanticKey": "aggregate.context",
+              "label": "Context",
+              "value": {
+                "kind": "text",
+                "text": "orders"
+              }
+            },
+            {
+              "semanticKey": "aggregate.initial_state",
+              "label": "Initial state",
+              "value": {
+                "kind": "text",
+                "text": "draft"
+              }
+            },
+            {
+              "semanticKey": "aggregate.lifecycle",
+              "label": "Lifecycle",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "draft"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "submitted"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "confirmed"
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "aggregate.accepted_messages",
+              "label": "Accepted messages",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "submit-order"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "ledger-status-fetched"
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "aggregate.emitted_messages",
+              "label": "Emitted messages",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "order-submitted"
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "aggregate.reachable_states",
+              "label": "Reachable states",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "draft"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "submitted"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "confirmed"
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "aggregate.unreachable_states",
+              "label": "Unreachable states",
+              "value": {
+                "kind": "text",
+                "text": "none"
+              }
+            }
+          ]
+        },
+        {
+          "id": "context-map:scenario:order-settlement-flow",
+          "kind": "scenario",
+          "label": "Order Settlement Flow",
+          "subtitle": "order-settlement-flow",
+          "summary": "goal: Capture an order, settle payment in another context, and confirm the order after reconciliation.",
+          "parentId": "context-map:context:orders",
+          "width": 208,
+          "height": 238,
+          "details": [
+            {
+              "semanticKey": "scenario.id",
+              "label": "Scenario",
+              "value": {
+                "kind": "text",
+                "text": "order-settlement-flow"
+              }
+            },
+            {
+              "semanticKey": "scenario.goal",
+              "label": "Goal",
+              "value": {
+                "kind": "text",
+                "text": "Capture an order, settle payment in another context, and confirm the order after reconciliation."
+              }
+            },
+            {
+              "semanticKey": "scenario.owner_context",
+              "label": "Owner context",
+              "value": {
+                "kind": "text",
+                "text": "orders"
+              }
+            },
+            {
+              "semanticKey": "scenario.participating_contexts",
+              "label": "Participating contexts",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "orders"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "payments"
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "scenario.actors",
+              "label": "Actors",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "customer"
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "scenario.systems",
+              "label": "Systems",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "ledger-gateway"
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "scenario.final_steps",
+              "label": "Final steps",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "order-confirmed"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "context-map:context:payments",
+          "kind": "context",
+          "label": "Payments",
+          "subtitle": "payments",
+          "summary": "1 aggregate(s), 0 scenario(s), 0 policy(s)",
+          "width": 360,
+          "height": 240,
+          "headerHeight": 123,
+          "details": [
+            {
+              "semanticKey": "context.id",
+              "label": "Context",
+              "value": {
+                "kind": "text",
+                "text": "payments"
+              }
+            },
+            {
+              "semanticKey": "context.owners",
+              "label": "Owners",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "payments-team"
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "context.responsibilities",
+              "label": "Responsibilities",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "Authorize payment"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "Publish payment authorization result"
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "context.owned_aggregates",
+              "label": "Owned aggregates",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "payment"
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "context.scenarios",
+              "label": "Scenarios",
+              "value": {
+                "kind": "text",
+                "text": "none"
+              }
+            },
+            {
+              "semanticKey": "context.related_actors",
+              "label": "Actors",
+              "value": {
+                "kind": "text",
+                "text": "none"
+              }
+            },
+            {
+              "semanticKey": "context.related_systems",
+              "label": "Systems",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "ledger-gateway"
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "context.relationships",
+              "label": "Relationships",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "record",
+                    "entries": [
+                      {
+                        "label": "Relationship",
+                        "value": {
+                          "kind": "text",
+                          "text": "queries-ledger"
+                        }
+                      },
+                      {
+                        "label": "Kind",
+                        "value": {
+                          "kind": "text",
+                          "text": "queries"
+                        }
+                      },
+                      {
+                        "label": "Direction",
+                        "value": {
+                          "kind": "text",
+                          "text": "downstream"
+                        }
+                      },
+                      {
+                        "label": "Integration",
+                        "value": {
+                          "kind": "text",
+                          "text": "synchronous-query"
+                        }
+                      },
+                      {
+                        "label": "Target",
+                        "value": {
+                          "kind": "text",
+                          "text": "system:ledger-gateway"
+                        }
+                      },
+                      {
+                        "label": "Description",
+                        "value": {
+                          "kind": "text",
+                          "text": "Payments and orders rely on the shared ledger gateway for reconciliation details."
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "context-map:aggregate:payment",
+          "kind": "aggregate",
+          "label": "Payment",
+          "subtitle": "payment",
+          "summary": "initial: pending",
+          "parentId": "context-map:context:payments",
+          "width": 220,
+          "height": 123,
+          "details": [
+            {
+              "semanticKey": "aggregate.id",
+              "label": "Aggregate",
+              "value": {
+                "kind": "text",
+                "text": "payment"
+              }
+            },
+            {
+              "semanticKey": "aggregate.context",
+              "label": "Context",
+              "value": {
+                "kind": "text",
+                "text": "payments"
+              }
+            },
+            {
+              "semanticKey": "aggregate.initial_state",
+              "label": "Initial state",
+              "value": {
+                "kind": "text",
+                "text": "pending"
+              }
+            },
+            {
+              "semanticKey": "aggregate.lifecycle",
+              "label": "Lifecycle",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "pending"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "authorized"
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "aggregate.accepted_messages",
+              "label": "Accepted messages",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "authorize-payment"
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "aggregate.emitted_messages",
+              "label": "Emitted messages",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "payment-authorized"
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "aggregate.reachable_states",
+              "label": "Reachable states",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "pending"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "authorized"
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "aggregate.unreachable_states",
+              "label": "Unreachable states",
+              "value": {
+                "kind": "text",
+                "text": "none"
+              }
+            }
+          ]
+        },
+        {
+          "id": "context-map:actor:customer",
+          "kind": "actor",
+          "label": "Customer",
+          "subtitle": "customer",
+          "summary": "1 context(s), 1 step(s)",
+          "width": 208,
+          "height": 139,
+          "details": [
+            {
+              "semanticKey": "actor.type",
+              "label": "Actor type",
+              "value": {
+                "kind": "text",
+                "text": "person"
+              }
+            },
+            {
+              "semanticKey": "actor.contexts",
+              "label": "Contexts",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "orders"
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "actor.scenarios",
+              "label": "Scenarios",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "order-settlement-flow"
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "actor.scenario_steps",
+              "label": "Scenario steps",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "order-settlement-flow.capture-order (orders)"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "context-map:system:ledger-gateway",
+          "kind": "system",
+          "label": "Ledger Gateway",
+          "subtitle": "ledger-gateway",
+          "summary": "external",
+          "width": 220,
+          "height": 123,
+          "details": [
+            {
+              "semanticKey": "system.boundary",
+              "label": "Boundary",
+              "value": {
+                "kind": "text",
+                "text": "external"
+              }
+            },
+            {
+              "semanticKey": "system.capabilities",
+              "label": "Capabilities",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "Respond to ledger reconciliation queries"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "Publish reconciliation result events"
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "system.contexts",
+              "label": "Contexts",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "payments"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "orders"
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "system.dependencies",
+              "label": "Dependencies",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "record",
+                    "entries": [
+                      {
+                        "label": "Kind",
+                        "value": {
+                          "kind": "text",
+                          "text": "context-relationship"
+                        }
+                      },
+                      {
+                        "label": "Contexts",
+                        "value": {
+                          "kind": "list",
+                          "items": [
+                            {
+                              "kind": "text",
+                              "text": "payments"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "label": "Description",
+                        "value": {
+                          "kind": "text",
+                          "text": "Payments and orders rely on the shared ledger gateway for reconciliation details."
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "record",
+                    "entries": [
+                      {
+                        "label": "Kind",
+                        "value": {
+                          "kind": "text",
+                          "text": "scenario-step"
+                        }
+                      },
+                      {
+                        "label": "Contexts",
+                        "value": {
+                          "kind": "list",
+                          "items": [
+                            {
+                              "kind": "text",
+                              "text": "orders"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "label": "Scenario",
+                        "value": {
+                          "kind": "text",
+                          "text": "order-settlement-flow"
+                        }
+                      },
+                      {
+                        "label": "Step",
+                        "value": {
+                          "kind": "text",
+                          "text": "reconcile-order"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "record",
+                    "entries": [
+                      {
+                        "label": "Kind",
+                        "value": {
+                          "kind": "text",
+                          "text": "message-consumer"
+                        }
+                      },
+                      {
+                        "label": "Contexts",
+                        "value": {
+                          "kind": "list",
+                          "items": [
+                            {
+                              "kind": "text",
+                              "text": "orders"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "label": "Message",
+                        "value": {
+                          "kind": "text",
+                          "text": "fetch-ledger-status"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "record",
+                    "entries": [
+                      {
+                        "label": "Kind",
+                        "value": {
+                          "kind": "text",
+                          "text": "message-producer"
+                        }
+                      },
+                      {
+                        "label": "Contexts",
+                        "value": {
+                          "kind": "list",
+                          "items": [
+                            {
+                              "kind": "text",
+                              "text": "orders"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "label": "Message",
+                        "value": {
+                          "kind": "text",
+                          "text": "ledger-status-fetched"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "edges": [
+        {
+          "id": "context-map:ownership:context:orders:aggregate:order",
+          "kind": "ownership",
+          "source": "context-map:context:orders",
+          "target": "context-map:aggregate:order",
+          "label": "owns",
+          "details": [
+            {
+              "semanticKey": "context.id",
+              "label": "Context",
+              "value": {
+                "kind": "text",
+                "text": "orders"
+              }
+            },
+            {
+              "semanticKey": "aggregate.id",
+              "label": "Aggregate",
+              "value": {
+                "kind": "text",
+                "text": "order"
+              }
+            }
+          ]
+        },
+        {
+          "id": "context-map:ownership:context:orders:scenario:order-settlement-flow",
+          "kind": "ownership",
+          "source": "context-map:context:orders",
+          "target": "context-map:scenario:order-settlement-flow",
+          "label": "owns",
+          "details": [
+            {
+              "semanticKey": "context.id",
+              "label": "Context",
+              "value": {
+                "kind": "text",
+                "text": "orders"
+              }
+            },
+            {
+              "semanticKey": "scenario.id",
+              "label": "Scenario",
+              "value": {
+                "kind": "text",
+                "text": "order-settlement-flow"
+              }
+            }
+          ]
+        },
+        {
+          "id": "context-map:ownership:context:payments:aggregate:payment",
+          "kind": "ownership",
+          "source": "context-map:context:payments",
+          "target": "context-map:aggregate:payment",
+          "label": "owns",
+          "details": [
+            {
+              "semanticKey": "context.id",
+              "label": "Context",
+              "value": {
+                "kind": "text",
+                "text": "payments"
+              }
+            },
+            {
+              "semanticKey": "aggregate.id",
+              "label": "Aggregate",
+              "value": {
+                "kind": "text",
+                "text": "payment"
+              }
+            }
+          ]
+        },
+        {
+          "id": "context-map:collaboration:actor:customer:context:orders",
+          "kind": "collaboration",
+          "source": "context-map:actor:customer",
+          "target": "context-map:context:orders",
+          "label": "participates",
+          "details": [
+            {
+              "semanticKey": "step.actor",
+              "label": "Actor",
+              "value": {
+                "kind": "text",
+                "text": "customer"
+              }
+            },
+            {
+              "semanticKey": "context.id",
+              "label": "Context",
+              "value": {
+                "kind": "text",
+                "text": "orders"
+              }
+            }
+          ]
+        },
+        {
+          "id": "context-map:collaboration:system:ledger-gateway:context:payments",
+          "kind": "collaboration",
+          "source": "context-map:system:ledger-gateway",
+          "target": "context-map:context:payments",
+          "label": "touches",
+          "details": [
+            {
+              "semanticKey": "system.contexts",
+              "label": "Contexts",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "payments"
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "context.id",
+              "label": "Context",
+              "value": {
+                "kind": "text",
+                "text": "payments"
+              }
+            }
+          ]
+        },
+        {
+          "id": "context-map:collaboration:system:ledger-gateway:context:orders",
+          "kind": "collaboration",
+          "source": "context-map:system:ledger-gateway",
+          "target": "context-map:context:orders",
+          "label": "touches",
+          "details": [
+            {
+              "semanticKey": "system.contexts",
+              "label": "Contexts",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "orders"
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "context.id",
+              "label": "Context",
+              "value": {
+                "kind": "text",
+                "text": "orders"
+              }
+            }
+          ]
+        },
+        {
+          "id": "context-map:relationship:orders:requests-payment-authorization",
+          "kind": "collaboration",
+          "source": "context-map:context:orders",
+          "target": "context-map:context:payments",
+          "label": "depends-on",
+          "description": "Orders depends on the payments context to authorize settlement before confirmation.",
+          "details": [
+            {
+              "semanticKey": "context.id",
+              "label": "Context",
+              "value": {
+                "kind": "text",
+                "text": "orders"
+              }
+            },
+            {
+              "semanticKey": "relation.from",
+              "label": "From",
+              "value": {
+                "kind": "text",
+                "text": "orders"
+              }
+            },
+            {
+              "semanticKey": "relation.to",
+              "label": "To",
+              "value": {
+                "kind": "text",
+                "text": "context:payments"
+              }
+            },
+            {
+              "semanticKey": "context.relationships",
+              "label": "Relationships",
+              "value": {
+                "kind": "record",
+                "entries": [
+                  {
+                    "label": "Relationship",
+                    "value": {
+                      "kind": "text",
+                      "text": "requests-payment-authorization"
+                    }
+                  },
+                  {
+                    "label": "Kind",
+                    "value": {
+                      "kind": "text",
+                      "text": "depends-on"
+                    }
+                  },
+                  {
+                    "label": "Direction",
+                    "value": {
+                      "kind": "text",
+                      "text": "downstream"
+                    }
+                  },
+                  {
+                    "label": "Integration",
+                    "value": {
+                      "kind": "text",
+                      "text": "customer-supplier"
+                    }
+                  },
+                  {
+                    "label": "Target",
+                    "value": {
+                      "kind": "text",
+                      "text": "context:payments"
+                    }
+                  },
+                  {
+                    "label": "Description",
+                    "value": {
+                      "kind": "text",
+                      "text": "Orders depends on the payments context to authorize settlement before confirmation."
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "context-map:relationship:payments:queries-ledger",
+          "kind": "collaboration",
+          "source": "context-map:context:payments",
+          "target": "context-map:system:ledger-gateway",
+          "label": "queries",
+          "description": "Payments and orders rely on the shared ledger gateway for reconciliation details.",
+          "details": [
+            {
+              "semanticKey": "context.id",
+              "label": "Context",
+              "value": {
+                "kind": "text",
+                "text": "payments"
+              }
+            },
+            {
+              "semanticKey": "relation.from",
+              "label": "From",
+              "value": {
+                "kind": "text",
+                "text": "payments"
+              }
+            },
+            {
+              "semanticKey": "relation.to",
+              "label": "To",
+              "value": {
+                "kind": "text",
+                "text": "system:ledger-gateway"
+              }
+            },
+            {
+              "semanticKey": "context.relationships",
+              "label": "Relationships",
+              "value": {
+                "kind": "record",
+                "entries": [
+                  {
+                    "label": "Relationship",
+                    "value": {
+                      "kind": "text",
+                      "text": "queries-ledger"
+                    }
+                  },
+                  {
+                    "label": "Kind",
+                    "value": {
+                      "kind": "text",
+                      "text": "queries"
+                    }
+                  },
+                  {
+                    "label": "Direction",
+                    "value": {
+                      "kind": "text",
+                      "text": "downstream"
+                    }
+                  },
+                  {
+                    "label": "Integration",
+                    "value": {
+                      "kind": "text",
+                      "text": "synchronous-query"
+                    }
+                  },
+                  {
+                    "label": "Target",
+                    "value": {
+                      "kind": "text",
+                      "text": "system:ledger-gateway"
+                    }
+                  },
+                  {
+                    "label": "Description",
+                    "value": {
+                      "kind": "text",
+                      "text": "Payments and orders rely on the shared ledger gateway for reconciliation details."
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "scenario-story",
+      "kind": "scenario-story",
+      "navigation": {
+        "tier": "primary",
+        "order": 20
+      },
+      "title": "Scenario Story",
+      "description": "Shows how each scenario advances step by step across contexts, including which message moves the story forward.",
+      "nodes": [
+        {
+          "id": "scenario-story:scenario:order-settlement-flow",
+          "kind": "scenario",
+          "label": "Order Settlement Flow",
+          "subtitle": "order-settlement-flow",
+          "summary": "goal: Capture an order, settle payment in another context, and confirm the order after reconciliation.",
+          "width": 320,
+          "height": 227,
+          "headerHeight": 155,
+          "details": [
+            {
+              "semanticKey": "scenario.id",
+              "label": "Scenario",
+              "value": {
+                "kind": "text",
+                "text": "order-settlement-flow"
+              }
+            },
+            {
+              "semanticKey": "scenario.goal",
+              "label": "Goal",
+              "value": {
+                "kind": "text",
+                "text": "Capture an order, settle payment in another context, and confirm the order after reconciliation."
+              }
+            },
+            {
+              "semanticKey": "scenario.owner_context",
+              "label": "Owner context",
+              "value": {
+                "kind": "text",
+                "text": "orders"
+              }
+            },
+            {
+              "semanticKey": "scenario.participating_contexts",
+              "label": "Participating contexts",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "orders"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "payments"
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "scenario.actors",
+              "label": "Actors",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "customer"
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "scenario.systems",
+              "label": "Systems",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "ledger-gateway"
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "scenario.final_steps",
+              "label": "Final steps",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "order-confirmed"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "scenario-story:scenario:order-settlement-flow:step:capture-order",
+          "kind": "scenario-step",
+          "label": "Capture order",
+          "subtitle": "capture-order | orders",
+          "summary": "1 message(s)",
+          "parentId": "scenario-story:scenario:order-settlement-flow",
+          "width": 220,
+          "height": 139,
+          "details": [
+            {
+              "semanticKey": "step.id",
+              "label": "Step",
+              "value": {
+                "kind": "text",
+                "text": "capture-order"
+              }
+            },
+            {
+              "semanticKey": "step.context",
+              "label": "Context",
+              "value": {
+                "kind": "text",
+                "text": "orders"
+              }
+            },
+            {
+              "semanticKey": "step.entry",
+              "label": "Entry",
+              "value": {
+                "kind": "text",
+                "text": "yes"
+              }
+            },
+            {
+              "semanticKey": "step.final",
+              "label": "Final",
+              "value": {
+                "kind": "text",
+                "text": "no"
+              }
+            },
+            {
+              "semanticKey": "step.actor",
+              "label": "Actor",
+              "value": {
+                "kind": "text",
+                "text": "customer"
+              }
+            },
+            {
+              "semanticKey": "step.incoming_messages",
+              "label": "Incoming messages",
+              "value": {
+                "kind": "text",
+                "text": "none"
+              }
+            },
+            {
+              "semanticKey": "step.outgoing_messages",
+              "label": "Outgoing messages",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "submit-order"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "scenario-story:scenario:order-settlement-flow:step:await-payment-authorization",
+          "kind": "scenario-step",
+          "label": "Authorize payment",
+          "subtitle": "await-payment-authorization | payments",
+          "summary": "2 message(s)",
+          "parentId": "scenario-story:scenario:order-settlement-flow",
+          "width": 220,
+          "height": 139,
+          "details": [
+            {
+              "semanticKey": "step.id",
+              "label": "Step",
+              "value": {
+                "kind": "text",
+                "text": "await-payment-authorization"
+              }
+            },
+            {
+              "semanticKey": "step.context",
+              "label": "Context",
+              "value": {
+                "kind": "text",
+                "text": "payments"
+              }
+            },
+            {
+              "semanticKey": "step.entry",
+              "label": "Entry",
+              "value": {
+                "kind": "text",
+                "text": "no"
+              }
+            },
+            {
+              "semanticKey": "step.final",
+              "label": "Final",
+              "value": {
+                "kind": "text",
+                "text": "no"
+              }
+            },
+            {
+              "semanticKey": "step.incoming_messages",
+              "label": "Incoming messages",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "order-submitted"
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "step.outgoing_messages",
+              "label": "Outgoing messages",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "authorize-payment"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "scenario-story:scenario:order-settlement-flow:step:reconcile-order",
+          "kind": "scenario-step",
+          "label": "Reconcile order",
+          "subtitle": "reconcile-order | orders",
+          "summary": "2 message(s)",
+          "parentId": "scenario-story:scenario:order-settlement-flow",
+          "width": 220,
+          "height": 139,
+          "details": [
+            {
+              "semanticKey": "step.id",
+              "label": "Step",
+              "value": {
+                "kind": "text",
+                "text": "reconcile-order"
+              }
+            },
+            {
+              "semanticKey": "step.context",
+              "label": "Context",
+              "value": {
+                "kind": "text",
+                "text": "orders"
+              }
+            },
+            {
+              "semanticKey": "step.entry",
+              "label": "Entry",
+              "value": {
+                "kind": "text",
+                "text": "no"
+              }
+            },
+            {
+              "semanticKey": "step.final",
+              "label": "Final",
+              "value": {
+                "kind": "text",
+                "text": "no"
+              }
+            },
+            {
+              "semanticKey": "step.system",
+              "label": "System",
+              "value": {
+                "kind": "text",
+                "text": "ledger-gateway"
+              }
+            },
+            {
+              "semanticKey": "step.incoming_messages",
+              "label": "Incoming messages",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "payment-authorized"
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "step.outgoing_messages",
+              "label": "Outgoing messages",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "fetch-ledger-status"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "scenario-story:scenario:order-settlement-flow:step:order-confirmed",
+          "kind": "scenario-step",
+          "label": "Order confirmed",
+          "subtitle": "order-confirmed | orders",
+          "summary": "order-confirmed",
+          "parentId": "scenario-story:scenario:order-settlement-flow",
+          "width": 220,
+          "height": 139,
+          "details": [
+            {
+              "semanticKey": "step.id",
+              "label": "Step",
+              "value": {
+                "kind": "text",
+                "text": "order-confirmed"
+              }
+            },
+            {
+              "semanticKey": "step.context",
+              "label": "Context",
+              "value": {
+                "kind": "text",
+                "text": "orders"
+              }
+            },
+            {
+              "semanticKey": "step.entry",
+              "label": "Entry",
+              "value": {
+                "kind": "text",
+                "text": "no"
+              }
+            },
+            {
+              "semanticKey": "step.final",
+              "label": "Final",
+              "value": {
+                "kind": "text",
+                "text": "yes"
+              }
+            },
+            {
+              "semanticKey": "step.incoming_messages",
+              "label": "Incoming messages",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "ledger-status-fetched"
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "step.outgoing_messages",
+              "label": "Outgoing messages",
+              "value": {
+                "kind": "text",
+                "text": "none"
+              }
+            },
+            {
+              "semanticKey": "step.outcome",
+              "label": "Outcome",
+              "value": {
+                "kind": "text",
+                "text": "order-confirmed"
+              }
+            }
+          ]
+        }
+      ],
+      "edges": [
+        {
+          "id": "scenario-story:sequence:order-settlement-flow:capture-order:await-payment-authorization",
+          "kind": "sequence",
+          "source": "scenario-story:scenario:order-settlement-flow:step:capture-order",
+          "target": "scenario-story:scenario:order-settlement-flow:step:await-payment-authorization",
+          "label": "order-submitted",
+          "details": [
+            {
+              "semanticKey": "scenario.id",
+              "label": "Scenario",
+              "value": {
+                "kind": "text",
+                "text": "order-settlement-flow"
+              }
+            },
+            {
+              "semanticKey": "relation.from",
+              "label": "From",
+              "value": {
+                "kind": "text",
+                "text": "capture-order"
+              }
+            },
+            {
+              "semanticKey": "relation.to",
+              "label": "To",
+              "value": {
+                "kind": "text",
+                "text": "await-payment-authorization"
+              }
+            },
+            {
+              "semanticKey": "message.type",
+              "label": "Message",
+              "value": {
+                "kind": "text",
+                "text": "order-submitted"
+              }
+            }
+          ]
+        },
+        {
+          "id": "scenario-story:sequence:order-settlement-flow:await-payment-authorization:reconcile-order",
+          "kind": "sequence",
+          "source": "scenario-story:scenario:order-settlement-flow:step:await-payment-authorization",
+          "target": "scenario-story:scenario:order-settlement-flow:step:reconcile-order",
+          "label": "payment-authorized",
+          "details": [
+            {
+              "semanticKey": "scenario.id",
+              "label": "Scenario",
+              "value": {
+                "kind": "text",
+                "text": "order-settlement-flow"
+              }
+            },
+            {
+              "semanticKey": "relation.from",
+              "label": "From",
+              "value": {
+                "kind": "text",
+                "text": "await-payment-authorization"
+              }
+            },
+            {
+              "semanticKey": "relation.to",
+              "label": "To",
+              "value": {
+                "kind": "text",
+                "text": "reconcile-order"
+              }
+            },
+            {
+              "semanticKey": "message.type",
+              "label": "Message",
+              "value": {
+                "kind": "text",
+                "text": "payment-authorized"
+              }
+            }
+          ]
+        },
+        {
+          "id": "scenario-story:sequence:order-settlement-flow:reconcile-order:order-confirmed",
+          "kind": "sequence",
+          "source": "scenario-story:scenario:order-settlement-flow:step:reconcile-order",
+          "target": "scenario-story:scenario:order-settlement-flow:step:order-confirmed",
+          "label": "ledger-status-fetched",
+          "details": [
+            {
+              "semanticKey": "scenario.id",
+              "label": "Scenario",
+              "value": {
+                "kind": "text",
+                "text": "order-settlement-flow"
+              }
+            },
+            {
+              "semanticKey": "relation.from",
+              "label": "From",
+              "value": {
+                "kind": "text",
+                "text": "reconcile-order"
+              }
+            },
+            {
+              "semanticKey": "relation.to",
+              "label": "To",
+              "value": {
+                "kind": "text",
+                "text": "order-confirmed"
+              }
+            },
+            {
+              "semanticKey": "message.type",
+              "label": "Message",
+              "value": {
+                "kind": "text",
+                "text": "ledger-status-fetched"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "message-flow",
+      "kind": "message-flow",
+      "navigation": {
+        "tier": "primary",
+        "order": 30
+      },
+      "title": "Message Flow / Trace",
+      "description": "Shows how commands, events, and queries move between contexts, endpoints, and scenario steps, including cross-context hops.",
+      "nodes": [
+        {
+          "id": "message-flow:context:orders",
+          "kind": "context",
+          "label": "Orders",
+          "subtitle": "orders",
+          "summary": "3 step(s), 1 endpoint(s)",
+          "width": 360,
+          "height": 240,
+          "headerHeight": 120,
+          "details": [
+            {
+              "semanticKey": "context.id",
+              "label": "Context",
+              "value": {
+                "kind": "text",
+                "text": "orders"
+              }
+            },
+            {
+              "semanticKey": "context.owners",
+              "label": "Owners",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "orders-team"
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "context.related_systems",
+              "label": "Systems",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "ledger-gateway"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "message-flow:context:payments",
+          "kind": "context",
+          "label": "Payments",
+          "subtitle": "payments",
+          "summary": "1 step(s), 1 endpoint(s)",
+          "width": 360,
+          "height": 240,
+          "headerHeight": 120,
+          "details": [
+            {
+              "semanticKey": "context.id",
+              "label": "Context",
+              "value": {
+                "kind": "text",
+                "text": "payments"
+              }
+            },
+            {
+              "semanticKey": "context.owners",
+              "label": "Owners",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "payments-team"
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "context.related_systems",
+              "label": "Systems",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "ledger-gateway"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "message-flow:scenario:order-settlement-flow",
+          "kind": "scenario",
+          "label": "Order Settlement Flow",
+          "subtitle": "order-settlement-flow",
+          "summary": "4 step(s), 2 context(s)",
+          "width": 208,
+          "height": 174,
+          "details": [
+            {
+              "semanticKey": "scenario.id",
+              "label": "Scenario",
+              "value": {
+                "kind": "text",
+                "text": "order-settlement-flow"
+              }
+            },
+            {
+              "semanticKey": "scenario.goal",
+              "label": "Goal",
+              "value": {
+                "kind": "text",
+                "text": "Capture an order, settle payment in another context, and confirm the order after reconciliation."
+              }
+            },
+            {
+              "semanticKey": "scenario.owner_context",
+              "label": "Owner context",
+              "value": {
+                "kind": "text",
+                "text": "orders"
+              }
+            },
+            {
+              "semanticKey": "scenario.participating_contexts",
+              "label": "Participating contexts",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "orders"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "payments"
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "scenario.actors",
+              "label": "Actors",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "customer"
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "scenario.systems",
+              "label": "Systems",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "ledger-gateway"
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "scenario.final_steps",
+              "label": "Final steps",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "order-confirmed"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "message-flow:scenario:order-settlement-flow:step:capture-order",
+          "kind": "scenario-step",
+          "label": "Capture order",
+          "subtitle": "capture-order | order-settlement-flow",
+          "summary": "0 in, 1 out",
+          "parentId": "message-flow:context:orders",
+          "width": 220,
+          "height": 139,
+          "details": [
+            {
+              "semanticKey": "scenario.id",
+              "label": "Scenario",
+              "value": {
+                "kind": "text",
+                "text": "order-settlement-flow"
+              }
+            },
+            {
+              "semanticKey": "step.id",
+              "label": "Step",
+              "value": {
+                "kind": "text",
+                "text": "capture-order"
+              }
+            },
+            {
+              "semanticKey": "step.context",
+              "label": "Context",
+              "value": {
+                "kind": "text",
+                "text": "orders"
+              }
+            },
+            {
+              "semanticKey": "step.entry",
+              "label": "Entry",
+              "value": {
+                "kind": "text",
+                "text": "yes"
+              }
+            },
+            {
+              "semanticKey": "step.final",
+              "label": "Final",
+              "value": {
+                "kind": "text",
+                "text": "no"
+              }
+            },
+            {
+              "semanticKey": "step.actor",
+              "label": "Actor",
+              "value": {
+                "kind": "text",
+                "text": "customer"
+              }
+            },
+            {
+              "semanticKey": "step.incoming_messages",
+              "label": "Incoming messages",
+              "value": {
+                "kind": "text",
+                "text": "none"
+              }
+            },
+            {
+              "semanticKey": "step.outgoing_messages",
+              "label": "Outgoing messages",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "submit-order"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "message-flow:scenario:order-settlement-flow:step:await-payment-authorization",
+          "kind": "scenario-step",
+          "label": "Authorize payment",
+          "subtitle": "await-payment-authorization | order-settlement-flow",
+          "summary": "1 in, 1 out",
+          "parentId": "message-flow:context:payments",
+          "width": 220,
+          "height": 155,
+          "details": [
+            {
+              "semanticKey": "scenario.id",
+              "label": "Scenario",
+              "value": {
+                "kind": "text",
+                "text": "order-settlement-flow"
+              }
+            },
+            {
+              "semanticKey": "step.id",
+              "label": "Step",
+              "value": {
+                "kind": "text",
+                "text": "await-payment-authorization"
+              }
+            },
+            {
+              "semanticKey": "step.context",
+              "label": "Context",
+              "value": {
+                "kind": "text",
+                "text": "payments"
+              }
+            },
+            {
+              "semanticKey": "step.entry",
+              "label": "Entry",
+              "value": {
+                "kind": "text",
+                "text": "no"
+              }
+            },
+            {
+              "semanticKey": "step.final",
+              "label": "Final",
+              "value": {
+                "kind": "text",
+                "text": "no"
+              }
+            },
+            {
+              "semanticKey": "step.incoming_messages",
+              "label": "Incoming messages",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "order-submitted"
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "step.outgoing_messages",
+              "label": "Outgoing messages",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "authorize-payment"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "message-flow:scenario:order-settlement-flow:step:reconcile-order",
+          "kind": "scenario-step",
+          "label": "Reconcile order",
+          "subtitle": "reconcile-order | order-settlement-flow",
+          "summary": "1 in, 1 out",
+          "parentId": "message-flow:context:orders",
+          "width": 220,
+          "height": 139,
+          "details": [
+            {
+              "semanticKey": "scenario.id",
+              "label": "Scenario",
+              "value": {
+                "kind": "text",
+                "text": "order-settlement-flow"
+              }
+            },
+            {
+              "semanticKey": "step.id",
+              "label": "Step",
+              "value": {
+                "kind": "text",
+                "text": "reconcile-order"
+              }
+            },
+            {
+              "semanticKey": "step.context",
+              "label": "Context",
+              "value": {
+                "kind": "text",
+                "text": "orders"
+              }
+            },
+            {
+              "semanticKey": "step.entry",
+              "label": "Entry",
+              "value": {
+                "kind": "text",
+                "text": "no"
+              }
+            },
+            {
+              "semanticKey": "step.final",
+              "label": "Final",
+              "value": {
+                "kind": "text",
+                "text": "no"
+              }
+            },
+            {
+              "semanticKey": "step.system",
+              "label": "System",
+              "value": {
+                "kind": "text",
+                "text": "ledger-gateway"
+              }
+            },
+            {
+              "semanticKey": "step.incoming_messages",
+              "label": "Incoming messages",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "payment-authorized"
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "step.outgoing_messages",
+              "label": "Outgoing messages",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "fetch-ledger-status"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "message-flow:scenario:order-settlement-flow:step:order-confirmed",
+          "kind": "scenario-step",
+          "label": "Order confirmed",
+          "subtitle": "order-confirmed | order-settlement-flow",
+          "summary": "order-confirmed",
+          "parentId": "message-flow:context:orders",
+          "width": 220,
+          "height": 139,
+          "details": [
+            {
+              "semanticKey": "scenario.id",
+              "label": "Scenario",
+              "value": {
+                "kind": "text",
+                "text": "order-settlement-flow"
+              }
+            },
+            {
+              "semanticKey": "step.id",
+              "label": "Step",
+              "value": {
+                "kind": "text",
+                "text": "order-confirmed"
+              }
+            },
+            {
+              "semanticKey": "step.context",
+              "label": "Context",
+              "value": {
+                "kind": "text",
+                "text": "orders"
+              }
+            },
+            {
+              "semanticKey": "step.entry",
+              "label": "Entry",
+              "value": {
+                "kind": "text",
+                "text": "no"
+              }
+            },
+            {
+              "semanticKey": "step.final",
+              "label": "Final",
+              "value": {
+                "kind": "text",
+                "text": "yes"
+              }
+            },
+            {
+              "semanticKey": "step.incoming_messages",
+              "label": "Incoming messages",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "ledger-status-fetched"
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "step.outgoing_messages",
+              "label": "Outgoing messages",
+              "value": {
+                "kind": "text",
+                "text": "none"
+              }
+            },
+            {
+              "semanticKey": "step.outcome",
+              "label": "Outcome",
+              "value": {
+                "kind": "text",
+                "text": "order-confirmed"
+              }
+            }
+          ]
+        },
+        {
+          "id": "message-flow:system:ledger-gateway",
+          "kind": "system",
+          "label": "Ledger Gateway",
+          "subtitle": "ledger-gateway",
+          "summary": "external",
+          "width": 220,
+          "height": 123,
+          "details": [
+            {
+              "semanticKey": "system.boundary",
+              "label": "Boundary",
+              "value": {
+                "kind": "text",
+                "text": "external"
+              }
+            },
+            {
+              "semanticKey": "system.capabilities",
+              "label": "Capabilities",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "Respond to ledger reconciliation queries"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "Publish reconciliation result events"
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "system.contexts",
+              "label": "Contexts",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "payments"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "orders"
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "system.dependencies",
+              "label": "Dependencies",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "record",
+                    "entries": [
+                      {
+                        "label": "Kind",
+                        "value": {
+                          "kind": "text",
+                          "text": "context-relationship"
+                        }
+                      },
+                      {
+                        "label": "Contexts",
+                        "value": {
+                          "kind": "list",
+                          "items": [
+                            {
+                              "kind": "text",
+                              "text": "payments"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "label": "Description",
+                        "value": {
+                          "kind": "text",
+                          "text": "Payments and orders rely on the shared ledger gateway for reconciliation details."
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "record",
+                    "entries": [
+                      {
+                        "label": "Kind",
+                        "value": {
+                          "kind": "text",
+                          "text": "scenario-step"
+                        }
+                      },
+                      {
+                        "label": "Contexts",
+                        "value": {
+                          "kind": "list",
+                          "items": [
+                            {
+                              "kind": "text",
+                              "text": "orders"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "label": "Scenario",
+                        "value": {
+                          "kind": "text",
+                          "text": "order-settlement-flow"
+                        }
+                      },
+                      {
+                        "label": "Step",
+                        "value": {
+                          "kind": "text",
+                          "text": "reconcile-order"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "record",
+                    "entries": [
+                      {
+                        "label": "Kind",
+                        "value": {
+                          "kind": "text",
+                          "text": "message-consumer"
+                        }
+                      },
+                      {
+                        "label": "Contexts",
+                        "value": {
+                          "kind": "list",
+                          "items": [
+                            {
+                              "kind": "text",
+                              "text": "orders"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "label": "Message",
+                        "value": {
+                          "kind": "text",
+                          "text": "fetch-ledger-status"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "record",
+                    "entries": [
+                      {
+                        "label": "Kind",
+                        "value": {
+                          "kind": "text",
+                          "text": "message-producer"
+                        }
+                      },
+                      {
+                        "label": "Contexts",
+                        "value": {
+                          "kind": "list",
+                          "items": [
+                            {
+                              "kind": "text",
+                              "text": "orders"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "label": "Message",
+                        "value": {
+                          "kind": "text",
+                          "text": "ledger-status-fetched"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "message-flow:aggregate:order",
+          "kind": "aggregate",
+          "label": "Order",
+          "subtitle": "order",
+          "summary": "initial: draft",
+          "parentId": "message-flow:context:orders",
+          "width": 220,
+          "height": 123,
+          "details": [
+            {
+              "semanticKey": "aggregate.id",
+              "label": "Aggregate",
+              "value": {
+                "kind": "text",
+                "text": "order"
+              }
+            },
+            {
+              "semanticKey": "aggregate.context",
+              "label": "Context",
+              "value": {
+                "kind": "text",
+                "text": "orders"
+              }
+            },
+            {
+              "semanticKey": "aggregate.initial_state",
+              "label": "Initial state",
+              "value": {
+                "kind": "text",
+                "text": "draft"
+              }
+            },
+            {
+              "semanticKey": "aggregate.lifecycle",
+              "label": "Lifecycle",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "draft"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "submitted"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "confirmed"
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "aggregate.accepted_messages",
+              "label": "Accepted messages",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "submit-order"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "ledger-status-fetched"
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "aggregate.emitted_messages",
+              "label": "Emitted messages",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "order-submitted"
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "aggregate.reachable_states",
+              "label": "Reachable states",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "draft"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "submitted"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "confirmed"
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "aggregate.unreachable_states",
+              "label": "Unreachable states",
+              "value": {
+                "kind": "text",
+                "text": "none"
+              }
+            }
+          ]
+        },
+        {
+          "id": "message-flow:aggregate:payment",
+          "kind": "aggregate",
+          "label": "Payment",
+          "subtitle": "payment",
+          "summary": "initial: pending",
+          "parentId": "message-flow:context:payments",
+          "width": 220,
+          "height": 123,
+          "details": [
+            {
+              "semanticKey": "aggregate.id",
+              "label": "Aggregate",
+              "value": {
+                "kind": "text",
+                "text": "payment"
+              }
+            },
+            {
+              "semanticKey": "aggregate.context",
+              "label": "Context",
+              "value": {
+                "kind": "text",
+                "text": "payments"
+              }
+            },
+            {
+              "semanticKey": "aggregate.initial_state",
+              "label": "Initial state",
+              "value": {
+                "kind": "text",
+                "text": "pending"
+              }
+            },
+            {
+              "semanticKey": "aggregate.lifecycle",
+              "label": "Lifecycle",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "pending"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "authorized"
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "aggregate.accepted_messages",
+              "label": "Accepted messages",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "authorize-payment"
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "aggregate.emitted_messages",
+              "label": "Emitted messages",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "payment-authorized"
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "aggregate.reachable_states",
+              "label": "Reachable states",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "pending"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "authorized"
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "aggregate.unreachable_states",
+              "label": "Unreachable states",
+              "value": {
+                "kind": "text",
+                "text": "none"
+              }
+            }
+          ]
+        },
+        {
+          "id": "message-flow:message:authorize-payment",
+          "kind": "message",
+          "label": "Authorize Payment",
+          "subtitle": "authorize-payment | command | sync",
+          "summary": "payments",
+          "parentId": "message-flow:context:payments",
+          "width": 228,
+          "height": 139,
+          "details": [
+            {
+              "semanticKey": "message.kind",
+              "label": "Message kind",
+              "value": {
+                "kind": "text",
+                "text": "command"
+              }
+            },
+            {
+              "semanticKey": "message.type",
+              "label": "Message",
+              "value": {
+                "kind": "text",
+                "text": "authorize-payment"
+              }
+            },
+            {
+              "semanticKey": "message.channel",
+              "label": "Channel",
+              "value": {
+                "kind": "text",
+                "text": "sync"
+              }
+            },
+            {
+              "semanticKey": "message.endpoints",
+              "label": "Endpoints",
+              "value": {
+                "kind": "record",
+                "entries": [
+                  {
+                    "label": "Sources",
+                    "value": {
+                      "kind": "list",
+                      "items": [
+                        {
+                          "kind": "text",
+                          "text": "context:payments"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "label": "Targets",
+                    "value": {
+                      "kind": "list",
+                      "items": [
+                        {
+                          "kind": "text",
+                          "text": "aggregate:payment"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "label": "Source contexts",
+                    "value": {
+                      "kind": "list",
+                      "items": [
+                        {
+                          "kind": "text",
+                          "text": "payments"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "label": "Target contexts",
+                    "value": {
+                      "kind": "list",
+                      "items": [
+                        {
+                          "kind": "text",
+                          "text": "payments"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "message.crosses_context_boundary",
+              "label": "Crosses context boundary",
+              "value": {
+                "kind": "text",
+                "text": "no"
+              }
+            },
+            {
+              "semanticKey": "message.step_links",
+              "label": "Scenario links",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "record",
+                    "entries": [
+                      {
+                        "label": "Direction",
+                        "value": {
+                          "kind": "text",
+                          "text": "outgoing"
+                        }
+                      },
+                      {
+                        "label": "Scenario",
+                        "value": {
+                          "kind": "text",
+                          "text": "order-settlement-flow"
+                        }
+                      },
+                      {
+                        "label": "Step",
+                        "value": {
+                          "kind": "text",
+                          "text": "await-payment-authorization"
+                        }
+                      },
+                      {
+                        "label": "Context",
+                        "value": {
+                          "kind": "text",
+                          "text": "payments"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "message.payload_fields",
+              "label": "Payload fields",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "field",
+                    "name": "order-id",
+                    "fieldType": "uuid",
+                    "required": true,
+                    "description": "Correlates the payment authorization with the submitted order."
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "message-flow:message:fetch-ledger-status",
+          "kind": "message",
+          "label": "Fetch Ledger Status",
+          "subtitle": "fetch-ledger-status | query | sync",
+          "summary": "orders -> external",
+          "parentId": "message-flow:context:orders",
+          "width": 228,
+          "height": 139,
+          "details": [
+            {
+              "semanticKey": "message.kind",
+              "label": "Message kind",
+              "value": {
+                "kind": "text",
+                "text": "query"
+              }
+            },
+            {
+              "semanticKey": "message.type",
+              "label": "Message",
+              "value": {
+                "kind": "text",
+                "text": "fetch-ledger-status"
+              }
+            },
+            {
+              "semanticKey": "message.channel",
+              "label": "Channel",
+              "value": {
+                "kind": "text",
+                "text": "sync"
+              }
+            },
+            {
+              "semanticKey": "message.endpoints",
+              "label": "Endpoints",
+              "value": {
+                "kind": "record",
+                "entries": [
+                  {
+                    "label": "Sources",
+                    "value": {
+                      "kind": "list",
+                      "items": [
+                        {
+                          "kind": "text",
+                          "text": "context:orders"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "label": "Targets",
+                    "value": {
+                      "kind": "list",
+                      "items": [
+                        {
+                          "kind": "text",
+                          "text": "system:ledger-gateway"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "label": "Source contexts",
+                    "value": {
+                      "kind": "list",
+                      "items": [
+                        {
+                          "kind": "text",
+                          "text": "orders"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "label": "Target contexts",
+                    "value": {
+                      "kind": "text",
+                      "text": "none"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "message.crosses_context_boundary",
+              "label": "Crosses context boundary",
+              "value": {
+                "kind": "text",
+                "text": "no"
+              }
+            },
+            {
+              "semanticKey": "message.step_links",
+              "label": "Scenario links",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "record",
+                    "entries": [
+                      {
+                        "label": "Direction",
+                        "value": {
+                          "kind": "text",
+                          "text": "outgoing"
+                        }
+                      },
+                      {
+                        "label": "Scenario",
+                        "value": {
+                          "kind": "text",
+                          "text": "order-settlement-flow"
+                        }
+                      },
+                      {
+                        "label": "Step",
+                        "value": {
+                          "kind": "text",
+                          "text": "reconcile-order"
+                        }
+                      },
+                      {
+                        "label": "Context",
+                        "value": {
+                          "kind": "text",
+                          "text": "orders"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "message.payload_fields",
+              "label": "Payload fields",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "field",
+                    "name": "order-id",
+                    "fieldType": "uuid",
+                    "required": true,
+                    "description": "Identifies which order should be reconciled in the ledger."
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "message-flow:message:ledger-status-fetched",
+          "kind": "message",
+          "label": "Ledger Status Fetched",
+          "subtitle": "ledger-status-fetched | event | async",
+          "summary": "external -> orders",
+          "parentId": "message-flow:context:orders",
+          "width": 228,
+          "height": 158,
+          "details": [
+            {
+              "semanticKey": "message.kind",
+              "label": "Message kind",
+              "value": {
+                "kind": "text",
+                "text": "event"
+              }
+            },
+            {
+              "semanticKey": "message.type",
+              "label": "Message",
+              "value": {
+                "kind": "text",
+                "text": "ledger-status-fetched"
+              }
+            },
+            {
+              "semanticKey": "message.channel",
+              "label": "Channel",
+              "value": {
+                "kind": "text",
+                "text": "async"
+              }
+            },
+            {
+              "semanticKey": "message.endpoints",
+              "label": "Endpoints",
+              "value": {
+                "kind": "record",
+                "entries": [
+                  {
+                    "label": "Sources",
+                    "value": {
+                      "kind": "list",
+                      "items": [
+                        {
+                          "kind": "text",
+                          "text": "system:ledger-gateway"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "label": "Targets",
+                    "value": {
+                      "kind": "list",
+                      "items": [
+                        {
+                          "kind": "text",
+                          "text": "context:orders"
+                        },
+                        {
+                          "kind": "text",
+                          "text": "aggregate:order"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "label": "Source contexts",
+                    "value": {
+                      "kind": "text",
+                      "text": "none"
+                    }
+                  },
+                  {
+                    "label": "Target contexts",
+                    "value": {
+                      "kind": "list",
+                      "items": [
+                        {
+                          "kind": "text",
+                          "text": "orders"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "message.crosses_context_boundary",
+              "label": "Crosses context boundary",
+              "value": {
+                "kind": "text",
+                "text": "no"
+              }
+            },
+            {
+              "semanticKey": "message.step_links",
+              "label": "Scenario links",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "record",
+                    "entries": [
+                      {
+                        "label": "Direction",
+                        "value": {
+                          "kind": "text",
+                          "text": "incoming"
+                        }
+                      },
+                      {
+                        "label": "Scenario",
+                        "value": {
+                          "kind": "text",
+                          "text": "order-settlement-flow"
+                        }
+                      },
+                      {
+                        "label": "Step",
+                        "value": {
+                          "kind": "text",
+                          "text": "order-confirmed"
+                        }
+                      },
+                      {
+                        "label": "Context",
+                        "value": {
+                          "kind": "text",
+                          "text": "orders"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "message.payload_fields",
+              "label": "Payload fields",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "field",
+                    "name": "order-id",
+                    "fieldType": "uuid",
+                    "required": true,
+                    "description": "Stable order identifier used to finish reconciliation and confirmation."
+                  },
+                  {
+                    "kind": "field",
+                    "name": "ledger-status",
+                    "fieldType": "text",
+                    "required": true,
+                    "description": "Final reconciliation result returned by the ledger gateway."
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "message-flow:message:order-submitted",
+          "kind": "message",
+          "label": "Order Submitted",
+          "subtitle": "order-submitted | event | async",
+          "summary": "orders -> payments",
+          "width": 228,
+          "height": 139,
+          "details": [
+            {
+              "semanticKey": "message.kind",
+              "label": "Message kind",
+              "value": {
+                "kind": "text",
+                "text": "event"
+              }
+            },
+            {
+              "semanticKey": "message.type",
+              "label": "Message",
+              "value": {
+                "kind": "text",
+                "text": "order-submitted"
+              }
+            },
+            {
+              "semanticKey": "message.channel",
+              "label": "Channel",
+              "value": {
+                "kind": "text",
+                "text": "async"
+              }
+            },
+            {
+              "semanticKey": "message.endpoints",
+              "label": "Endpoints",
+              "value": {
+                "kind": "record",
+                "entries": [
+                  {
+                    "label": "Sources",
+                    "value": {
+                      "kind": "list",
+                      "items": [
+                        {
+                          "kind": "text",
+                          "text": "aggregate:order"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "label": "Targets",
+                    "value": {
+                      "kind": "list",
+                      "items": [
+                        {
+                          "kind": "text",
+                          "text": "context:payments"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "label": "Source contexts",
+                    "value": {
+                      "kind": "list",
+                      "items": [
+                        {
+                          "kind": "text",
+                          "text": "orders"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "label": "Target contexts",
+                    "value": {
+                      "kind": "list",
+                      "items": [
+                        {
+                          "kind": "text",
+                          "text": "payments"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "message.crosses_context_boundary",
+              "label": "Crosses context boundary",
+              "value": {
+                "kind": "text",
+                "text": "yes"
+              }
+            },
+            {
+              "semanticKey": "message.step_links",
+              "label": "Scenario links",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "record",
+                    "entries": [
+                      {
+                        "label": "Direction",
+                        "value": {
+                          "kind": "text",
+                          "text": "incoming"
+                        }
+                      },
+                      {
+                        "label": "Scenario",
+                        "value": {
+                          "kind": "text",
+                          "text": "order-settlement-flow"
+                        }
+                      },
+                      {
+                        "label": "Step",
+                        "value": {
+                          "kind": "text",
+                          "text": "await-payment-authorization"
+                        }
+                      },
+                      {
+                        "label": "Context",
+                        "value": {
+                          "kind": "text",
+                          "text": "payments"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "message.payload_fields",
+              "label": "Payload fields",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "field",
+                    "name": "order-id",
+                    "fieldType": "uuid",
+                    "required": true,
+                    "description": "Order identifier routed into the payments context."
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "message-flow:message:payment-authorized",
+          "kind": "message",
+          "label": "Payment Authorized",
+          "subtitle": "payment-authorized | event | async",
+          "summary": "payments -> orders",
+          "width": 228,
+          "height": 139,
+          "details": [
+            {
+              "semanticKey": "message.kind",
+              "label": "Message kind",
+              "value": {
+                "kind": "text",
+                "text": "event"
+              }
+            },
+            {
+              "semanticKey": "message.type",
+              "label": "Message",
+              "value": {
+                "kind": "text",
+                "text": "payment-authorized"
+              }
+            },
+            {
+              "semanticKey": "message.channel",
+              "label": "Channel",
+              "value": {
+                "kind": "text",
+                "text": "async"
+              }
+            },
+            {
+              "semanticKey": "message.endpoints",
+              "label": "Endpoints",
+              "value": {
+                "kind": "record",
+                "entries": [
+                  {
+                    "label": "Sources",
+                    "value": {
+                      "kind": "list",
+                      "items": [
+                        {
+                          "kind": "text",
+                          "text": "aggregate:payment"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "label": "Targets",
+                    "value": {
+                      "kind": "list",
+                      "items": [
+                        {
+                          "kind": "text",
+                          "text": "context:orders"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "label": "Source contexts",
+                    "value": {
+                      "kind": "list",
+                      "items": [
+                        {
+                          "kind": "text",
+                          "text": "payments"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "label": "Target contexts",
+                    "value": {
+                      "kind": "list",
+                      "items": [
+                        {
+                          "kind": "text",
+                          "text": "orders"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "message.crosses_context_boundary",
+              "label": "Crosses context boundary",
+              "value": {
+                "kind": "text",
+                "text": "yes"
+              }
+            },
+            {
+              "semanticKey": "message.step_links",
+              "label": "Scenario links",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "record",
+                    "entries": [
+                      {
+                        "label": "Direction",
+                        "value": {
+                          "kind": "text",
+                          "text": "incoming"
+                        }
+                      },
+                      {
+                        "label": "Scenario",
+                        "value": {
+                          "kind": "text",
+                          "text": "order-settlement-flow"
+                        }
+                      },
+                      {
+                        "label": "Step",
+                        "value": {
+                          "kind": "text",
+                          "text": "reconcile-order"
+                        }
+                      },
+                      {
+                        "label": "Context",
+                        "value": {
+                          "kind": "text",
+                          "text": "orders"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "message.payload_fields",
+              "label": "Payload fields",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "field",
+                    "name": "order-id",
+                    "fieldType": "uuid",
+                    "required": true,
+                    "description": "Correlates the authorization outcome back to the order context."
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "message-flow:message:submit-order",
+          "kind": "message",
+          "label": "Submit Order",
+          "subtitle": "submit-order | command | sync",
+          "summary": "orders",
+          "parentId": "message-flow:context:orders",
+          "width": 228,
+          "height": 139,
+          "details": [
+            {
+              "semanticKey": "message.kind",
+              "label": "Message kind",
+              "value": {
+                "kind": "text",
+                "text": "command"
+              }
+            },
+            {
+              "semanticKey": "message.type",
+              "label": "Message",
+              "value": {
+                "kind": "text",
+                "text": "submit-order"
+              }
+            },
+            {
+              "semanticKey": "message.channel",
+              "label": "Channel",
+              "value": {
+                "kind": "text",
+                "text": "sync"
+              }
+            },
+            {
+              "semanticKey": "message.endpoints",
+              "label": "Endpoints",
+              "value": {
+                "kind": "record",
+                "entries": [
+                  {
+                    "label": "Sources",
+                    "value": {
+                      "kind": "list",
+                      "items": [
+                        {
+                          "kind": "text",
+                          "text": "context:orders"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "label": "Targets",
+                    "value": {
+                      "kind": "list",
+                      "items": [
+                        {
+                          "kind": "text",
+                          "text": "aggregate:order"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "label": "Source contexts",
+                    "value": {
+                      "kind": "list",
+                      "items": [
+                        {
+                          "kind": "text",
+                          "text": "orders"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "label": "Target contexts",
+                    "value": {
+                      "kind": "list",
+                      "items": [
+                        {
+                          "kind": "text",
+                          "text": "orders"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "message.crosses_context_boundary",
+              "label": "Crosses context boundary",
+              "value": {
+                "kind": "text",
+                "text": "no"
+              }
+            },
+            {
+              "semanticKey": "message.step_links",
+              "label": "Scenario links",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "record",
+                    "entries": [
+                      {
+                        "label": "Direction",
+                        "value": {
+                          "kind": "text",
+                          "text": "outgoing"
+                        }
+                      },
+                      {
+                        "label": "Scenario",
+                        "value": {
+                          "kind": "text",
+                          "text": "order-settlement-flow"
+                        }
+                      },
+                      {
+                        "label": "Step",
+                        "value": {
+                          "kind": "text",
+                          "text": "capture-order"
+                        }
+                      },
+                      {
+                        "label": "Context",
+                        "value": {
+                          "kind": "text",
+                          "text": "orders"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "message.payload_fields",
+              "label": "Payload fields",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "field",
+                    "name": "order-id",
+                    "fieldType": "uuid",
+                    "required": true,
+                    "description": "Stable order identifier shared across the full settlement flow."
+                  },
+                  {
+                    "kind": "field",
+                    "name": "customer-id",
+                    "fieldType": "uuid",
+                    "required": true,
+                    "description": "Customer who submitted the order."
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "edges": [
+        {
+          "id": "message-flow:source:authorize-payment:context:payments",
+          "kind": "message-flow",
+          "source": "message-flow:context:payments",
+          "target": "message-flow:message:authorize-payment",
+          "label": "source",
+          "details": [
+            {
+              "semanticKey": "message.type",
+              "label": "Message",
+              "value": {
+                "kind": "text",
+                "text": "authorize-payment"
+              }
+            },
+            {
+              "semanticKey": "relation.from",
+              "label": "From",
+              "value": {
+                "kind": "text",
+                "text": "context:payments"
+              }
+            },
+            {
+              "semanticKey": "relation.to",
+              "label": "To",
+              "value": {
+                "kind": "text",
+                "text": "authorize-payment"
+              }
+            }
+          ]
+        },
+        {
+          "id": "message-flow:target:authorize-payment:aggregate:payment",
+          "kind": "message-flow",
+          "source": "message-flow:message:authorize-payment",
+          "target": "message-flow:aggregate:payment",
+          "label": "target",
+          "details": [
+            {
+              "semanticKey": "message.type",
+              "label": "Message",
+              "value": {
+                "kind": "text",
+                "text": "authorize-payment"
+              }
+            },
+            {
+              "semanticKey": "relation.from",
+              "label": "From",
+              "value": {
+                "kind": "text",
+                "text": "authorize-payment"
+              }
+            },
+            {
+              "semanticKey": "relation.to",
+              "label": "To",
+              "value": {
+                "kind": "text",
+                "text": "aggregate:payment"
+              }
+            }
+          ]
+        },
+        {
+          "id": "message-flow:step-outgoing:authorize-payment:order-settlement-flow:await-payment-authorization",
+          "kind": "message-flow",
+          "source": "message-flow:scenario:order-settlement-flow:step:await-payment-authorization",
+          "target": "message-flow:message:authorize-payment",
+          "label": "issues",
+          "details": [
+            {
+              "semanticKey": "scenario.id",
+              "label": "Scenario",
+              "value": {
+                "kind": "text",
+                "text": "order-settlement-flow"
+              }
+            },
+            {
+              "semanticKey": "step.id",
+              "label": "Step",
+              "value": {
+                "kind": "text",
+                "text": "await-payment-authorization"
+              }
+            },
+            {
+              "semanticKey": "message.type",
+              "label": "Message",
+              "value": {
+                "kind": "text",
+                "text": "authorize-payment"
+              }
+            }
+          ]
+        },
+        {
+          "id": "message-flow:source:fetch-ledger-status:context:orders",
+          "kind": "message-flow",
+          "source": "message-flow:context:orders",
+          "target": "message-flow:message:fetch-ledger-status",
+          "label": "source",
+          "details": [
+            {
+              "semanticKey": "message.type",
+              "label": "Message",
+              "value": {
+                "kind": "text",
+                "text": "fetch-ledger-status"
+              }
+            },
+            {
+              "semanticKey": "relation.from",
+              "label": "From",
+              "value": {
+                "kind": "text",
+                "text": "context:orders"
+              }
+            },
+            {
+              "semanticKey": "relation.to",
+              "label": "To",
+              "value": {
+                "kind": "text",
+                "text": "fetch-ledger-status"
+              }
+            }
+          ]
+        },
+        {
+          "id": "message-flow:target:fetch-ledger-status:system:ledger-gateway",
+          "kind": "message-flow",
+          "source": "message-flow:message:fetch-ledger-status",
+          "target": "message-flow:system:ledger-gateway",
+          "label": "target",
+          "details": [
+            {
+              "semanticKey": "message.type",
+              "label": "Message",
+              "value": {
+                "kind": "text",
+                "text": "fetch-ledger-status"
+              }
+            },
+            {
+              "semanticKey": "relation.from",
+              "label": "From",
+              "value": {
+                "kind": "text",
+                "text": "fetch-ledger-status"
+              }
+            },
+            {
+              "semanticKey": "relation.to",
+              "label": "To",
+              "value": {
+                "kind": "text",
+                "text": "system:ledger-gateway"
+              }
+            }
+          ]
+        },
+        {
+          "id": "message-flow:step-outgoing:fetch-ledger-status:order-settlement-flow:reconcile-order",
+          "kind": "message-flow",
+          "source": "message-flow:scenario:order-settlement-flow:step:reconcile-order",
+          "target": "message-flow:message:fetch-ledger-status",
+          "label": "asks",
+          "details": [
+            {
+              "semanticKey": "scenario.id",
+              "label": "Scenario",
+              "value": {
+                "kind": "text",
+                "text": "order-settlement-flow"
+              }
+            },
+            {
+              "semanticKey": "step.id",
+              "label": "Step",
+              "value": {
+                "kind": "text",
+                "text": "reconcile-order"
+              }
+            },
+            {
+              "semanticKey": "message.type",
+              "label": "Message",
+              "value": {
+                "kind": "text",
+                "text": "fetch-ledger-status"
+              }
+            }
+          ]
+        },
+        {
+          "id": "message-flow:source:ledger-status-fetched:system:ledger-gateway",
+          "kind": "message-flow",
+          "source": "message-flow:system:ledger-gateway",
+          "target": "message-flow:message:ledger-status-fetched",
+          "label": "source",
+          "details": [
+            {
+              "semanticKey": "message.type",
+              "label": "Message",
+              "value": {
+                "kind": "text",
+                "text": "ledger-status-fetched"
+              }
+            },
+            {
+              "semanticKey": "relation.from",
+              "label": "From",
+              "value": {
+                "kind": "text",
+                "text": "system:ledger-gateway"
+              }
+            },
+            {
+              "semanticKey": "relation.to",
+              "label": "To",
+              "value": {
+                "kind": "text",
+                "text": "ledger-status-fetched"
+              }
+            }
+          ]
+        },
+        {
+          "id": "message-flow:target:ledger-status-fetched:context:orders",
+          "kind": "message-flow",
+          "source": "message-flow:message:ledger-status-fetched",
+          "target": "message-flow:context:orders",
+          "label": "target",
+          "details": [
+            {
+              "semanticKey": "message.type",
+              "label": "Message",
+              "value": {
+                "kind": "text",
+                "text": "ledger-status-fetched"
+              }
+            },
+            {
+              "semanticKey": "relation.from",
+              "label": "From",
+              "value": {
+                "kind": "text",
+                "text": "ledger-status-fetched"
+              }
+            },
+            {
+              "semanticKey": "relation.to",
+              "label": "To",
+              "value": {
+                "kind": "text",
+                "text": "context:orders"
+              }
+            }
+          ]
+        },
+        {
+          "id": "message-flow:target:ledger-status-fetched:aggregate:order",
+          "kind": "message-flow",
+          "source": "message-flow:message:ledger-status-fetched",
+          "target": "message-flow:aggregate:order",
+          "label": "target",
+          "details": [
+            {
+              "semanticKey": "message.type",
+              "label": "Message",
+              "value": {
+                "kind": "text",
+                "text": "ledger-status-fetched"
+              }
+            },
+            {
+              "semanticKey": "relation.from",
+              "label": "From",
+              "value": {
+                "kind": "text",
+                "text": "ledger-status-fetched"
+              }
+            },
+            {
+              "semanticKey": "relation.to",
+              "label": "To",
+              "value": {
+                "kind": "text",
+                "text": "aggregate:order"
+              }
+            }
+          ]
+        },
+        {
+          "id": "message-flow:step-incoming:ledger-status-fetched:order-settlement-flow:order-confirmed",
+          "kind": "message-flow",
+          "source": "message-flow:message:ledger-status-fetched",
+          "target": "message-flow:scenario:order-settlement-flow:step:order-confirmed",
+          "label": "feeds",
+          "details": [
+            {
+              "semanticKey": "scenario.id",
+              "label": "Scenario",
+              "value": {
+                "kind": "text",
+                "text": "order-settlement-flow"
+              }
+            },
+            {
+              "semanticKey": "step.id",
+              "label": "Step",
+              "value": {
+                "kind": "text",
+                "text": "order-confirmed"
+              }
+            },
+            {
+              "semanticKey": "message.type",
+              "label": "Message",
+              "value": {
+                "kind": "text",
+                "text": "ledger-status-fetched"
+              }
+            }
+          ]
+        },
+        {
+          "id": "message-flow:source:order-submitted:aggregate:order",
+          "kind": "message-flow",
+          "source": "message-flow:aggregate:order",
+          "target": "message-flow:message:order-submitted",
+          "label": "source",
+          "details": [
+            {
+              "semanticKey": "message.type",
+              "label": "Message",
+              "value": {
+                "kind": "text",
+                "text": "order-submitted"
+              }
+            },
+            {
+              "semanticKey": "relation.from",
+              "label": "From",
+              "value": {
+                "kind": "text",
+                "text": "aggregate:order"
+              }
+            },
+            {
+              "semanticKey": "relation.to",
+              "label": "To",
+              "value": {
+                "kind": "text",
+                "text": "order-submitted"
+              }
+            }
+          ]
+        },
+        {
+          "id": "message-flow:target:order-submitted:context:payments",
+          "kind": "message-flow",
+          "source": "message-flow:message:order-submitted",
+          "target": "message-flow:context:payments",
+          "label": "target",
+          "details": [
+            {
+              "semanticKey": "message.type",
+              "label": "Message",
+              "value": {
+                "kind": "text",
+                "text": "order-submitted"
+              }
+            },
+            {
+              "semanticKey": "relation.from",
+              "label": "From",
+              "value": {
+                "kind": "text",
+                "text": "order-submitted"
+              }
+            },
+            {
+              "semanticKey": "relation.to",
+              "label": "To",
+              "value": {
+                "kind": "text",
+                "text": "context:payments"
+              }
+            }
+          ]
+        },
+        {
+          "id": "message-flow:step-incoming:order-submitted:order-settlement-flow:await-payment-authorization",
+          "kind": "message-flow",
+          "source": "message-flow:message:order-submitted",
+          "target": "message-flow:scenario:order-settlement-flow:step:await-payment-authorization",
+          "label": "feeds",
+          "details": [
+            {
+              "semanticKey": "scenario.id",
+              "label": "Scenario",
+              "value": {
+                "kind": "text",
+                "text": "order-settlement-flow"
+              }
+            },
+            {
+              "semanticKey": "step.id",
+              "label": "Step",
+              "value": {
+                "kind": "text",
+                "text": "await-payment-authorization"
+              }
+            },
+            {
+              "semanticKey": "message.type",
+              "label": "Message",
+              "value": {
+                "kind": "text",
+                "text": "order-submitted"
+              }
+            }
+          ]
+        },
+        {
+          "id": "message-flow:source:payment-authorized:aggregate:payment",
+          "kind": "message-flow",
+          "source": "message-flow:aggregate:payment",
+          "target": "message-flow:message:payment-authorized",
+          "label": "source",
+          "details": [
+            {
+              "semanticKey": "message.type",
+              "label": "Message",
+              "value": {
+                "kind": "text",
+                "text": "payment-authorized"
+              }
+            },
+            {
+              "semanticKey": "relation.from",
+              "label": "From",
+              "value": {
+                "kind": "text",
+                "text": "aggregate:payment"
+              }
+            },
+            {
+              "semanticKey": "relation.to",
+              "label": "To",
+              "value": {
+                "kind": "text",
+                "text": "payment-authorized"
+              }
+            }
+          ]
+        },
+        {
+          "id": "message-flow:target:payment-authorized:context:orders",
+          "kind": "message-flow",
+          "source": "message-flow:message:payment-authorized",
+          "target": "message-flow:context:orders",
+          "label": "target",
+          "details": [
+            {
+              "semanticKey": "message.type",
+              "label": "Message",
+              "value": {
+                "kind": "text",
+                "text": "payment-authorized"
+              }
+            },
+            {
+              "semanticKey": "relation.from",
+              "label": "From",
+              "value": {
+                "kind": "text",
+                "text": "payment-authorized"
+              }
+            },
+            {
+              "semanticKey": "relation.to",
+              "label": "To",
+              "value": {
+                "kind": "text",
+                "text": "context:orders"
+              }
+            }
+          ]
+        },
+        {
+          "id": "message-flow:step-incoming:payment-authorized:order-settlement-flow:reconcile-order",
+          "kind": "message-flow",
+          "source": "message-flow:message:payment-authorized",
+          "target": "message-flow:scenario:order-settlement-flow:step:reconcile-order",
+          "label": "feeds",
+          "details": [
+            {
+              "semanticKey": "scenario.id",
+              "label": "Scenario",
+              "value": {
+                "kind": "text",
+                "text": "order-settlement-flow"
+              }
+            },
+            {
+              "semanticKey": "step.id",
+              "label": "Step",
+              "value": {
+                "kind": "text",
+                "text": "reconcile-order"
+              }
+            },
+            {
+              "semanticKey": "message.type",
+              "label": "Message",
+              "value": {
+                "kind": "text",
+                "text": "payment-authorized"
+              }
+            }
+          ]
+        },
+        {
+          "id": "message-flow:source:submit-order:context:orders",
+          "kind": "message-flow",
+          "source": "message-flow:context:orders",
+          "target": "message-flow:message:submit-order",
+          "label": "source",
+          "details": [
+            {
+              "semanticKey": "message.type",
+              "label": "Message",
+              "value": {
+                "kind": "text",
+                "text": "submit-order"
+              }
+            },
+            {
+              "semanticKey": "relation.from",
+              "label": "From",
+              "value": {
+                "kind": "text",
+                "text": "context:orders"
+              }
+            },
+            {
+              "semanticKey": "relation.to",
+              "label": "To",
+              "value": {
+                "kind": "text",
+                "text": "submit-order"
+              }
+            }
+          ]
+        },
+        {
+          "id": "message-flow:target:submit-order:aggregate:order",
+          "kind": "message-flow",
+          "source": "message-flow:message:submit-order",
+          "target": "message-flow:aggregate:order",
+          "label": "target",
+          "details": [
+            {
+              "semanticKey": "message.type",
+              "label": "Message",
+              "value": {
+                "kind": "text",
+                "text": "submit-order"
+              }
+            },
+            {
+              "semanticKey": "relation.from",
+              "label": "From",
+              "value": {
+                "kind": "text",
+                "text": "submit-order"
+              }
+            },
+            {
+              "semanticKey": "relation.to",
+              "label": "To",
+              "value": {
+                "kind": "text",
+                "text": "aggregate:order"
+              }
+            }
+          ]
+        },
+        {
+          "id": "message-flow:step-outgoing:submit-order:order-settlement-flow:capture-order",
+          "kind": "message-flow",
+          "source": "message-flow:scenario:order-settlement-flow:step:capture-order",
+          "target": "message-flow:message:submit-order",
+          "label": "issues",
+          "details": [
+            {
+              "semanticKey": "scenario.id",
+              "label": "Scenario",
+              "value": {
+                "kind": "text",
+                "text": "order-settlement-flow"
+              }
+            },
+            {
+              "semanticKey": "step.id",
+              "label": "Step",
+              "value": {
+                "kind": "text",
+                "text": "capture-order"
+              }
+            },
+            {
+              "semanticKey": "message.type",
+              "label": "Message",
+              "value": {
+                "kind": "text",
+                "text": "submit-order"
+              }
+            }
+          ]
+        },
+        {
+          "id": "message-flow:sequence:order-settlement-flow:capture-order:await-payment-authorization",
+          "kind": "sequence",
+          "source": "message-flow:scenario:order-settlement-flow:step:capture-order",
+          "target": "message-flow:scenario:order-settlement-flow:step:await-payment-authorization",
+          "label": "order-submitted",
+          "details": [
+            {
+              "semanticKey": "scenario.id",
+              "label": "Scenario",
+              "value": {
+                "kind": "text",
+                "text": "order-settlement-flow"
+              }
+            },
+            {
+              "semanticKey": "relation.from",
+              "label": "From",
+              "value": {
+                "kind": "text",
+                "text": "capture-order"
+              }
+            },
+            {
+              "semanticKey": "relation.to",
+              "label": "To",
+              "value": {
+                "kind": "text",
+                "text": "await-payment-authorization"
+              }
+            }
+          ]
+        },
+        {
+          "id": "message-flow:sequence:order-settlement-flow:await-payment-authorization:reconcile-order",
+          "kind": "sequence",
+          "source": "message-flow:scenario:order-settlement-flow:step:await-payment-authorization",
+          "target": "message-flow:scenario:order-settlement-flow:step:reconcile-order",
+          "label": "payment-authorized",
+          "details": [
+            {
+              "semanticKey": "scenario.id",
+              "label": "Scenario",
+              "value": {
+                "kind": "text",
+                "text": "order-settlement-flow"
+              }
+            },
+            {
+              "semanticKey": "relation.from",
+              "label": "From",
+              "value": {
+                "kind": "text",
+                "text": "await-payment-authorization"
+              }
+            },
+            {
+              "semanticKey": "relation.to",
+              "label": "To",
+              "value": {
+                "kind": "text",
+                "text": "reconcile-order"
+              }
+            }
+          ]
+        },
+        {
+          "id": "message-flow:sequence:order-settlement-flow:reconcile-order:order-confirmed",
+          "kind": "sequence",
+          "source": "message-flow:scenario:order-settlement-flow:step:reconcile-order",
+          "target": "message-flow:scenario:order-settlement-flow:step:order-confirmed",
+          "label": "ledger-status-fetched",
+          "details": [
+            {
+              "semanticKey": "scenario.id",
+              "label": "Scenario",
+              "value": {
+                "kind": "text",
+                "text": "order-settlement-flow"
+              }
+            },
+            {
+              "semanticKey": "relation.from",
+              "label": "From",
+              "value": {
+                "kind": "text",
+                "text": "reconcile-order"
+              }
+            },
+            {
+              "semanticKey": "relation.to",
+              "label": "To",
+              "value": {
+                "kind": "text",
+                "text": "order-confirmed"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lifecycle",
+      "kind": "lifecycle",
+      "navigation": {
+        "tier": "primary",
+        "order": 40
+      },
+      "title": "Lifecycle",
+      "description": "Shows aggregate state transitions, the message that triggers each transition, and which follow-up messages each transition emits.",
+      "nodes": [
+        {
+          "id": "lifecycle:aggregate:order",
+          "kind": "aggregate",
+          "label": "Order",
+          "subtitle": "order | orders",
+          "summary": "initial: draft",
+          "width": 280,
+          "height": 184,
+          "headerHeight": 112,
+          "details": [
+            {
+              "semanticKey": "aggregate.id",
+              "label": "Aggregate",
+              "value": {
+                "kind": "text",
+                "text": "order"
+              }
+            },
+            {
+              "semanticKey": "aggregate.context",
+              "label": "Context",
+              "value": {
+                "kind": "text",
+                "text": "orders"
+              }
+            },
+            {
+              "semanticKey": "aggregate.initial_state",
+              "label": "Initial state",
+              "value": {
+                "kind": "text",
+                "text": "draft"
+              }
+            },
+            {
+              "semanticKey": "aggregate.lifecycle",
+              "label": "Lifecycle",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "draft"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "submitted"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "confirmed"
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "aggregate.accepted_messages",
+              "label": "Accepted messages",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "submit-order"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "ledger-status-fetched"
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "aggregate.emitted_messages",
+              "label": "Emitted messages",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "order-submitted"
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "aggregate.reachable_states",
+              "label": "Reachable states",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "draft"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "submitted"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "confirmed"
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "aggregate.unreachable_states",
+              "label": "Unreachable states",
+              "value": {
+                "kind": "text",
+                "text": "none"
+              }
+            }
+          ]
+        },
+        {
+          "id": "lifecycle:aggregate:order:state:draft",
+          "kind": "lifecycle-state",
+          "label": "draft",
+          "subtitle": "reachable",
+          "summary": "1 transition(s)",
+          "parentId": "lifecycle:aggregate:order",
+          "width": 180,
+          "height": 123,
+          "details": [
+            {
+              "semanticKey": "aggregate.id",
+              "label": "Aggregate",
+              "value": {
+                "kind": "text",
+                "text": "order"
+              }
+            },
+            {
+              "semanticKey": "aggregate.context",
+              "label": "Context",
+              "value": {
+                "kind": "text",
+                "text": "orders"
+              }
+            },
+            {
+              "semanticKey": "aggregate.state.id",
+              "label": "State",
+              "value": {
+                "kind": "text",
+                "text": "draft"
+              }
+            },
+            {
+              "semanticKey": "aggregate.state.reachable",
+              "label": "Reachable",
+              "value": {
+                "kind": "text",
+                "text": "yes"
+              }
+            },
+            {
+              "semanticKey": "aggregate.state.outgoing_messages",
+              "label": "Outgoing messages",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "order-submitted"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "lifecycle:aggregate:order:state:submitted",
+          "kind": "lifecycle-state",
+          "label": "submitted",
+          "subtitle": "reachable",
+          "summary": "1 transition(s)",
+          "parentId": "lifecycle:aggregate:order",
+          "width": 180,
+          "height": 123,
+          "details": [
+            {
+              "semanticKey": "aggregate.id",
+              "label": "Aggregate",
+              "value": {
+                "kind": "text",
+                "text": "order"
+              }
+            },
+            {
+              "semanticKey": "aggregate.context",
+              "label": "Context",
+              "value": {
+                "kind": "text",
+                "text": "orders"
+              }
+            },
+            {
+              "semanticKey": "aggregate.state.id",
+              "label": "State",
+              "value": {
+                "kind": "text",
+                "text": "submitted"
+              }
+            },
+            {
+              "semanticKey": "aggregate.state.reachable",
+              "label": "Reachable",
+              "value": {
+                "kind": "text",
+                "text": "yes"
+              }
+            },
+            {
+              "semanticKey": "aggregate.state.outgoing_messages",
+              "label": "Outgoing messages",
+              "value": {
+                "kind": "text",
+                "text": "none"
+              }
+            }
+          ]
+        },
+        {
+          "id": "lifecycle:aggregate:order:state:confirmed",
+          "kind": "lifecycle-state",
+          "label": "confirmed",
+          "subtitle": "reachable",
+          "summary": "terminal",
+          "parentId": "lifecycle:aggregate:order",
+          "width": 180,
+          "height": 123,
+          "details": [
+            {
+              "semanticKey": "aggregate.id",
+              "label": "Aggregate",
+              "value": {
+                "kind": "text",
+                "text": "order"
+              }
+            },
+            {
+              "semanticKey": "aggregate.context",
+              "label": "Context",
+              "value": {
+                "kind": "text",
+                "text": "orders"
+              }
+            },
+            {
+              "semanticKey": "aggregate.state.id",
+              "label": "State",
+              "value": {
+                "kind": "text",
+                "text": "confirmed"
+              }
+            },
+            {
+              "semanticKey": "aggregate.state.reachable",
+              "label": "Reachable",
+              "value": {
+                "kind": "text",
+                "text": "yes"
+              }
+            },
+            {
+              "semanticKey": "aggregate.state.outgoing_messages",
+              "label": "Outgoing messages",
+              "value": {
+                "kind": "text",
+                "text": "none"
+              }
+            }
+          ]
+        }
+      ],
+      "edges": [
+        {
+          "id": "lifecycle:transition:order:submit-order",
+          "kind": "state-transition",
+          "source": "lifecycle:aggregate:order:state:draft",
+          "target": "lifecycle:aggregate:order:state:submitted",
+          "label": "submit-order / order-submitted",
+          "details": [
+            {
+              "semanticKey": "aggregate.id",
+              "label": "Aggregate",
+              "value": {
+                "kind": "text",
+                "text": "order"
+              }
+            },
+            {
+              "semanticKey": "aggregate.context",
+              "label": "Context",
+              "value": {
+                "kind": "text",
+                "text": "orders"
+              }
+            },
+            {
+              "semanticKey": "relation.from",
+              "label": "From",
+              "value": {
+                "kind": "text",
+                "text": "draft"
+              }
+            },
+            {
+              "semanticKey": "relation.to",
+              "label": "To",
+              "value": {
+                "kind": "text",
+                "text": "submitted"
+              }
+            },
+            {
+              "semanticKey": "transition.trigger_message",
+              "label": "Trigger message",
+              "value": {
+                "kind": "text",
+                "text": "submit-order"
+              }
+            },
+            {
+              "semanticKey": "transition.emitted_messages",
+              "label": "Emitted messages",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "order-submitted"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "lifecycle:transition:order:confirm-order",
+          "kind": "state-transition",
+          "source": "lifecycle:aggregate:order:state:submitted",
+          "target": "lifecycle:aggregate:order:state:confirmed",
+          "label": "ledger-status-fetched",
+          "details": [
+            {
+              "semanticKey": "aggregate.id",
+              "label": "Aggregate",
+              "value": {
+                "kind": "text",
+                "text": "order"
+              }
+            },
+            {
+              "semanticKey": "aggregate.context",
+              "label": "Context",
+              "value": {
+                "kind": "text",
+                "text": "orders"
+              }
+            },
+            {
+              "semanticKey": "relation.from",
+              "label": "From",
+              "value": {
+                "kind": "text",
+                "text": "submitted"
+              }
+            },
+            {
+              "semanticKey": "relation.to",
+              "label": "To",
+              "value": {
+                "kind": "text",
+                "text": "confirmed"
+              }
+            },
+            {
+              "semanticKey": "transition.trigger_message",
+              "label": "Trigger message",
+              "value": {
+                "kind": "text",
+                "text": "ledger-status-fetched"
+              }
+            },
+            {
+              "semanticKey": "transition.emitted_messages",
+              "label": "Emitted messages",
+              "value": {
+                "kind": "text",
+                "text": "none"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

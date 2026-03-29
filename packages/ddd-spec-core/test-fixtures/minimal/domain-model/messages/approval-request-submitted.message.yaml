@@ -1,0 +1,16 @@
+kind: message
+id: approval-request-submitted
+title: Approval Request Submitted
+summary: Event recording that the request left draft and is now awaiting review.
+messageKind: event
+channel: async
+producers:
+  - kind: aggregate
+    id: approval-request
+consumers:
+  - kind: scenario
+    id: approval-request-flow
+payload:
+  - id: request-id
+    type: uuid
+    required: true

@@ -1,0 +1,23 @@
+kind: message
+id: ledger-status-fetched
+title: Ledger Status Fetched
+summary: Event from the ledger gateway confirming that the order can move into its final confirmed state.
+messageKind: event
+channel: async
+producers:
+  - kind: system
+    id: ledger-gateway
+consumers:
+  - kind: context
+    id: orders
+  - kind: aggregate
+    id: order
+payload:
+  - id: order-id
+    type: uuid
+    required: true
+    description: Stable order identifier used to finish reconciliation and confirmation.
+  - id: ledger-status
+    type: text
+    required: true
+    description: Final reconciliation result returned by the ledger gateway.

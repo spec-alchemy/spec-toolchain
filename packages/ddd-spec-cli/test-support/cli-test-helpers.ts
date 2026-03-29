@@ -22,16 +22,17 @@ import {
   REPO_ROOT_NODE_MODULES_PATH,
   REPO_ROOT_PATH,
   SCHEMA_FILE_NAMES,
+  TEST_FIXTURES_ROOT_PATH,
   WORKSPACE_SCHEMA_FILE_NAMES,
   WORKSPACE_SCHEMA_DIR_RELATIVE_PATH
 } from "./cli-test-fixtures.js";
 
 export async function copyDomainModelToZeroConfigRoot(
   targetRootPath: string,
-  exampleId: "minimal" | "cross-context" = "minimal"
+  fixtureId: "minimal" | "cross-context" = "minimal"
 ): Promise<void> {
   await cp(
-    resolve(REPO_ROOT_PATH, "examples", exampleId, "domain-model"),
+    resolve(TEST_FIXTURES_ROOT_PATH, fixtureId, "domain-model"),
     join(targetRootPath, "domain-model"),
     { recursive: true }
   );

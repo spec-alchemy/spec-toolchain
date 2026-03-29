@@ -1,0 +1,16 @@
+kind: policy
+id: notify-requester-after-approval
+title: Notify Requester After Approval
+summary: Sends a requester-facing notification after the approval outcome is finalized.
+context: approvals
+triggerMessages:
+  - approval-request-approved
+emittedMessages:
+  - send-approval-notification
+targetSystems:
+  - notification-hub
+coordinates:
+  - kind: aggregate
+    id: approval-request
+  - kind: system
+    id: notification-hub

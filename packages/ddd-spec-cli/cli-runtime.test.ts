@@ -3,21 +3,17 @@ import { access, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import test from "node:test";
-import { fileURLToPath } from "node:url";
 import type { BusinessSpecAnalysis } from "../ddd-spec-core/index.js";
 import type { BusinessViewerSpec } from "../ddd-spec-viewer-contract/index.js";
 import { runCliCommand } from "./commands.js";
 import {
   CLI_DIST_VIEWER_DIR_PATH,
-  REPO_VIEWER_ENTRY_PATH
+  REPO_VIEWER_ENTRY_PATH,
+  TEST_CROSS_CONTEXT_ENTRY_PATH
 } from "./test-support/cli-test-fixtures.js";
 import { copyDomainModelToZeroConfigRoot } from "./test-support/cli-test-helpers.js";
 import type { LaunchViewerOptions } from "./viewer.js";
 import YAML from "yaml";
-
-const CROSS_CONTEXT_ENTRY_PATH = fileURLToPath(
-  new URL("../../examples/cross-context/domain-model/index.yaml", import.meta.url)
-);
 
 function assertPrimaryViewOrder(
   viewer: Pick<BusinessViewerSpec, "views">,
@@ -38,7 +34,7 @@ function buildConfigSource(options: {
   return YAML.stringify({
     version: 1,
     spec: {
-      entry: options.entryPath ?? CROSS_CONTEXT_ENTRY_PATH
+      entry: options.entryPath ?? TEST_CROSS_CONTEXT_ENTRY_PATH
     },
     outputs: {
       rootDir: options.rootDir ?? "./artifacts"
@@ -334,7 +330,7 @@ test("CLI build supports version 1 domain models when viewer projection is enabl
     await writeFile(
       configPath,
       buildConfigSource({
-        entryPath: CROSS_CONTEXT_ENTRY_PATH
+        entryPath: TEST_CROSS_CONTEXT_ENTRY_PATH
       }),
       "utf8"
     );

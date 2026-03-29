@@ -1,0 +1,21 @@
+kind: message
+id: submit-order
+title: Submit Order
+summary: Command asking the orders aggregate to persist a new order and publish the submission event.
+messageKind: command
+channel: sync
+producers:
+  - kind: context
+    id: orders
+consumers:
+  - kind: aggregate
+    id: order
+payload:
+  - id: order-id
+    type: uuid
+    required: true
+    description: Stable order identifier shared across the full settlement flow.
+  - id: customer-id
+    type: uuid
+    required: true
+    description: Customer who submitted the order.

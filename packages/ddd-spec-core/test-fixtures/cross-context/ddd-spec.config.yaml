@@ -1,0 +1,8 @@
+version: 1
+spec:
+  entry: ./domain-model/index.yaml
+outputs:
+  rootDir: ./artifacts
+projections:
+  viewer: true
+  typescript: false

@@ -1,0 +1,17 @@
+kind: message
+id: fetch-ledger-status
+title: Fetch Ledger Status
+summary: Query asking the external ledger gateway to confirm the final reconciliation state for the order.
+messageKind: query
+channel: sync
+producers:
+  - kind: context
+    id: orders
+consumers:
+  - kind: system
+    id: ledger-gateway
+payload:
+  - id: order-id
+    type: uuid
+    required: true
+    description: Identifies which order should be reconciled in the ledger.
