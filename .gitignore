@@ -43,13 +43,11 @@ tasks/
 
 # DDD spec generated outputs
 .ddd-spec/
-design-spec/artifacts/
-design-spec/generated/
 examples/*/artifacts/
 examples/*/generated/
 
 # Viewer app generated data
-apps/design-spec-viewer/public/generated/viewer-spec.json
+apps/ddd-spec-viewer/public/generated/
 
 # Beads / Dolt files (legacy local tooling)
 .dolt/
