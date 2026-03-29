@@ -37,6 +37,7 @@ await rm(distDirPath, { recursive: true, force: true });
 await runTypescriptBuild();
 await buildViewerStaticAssets();
 await mkdir(join(distDirPath, "ddd-spec-core"), { recursive: true });
+await rm(schemaOutputDirPath, { recursive: true, force: true });
 await cp(schemaSourceDirPath, schemaOutputDirPath, { recursive: true });
 await chmod(cliEntryPath, 0o755);
 

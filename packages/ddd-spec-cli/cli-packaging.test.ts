@@ -96,6 +96,7 @@ test("npm pack tarball keeps the published CLI package on runtime files only", a
   try {
     const packedPaths = packedCliTarball.packedPaths;
 
+    assert.ok(packedPaths.includes("LICENSE"));
     assert.ok(packedPaths.includes("dist/ddd-spec-cli/cli.js"));
     assert.ok(packedPaths.includes("dist/ddd-spec-cli/index.js"));
     for (const schemaFileName of SCHEMA_FILE_NAMES) {

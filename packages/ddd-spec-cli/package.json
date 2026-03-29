@@ -1,10 +1,9 @@
 {
   "name": "@knowledge-alchemy/ddd-spec",
-  "version": "0.1.0",
+  "version": "0.1.3",
+  "license": "Apache-2.0",
   "type": "module",
-  "bin": {
-    "ddd-spec": "./dist/ddd-spec-cli/cli.js"
-  },
+  "bin": "./dist/ddd-spec-cli/cli.js",
   "exports": {
     ".": {
       "types": "./dist/ddd-spec-cli/index.d.ts",
