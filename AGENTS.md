@@ -38,6 +38,13 @@
 - Do not create design-history, roadmap, browser-proof, or status-summary Markdown by default.
 - Keep any surviving Markdown short and limited to durable interfaces, execution constraints, or architecture boundaries that materially affect implementation.
 
+## Strategy Guardrails
+- [`docs/strategy/`](./docs/strategy/) is the canonical strategy source for brand positioning, `spec family` expansion rules, and terminology; do not duplicate the full strategy elsewhere.
+- Treat `Spec Toolchain` as `AI-native spec tooling`; treat `ddd-spec` as the first `spec family` and current `wedge product`, not as the brand itself.
+- Put family-specific maturity, compatibility, and consumer-facing `contract` statements at the corresponding public package boundary; for `ddd-spec`, prefer [`packages/ddd-spec-cli/`](./packages/ddd-spec-cli/).
+- Before adding or expanding any `xxx-spec`, check [`docs/strategy/family-admission-criteria.md`](./docs/strategy/family-admission-criteria.md) and [`docs/strategy/new-family-review-template.md`](./docs/strategy/new-family-review-template.md).
+- Follow [`docs/strategy/terminology.md`](./docs/strategy/terminology.md) for brand, product-line, and proposal wording; do not freely rename terms such as `spec family`, `shared kernel`, or `wedge product`.
+
 ## Key Conventions
 - This repo is `spec-toolchain`, the `spec-alchemy` maintainer workspace
 - Root package is a private maintainer workspace
