@@ -3,7 +3,7 @@ import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import test from "node:test";
-import { buildUsageText, formatCliFailureOutput } from "./console.js";
+import { formatCliFailureOutput } from "./console.js";
 import { loadDddSpecConfig } from "./config.js";
 import { runCliCommand } from "./commands.js";
 import { startDddSpecDevSession, startDddSpecWatchSession } from "./dev.js";
@@ -231,49 +231,28 @@ test("CLI validate rejects legacy version 3 workspaces after the schema reset", 
   }
 });
 
-test("CLI help lists the primary commands and entry points", () => {
-  const usageText = buildUsageText();
-
-  assert.match(usageText, /\n  ddd-spec init\n/);
-  assert.match(usageText, /\n  ddd-spec editor setup\n/);
-  assert.match(usageText, /\n  ddd-spec dev\n/);
-  assert.match(usageText, /\n  init\n/);
-  assert.match(usageText, /\n  build \[--config <path>\]\n/);
-  assert.match(usageText, /\n  serve \[--config <path>\] \[-- <viewer-args\.\.\.>\]\n/);
-  assert.match(usageText, /\n  watch \[--config <path>\]\n/);
-  assert.match(usageText, /\n  dev \[--config <path>\] \[-- <viewer-args\.\.\.>\]\n/);
-  assert.match(usageText, /\n  generate viewer \[--config <path>\]\n/);
-  assert.match(usageText, /\n  generate typescript \[--config <path>\]\n/);
-  assert.match(usageText, /config print \[--config <path>\]$/);
-  assert.match(usageText, /domain-model/);
-  assert.doesNotMatch(usageText, /canonical/i);
-  assert.doesNotMatch(usageText, /vnext/i);
-  assert.doesNotMatch(usageText, /canonical-vnext/);
-  assert.doesNotMatch(usageText, /template/);
-  assert.doesNotMatch(usageText, /\n  viewer \[--config <path>\]/);
-  assert.doesNotMatch(usageText, /\n  bundle \[--config <path>\]/);
-  assert.doesNotMatch(usageText, /\n  analyze \[--config <path>\]/);
-});
-
 test("CLI root help prints the curated onboarding usage text", async () => {
-  const originalLog = console.log;
-  const logMessages: string[] = [];
+  const originalWrite = process.stdout.write.bind(process.stdout);
+  let output = "";
 
   try {
-    console.log = ((...args: unknown[]) => {
-      logMessages.push(args.map(String).join(" "));
-    }) as typeof console.log;
+    process.stdout.write = ((chunk: string | Uint8Array) => {
+      output += chunk.toString();
+      return true;
+    }) as typeof process.stdout.write;
 
     await runCliCommand(["--help"]);
   } finally {
-    console.log = originalLog;
+    process.stdout.write = originalWrite;
   }
-
-  const output = logMessages.join("\n");
 
   assert.match(output, /After install, start here:/);
   assert.match(output, /ddd-spec editor setup/);
-  assert.doesNotMatch(output, /\$ ddd-spec <command> \[options\]/);
+  assert.match(output, /\$ ddd-spec <command> \[options\]/);
+  assert.match(output, /generate <target>/);
+  assert.match(output, /config \[target\]/);
+  assert.doesNotMatch(output, /canonical-vnext/);
+  assert.doesNotMatch(output, /template/);
 });
 
 test("CLI failure output keeps command-specific recovery hints", () => {
@@ -334,27 +313,47 @@ test("CLI rejects removed legacy command names with migration hints", async () =
 
 test("CLI rejects unknown commands instead of succeeding silently", async () => {
   await assert.rejects(runCliCommand(["nope"]), /Unknown command: nope/);
+  await assert.rejects(runCliCommand(["nope", "--help"]), /Unknown command: nope --help/);
+
+  const originalWrite = process.stdout.write.bind(process.stdout);
+  let output = "";
+
+  try {
+    process.stdout.write = ((chunk: string | Uint8Array) => {
+      output += chunk.toString();
+      return true;
+    }) as typeof process.stdout.write;
+
+    await assert.rejects(runCliCommand(["nope", "--help"]), /Unknown command: nope --help/);
+  } finally {
+    process.stdout.write = originalWrite;
+  }
+
+  assert.equal(output, "");
 });
 
 test("CLI grouped command help remains discoverable", async () => {
-  const originalLog = console.log;
-  const logMessages: string[] = [];
+  const originalWrite = process.stdout.write.bind(process.stdout);
+  let output = "";
 
   try {
-    console.log = ((...args: unknown[]) => {
-      logMessages.push(args.map(String).join(" "));
-    }) as typeof console.log;
+    process.stdout.write = ((chunk: string | Uint8Array) => {
+      output += chunk.toString();
+      return true;
+    }) as typeof process.stdout.write;
 
     await runCliCommand(["editor", "--help"]);
     await runCliCommand(["config", "--help"]);
   } finally {
-    console.log = originalLog;
+    process.stdout.write = originalWrite;
   }
 
-  const output = logMessages.join("\n");
-
-  assert.match(output, /\$ ddd-spec editor <target>/);
-  assert.match(output, /\$ ddd-spec config <target>/);
+  assert.match(output, /\$ ddd-spec editor \[target\]/);
+  assert.match(output, /\$ ddd-spec config \[target\] \[options\]/);
+  assert.match(output, /ddd-spec editor setup/);
+  assert.match(output, /ddd-spec config print/);
+  assert.doesNotMatch(output, /--config <path>  Load an explicit ddd-spec config file[\s\S]*ddd-spec editor setup/);
+  assert.match(output, /\$ ddd-spec config \[target\] \[options\][\s\S]*--config <path>/);
 });
 
 test("CLI dev loop logs domain model watch guidance without legacy terminology", async () => {

@@ -15,7 +15,7 @@ import {
 import { buildViewerSpec } from "../ddd-spec-projection-viewer/index.js";
 import { cac } from "cac";
 import { removeOutputPath, writeJsonArtifact } from "./artifact-io.js";
-import { buildUsageText, formatDiagnostic, logArtifact, logInfo } from "./console.js";
+import { formatDiagnostic, logArtifact, logInfo } from "./console.js";
 import { loadDddSpecConfig } from "./config.js";
 import { startDddSpecDevSession, startDddSpecWatchSession } from "./dev.js";
 import { ensureVsCodeWorkspaceConfig } from "./editor-config.js";
@@ -57,31 +57,31 @@ export async function runCliCommand(
   options: RunCliCommandOptions = {}
 ): Promise<void> {
   const { commandArgv, passthroughArgs } = splitPassthroughArgs(argv);
-
-  assertSupportedCommandSurface(commandArgv);
-
-  if (commandArgv.length === 0 || isRootHelpRequest(commandArgv)) {
-    console.log(buildUsageText());
-    return;
-  }
-
-  const groupedCommandHelpText = getGroupedCommandHelpText(commandArgv);
-
-  if (groupedCommandHelpText) {
-    console.log(groupedCommandHelpText);
-    return;
-  }
-
   const cli = createCli({
     options,
     passthroughArgs
   });
+
+  assertSupportedCommandSurface(commandArgv);
+
+  if (commandArgv.length === 0) {
+    cli.outputHelp();
+    return;
+  }
+
+  if (isUnknownTopLevelCommand(commandArgv)) {
+    throw new Error(`Unknown command: ${commandArgv.join(" ")}`);
+  }
 
   cli.parse(["node", "ddd-spec", ...commandArgv], {
     run: false
   });
 
   if (!cli.matchedCommand) {
+    if (isRootHelpRequest(commandArgv) || isGroupedHelpRequest(commandArgv)) {
+      return;
+    }
+
     throw new Error(`Unknown command: ${commandArgv.join(" ")}`);
   }
 
@@ -91,10 +91,42 @@ export async function runCliCommand(
 function createCli(context: CliRunContext) {
   const cli = cac("ddd-spec");
 
-  cli.option("--config <path>", "Load an explicit ddd-spec config file");
+  cli.usage(
+    [
+      "<command> [options]",
+      "",
+      "After install, start here:",
+      "  ddd-spec init",
+      "  ddd-spec editor setup",
+      "  edit domain-model/",
+      "  ddd-spec dev",
+      "",
+      "Why this path:",
+      "  init scaffolds a domain model starter with context, scenario, message, and lifecycle seams",
+      "  editor setup configures VS Code YAML schema mappings for the workspace",
+      "  dev validates, builds, opens the packaged viewer, and rebuilds on save",
+      "",
+      "Alternative step-by-step flow:",
+      "  ddd-spec validate",
+      "  ddd-spec build",
+      "  ddd-spec serve -- --port 4173",
+      "",
+      "Zero-config defaults:",
+      "  Reads domain-model/index.yaml from the current workspace",
+      "  Writes bundle, analysis, and viewer outputs into .ddd-spec/",
+      "  Keeps TypeScript generation out of the default path",
+      "",
+      "Advanced config:",
+      "  Use --config <path> to load a version: 1 DDD spec config file",
+      "  init scaffolds domain-model/ in the current workspace"
+    ].join("\n")
+  );
+  cli.help();
 
   cli
     .command("init", "Scaffold the default domain-model workspace")
+    .usage("init [options]")
+    .example("ddd-spec init")
     .action(async (commandOptions: CliCommandOptions) => {
       if (commandOptions.config) {
         throw new Error("The init command does not accept --config");
@@ -107,6 +139,11 @@ function createCli(context: CliRunContext) {
 
   cli
     .command("validate [target]", "Validate schema, semantics, and analysis")
+    .usage("validate [target] [options]")
+    .option("--config <path>", "Load an explicit ddd-spec config file")
+    .example("ddd-spec validate")
+    .example("ddd-spec validate schema")
+    .example("ddd-spec validate semantics --config ./ddd-spec.config.yaml")
     .action(async (target: string | undefined, commandOptions: CliCommandOptions) => {
       const config = await loadResolvedConfig(commandOptions, context.options);
 
@@ -130,6 +167,11 @@ function createCli(context: CliRunContext) {
 
   cli
     .command("generate <target>", "Write a generated artifact")
+    .usage("generate <target> [options]")
+    .option("--config <path>", "Load an explicit ddd-spec config file")
+    .example("ddd-spec generate bundle")
+    .example("ddd-spec generate analysis")
+    .example("ddd-spec generate viewer --config ./ddd-spec.config.yaml")
     .action(async (target: string, commandOptions: CliCommandOptions) => {
       const config = await loadResolvedConfig(commandOptions, context.options);
 
@@ -153,6 +195,9 @@ function createCli(context: CliRunContext) {
 
   cli
     .command("build", "Validate and generate all configured outputs")
+    .usage("build [options]")
+    .option("--config <path>", "Load an explicit ddd-spec config file")
+    .example("ddd-spec build")
     .action(async (commandOptions: CliCommandOptions) => {
       const config = await loadResolvedConfig(commandOptions, context.options);
       await runBuildCommand(config);
@@ -160,6 +205,9 @@ function createCli(context: CliRunContext) {
 
   cli
     .command("serve", "Serve the packaged viewer for an existing viewer artifact")
+    .usage("serve [options] [-- <viewer-args...>]")
+    .option("--config <path>", "Load an explicit ddd-spec config file")
+    .example("ddd-spec serve -- --port 4173")
     .action(async (commandOptions: CliCommandOptions) => {
       const config = await loadResolvedConfig(commandOptions, context.options);
       await runServeCommand(config, context.passthroughArgs, context.options);
@@ -167,6 +215,9 @@ function createCli(context: CliRunContext) {
 
   cli
     .command("watch", "Watch domain-model inputs and rebuild on change")
+    .usage("watch [options]")
+    .option("--config <path>", "Load an explicit ddd-spec config file")
+    .example("ddd-spec watch")
     .action(async (commandOptions: CliCommandOptions) => {
       const config = await loadResolvedConfig(commandOptions, context.options);
       await runWatchCommand(config);
@@ -174,6 +225,10 @@ function createCli(context: CliRunContext) {
 
   cli
     .command("dev", "Build once, watch for changes, and serve the viewer")
+    .usage("dev [options] [-- <viewer-args...>]")
+    .option("--config <path>", "Load an explicit ddd-spec config file")
+    .example("ddd-spec dev")
+    .example("ddd-spec dev -- --no-open")
     .action(async (commandOptions: CliCommandOptions) => {
       const config = await loadResolvedConfig(commandOptions, context.options);
       await runDevCommand(config, context.passthroughArgs, context.options);
@@ -181,6 +236,9 @@ function createCli(context: CliRunContext) {
 
   cli
     .command("clean", "Remove generated output artifacts")
+    .usage("clean [options]")
+    .option("--config <path>", "Load an explicit ddd-spec config file")
+    .example("ddd-spec clean")
     .action(async (commandOptions: CliCommandOptions) => {
       const config = await loadResolvedConfig(commandOptions, context.options);
       await runCleanCommand(config);
@@ -188,16 +246,25 @@ function createCli(context: CliRunContext) {
 
   cli
     .command("doctor", "Diagnose config, inputs, and packaged viewer readiness")
+    .usage("doctor [options]")
+    .option("--config <path>", "Load an explicit ddd-spec config file")
+    .example("ddd-spec doctor")
     .action(async (commandOptions: CliCommandOptions) => {
       const config = await loadResolvedConfig(commandOptions, context.options);
       await runDoctorCommand(config);
     });
 
   cli
-    .command("editor <target>", "Editor integration commands")
-    .action(async (target: string, commandOptions: CliCommandOptions) => {
+    .command("editor [target]", "Editor integration commands")
+    .usage("editor [target]")
+    .example("ddd-spec editor setup")
+    .action(async (target: string | undefined, commandOptions: CliCommandOptions) => {
       if (commandOptions.config) {
         throw new Error("The editor setup command does not accept --config");
+      }
+
+      if (!target) {
+        throw new Error("Missing editor target. Run `ddd-spec editor --help` to see the supported commands.");
       }
 
       if (target !== "setup") {
@@ -208,8 +275,15 @@ function createCli(context: CliRunContext) {
     });
 
   cli
-    .command("config <target>", "Config inspection commands")
-    .action(async (target: string, commandOptions: CliCommandOptions) => {
+    .command("config [target]", "Config inspection commands")
+    .usage("config [target] [options]")
+    .option("--config <path>", "Load an explicit ddd-spec config file")
+    .example("ddd-spec config print")
+    .action(async (target: string | undefined, commandOptions: CliCommandOptions) => {
+      if (!target) {
+        throw new Error("Missing config target. Run `ddd-spec config --help` to see the supported commands.");
+      }
+
       if (target !== "print") {
         throw new Error(`Unknown config command: config ${target}`);
       }
@@ -217,8 +291,6 @@ function createCli(context: CliRunContext) {
       const config = await loadResolvedConfig(commandOptions, context.options);
       await runConfigPrintCommand(config);
     });
-
-  cli.help();
 
   return cli;
 }
@@ -629,59 +701,51 @@ function assertSupportedCommandSurface(argv: readonly string[]): void {
     );
   }
 
-  if (first === "editor" && second && !isHelpFlag(second) && second !== "setup") {
+  if (first === "editor" && second !== undefined && !isHelpFlag(second) && second !== "setup") {
     throw new Error(`Unknown editor command: editor ${second}`);
   }
 
-  if (first === "config" && second && !isHelpFlag(second) && second !== "print") {
+  if (first === "config" && second !== undefined && !isHelpFlag(second) && second !== "print") {
     throw new Error(`Unknown config command: config ${second}`);
   }
-}
-
-function isRootHelpRequest(argv: readonly string[]): boolean {
-  return argv.length > 0 && argv.every((arg) => isHelpFlag(arg));
 }
 
 function isHelpFlag(value: string): boolean {
   return value === "--help" || value === "-h";
 }
 
-function getGroupedCommandHelpText(argv: readonly string[]): string | undefined {
-  if (argv.length !== 2 || !isHelpFlag(argv[1])) {
-    return undefined;
+function isUnknownTopLevelCommand(argv: readonly string[]): boolean {
+  const first = argv[0];
+
+  if (!first || isHelpFlag(first) || first.startsWith("-")) {
+    return false;
   }
 
-  switch (argv[0]) {
-    case "editor":
-      return [
-        "ddd-spec",
-        "",
-        "Usage:",
-        "  $ ddd-spec editor <target>",
-        "",
-        "Targets:",
-        "  setup  Configure VS Code YAML schema mappings for the workspace",
-        "",
-        "Options:",
-        "  -h, --help  Display this message"
-      ].join("\n");
-    case "config":
-      return [
-        "ddd-spec",
-        "",
-        "Usage:",
-        "  $ ddd-spec config <target>",
-        "",
-        "Targets:",
-        "  print  Print the resolved ddd-spec config JSON",
-        "",
-        "Options:",
-        "  --config <path>  Load an explicit ddd-spec config file",
-        "  -h, --help       Display this message"
-      ].join("\n");
-    default:
-      return undefined;
-  }
+  return !new Set([
+    "init",
+    "validate",
+    "generate",
+    "build",
+    "serve",
+    "watch",
+    "dev",
+    "clean",
+    "doctor",
+    "editor",
+    "config"
+  ]).has(first);
+}
+
+function isRootHelpRequest(argv: readonly string[]): boolean {
+  return argv.length > 0 && argv.every((arg) => isHelpFlag(arg));
+}
+
+function isGroupedHelpRequest(argv: readonly string[]): boolean {
+  return (
+    argv.length === 2 &&
+    isHelpFlag(argv[1]) &&
+    (argv[0] === "editor" || argv[0] === "config")
+  );
 }
 
 async function generateTypescriptSpec(

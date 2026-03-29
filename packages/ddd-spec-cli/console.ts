@@ -27,57 +27,6 @@ export function formatDiagnostic(diagnostic: CliDiagnostic): string {
   return `${PREFIX} [${diagnostic.severity}] ${diagnostic.code} ${diagnostic.path}: ${diagnostic.message}`;
 }
 
-export function buildUsageText(): string {
-  return [
-    "Usage:",
-    "  ddd-spec <command> [--config <path>]",
-    "",
-    "After install, start here:",
-    "  ddd-spec init",
-    "  ddd-spec editor setup",
-    "  edit domain-model/",
-    "  ddd-spec dev",
-    "",
-    "Why this path:",
-    "  init scaffolds a domain model starter with context, scenario, message, and lifecycle seams",
-    "  editor setup configures VS Code YAML schema mappings for the workspace",
-    "  dev validates, builds, opens the packaged viewer, and rebuilds on save",
-    "",
-    "Alternative step-by-step flow:",
-    "  ddd-spec validate",
-    "  ddd-spec build",
-    "  ddd-spec serve -- --port 4173",
-    "",
-    "Zero-config defaults:",
-    "  Reads domain-model/index.yaml from the current workspace",
-    "  Writes bundle, analysis, and viewer outputs into .ddd-spec/",
-    "  Keeps TypeScript generation out of the default path",
-    "",
-    "Advanced config:",
-    "  Use --config <path> to load a version: 1 DDD spec config file",
-    "  init scaffolds domain-model/ in the current workspace",
-    "",
-    "Commands:",
-    "  init",
-    "  validate [--config <path>]",
-    "  validate schema [--config <path>]",
-    "  validate semantics [--config <path>]",
-    "  validate analysis [--config <path>]",
-    "  generate bundle [--config <path>]",
-    "  generate analysis [--config <path>]",
-    "  generate viewer [--config <path>]",
-    "  generate typescript [--config <path>]",
-    "  build [--config <path>]",
-    "  serve [--config <path>] [-- <viewer-args...>]",
-    "  watch [--config <path>]",
-    "  dev [--config <path>] [-- <viewer-args...>]",
-    "  clean [--config <path>]",
-    "  doctor [--config <path>]",
-    "  editor setup",
-    "  config print [--config <path>]"
-  ].join("\n");
-}
-
 export function formatCliFailureOutput(
   argv: readonly string[],
   error: unknown
