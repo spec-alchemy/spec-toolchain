@@ -24,7 +24,9 @@
    当需要判断当前 `ddd-spec` 是否已经足够成为后续 family 的 shared-kernel 样板时，先看这份 checklist。
 10. [ui-spec shared kernel preflight](./ui-spec-shared-kernel-preflight.md)
    当需要评审 `ui-spec` 对 `validation`、`analysis`、`generation`、`viewer` 四个 runtime surfaces 的 shared needs 时，先看这份预演结果。
-11. [qa-spec shared kernel preflight](./qa-spec-shared-kernel-preflight.md)
+11. [frontend-spec shared kernel preflight](./frontend-spec-shared-kernel-preflight.md)
+   当需要评审 `frontend-spec` 对 dependency rules、contract consistency 与 impact analysis 的 shared needs 时，先看这份预演结果。
+12. [qa-spec shared kernel preflight](./qa-spec-shared-kernel-preflight.md)
    当需要评审 `qa-spec` 对 `traceability`、`evidence chain` 与 gate seam 的 shared needs 时，先看这份预演结果。
 
 目录原则：
