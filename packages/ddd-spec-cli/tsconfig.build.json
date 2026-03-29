@@ -15,6 +15,7 @@
   ],
   "exclude": [
     "./**/*.test.ts",
+    "./test-support/**/*",
     "./dist/**/*",
     "../**/*.test.ts",
     "../**/goldens/**/*",

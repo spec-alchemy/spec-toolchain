@@ -16,7 +16,7 @@
     "repo:viewer": "npm run build --workspace=packages/ddd-spec-cli && npm run repo:cli --workspace=packages/ddd-spec-cli -- serve --config apps/ddd-spec-viewer/ddd-spec.config.yaml --",
     "pkg:test": "npm run test --workspace=packages/ddd-spec-cli",
     "verify": "npm run repo:build && npm run pkg:test && npm run build --workspace=apps/ddd-spec-viewer",
-    "release:dry-run": "npm run verify && npm run changeset:status && npm run changeset:version && npm publish --dry-run --workspace=packages/ddd-spec-cli"
+    "release:dry-run": "node ./scripts/release-dry-run.mjs"
   },
   "devDependencies": {
     "@changesets/cli": "^2.30.0",

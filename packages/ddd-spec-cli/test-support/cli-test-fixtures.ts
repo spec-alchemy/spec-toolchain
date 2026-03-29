@@ -43,6 +43,7 @@ export const CLI_DIST_VIEWER_GENERATED_ZH_CN_SPEC_PATH = toAbsolutePath(
   "../dist/ddd-spec-cli/static/viewer/generated/viewer-spec.zh-CN.json"
 );
 export const REPO_ROOT_PATH = toAbsolutePath("../../../");
+export const CLI_PACKAGE_ROOT_PATH = toAbsolutePath("../");
 export const REPO_ROOT_NODE_MODULES_PATH = toAbsolutePath("../../../node_modules");
 export const REPO_VIEWER_CONFIG_PATH = toAbsolutePath(
   "../../../apps/ddd-spec-viewer/ddd-spec.config.yaml"

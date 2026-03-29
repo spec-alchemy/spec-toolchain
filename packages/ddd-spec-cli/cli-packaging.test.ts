@@ -122,9 +122,54 @@ test("npm pack tarball keeps the published CLI package on runtime files only", a
     assert.ok(!packedPaths.some((path) => path.endsWith(".test.ts")));
     assert.ok(!packedPaths.includes("dist/ddd-spec-cli/static/viewer/generated/.gitkeep"));
     assert.ok(!packedPaths.some((path) => /(^|\/)(docs|examples|fixtures|test)\//.test(path)));
+    assert.ok(!packedPaths.some((path) => /(^|\/)test-support\//.test(path)));
     assert.ok(!packedPaths.some((path) => /(^|\/)apps\//.test(path)));
     assert.ok(!packedPaths.some((path) => /(^|\/)src\//.test(path)));
   } finally {
     await rm(packedCliTarball.tempDirPath, { recursive: true, force: true });
   }
+});
+
+test("public package manifest includes npm metadata for the GitHub launch surface", async () => {
+  const packageJson = JSON.parse(
+    await readFile(join(REPO_ROOT_PATH, "packages", "ddd-spec-cli", "package.json"), "utf8")
+  ) as {
+    author?: string;
+    bugs?: { url?: string };
+    description?: string;
+    homepage?: string;
+    keywords?: string[];
+    bin?: Record<string, string>;
+    repository?: { directory?: string; type?: string; url?: string };
+  };
+
+  assert.equal(
+    packageJson.description,
+    "Zero-config DDD modeling CLI with validation, build generation, and a packaged viewer."
+  );
+  assert.equal(packageJson.author, "Knowledge Alchemy");
+  assert.deepEqual(packageJson.keywords, [
+    "ddd",
+    "domain-driven-design",
+    "design-as-code",
+    "architecture",
+    "yaml",
+    "cli",
+    "visualization"
+  ]);
+  assert.deepEqual(packageJson.repository, {
+    type: "git",
+    url: "git+https://github.com/knowledge-alchemy/design-alchemy.git",
+    directory: "packages/ddd-spec-cli"
+  });
+  assert.deepEqual(packageJson.bin, {
+    "ddd-spec": "dist/ddd-spec-cli/cli.js"
+  });
+  assert.equal(
+    packageJson.homepage,
+    "https://github.com/knowledge-alchemy/design-alchemy/tree/main/packages/ddd-spec-cli#readme"
+  );
+  assert.deepEqual(packageJson.bugs, {
+    url: "https://github.com/knowledge-alchemy/design-alchemy/issues"
+  });
 });

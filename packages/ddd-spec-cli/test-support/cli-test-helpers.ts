@@ -16,6 +16,7 @@ import { parse, type ParseError } from "jsonc-parser";
 import { isBusinessSpec, loadCanonicalSpec } from "../../ddd-spec-core/index.js";
 import type { ViewerDevSessionStatus } from "../viewer-dev-session.js";
 import {
+  CLI_PACKAGE_ROOT_PATH,
   CORE_SCHEMA_DIR_PATH,
   LEGACY_WORKSPACE_SCHEMA_FILE_NAMES,
   type PackedCliTarball,
@@ -54,11 +55,10 @@ export async function packPublishedCliTarball(): Promise<PackedCliTarball> {
         "--json",
         "--ignore-scripts",
         "--pack-destination",
-        tempDirPath,
-        "--workspace=packages/ddd-spec-cli"
+        tempDirPath
       ],
       {
-        cwd: REPO_ROOT_PATH,
+        cwd: CLI_PACKAGE_ROOT_PATH,
         env: {
           NPM_CONFIG_CACHE: npmCacheDir
         }

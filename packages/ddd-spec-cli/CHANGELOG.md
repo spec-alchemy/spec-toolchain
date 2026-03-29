@@ -1,5 +1,17 @@
 # @knowledge-alchemy/ddd-spec
 
+## 0.1.5
+
+### Patch Changes
+
+- Run npm pack and publish dry-runs from the public package directory so release validation matches the published package boundary.
+
+## 0.1.4
+
+### Patch Changes
+
+- Add complete public npm package metadata and tighten the published tarball surface for release readiness.
+
 ## 0.1.3
 
 ### Patch Changes
