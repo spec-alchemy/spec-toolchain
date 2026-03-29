@@ -23,6 +23,12 @@ The default zero-config build writes bundle, analysis, and viewer outputs into `
 
 The `dev` command is the recommended iteration loop. It runs the initial validation/build, starts the packaged viewer server, opens the browser automatically by default, and keeps watching domain model inputs so edits trigger rebuilds without restarting the session. After each successful rebuild, the already-open viewer automatically reloads the current workspace viewer spec. If a rebuild fails, the terminal tells you what broke, keeps the watcher alive, and the viewer keeps showing the last successful result with an in-app warning until the next build passes.
 
+## Maturity And Compatibility
+
+`ddd-spec` is currently `beta`.
+
+The public `contract` currently supports `version: 1` domain models only. Within `version: 1`, additive optional fields may be introduced, but existing field meaning, reference resolution rules, and the default zero-config workflow do not change silently. Changes that add new resource kinds, change reference semantics, or break current `version: 1` meaning are treated as `contract` changes and must ship with updated validation, examples, and regression coverage.
+
 ## What `init` Teaches
 
 The default starter is intentionally aligned to the current product story:

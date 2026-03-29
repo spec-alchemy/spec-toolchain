@@ -1,0 +1,23 @@
+# 战略文档
+
+本目录用于固化 `spec-toolchain` / `spec-alchemy` 的品牌与产品线战略，目标是防止未来在品牌定义、spec family 扩张、以及准入标准上的漂移。
+
+建议阅读顺序：
+
+1. [品牌宪法](./brand-constitution.md)
+   先看不可轻易变化的战略定义：我们是谁、做什么、不做什么。
+2. [Spec Family 结构图](./spec-family-map.md)
+   再看产品线结构：`shared kernel`、当前 `spec family`、候选 `spec family`、跨 family 关系。
+3. [Spec Family 准入标准](./family-admission-criteria.md)
+   最后看扩张门槛：什么样的 `xxx-spec` 才允许进入产品线。
+4. [新增 Spec Family 评审模板](./new-family-review-template.md)
+   当准备引入新的 family 时，用这份模板组织提案与评审材料。
+5. [术语表](./terminology.md)
+   用于统一品牌、产品结构、运行时能力与评审文档中的严格术语写法。
+
+目录原则：
+
+- 这里只放 durable strategy docs，不放路线图、周报、阶段总结。
+- 新增 `spec family` 前，先更新或至少核对这三份文件。
+- 评审新的 `xxx-spec` 时，优先复用模板，而不是自由发挥写 `proposal`。
+- 如果实现与文档冲突，以可执行产物为准；但战略边界冲突必须先修正文档再继续扩张。
