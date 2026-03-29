@@ -1,20 +1,21 @@
 # `@knowledge-alchemy/ddd-spec`
 
 `@knowledge-alchemy/ddd-spec` is the external CLI package for the DDD modeling workbench.
-Zero-config is the default product path: run `ddd-spec init`, model under `domain-model/`, keep `domain-model/index.yaml` as the default entry, and let the CLI write build outputs into `.ddd-spec/`. Use `--config <path>` only when a workspace needs custom entry paths, output locations, or viewer sync targets.
+Zero-config is the default product path: run `ddd-spec init`, model under `domain-model/`, keep `domain-model/index.yaml` as the default entry, and let the CLI write build outputs into `.ddd-spec/`. Use `ddd-spec editor setup` when you want VS Code YAML schema integration. Use `--config <path>` only when a workspace needs custom entry paths, output locations, or viewer sync targets.
 
 ## Preferred Onboarding
 
-Start here for a normal consumer workspace. The preferred path is `install -> init -> dev`.
+Start here for a normal consumer workspace. The preferred path is `install -> init -> editor setup -> dev`.
 
 ```sh
 npm install --save-dev @knowledge-alchemy/ddd-spec
 npm exec ddd-spec init
+npm exec ddd-spec editor setup
 # edit the generated starter in domain-model/
 npm exec ddd-spec dev
 ```
 
-`init` creates a starter under `domain-model/`, with `domain-model/index.yaml` as the default entry, plus one bounded context, one core scenario, one message flow, and one lifecycle. It also adds `.ddd-spec/` to `.gitignore` when needed.
+`init` creates a starter under `domain-model/`, with `domain-model/index.yaml` as the default entry, plus one bounded context, one core scenario, one message flow, and one lifecycle. It also adds `.ddd-spec/` to `.gitignore` when needed. `editor setup` configures VS Code YAML schema assets, settings, and extension recommendations for the workspace.
 
 The default zero-config build writes bundle, analysis, and viewer outputs into `.ddd-spec/`. TypeScript projection is not part of the default path yet, so the starter intentionally skips generated TypeScript output for now.
 
@@ -52,6 +53,7 @@ For the normal zero-config path:
 ```sh
 npm install --save-dev @knowledge-alchemy/ddd-spec
 npm exec ddd-spec init
+npm exec ddd-spec editor setup
 npm exec ddd-spec dev
 ```
 
@@ -60,7 +62,7 @@ For the explicit one-shot path:
 ```sh
 npm exec ddd-spec validate
 npm exec ddd-spec build
-npm exec ddd-spec viewer -- --port 4173
+npm exec ddd-spec serve -- --port 4173
 ```
 
 After a successful build, open the packaged viewer and walk the primary product path in this order:
@@ -77,7 +79,7 @@ When you want explicit one-shot commands instead of the watch loop, use this seq
 ```sh
 npm exec ddd-spec validate
 npm exec ddd-spec build
-npm exec ddd-spec viewer -- --port 4173
+npm exec ddd-spec serve -- --port 4173
 ```
 
 ## Supported Published-Package Commands
@@ -86,13 +88,21 @@ The published package supports these commands:
 
 - `init`
 - `validate`
-- `bundle`
-- `analyze`
+- `validate schema`
+- `validate semantics`
+- `validate analysis`
+- `generate bundle`
+- `generate analysis`
+- `generate viewer`
+- `generate typescript`
 - `build`
+- `serve`
+- `watch`
 - `dev`
-- `viewer`
-- `generate-viewer`
-- `generate-typescript`
+- `clean`
+- `doctor`
+- `editor setup`
+- `config print`
 
 ## Advanced `--config` Workflow
 
@@ -102,7 +112,7 @@ Use `--config <path>` when you want an explicit config file instead of the defau
 npm exec ddd-spec validate --config ./ddd-spec.config.yaml
 npm exec ddd-spec dev --config ./ddd-spec.config.yaml -- --no-open
 npm exec ddd-spec build --config ./ddd-spec.config.yaml
-npm exec ddd-spec viewer --config ./ddd-spec.config.yaml -- --host 0.0.0.0
+npm exec ddd-spec serve --config ./ddd-spec.config.yaml -- --host 0.0.0.0
 ```
 
 ## Installed Command Usage
@@ -112,8 +122,9 @@ Install the package globally if you want a direct `ddd-spec` shell command with 
 ```sh
 npm install -g @knowledge-alchemy/ddd-spec
 ddd-spec init
+ddd-spec editor setup
 ddd-spec dev
-ddd-spec viewer -- --host 0.0.0.0
+ddd-spec serve -- --host 0.0.0.0
 ```
 
 For a project-local install, use `npm exec` or `npx --no-install` after adding the package:
@@ -121,9 +132,10 @@ For a project-local install, use `npm exec` or `npx --no-install` after adding t
 ```sh
 npm install --save-dev @knowledge-alchemy/ddd-spec
 npm exec ddd-spec init
+npm exec ddd-spec editor setup
 npm exec ddd-spec dev
 npm exec ddd-spec build
 npm exec ddd-spec build --config ./ddd-spec.config.yaml
-npm exec ddd-spec viewer -- --port 4173
+npm exec ddd-spec serve -- --port 4173
 npx --no-install ddd-spec validate
 ```

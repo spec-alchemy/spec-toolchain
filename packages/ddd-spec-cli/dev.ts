@@ -14,6 +14,11 @@ export interface StartDddSpecDevSessionOptions {
   rebuild: () => Promise<void>;
 }
 
+export interface StartDddSpecWatchSessionOptions {
+  rebuild: () => Promise<void>;
+  waitForShutdown?: () => Promise<void>;
+}
+
 interface PollingWatcher {
   close: () => Promise<void>;
 }
@@ -29,23 +34,17 @@ export async function startDddSpecDevSession(
   config: ResolvedDddSpecConfig,
   options: StartDddSpecDevSessionOptions
 ): Promise<void> {
-  const watchRootPath = dirname(config.spec.entryPath);
   const devSessionStatusController = createViewerDevSessionStatusController();
 
   logInfo("starting dev loop");
   await runBuildAttempt(options.rebuild, devSessionStatusController);
 
-  const watcher = await startPollingWatcher({
-    ignoredPaths: collectIgnoredPaths(config, watchRootPath),
-    intervalMs: DEFAULT_WATCH_INTERVAL_MS,
-    onChange: async () => {
-      logInfo("rebuilding after domain model input changes");
-      await runBuildAttempt(options.rebuild, devSessionStatusController);
-    },
-    rootPath: watchRootPath
+  const watcher = await startBuildWatcher(config, async () => {
+    logInfo("rebuilding after domain model input changes");
+    await runBuildAttempt(options.rebuild, devSessionStatusController);
   });
 
-  logInfo(`watching domain model inputs under ${watchRootPath}`);
+  logInfo(`watching domain model inputs under ${dirname(config.spec.entryPath)}`);
 
   try {
     await startDddSpecViewer(config, {
@@ -59,18 +58,39 @@ export async function startDddSpecDevSession(
   }
 }
 
+export async function startDddSpecWatchSession(
+  config: ResolvedDddSpecConfig,
+  options: StartDddSpecWatchSessionOptions
+): Promise<void> {
+  logInfo("starting watch loop");
+  await runBuildAttempt(options.rebuild);
+
+  const watcher = await startBuildWatcher(config, async () => {
+    logInfo("rebuilding after domain model input changes");
+    await runBuildAttempt(options.rebuild);
+  });
+
+  logInfo(`watching domain model inputs under ${dirname(config.spec.entryPath)}`);
+
+  try {
+    await (options.waitForShutdown ?? waitForShutdownSignal)();
+  } finally {
+    await watcher.close();
+  }
+}
+
 async function runBuildAttempt(
   rebuild: () => Promise<void>,
   devSessionStatusController: ReturnType<
     typeof createViewerDevSessionStatusController
-  >
+  > | undefined = undefined
 ): Promise<void> {
   try {
     await rebuild();
-    devSessionStatusController.markBuildSucceeded();
+    devSessionStatusController?.markBuildSucceeded();
     logInfo("build passed");
   } catch (error: unknown) {
-    devSessionStatusController.markBuildFailed(toErrorMessage(error));
+    devSessionStatusController?.markBuildFailed(toErrorMessage(error));
     logError(
       [
         "build failed; watcher remains active",
@@ -79,6 +99,20 @@ async function runBuildAttempt(
       ].join("\n")
     );
   }
+}
+
+async function startBuildWatcher(
+  config: ResolvedDddSpecConfig,
+  onChange: () => Promise<void>
+): Promise<PollingWatcher> {
+  const watchRootPath = dirname(config.spec.entryPath);
+
+  return startPollingWatcher({
+    ignoredPaths: collectIgnoredPaths(config, watchRootPath),
+    intervalMs: DEFAULT_WATCH_INTERVAL_MS,
+    onChange,
+    rootPath: watchRootPath
+  });
 }
 
 async function startPollingWatcher(
@@ -248,6 +282,19 @@ function toRelativePath(rootPath: string, candidatePath: string): string {
   const relativePath = relative(rootPath, candidatePath);
 
   return relativePath.split(sep).join("/");
+}
+
+async function waitForShutdownSignal(): Promise<void> {
+  await new Promise<void>((resolvePromise) => {
+    const handleSignal = () => {
+      process.off("SIGINT", handleSignal);
+      process.off("SIGTERM", handleSignal);
+      resolvePromise();
+    };
+
+    process.on("SIGINT", handleSignal);
+    process.on("SIGTERM", handleSignal);
+  });
 }
 
 async function safeReadDir(path: string): Promise<Dirent[]> {

@@ -35,7 +35,6 @@ test("CLI init creates the default domain model starter and build emits the prim
     };
 
     const gitignoreSource = await readFile(join(tempDir, ".gitignore"), "utf8");
-    const settingsSource = await readFile(join(tempDir, ".vscode", "settings.json"), "utf8");
 
     assert.equal(bundle.version, 1);
     assert.equal(viewer.viewerVersion, 1);
@@ -50,10 +49,7 @@ test("CLI init creates the default domain model starter and build emits the prim
       /ENOENT/
     );
     assert.match(gitignoreSource, /^\.ddd-spec\/$/m);
-    assert.doesNotMatch(settingsSource, /node_modules/);
-    await assertGeneratedVsCodeWorkspaceConfig({
-      rootPath: tempDir
-    });
+    await assert.rejects(readFile(join(tempDir, ".vscode", "settings.json"), "utf8"), /ENOENT/);
   } finally {
     await rm(tempDir, { recursive: true, force: true });
   }
@@ -110,13 +106,14 @@ test("CLI init does not duplicate an existing .ddd-spec ignore entry", async () 
   }
 });
 
-test("CLI init merges VS Code workspace settings and extension recommendations", async () => {
+test("CLI editor setup merges VS Code workspace settings and extension recommendations", async () => {
   const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-init-vscode-merge-"));
   const vscodeDirPath = join(tempDir, ".vscode");
   const settingsPath = join(vscodeDirPath, "settings.json");
   const extensionsPath = join(vscodeDirPath, "extensions.json");
 
   try {
+    await runCliCommand(["init"], { cwd: tempDir });
     await mkdir(vscodeDirPath, { recursive: true });
     await writeFile(
       settingsPath,
@@ -142,7 +139,7 @@ test("CLI init merges VS Code workspace settings and extension recommendations",
       "utf8"
     );
 
-    await runCliCommand(["init"], { cwd: tempDir });
+    await runCliCommand(["editor", "setup"], { cwd: tempDir });
 
     const settingsSource = await readFile(settingsPath, "utf8");
     const extensionsSource = await readFile(extensionsPath, "utf8");
@@ -164,11 +161,12 @@ test("CLI init merges VS Code workspace settings and extension recommendations",
   }
 });
 
-test("CLI init skips overlapping existing YAML schema globs", async () => {
+test("CLI editor setup skips overlapping existing YAML schema globs", async () => {
   const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-init-vscode-conflict-"));
   const settingsPath = join(tempDir, ".vscode", "settings.json");
 
   try {
+    await runCliCommand(["init"], { cwd: tempDir });
     await mkdir(dirname(settingsPath), { recursive: true });
     await writeFile(
       settingsPath,
@@ -184,7 +182,7 @@ test("CLI init skips overlapping existing YAML schema globs", async () => {
       "utf8"
     );
 
-    await runCliCommand(["init"], { cwd: tempDir });
+    await runCliCommand(["editor", "setup"], { cwd: tempDir });
 
     const settings = parseJsoncObject(await readFile(settingsPath, "utf8"));
     const yamlSchemas = normalizeYamlSchemaMappings(settings["yaml.schemas"]);
@@ -210,12 +208,13 @@ test("CLI init skips overlapping existing YAML schema globs", async () => {
   }
 });
 
-test("CLI init replaces legacy vnext VS Code schema assets and mappings", async () => {
+test("CLI editor setup replaces legacy vnext VS Code schema assets and mappings", async () => {
   const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-init-vscode-legacy-schema-"));
   const legacySchemaDirPath = join(tempDir, ".vscode", "ddd-spec", "schema", "vnext");
   const settingsPath = join(tempDir, ".vscode", "settings.json");
 
   try {
+    await runCliCommand(["init"], { cwd: tempDir });
     await mkdir(legacySchemaDirPath, { recursive: true });
     await writeFile(
       join(legacySchemaDirPath, "canonical-index.schema.json"),
@@ -238,7 +237,7 @@ test("CLI init replaces legacy vnext VS Code schema assets and mappings", async 
       "utf8"
     );
 
-    await runCliCommand(["init"], { cwd: tempDir });
+    await runCliCommand(["editor", "setup"], { cwd: tempDir });
 
     await assertGeneratedVsCodeWorkspaceConfig({
       rootPath: tempDir
@@ -266,6 +265,24 @@ test("CLI init refuses to overwrite an existing domain model index", async () =>
     );
 
     assert.equal(await readFile(entryPath, "utf8"), existingSource);
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
+
+test("CLI editor setup creates VS Code workspace config after init", async () => {
+  const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-editor-setup-"));
+
+  try {
+    await runCliCommand(["init"], { cwd: tempDir });
+    await runCliCommand(["editor", "setup"], { cwd: tempDir });
+
+    const settingsSource = await readFile(join(tempDir, ".vscode", "settings.json"), "utf8");
+
+    assert.doesNotMatch(settingsSource, /node_modules/);
+    await assertGeneratedVsCodeWorkspaceConfig({
+      rootPath: tempDir
+    });
   } finally {
     await rm(tempDir, { recursive: true, force: true });
   }

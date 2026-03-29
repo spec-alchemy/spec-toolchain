@@ -43,6 +43,9 @@ test("npm pack smoke test installs the tarball and runs zero-config init plus bu
     await runCommand(process.execPath, [installedCliEntryPath, "init"], {
       cwd: consumerRootPath
     });
+    await runCommand(process.execPath, [installedCliEntryPath, "editor", "setup"], {
+      cwd: consumerRootPath
+    });
 
     await assertGeneratedInitSkeleton(consumerRootPath);
     await assertGeneratedVsCodeWorkspaceConfig({
@@ -182,10 +185,13 @@ test("npm pack smoke test installs the tarball and serves packaged viewer assets
     await runCommand(process.execPath, [installedCliEntryPath, "init"], {
       cwd: consumerRootPath
     });
+    await runCommand(process.execPath, [installedCliEntryPath, "build"], {
+      cwd: consumerRootPath
+    });
 
     child = spawn(
       process.execPath,
-      [installedCliEntryPath, "viewer", "--", "--port", "0"],
+      [installedCliEntryPath, "serve", "--", "--port", "0"],
       {
         cwd: consumerRootPath,
         env: {

@@ -3,10 +3,10 @@ import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import test from "node:test";
-import { buildUsageText, formatCliFailureOutput } from "./console.js";
+import { formatCliFailureOutput } from "./console.js";
 import { loadDddSpecConfig } from "./config.js";
 import { runCliCommand } from "./commands.js";
-import { startDddSpecDevSession } from "./dev.js";
+import { startDddSpecDevSession, startDddSpecWatchSession } from "./dev.js";
 import {
   DEFAULT_DOMAIN_MODEL_SCHEMA_PATH,
   REPO_ROOT_PATH,
@@ -231,29 +231,34 @@ test("CLI validate rejects legacy version 3 workspaces after the schema reset", 
   }
 });
 
-test("CLI help lists the primary commands and entry points", () => {
-  const usageText = buildUsageText();
+test("CLI root help prints the curated onboarding usage text", async () => {
+  const originalWrite = process.stdout.write.bind(process.stdout);
+  let output = "";
 
-  assert.match(usageText, /\n  ddd-spec init\n/);
-  assert.match(usageText, /\n  ddd-spec dev\n/);
-  assert.match(usageText, /\n  init\n/);
-  assert.match(usageText, /\n  build \[--config <path>\]\n/);
-  assert.match(usageText, /\n  dev \[--config <path>\] \[-- <viewer-args\.\.\.>\]\n/);
-  assert.match(usageText, /\n  generate-viewer \[--config <path>\]\n/);
-  assert.match(usageText, /generate-typescript \[--config <path>\]$/);
-  assert.match(usageText, /domain-model/);
-  assert.doesNotMatch(usageText, /canonical/i);
-  assert.doesNotMatch(usageText, /vnext/i);
-  assert.doesNotMatch(usageText, /canonical-vnext/);
-  assert.doesNotMatch(usageText, /template/);
-  assert.doesNotMatch(usageText, /\n  generate viewer\n/);
-  assert.doesNotMatch(usageText, /\n  generate typescript\n/);
+  try {
+    process.stdout.write = ((chunk: string | Uint8Array) => {
+      output += chunk.toString();
+      return true;
+    }) as typeof process.stdout.write;
+
+    await runCliCommand(["--help"]);
+  } finally {
+    process.stdout.write = originalWrite;
+  }
+
+  assert.match(output, /After install, start here:/);
+  assert.match(output, /ddd-spec editor setup/);
+  assert.match(output, /\$ ddd-spec <command> \[options\]/);
+  assert.match(output, /generate <target>/);
+  assert.match(output, /config \[target\]/);
+  assert.doesNotMatch(output, /canonical-vnext/);
+  assert.doesNotMatch(output, /template/);
 });
 
 test("CLI failure output keeps command-specific recovery hints", () => {
   const validateOutput = formatCliFailureOutput(["validate"], new Error("invalid domain model"));
-  const viewerOutput = formatCliFailureOutput(
-    ["viewer", "--", "--port", "nope"],
+  const serveOutput = formatCliFailureOutput(
+    ["serve", "--", "--port", "nope"],
     new Error("Viewer port must be an integer between 0 and 65535; received nope")
   );
   const devOutput = formatCliFailureOutput(
@@ -261,23 +266,23 @@ test("CLI failure output keeps command-specific recovery hints", () => {
     new Error("Viewer port must be an integer between 0 and 65535; received nope")
   );
   const generateViewerOutput = formatCliFailureOutput(
-    ["generate-viewer"],
+    ["generate", "viewer"],
     new Error("invalid domain model")
   );
   const generateTypescriptOutput = formatCliFailureOutput(
-    ["generate-typescript"],
+    ["generate", "typescript"],
     new Error("invalid domain model")
   );
 
   assert.match(validateOutput, /ddd-spec validate/);
   assert.match(validateOutput, /ddd-spec dev/);
-  assert.match(viewerOutput, /ddd-spec viewer -- --port 0/);
+  assert.match(serveOutput, /ddd-spec serve -- --port 0/);
   assert.match(devOutput, /ddd-spec dev -- --no-open/);
   assert.match(devOutput, /ddd-spec dev -- --port 0/);
-  assert.match(generateViewerOutput, /ddd-spec generate-viewer/);
-  assert.match(generateTypescriptOutput, /ddd-spec generate-typescript/);
-  assert.doesNotMatch(generateViewerOutput, /ddd-spec generate viewer/);
-  assert.doesNotMatch(generateTypescriptOutput, /ddd-spec generate typescript/);
+  assert.match(generateViewerOutput, /ddd-spec generate viewer/);
+  assert.match(generateTypescriptOutput, /ddd-spec generate typescript/);
+  assert.doesNotMatch(generateViewerOutput, /ddd-spec generate-viewer/);
+  assert.doesNotMatch(generateTypescriptOutput, /ddd-spec generate-typescript/);
 });
 
 test("CLI failure output preserves an existing init hint without duplicating guidance", () => {
@@ -289,6 +294,90 @@ test("CLI failure output preserves an existing init hint without duplicating gui
   );
 
   assert.equal(countMatches(output, "Run `ddd-spec init`"), 1);
+});
+
+test("CLI rejects removed legacy command names with migration hints", async () => {
+  await assert.rejects(
+    runCliCommand(["viewer"]),
+    /Use `ddd-spec serve` to serve existing viewer output/
+  );
+  await assert.rejects(
+    runCliCommand(["bundle"]),
+    /Use `ddd-spec generate bundle`\./
+  );
+  await assert.rejects(
+    runCliCommand(["analyze"]),
+    /Use `ddd-spec generate analysis`\./
+  );
+});
+
+test("CLI rejects unknown commands instead of succeeding silently", async () => {
+  await assert.rejects(runCliCommand(["nope"]), /Unknown command: nope/);
+  await assert.rejects(runCliCommand(["nope", "--help"]), /Unknown command: nope --help/);
+
+  const originalWrite = process.stdout.write.bind(process.stdout);
+  let output = "";
+
+  try {
+    process.stdout.write = ((chunk: string | Uint8Array) => {
+      output += chunk.toString();
+      return true;
+    }) as typeof process.stdout.write;
+
+    await assert.rejects(runCliCommand(["nope", "--help"]), /Unknown command: nope --help/);
+  } finally {
+    process.stdout.write = originalWrite;
+  }
+
+  assert.equal(output, "");
+});
+
+test("CLI rejects passthrough args for commands that do not forward viewer options", async () => {
+  await assert.rejects(
+    runCliCommand([
+      "validate",
+      "--config",
+      REPO_VIEWER_CONFIG_PATH,
+      "--",
+      "--bogus"
+    ]),
+    /Only `ddd-spec serve` and `ddd-spec dev` forward passthrough args/
+  );
+
+  await assert.rejects(
+    runCliCommand([
+      "doctor",
+      "--config",
+      REPO_VIEWER_CONFIG_PATH,
+      "--",
+      "--bogus"
+    ]),
+    /The doctor command does not accept arguments after `--`/
+  );
+});
+
+test("CLI grouped command help remains discoverable", async () => {
+  const originalWrite = process.stdout.write.bind(process.stdout);
+  let output = "";
+
+  try {
+    process.stdout.write = ((chunk: string | Uint8Array) => {
+      output += chunk.toString();
+      return true;
+    }) as typeof process.stdout.write;
+
+    await runCliCommand(["editor", "--help"]);
+    await runCliCommand(["config", "--help"]);
+  } finally {
+    process.stdout.write = originalWrite;
+  }
+
+  assert.match(output, /\$ ddd-spec editor \[target\]/);
+  assert.match(output, /\$ ddd-spec config \[target\] \[options\]/);
+  assert.match(output, /ddd-spec editor setup/);
+  assert.match(output, /ddd-spec config print/);
+  assert.doesNotMatch(output, /--config <path>  Load an explicit ddd-spec config file[\s\S]*ddd-spec editor setup/);
+  assert.match(output, /\$ ddd-spec config \[target\] \[options\][\s\S]*--config <path>/);
 });
 
 test("CLI dev loop logs domain model watch guidance without legacy terminology", async () => {
@@ -360,6 +449,70 @@ test("CLI dev loop logs domain model watch guidance without legacy terminology",
   );
   assert.doesNotMatch(logMessages.join("\n"), /canonical/i);
   assert.doesNotMatch(errorMessages.join("\n"), /canonical/i);
+});
+
+test("CLI watch loop logs domain model watch guidance without launching the viewer", async () => {
+  const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-watch-loop-copy-"));
+  const watchRootPath = join(tempDir, "domain-model");
+  const entryPath = join(watchRootPath, "index.yaml");
+  const outputRootPath = join(tempDir, ".ddd-spec", "artifacts");
+  const originalLog = console.log;
+  const originalError = console.error;
+  const logMessages: string[] = [];
+  const errorMessages: string[] = [];
+
+  try {
+    await mkdir(watchRootPath, { recursive: true });
+
+    console.log = ((...args: unknown[]) => {
+      logMessages.push(args.map(String).join(" "));
+    }) as typeof console.log;
+    console.error = ((...args: unknown[]) => {
+      errorMessages.push(args.map(String).join(" "));
+    }) as typeof console.error;
+
+    await startDddSpecWatchSession(
+      {
+        version: 1,
+        mode: "zero-config",
+        sourceDescription: "zero-config defaults",
+        rootDir: tempDir,
+        spec: {
+          entryPath
+        },
+        schema: {
+          path: DEFAULT_DOMAIN_MODEL_SCHEMA_PATH
+        },
+        outputs: {
+          rootDirPath: outputRootPath,
+          bundlePath: join(outputRootPath, "business-spec.json"),
+          analysisPath: join(outputRootPath, "business-spec.analysis.json"),
+          viewerPath: join(outputRootPath, "viewer-spec.json"),
+          typescriptPath: join(tempDir, ".ddd-spec", "generated", "business-spec.generated.ts")
+        },
+        viewer: {
+          syncTargetPaths: []
+        },
+        projections: {
+          viewer: true,
+          typescript: false
+        }
+      },
+      {
+        rebuild: async () => {
+          throw new Error("invalid domain model");
+        },
+        waitForShutdown: async () => {}
+      }
+    );
+  } finally {
+    console.log = originalLog;
+    console.error = originalError;
+    await rm(tempDir, { recursive: true, force: true });
+  }
+
+  assert.match(logMessages.join("\n"), /watching domain model inputs under/);
+  assert.match(errorMessages.join("\n"), /watcher remains active/);
 });
 
 test("repo viewer config resolves tracked cross-context example outputs and sync targets", async () => {

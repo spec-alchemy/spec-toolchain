@@ -102,6 +102,29 @@ test("CLI build syncs viewer spec to configured sync targets", async () => {
   }
 });
 
+test("CLI generate commands write only the requested artifacts", async () => {
+  const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-generate-commands-"));
+
+  try {
+    await copyDomainModelToZeroConfigRoot(tempDir);
+
+    await runCliCommand(["generate", "bundle"], { cwd: tempDir });
+    await access(join(tempDir, ".ddd-spec", "artifacts", "business-spec.json"));
+    await assert.rejects(
+      access(join(tempDir, ".ddd-spec", "artifacts", "business-spec.analysis.json")),
+      /ENOENT/
+    );
+
+    await runCliCommand(["generate", "analysis"], { cwd: tempDir });
+    await access(join(tempDir, ".ddd-spec", "artifacts", "business-spec.analysis.json"));
+
+    await runCliCommand(["generate", "viewer"], { cwd: tempDir });
+    await access(join(tempDir, ".ddd-spec", "artifacts", "viewer-spec.json"));
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
+
 test("CLI validate succeeds in explicit config mode without writing outputs", async () => {
   const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-config-validate-"));
   const configPath = join(tempDir, "ddd-spec.config.yaml");
@@ -119,6 +142,25 @@ test("CLI validate succeeds in explicit config mode without writing outputs", as
     );
     await assert.rejects(
       readFile(join(tempDir, "artifacts", "business-viewer", "viewer-spec.json"), "utf8"),
+      /ENOENT/
+    );
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
+
+test("CLI validate subcommands succeed without writing outputs in zero-config mode", async () => {
+  const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-zero-config-validate-subcommands-"));
+
+  try {
+    await copyDomainModelToZeroConfigRoot(tempDir);
+
+    await runCliCommand(["validate", "schema"], { cwd: tempDir });
+    await runCliCommand(["validate", "semantics"], { cwd: tempDir });
+    await runCliCommand(["validate", "analysis"], { cwd: tempDir });
+
+    await assert.rejects(
+      readFile(join(tempDir, ".ddd-spec", "artifacts", "business-spec.json"), "utf8"),
       /ENOENT/
     );
   } finally {
@@ -187,14 +229,15 @@ test("CLI validate and build succeed in zero-config mode with the reset domain m
   }
 });
 
-test("CLI viewer rebuilds the zero-config viewer artifact and launches the packaged static server", async () => {
-  const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-zero-config-viewer-"));
+test("CLI serve launches the packaged static server from an existing zero-config viewer artifact", async () => {
+  const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-zero-config-serve-"));
   let launchOptions: LaunchViewerOptions | undefined;
 
   try {
     await copyDomainModelToZeroConfigRoot(tempDir);
+    await runCliCommand(["build"], { cwd: tempDir });
 
-    await runCliCommand(["viewer", "--", "--host", "0.0.0.0"], {
+    await runCliCommand(["serve", "--", "--host", "0.0.0.0"], {
       cwd: tempDir,
       viewerCommandHooks: {
         launchViewer: async (options) => {
@@ -227,15 +270,18 @@ test("CLI viewer rebuilds the zero-config viewer artifact and launches the packa
   }
 });
 
-test("CLI viewer rebuilds the explicit-config viewer artifact and launches the packaged static server", async () => {
-  const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-config-viewer-"));
+test("CLI serve launches the packaged static server from an existing explicit-config viewer artifact", async () => {
+  const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-config-serve-"));
   const configPath = join(tempDir, "ddd-spec.config.yaml");
   let launchOptions: LaunchViewerOptions | undefined;
 
   try {
     await writeFile(configPath, buildConfigSource(), "utf8");
+    await runCliCommand(["build", "--config", configPath], {
+      cwd: tempDir
+    });
 
-    await runCliCommand(["viewer", "--config", configPath, "--", "--host", "0.0.0.0", "--port", "0"], {
+    await runCliCommand(["serve", "--config", configPath, "--", "--host", "0.0.0.0", "--port", "0"], {
       cwd: tempDir,
       viewerCommandHooks: {
         launchViewer: async (options) => {
@@ -322,6 +368,96 @@ test("CLI dev rebuilds the zero-config viewer artifact and enables browser auto-
   }
 });
 
+test("CLI serve rejects missing viewer output with a build hint", async () => {
+  const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-serve-missing-viewer-"));
+
+  try {
+    await copyDomainModelToZeroConfigRoot(tempDir);
+
+    await assert.rejects(
+      runCliCommand(["serve"], { cwd: tempDir }),
+      /Run `ddd-spec build` or `ddd-spec generate viewer` before `ddd-spec serve`\./
+    );
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
+
+test("CLI clean removes generated artifacts", async () => {
+  const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-clean-"));
+
+  try {
+    await copyDomainModelToZeroConfigRoot(tempDir);
+    await runCliCommand(["build"], { cwd: tempDir });
+    await runCliCommand(["clean"], { cwd: tempDir });
+
+    await assert.rejects(
+      access(join(tempDir, ".ddd-spec", "artifacts", "business-spec.json")),
+      /ENOENT/
+    );
+    await assert.rejects(
+      access(join(tempDir, ".ddd-spec", "artifacts", "business-spec.analysis.json")),
+      /ENOENT/
+    );
+    await assert.rejects(
+      access(join(tempDir, ".ddd-spec", "artifacts", "viewer-spec.json")),
+      /ENOENT/
+    );
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
+
+test("CLI config print writes the resolved config JSON", async () => {
+  const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-config-print-"));
+  const originalLog = console.log;
+  const logMessages: string[] = [];
+
+  try {
+    await copyDomainModelToZeroConfigRoot(tempDir);
+
+    console.log = ((...args: unknown[]) => {
+      logMessages.push(args.map(String).join(" "));
+    }) as typeof console.log;
+
+    await runCliCommand(["config", "print"], { cwd: tempDir });
+  } finally {
+    console.log = originalLog;
+    await rm(tempDir, { recursive: true, force: true });
+  }
+
+  const printedConfig = JSON.parse(logMessages.join("\n")) as {
+    mode: string;
+    spec: {
+      entryPath: string;
+    };
+  };
+
+  assert.equal(printedConfig.mode, "zero-config");
+  assert.equal(printedConfig.spec.entryPath, join(tempDir, "domain-model", "index.yaml"));
+});
+
+test("CLI doctor reports blocking issues for missing viewer output", async () => {
+  const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-doctor-"));
+  const originalLog = console.log;
+  const logMessages: string[] = [];
+
+  try {
+    await copyDomainModelToZeroConfigRoot(tempDir);
+
+    console.log = ((...args: unknown[]) => {
+      logMessages.push(args.map(String).join(" "));
+    }) as typeof console.log;
+
+    await assert.rejects(runCliCommand(["doctor"], { cwd: tempDir }), /doctor found 1 blocking issue/);
+  } finally {
+    console.log = originalLog;
+    await rm(tempDir, { recursive: true, force: true });
+  }
+
+  assert.match(logMessages.join("\n"), /viewer artifact missing/);
+});
+
 test("CLI build supports version 1 domain models when viewer projection is enabled without TypeScript output", async () => {
   const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-domain-model-build-"));
   const configPath = join(tempDir, "ddd-spec.config.yaml");
@@ -371,8 +507,8 @@ test("CLI build supports version 1 domain models when viewer projection is enabl
   }
 });
 
-test("CLI viewer supports version 1 domain models through the packaged viewer path", async () => {
-  const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-domain-model-viewer-"));
+test("CLI serve supports version 1 domain models through the packaged viewer path", async () => {
+  const tempDir = await mkdtemp(join(tmpdir(), "ddd-spec-domain-model-serve-"));
   const configPath = join(tempDir, "ddd-spec.config.yaml");
   let launchOptions: LaunchViewerOptions | undefined;
 
@@ -384,8 +520,11 @@ test("CLI viewer supports version 1 domain models through the packaged viewer pa
       }),
       "utf8"
     );
+    await runCliCommand(["build", "--config", configPath], {
+      cwd: tempDir
+    });
 
-    await runCliCommand(["viewer", "--config", configPath, "--", "--port", "0"], {
+    await runCliCommand(["serve", "--config", configPath, "--", "--port", "0"], {
       cwd: tempDir,
       viewerCommandHooks: {
         launchViewer: async (options) => {

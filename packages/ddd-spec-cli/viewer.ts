@@ -51,7 +51,7 @@ export async function startDddSpecViewer(
   options: StartDddSpecViewerOptions = {}
 ): Promise<void> {
   const viewerSpecPath = requireViewerOutputPath(config);
-  const assetDirPath = await requireViewerAssetDirPath();
+  const assetDirPath = await resolveViewerAssetDirPath();
   const hooks = options.hooks ?? {};
 
   await (hooks.launchViewer ?? launchViewerServer)({
@@ -72,7 +72,7 @@ function requireViewerOutputPath(config: ResolvedDddSpecConfig): string {
   throw new Error("DDD spec config must define outputs.viewer for the viewer command");
 }
 
-async function requireViewerAssetDirPath(): Promise<string> {
+export async function resolveViewerAssetDirPath(): Promise<string> {
   for (const candidatePath of VIEWER_ASSET_DIR_CANDIDATES) {
     if (await pathExists(join(candidatePath, VIEWER_INDEX_FILE))) {
       return candidatePath;
