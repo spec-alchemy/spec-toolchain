@@ -66,6 +66,11 @@ test("CLI dist entry runs without tsx or repo source entrypoints", async () => {
     );
     await runCommand(
       process.execPath,
+      [CLI_DIST_ENTRY_PATH, "editor", "setup"],
+      { cwd: tempDir }
+    );
+    await runCommand(
+      process.execPath,
       [CLI_DIST_ENTRY_PATH, "validate"],
       { cwd: tempDir }
     );

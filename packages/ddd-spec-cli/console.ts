@@ -30,21 +30,23 @@ export function formatDiagnostic(diagnostic: CliDiagnostic): string {
 export function buildUsageText(): string {
   return [
     "Usage:",
-    "  ddd-spec <command>",
+    "  ddd-spec <command> [--config <path>]",
     "",
     "After install, start here:",
     "  ddd-spec init",
+    "  ddd-spec editor setup",
     "  edit domain-model/",
     "  ddd-spec dev",
     "",
     "Why this path:",
     "  init scaffolds a domain model starter with context, scenario, message, and lifecycle seams",
+    "  editor setup configures VS Code YAML schema mappings for the workspace",
     "  dev validates, builds, opens the packaged viewer, and rebuilds on save",
     "",
     "Alternative step-by-step flow:",
     "  ddd-spec validate",
     "  ddd-spec build",
-    "  ddd-spec viewer -- --port 4173",
+    "  ddd-spec serve -- --port 4173",
     "",
     "Zero-config defaults:",
     "  Reads domain-model/index.yaml from the current workspace",
@@ -58,13 +60,21 @@ export function buildUsageText(): string {
     "Commands:",
     "  init",
     "  validate [--config <path>]",
-    "  bundle [--config <path>]",
-    "  analyze [--config <path>]",
+    "  validate schema [--config <path>]",
+    "  validate semantics [--config <path>]",
+    "  validate analysis [--config <path>]",
+    "  generate bundle [--config <path>]",
+    "  generate analysis [--config <path>]",
+    "  generate viewer [--config <path>]",
+    "  generate typescript [--config <path>]",
     "  build [--config <path>]",
+    "  serve [--config <path>] [-- <viewer-args...>]",
+    "  watch [--config <path>]",
     "  dev [--config <path>] [-- <viewer-args...>]",
-    "  viewer [--config <path>] [-- <viewer-args...>]",
-    "  generate-viewer [--config <path>]",
-    "  generate-typescript [--config <path>]"
+    "  clean [--config <path>]",
+    "  doctor [--config <path>]",
+    "  editor setup",
+    "  config print [--config <path>]"
   ].join("\n");
 }
 
@@ -112,6 +122,14 @@ function inferCommandFromArgv(argv: readonly string[]): string | undefined {
     return `generate-${positionals[1]}`;
   }
 
+  if (positionals[0] === "validate" && positionals.length > 1) {
+    return `validate-${positionals[1]}`;
+  }
+
+  if ((positionals[0] === "editor" || positionals[0] === "config") && positionals.length > 1) {
+    return `${positionals[0]}-${positionals[1]}`;
+  }
+
   return positionals[0];
 }
 
@@ -126,16 +144,36 @@ function buildFailureGuidance(
   switch (command) {
     case "validate":
       return "Fix the reported domain model or config issue, then rerun `ddd-spec validate`. After it passes, use `ddd-spec dev` for the watch loop.";
+    case "validate-schema":
+      return "Fix the reported schema issue, then rerun `ddd-spec validate schema`.";
+    case "validate-semantics":
+      return "Fix the reported semantic rule issue, then rerun `ddd-spec validate semantics`.";
+    case "validate-analysis":
+      return "Fix the reported analysis issue, then rerun `ddd-spec validate analysis`.";
     case "build":
       return "Fix the reported domain model, analysis, or config issue, then rerun `ddd-spec build`. For the live rebuild loop plus viewer, use `ddd-spec dev`.";
-    case "viewer":
-      return "Fix the reported build or viewer issue, then rerun `ddd-spec viewer`. If the port is busy, retry with `ddd-spec viewer -- --port 0`.";
+    case "serve":
+      return "Fix the reported viewer output or server issue, then rerun `ddd-spec serve`. If the port is busy, retry with `ddd-spec serve -- --port 0`.";
+    case "watch":
+      return "Fix the reported build issue, then rerun `ddd-spec watch` to resume automatic rebuilds.";
     case "dev":
       return "Fix the reported build or viewer issue, then rerun `ddd-spec dev`. If browser launch is a problem, use `ddd-spec dev -- --no-open`; if the port is busy, use `ddd-spec dev -- --port 0`.";
+    case "generate-bundle":
+      return "Fix the reported domain model or config issue, then rerun `ddd-spec generate bundle`.";
+    case "generate-analysis":
+      return "Fix the reported domain model, analysis, or config issue, then rerun `ddd-spec generate analysis`.";
     case "generate-viewer":
-      return "Fix the reported domain model, analysis, or config issue, then rerun `ddd-spec generate-viewer`.";
+      return "Fix the reported domain model, analysis, or config issue, then rerun `ddd-spec generate viewer`.";
     case "generate-typescript":
-      return "Fix the reported domain model or config issue, then rerun `ddd-spec generate-typescript`.";
+      return "Fix the reported domain model or config issue, then rerun `ddd-spec generate typescript`.";
+    case "clean":
+      return "Check the output paths in your config, then rerun `ddd-spec clean`.";
+    case "doctor":
+      return "Resolve the reported blocking issues, then rerun `ddd-spec doctor`.";
+    case "editor-setup":
+      return "Fix the reported workspace configuration issue, then rerun `ddd-spec editor setup`.";
+    case "config-print":
+      return "Fix the reported config issue, then rerun `ddd-spec config print`.";
     default:
       return "Run `ddd-spec --help` to see the supported commands and the zero-config init -> dev workflow.";
   }

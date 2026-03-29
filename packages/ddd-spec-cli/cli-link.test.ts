@@ -60,6 +60,9 @@ test("ddd-spec-cli workspace registers the public package so a consumer can npm 
     await runCommand(process.execPath, [linkedCliEntryPath, "init"], {
       cwd: consumerRootPath
     });
+    await runCommand(process.execPath, [linkedCliEntryPath, "editor", "setup"], {
+      cwd: consumerRootPath
+    });
     await runCommand(process.execPath, [linkedCliEntryPath, "build"], {
       cwd: consumerRootPath
     });

@@ -1,3 +1,4 @@
+import { access } from "node:fs/promises";
 import type { BusinessViewerSpec, ViewerLocale } from "../ddd-spec-viewer-contract/index.js";
 import {
   DEFAULT_VIEWER_LOCALE,
@@ -12,37 +13,22 @@ import {
   validateBusinessSpecSemantics
 } from "../ddd-spec-core/index.js";
 import { buildViewerSpec } from "../ddd-spec-projection-viewer/index.js";
-import {
-  removeOutputPath,
-  writeJsonArtifact
-} from "./artifact-io.js";
+import { cac } from "cac";
+import { removeOutputPath, writeJsonArtifact } from "./artifact-io.js";
 import { buildUsageText, formatDiagnostic, logArtifact, logInfo } from "./console.js";
 import { loadDddSpecConfig } from "./config.js";
-import { startDddSpecDevSession } from "./dev.js";
+import { startDddSpecDevSession, startDddSpecWatchSession } from "./dev.js";
+import { ensureVsCodeWorkspaceConfig } from "./editor-config.js";
 import { initDddSpec } from "./init.js";
 import {
   expandViewerArtifactPaths,
   toViewerLocaleArtifactPath
 } from "./viewer-artifacts.js";
-import { startDddSpecViewer, type ViewerCommandHooks } from "./viewer.js";
-
-type CliCommand =
-  | "init"
-  | "validate"
-  | "bundle"
-  | "analyze"
-  | "build"
-  | "dev"
-  | "viewer"
-  | "generate-viewer"
-  | "generate-typescript";
-
-interface ParsedCliArgs {
-  command?: CliCommand;
-  configPath?: string;
-  help: boolean;
-  passthroughArgs: readonly string[];
-}
+import {
+  resolveViewerAssetDirPath,
+  startDddSpecViewer,
+  type ViewerCommandHooks
+} from "./viewer.js";
 
 export interface RunCliCommandOptions {
   cwd?: string;
@@ -53,124 +39,290 @@ interface LoadedSpecContext {
   spec: BusinessSpec;
 }
 
-type LoadedSpecAnalysis = BusinessSpecAnalysis;
+interface LoadedSpecAnalysis extends LoadedSpecContext {
+  analysis: BusinessSpecAnalysis;
+}
+
+interface CliRunContext {
+  options: RunCliCommandOptions;
+  passthroughArgs: readonly string[];
+}
+
+interface CliCommandOptions {
+  config?: string;
+}
 
 export async function runCliCommand(
   argv: readonly string[],
   options: RunCliCommandOptions = {}
 ): Promise<void> {
-  const parsedArgs = parseCliArgs(argv);
+  const { commandArgv, passthroughArgs } = splitPassthroughArgs(argv);
 
-  if (parsedArgs.help || !parsedArgs.command) {
+  assertSupportedCommandSurface(commandArgv);
+
+  if (commandArgv.length === 0 || isRootHelpRequest(commandArgv)) {
     console.log(buildUsageText());
     return;
   }
 
-  if (parsedArgs.command === "init") {
-    if (parsedArgs.configPath) {
-      throw new Error("The init command does not accept --config");
-    }
+  const groupedCommandHelpText = getGroupedCommandHelpText(commandArgv);
 
-    await initDddSpec({
-      cwd: options.cwd
-    });
+  if (groupedCommandHelpText) {
+    console.log(groupedCommandHelpText);
     return;
   }
 
-  const config = await loadDddSpecConfig({
-    configPath: parsedArgs.configPath,
-    cwd: options.cwd
+  const cli = createCli({
+    options,
+    passthroughArgs
   });
 
-  switch (parsedArgs.command) {
-    case "validate":
-      await runValidateCommand(config);
-      return;
-    case "bundle":
-      await runBundleCommand(config);
-      return;
-    case "analyze":
-      await runAnalyzeCommand(config);
-      return;
-    case "build":
-      await runBuildCommand(config);
-      return;
-    case "dev":
-      await runDevCommand(config, parsedArgs.passthroughArgs, options);
-      return;
-    case "viewer":
-      await runViewerCommand(config, parsedArgs.passthroughArgs, options);
-      return;
-    case "generate-viewer":
-      await runGenerateViewerCommand(config);
-      return;
-    case "generate-typescript":
-      await runGenerateTypescriptCommand(config);
-      return;
+  cli.parse(["node", "ddd-spec", ...commandArgv], {
+    run: false
+  });
+
+  if (!cli.matchedCommand) {
+    throw new Error(`Unknown command: ${commandArgv.join(" ")}`);
   }
+
+  await cli.runMatchedCommand();
+}
+
+function createCli(context: CliRunContext) {
+  const cli = cac("ddd-spec");
+
+  cli.option("--config <path>", "Load an explicit ddd-spec config file");
+
+  cli
+    .command("init", "Scaffold the default domain-model workspace")
+    .action(async (commandOptions: CliCommandOptions) => {
+      if (commandOptions.config) {
+        throw new Error("The init command does not accept --config");
+      }
+
+      await initDddSpec({
+        cwd: context.options.cwd
+      });
+    });
+
+  cli
+    .command("validate [target]", "Validate schema, semantics, and analysis")
+    .action(async (target: string | undefined, commandOptions: CliCommandOptions) => {
+      const config = await loadResolvedConfig(commandOptions, context.options);
+
+      switch (target) {
+        case undefined:
+          await runValidateCommand(config);
+          return;
+        case "schema":
+          await runValidateSchemaCommand(config);
+          return;
+        case "semantics":
+          await runValidateSemanticsCommand(config);
+          return;
+        case "analysis":
+          await runValidateAnalysisCommand(config);
+          return;
+        default:
+          throw new Error(`Unknown validate target: ${target}`);
+      }
+    });
+
+  cli
+    .command("generate <target>", "Write a generated artifact")
+    .action(async (target: string, commandOptions: CliCommandOptions) => {
+      const config = await loadResolvedConfig(commandOptions, context.options);
+
+      switch (target) {
+        case "bundle":
+          await runGenerateBundleCommand(config);
+          return;
+        case "analysis":
+          await runGenerateAnalysisCommand(config);
+          return;
+        case "viewer":
+          await runGenerateViewerCommand(config);
+          return;
+        case "typescript":
+          await runGenerateTypescriptCommand(config);
+          return;
+        default:
+          throw new Error(`Unknown generate target: ${target}`);
+      }
+    });
+
+  cli
+    .command("build", "Validate and generate all configured outputs")
+    .action(async (commandOptions: CliCommandOptions) => {
+      const config = await loadResolvedConfig(commandOptions, context.options);
+      await runBuildCommand(config);
+    });
+
+  cli
+    .command("serve", "Serve the packaged viewer for an existing viewer artifact")
+    .action(async (commandOptions: CliCommandOptions) => {
+      const config = await loadResolvedConfig(commandOptions, context.options);
+      await runServeCommand(config, context.passthroughArgs, context.options);
+    });
+
+  cli
+    .command("watch", "Watch domain-model inputs and rebuild on change")
+    .action(async (commandOptions: CliCommandOptions) => {
+      const config = await loadResolvedConfig(commandOptions, context.options);
+      await runWatchCommand(config);
+    });
+
+  cli
+    .command("dev", "Build once, watch for changes, and serve the viewer")
+    .action(async (commandOptions: CliCommandOptions) => {
+      const config = await loadResolvedConfig(commandOptions, context.options);
+      await runDevCommand(config, context.passthroughArgs, context.options);
+    });
+
+  cli
+    .command("clean", "Remove generated output artifacts")
+    .action(async (commandOptions: CliCommandOptions) => {
+      const config = await loadResolvedConfig(commandOptions, context.options);
+      await runCleanCommand(config);
+    });
+
+  cli
+    .command("doctor", "Diagnose config, inputs, and packaged viewer readiness")
+    .action(async (commandOptions: CliCommandOptions) => {
+      const config = await loadResolvedConfig(commandOptions, context.options);
+      await runDoctorCommand(config);
+    });
+
+  cli
+    .command("editor <target>", "Editor integration commands")
+    .action(async (target: string, commandOptions: CliCommandOptions) => {
+      if (commandOptions.config) {
+        throw new Error("The editor setup command does not accept --config");
+      }
+
+      if (target !== "setup") {
+        throw new Error(`Unknown editor command: editor ${target}`);
+      }
+
+      await runEditorSetupCommand(context.options);
+    });
+
+  cli
+    .command("config <target>", "Config inspection commands")
+    .action(async (target: string, commandOptions: CliCommandOptions) => {
+      if (target !== "print") {
+        throw new Error(`Unknown config command: config ${target}`);
+      }
+
+      const config = await loadResolvedConfig(commandOptions, context.options);
+      await runConfigPrintCommand(config);
+    });
+
+  cli.help();
+
+  return cli;
+}
+
+async function loadResolvedConfig(
+  commandOptions: CliCommandOptions,
+  options: RunCliCommandOptions
+) {
+  return loadDddSpecConfig({
+    configPath: commandOptions.config,
+    cwd: options.cwd
+  });
 }
 
 async function runValidateCommand(
   config: Awaited<ReturnType<typeof loadDddSpecConfig>>
-): Promise<LoadedSpecContext> {
-  const loadedSpec = await loadValidatedSpec(config);
-  logInfo(`validated domain model (${config.spec.entryPath})`);
+): Promise<LoadedSpecAnalysis> {
+  const { spec } = await runValidateSemanticsCommand(config);
+  const analysis = validateAnalysis(spec);
 
-  return loadedSpec;
+  logInfo(`validated analysis (${config.spec.entryPath})`);
+
+  return {
+    analysis,
+    spec
+  };
 }
 
-async function runBundleCommand(
+async function runValidateSchemaCommand(
   config: Awaited<ReturnType<typeof loadDddSpecConfig>>
 ): Promise<void> {
-  const { spec } = await runValidateCommand(config);
+  await validateSchema(config);
+  logInfo(`validated domain model schema (${config.spec.entryPath})`);
+}
+
+async function runValidateSemanticsCommand(
+  config: Awaited<ReturnType<typeof loadDddSpecConfig>>
+): Promise<LoadedSpecContext> {
+  const spec = await loadSemanticallyValidSpec(config);
+  logInfo(`validated domain model semantics (${config.spec.entryPath})`);
+
+  return {
+    spec
+  };
+}
+
+async function runValidateAnalysisCommand(
+  config: Awaited<ReturnType<typeof loadDddSpecConfig>>
+): Promise<LoadedSpecAnalysis> {
+  const { spec } = await runValidateSemanticsCommand(config);
+  const analysis = validateAnalysis(spec);
+
+  logInfo(`validated analysis (${config.spec.entryPath})`);
+
+  return {
+    analysis,
+    spec
+  };
+}
+
+async function runGenerateBundleCommand(
+  config: Awaited<ReturnType<typeof loadDddSpecConfig>>
+): Promise<void> {
+  const { spec } = await runValidateSemanticsCommand(config);
   const bundlePath = requireOutputPath(config.outputs.bundlePath, "outputs.bundle");
 
   await writeJsonArtifact(bundlePath, spec);
   logArtifact("bundled domain model", bundlePath);
 }
 
-async function runAnalyzeCommand(
+async function runGenerateAnalysisCommand(
   config: Awaited<ReturnType<typeof loadDddSpecConfig>>
-): Promise<LoadedSpecAnalysis> {
-  const { spec } = await runValidateCommand(config);
-  const analysis = analyzeSpec(spec);
+): Promise<void> {
+  const { spec, analysis } = await runValidateCommand(config);
   const analysisPath = requireOutputPath(config.outputs.analysisPath, "outputs.analysis");
 
   await writeJsonArtifact(analysisPath, analysis);
-  emitAnalysisDiagnostics(analysis);
-  assertNoAnalysisErrors(analysis);
   logArtifact("wrote analysis", analysisPath);
   logInfo(formatAnalysisSuccessMessage(analysis));
-
-  return analysis;
+  void spec;
 }
 
 async function runBuildCommand(
   config: Awaited<ReturnType<typeof loadDddSpecConfig>>
 ): Promise<void> {
-  const loadedSpec = await runValidateCommand(config);
+  const { spec, analysis } = await runValidateCommand(config);
   const bundlePath = requireOutputPath(config.outputs.bundlePath, "outputs.bundle");
-
-  await writeJsonArtifact(bundlePath, loadedSpec.spec);
-  logArtifact("bundled domain model", bundlePath);
-
-  const analysis = analyzeSpec(loadedSpec.spec);
   const analysisPath = requireOutputPath(config.outputs.analysisPath, "outputs.analysis");
 
+  await writeJsonArtifact(bundlePath, spec);
+  logArtifact("bundled domain model", bundlePath);
+
   await writeJsonArtifact(analysisPath, analysis);
-  emitAnalysisDiagnostics(analysis);
-  assertNoAnalysisErrors(analysis);
   logArtifact("wrote analysis", analysisPath);
   logInfo(formatAnalysisSuccessMessage(analysis));
 
   if (config.projections.typescript) {
-    await generateTypescriptSpec(config, loadedSpec.spec);
+    await generateTypescriptSpec(config, spec);
   } else {
     await cleanupTypescriptOutputs(config);
   }
 
   if (config.projections.viewer) {
-    await generateViewerSpec(config, loadedSpec.spec, analysis);
+    await generateViewerSpec(config, spec, analysis);
   } else {
     await cleanupViewerOutputs(config);
   }
@@ -181,12 +333,9 @@ async function runGenerateViewerCommand(
 ): Promise<void> {
   assertProjectionEnabled(config, "viewer");
 
-  const loadedSpec = await runValidateCommand(config);
-  const analysis = analyzeSpec(loadedSpec.spec);
+  const { spec, analysis } = await runValidateCommand(config);
 
-  emitAnalysisDiagnostics(analysis);
-  assertNoAnalysisErrors(analysis);
-  await generateViewerSpec(config, loadedSpec.spec, analysis);
+  await generateViewerSpec(config, spec, analysis);
 }
 
 async function runGenerateTypescriptCommand(
@@ -194,20 +343,28 @@ async function runGenerateTypescriptCommand(
 ): Promise<void> {
   assertProjectionEnabled(config, "typescript");
 
-  const { spec } = await runValidateCommand(config);
+  const { spec } = await runValidateSemanticsCommand(config);
   await generateTypescriptSpec(config, spec);
 }
 
-async function runViewerCommand(
+async function runServeCommand(
   config: Awaited<ReturnType<typeof loadDddSpecConfig>>,
   passthroughArgs: readonly string[],
   options: RunCliCommandOptions
 ): Promise<void> {
   assertProjectionEnabled(config, "viewer");
-  await runBuildCommand(config);
+  await assertViewerOutputReady(config);
   await startDddSpecViewer(config, {
     args: passthroughArgs,
     hooks: options.viewerCommandHooks
+  });
+}
+
+async function runWatchCommand(
+  config: Awaited<ReturnType<typeof loadDddSpecConfig>>
+): Promise<void> {
+  await startDddSpecWatchSession(config, {
+    rebuild: () => runBuildCommand(config)
   });
 }
 
@@ -224,23 +381,307 @@ async function runDevCommand(
   });
 }
 
-async function loadValidatedSpec(
+async function runCleanCommand(
   config: Awaited<ReturnType<typeof loadDddSpecConfig>>
-): Promise<LoadedSpecContext> {
+): Promise<void> {
+  await cleanupOutputPaths(
+    [
+      config.outputs.bundlePath,
+      config.outputs.analysisPath,
+      ...expandOptionalViewerArtifactPaths([
+        config.outputs.viewerPath,
+        ...config.viewer.syncTargetPaths
+      ]),
+      config.outputs.typescriptPath
+    ],
+    "removed generated output"
+  );
+}
+
+async function runDoctorCommand(
+  config: Awaited<ReturnType<typeof loadDddSpecConfig>>
+): Promise<void> {
+  const diagnostics: Array<{
+    message: string;
+    severity: "error" | "info";
+  }> = [];
+
+  diagnostics.push({
+    message: `config resolved from ${config.sourceDescription}`,
+    severity: "info"
+  });
+
+  await pushPathDiagnostic(diagnostics, config.spec.entryPath, "domain model entry");
+  await pushPathDiagnostic(diagnostics, config.schema.path, "domain model schema");
+
+  if (config.outputs.rootDirPath) {
+    diagnostics.push({
+      message: `output root resolves to ${config.outputs.rootDirPath}`,
+      severity: "info"
+    });
+  }
+
+  if (config.projections.viewer) {
+    try {
+      const assetDirPath = await resolveViewerAssetDirPath();
+
+      diagnostics.push({
+        message: `packaged viewer assets ready at ${assetDirPath}`,
+        severity: "info"
+      });
+    } catch (error: unknown) {
+      diagnostics.push({
+        message: toErrorMessage(error),
+        severity: "error"
+      });
+    }
+
+    if (config.outputs.viewerPath) {
+      try {
+        await access(config.outputs.viewerPath);
+        diagnostics.push({
+          message: `viewer artifact present at ${config.outputs.viewerPath}`,
+          severity: "info"
+        });
+      } catch {
+        diagnostics.push({
+          message:
+            `viewer artifact missing at ${config.outputs.viewerPath}. Run \`ddd-spec build\` or \`ddd-spec generate viewer\` before \`ddd-spec serve\`.`,
+          severity: "error"
+        });
+      }
+    }
+  }
+
+  for (const diagnostic of diagnostics) {
+    logInfo(`[${diagnostic.severity}] ${diagnostic.message}`);
+  }
+
+  const errorCount = diagnostics.filter((diagnostic) => diagnostic.severity === "error").length;
+
+  if (errorCount > 0) {
+    throw new Error(`doctor found ${errorCount} blocking issue(s)`);
+  }
+}
+
+async function runEditorSetupCommand(options: RunCliCommandOptions): Promise<void> {
+  const cwd = options.cwd ?? process.cwd();
+  const result = await ensureVsCodeWorkspaceConfig(cwd);
+
+  if (result.schemaAssetsStatus === "created") {
+    logArtifact("created VS Code YAML schema assets", result.schemaDirPath);
+  } else if (result.schemaAssetsStatus === "updated") {
+    logInfo("updated .vscode/ddd-spec/schema with YAML schema assets");
+  } else if (result.schemaAssetsStatus === "unchanged") {
+    logInfo(".vscode/ddd-spec/schema already includes YAML schema assets");
+  }
+
+  if (result.settingsStatus === "created") {
+    logArtifact("created VS Code YAML schema settings", result.settingsPath);
+  } else if (result.settingsStatus === "updated") {
+    logInfo("updated .vscode/settings.json with YAML schema mappings");
+  } else if (result.settingsStatus === "unchanged") {
+    logInfo(".vscode/settings.json already includes YAML schema mappings");
+  }
+
+  if (result.extensionsStatus === "created") {
+    logArtifact("created VS Code extension recommendations", result.extensionsPath);
+  } else if (result.extensionsStatus === "updated") {
+    logInfo("updated .vscode/extensions.json with recommended YAML tooling");
+  } else if (result.extensionsStatus === "unchanged") {
+    logInfo(".vscode/extensions.json already recommends YAML tooling");
+  }
+
+  for (const warning of result.warnings) {
+    logInfo(`warning: ${warning}`);
+  }
+}
+
+async function runConfigPrintCommand(
+  config: Awaited<ReturnType<typeof loadDddSpecConfig>>
+): Promise<void> {
+  console.log(`${JSON.stringify(config, null, 2)}\n`);
+}
+
+async function validateSchema(
+  config: Awaited<ReturnType<typeof loadDddSpecConfig>>
+): Promise<void> {
+  await validateDomainModelWorkspaceSchema({
+    entryPath: config.spec.entryPath,
+    schemaPath: config.schema.path
+  });
+}
+
+async function loadSemanticallyValidSpec(
+  config: Awaited<ReturnType<typeof loadDddSpecConfig>>
+): Promise<BusinessSpec> {
   const spec = await loadCanonicalSpec({
     entryPath: config.spec.entryPath,
     validateSemantics: false
   });
 
-  await validateDomainModelWorkspaceSchema({
-    entryPath: config.spec.entryPath,
-    schemaPath: config.schema.path
-  });
+  await validateSchema(config);
   validateBusinessSpecSemantics(spec);
 
+  return spec;
+}
+
+function validateAnalysis(spec: BusinessSpec): BusinessSpecAnalysis {
+  const analysis = analyzeSpec(spec);
+
+  emitAnalysisDiagnostics(analysis);
+  assertNoAnalysisErrors(analysis);
+
+  return analysis;
+}
+
+async function assertViewerOutputReady(
+  config: Awaited<ReturnType<typeof loadDddSpecConfig>>
+): Promise<void> {
+  const viewerPath = requireOutputPath(config.outputs.viewerPath, "outputs.viewer");
+
+  try {
+    await access(viewerPath);
+  } catch {
+    throw new Error(
+      `Missing viewer artifact at ${viewerPath}. Run \`ddd-spec build\` or \`ddd-spec generate viewer\` before \`ddd-spec serve\`.`
+    );
+  }
+}
+
+async function pushPathDiagnostic(
+  diagnostics: Array<{
+    message: string;
+    severity: "error" | "info";
+  }>,
+  path: string,
+  label: string
+): Promise<void> {
+  try {
+    await access(path);
+    diagnostics.push({
+      message: `${label} present at ${path}`,
+      severity: "info"
+    });
+  } catch {
+    diagnostics.push({
+      message: `${label} missing at ${path}`,
+      severity: "error"
+    });
+  }
+}
+
+function splitPassthroughArgs(argv: readonly string[]): {
+  commandArgv: readonly string[];
+  passthroughArgs: readonly string[];
+} {
+  const separatorIndex = argv.indexOf("--");
+
+  if (separatorIndex === -1) {
+    return {
+      commandArgv: argv,
+      passthroughArgs: []
+    };
+  }
+
   return {
-    spec
+    commandArgv: argv.slice(0, separatorIndex),
+    passthroughArgs: argv.slice(separatorIndex + 1)
   };
+}
+
+function assertSupportedCommandSurface(argv: readonly string[]): void {
+  if (argv.includes("--template")) {
+    throw new Error("Legacy init templates were removed. Use plain `ddd-spec init`.");
+  }
+
+  if (argv.length === 0) {
+    return;
+  }
+
+  const [first, second] = argv;
+
+  if (first === "viewer") {
+    throw new Error(
+      "The `viewer` command was removed. Use `ddd-spec serve` to serve existing viewer output, or `ddd-spec dev` for the watch-and-serve loop."
+    );
+  }
+
+  if (first === "bundle") {
+    throw new Error(
+      "The top-level `bundle` command was removed. Use `ddd-spec generate bundle`."
+    );
+  }
+
+  if (first === "analyze") {
+    throw new Error(
+      "The top-level `analyze` command was removed. Use `ddd-spec generate analysis`."
+    );
+  }
+
+  if (first === "generate-viewer") {
+    throw new Error("The `generate-viewer` command was removed. Use `ddd-spec generate viewer`.");
+  }
+
+  if (first === "generate-typescript") {
+    throw new Error(
+      "The `generate-typescript` command was removed. Use `ddd-spec generate typescript`."
+    );
+  }
+
+  if (first === "editor" && second && !isHelpFlag(second) && second !== "setup") {
+    throw new Error(`Unknown editor command: editor ${second}`);
+  }
+
+  if (first === "config" && second && !isHelpFlag(second) && second !== "print") {
+    throw new Error(`Unknown config command: config ${second}`);
+  }
+}
+
+function isRootHelpRequest(argv: readonly string[]): boolean {
+  return argv.length > 0 && argv.every((arg) => isHelpFlag(arg));
+}
+
+function isHelpFlag(value: string): boolean {
+  return value === "--help" || value === "-h";
+}
+
+function getGroupedCommandHelpText(argv: readonly string[]): string | undefined {
+  if (argv.length !== 2 || !isHelpFlag(argv[1])) {
+    return undefined;
+  }
+
+  switch (argv[0]) {
+    case "editor":
+      return [
+        "ddd-spec",
+        "",
+        "Usage:",
+        "  $ ddd-spec editor <target>",
+        "",
+        "Targets:",
+        "  setup  Configure VS Code YAML schema mappings for the workspace",
+        "",
+        "Options:",
+        "  -h, --help  Display this message"
+      ].join("\n");
+    case "config":
+      return [
+        "ddd-spec",
+        "",
+        "Usage:",
+        "  $ ddd-spec config <target>",
+        "",
+        "Targets:",
+        "  print  Print the resolved ddd-spec config JSON",
+        "",
+        "Options:",
+        "  --config <path>  Load an explicit ddd-spec config file",
+        "  -h, --help       Display this message"
+      ].join("\n");
+    default:
+      return undefined;
+  }
 }
 
 async function generateTypescriptSpec(
@@ -251,14 +692,14 @@ async function generateTypescriptSpec(
   void spec;
 
   throw new Error(
-    "TypeScript projection is not implemented for version 1 domain models yet. Disable projections.typescript for this config before running build or generate-typescript."
+    "TypeScript projection is not implemented for version 1 domain models yet. Disable projections.typescript for this config before running build or generate typescript."
   );
 }
 
 async function generateViewerSpec(
   config: Awaited<ReturnType<typeof loadDddSpecConfig>>,
   spec: BusinessSpec,
-  analysis: LoadedSpecAnalysis
+  analysis: BusinessSpecAnalysis
 ): Promise<void> {
   const viewerPath = requireOutputPath(config.outputs.viewerPath, "outputs.viewer");
   const viewerSpecsByLocale = Object.fromEntries(
@@ -330,108 +771,11 @@ function assertProjectionEnabled(
   );
 }
 
-function parseCliArgs(argv: readonly string[]): ParsedCliArgs {
-  const positionals: string[] = [];
-  let configPath: string | undefined;
-  let help = false;
-  let passthroughArgs: readonly string[] = [];
-
-  for (let index = 0; index < argv.length; index += 1) {
-    const arg = argv[index];
-
-    if (arg === "--") {
-      passthroughArgs = argv.slice(index + 1);
-      break;
-    }
-
-    if (arg === "--config") {
-      const nextArg = argv[index + 1];
-
-      if (!nextArg) {
-        throw new Error("--config requires a path");
-      }
-
-      configPath = nextArg;
-      index += 1;
-      continue;
-    }
-
-    if (arg === "--template") {
-      throw new Error("Legacy init templates were removed. Use plain `ddd-spec init`.");
-    }
-
-    if (arg === "--help" || arg === "-h") {
-      help = true;
-      continue;
-    }
-
-    if (arg.startsWith("--")) {
-      throw new Error(`Unknown option: ${arg}`);
-    }
-
-    positionals.push(arg);
-  }
-
-  return {
-    command: parseCommand(positionals),
-    configPath,
-    help,
-    passthroughArgs
-  };
-}
-
-function parseCommand(positionals: readonly string[]): CliCommand | undefined {
-  if (positionals.length === 0) {
-    return undefined;
-  }
-
-  if (positionals[0] === "init" && positionals.length === 1) {
-    return "init";
-  }
-
-  if (positionals[0] === "validate" && positionals.length === 1) {
-    return "validate";
-  }
-
-  if (positionals[0] === "bundle" && positionals.length === 1) {
-    return "bundle";
-  }
-
-  if (positionals[0] === "analyze" && positionals.length === 1) {
-    return "analyze";
-  }
-
-  if (positionals[0] === "build" && positionals.length === 1) {
-    return "build";
-  }
-
-  if (positionals[0] === "dev" && positionals.length === 1) {
-    return "dev";
-  }
-
-  if (positionals[0] === "viewer" && positionals.length === 1) {
-    return "viewer";
-  }
-
-  if (positionals[0] !== "generate" || positionals.length !== 2) {
-    throw new Error(`Unknown command: ${positionals.join(" ")}`);
-  }
-
-  switch (positionals[1]) {
-    case "viewer":
-      return "generate-viewer";
-    case "typescript":
-      return "generate-typescript";
-    default:
-      throw new Error(`Unknown generate target: ${positionals[1]}`);
-  }
-}
-
-function emitAnalysisDiagnostics(analysis: LoadedSpecAnalysis): void {
+function emitAnalysisDiagnostics(analysis: BusinessSpecAnalysis): void {
   void analysis;
 }
 
-function assertNoAnalysisErrors(analysis: LoadedSpecAnalysis): void {
+function assertNoAnalysisErrors(analysis: BusinessSpecAnalysis): void {
   const errorDiagnostics = analysis.diagnostics.filter(
     (diagnostic) => diagnostic.severity === "error"
   );
@@ -466,10 +810,14 @@ function expandOptionalViewerArtifactPaths(
   return uniqueDefined(outputPaths).flatMap((outputPath) => expandViewerArtifactPaths(outputPath));
 }
 
-function analyzeSpec(spec: BusinessSpec): LoadedSpecAnalysis {
+function analyzeSpec(spec: BusinessSpec): BusinessSpecAnalysis {
   return analyzeBusinessSpec(spec);
 }
 
-function formatAnalysisSuccessMessage(analysis: LoadedSpecAnalysis): string {
+function formatAnalysisSuccessMessage(analysis: BusinessSpecAnalysis): string {
   return `analysis passed with ${analysis.summary.errorCount} error(s)`;
+}
+
+function toErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
 }
