@@ -11,7 +11,7 @@ The current public package is [`@spec-alchemy/ddd-spec`](./packages/ddd-spec-cli
 - Default workspace: `domain-model/`
 - Default entry: `domain-model/index.yaml`
 - Default generated output: `.ddd-spec/`
-- Supported Node.js: `>=18`
+- Package runtime Node.js: `>=18`
 
 Install it in your project with:
 
@@ -67,6 +67,8 @@ This repository is a maintainer workspace, not a consumer project template.
 Spec Alchemy develops general-purpose spec infrastructure. Business-specific implementation belongs in separate consumer repositories rather than inside this monorepo.
 
 ## Maintainer Commands
+
+Maintainer workspace Node.js: `22` or `24`
 
 | Task | Command |
 |------|---------|

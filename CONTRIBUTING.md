@@ -15,7 +15,7 @@ The release lanes are intentionally simple:
 ## Before You Start
 
 - Read [`README.md`](./README.md) for the current product and repository boundaries.
-- Use Node `>=18`.
+- Use Node `22` or `24` for this maintainer workspace.
 - Install dependencies from the repo root with `npm ci`.
 - For security issues, follow [`SECURITY.md`](./SECURITY.md) instead of opening a public report.
 
@@ -38,6 +38,10 @@ npm run release:dry-run
 
 `npm run verify` is the baseline contribution gate. `npm run release:dry-run` is required for
 changes that affect the public package release surface.
+
+The published `@spec-alchemy/ddd-spec` package keeps its own runtime compatibility floor. The
+maintainer workspace uses a higher Node baseline because the private viewer build toolchain follows
+current Vite support.
 
 ## Contribution Expectations
 
@@ -67,6 +71,9 @@ changes that affect the public package release surface.
 This repo uses Changesets for the public package. For maintainers, the release flow is documented
 in [`.changeset/README.md`](./.changeset/README.md), including the `main` stable lane and the
 `beta` prerelease lane.
+
+Routine package publication should run through GitHub Actions trusted publishing, not ad hoc local
+`npm publish` commands.
 
 ## Conduct
 

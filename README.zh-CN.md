@@ -11,7 +11,7 @@ English README: [README.md](./README.md)
 - 默认工作区：`domain-model/`
 - 默认入口：`domain-model/index.yaml`
 - 默认生成输出：`.ddd-spec/`
-- 支持的 Node.js：`>=18`
+- 公开包运行时 Node.js：`>=18`
 
 安装方式：
 
@@ -59,6 +59,8 @@ npm exec ddd-spec serve -- --port 4173
 业务特定资产应放在独立的消费者仓库中，而不是保存在本仓库内。
 
 ## 维护者命令
+
+维护者工作区 Node.js：`22` 或 `24`
 
 | 任务 | 命令 |
 |------|------|
