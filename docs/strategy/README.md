@@ -28,6 +28,8 @@
    当需要评审 `frontend-spec` 对 dependency rules、contract consistency 与 impact analysis 的 shared needs 时，先看这份预演结果。
 12. [qa-spec shared kernel preflight](./qa-spec-shared-kernel-preflight.md)
    当需要评审 `qa-spec` 对 `traceability`、`evidence chain` 与 gate seam 的 shared needs 时，先看这份预演结果。
+13. [shared kernel ralph-loop backlog](./shared-kernel-ralph-loop-backlog.md)
+   当需要把当前产物继续拆成可执行的 extraction / preflight / migration-prep beads 时，先看这份 backlog。
 
 目录原则：
 
