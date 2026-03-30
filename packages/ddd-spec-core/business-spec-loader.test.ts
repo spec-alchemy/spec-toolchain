@@ -203,6 +203,38 @@ test("analysis IR exposes unified primary-view projections and policy coordinati
   );
 
   assert.deepEqual(analysis.diagnostics, []);
+  assert.deepEqual(approvalsContext.stableId, {
+    family: "ddd-spec",
+    kind: "context",
+    value: "approvals"
+  });
+  assert.deepEqual(requesterActor.stableId, {
+    family: "ddd-spec",
+    kind: "actor",
+    value: "requester"
+  });
+  assert.deepEqual(approvalScenario.stableId, {
+    family: "ddd-spec",
+    kind: "scenario",
+    value: "approval-request-flow"
+  });
+  assert.deepEqual(approvalMessage.stableId, {
+    family: "ddd-spec",
+    kind: "message",
+    value: "approval-request-approved"
+  });
+  assert.deepEqual(approvalLifecycle.stableId, {
+    family: "ddd-spec",
+    kind: "aggregate",
+    value: "approval-request"
+  });
+  assert.deepEqual(notificationPolicy.stableId, {
+    family: "ddd-spec",
+    kind: "policy",
+    value: "notify-requester-after-approval"
+  });
+  assert.equal("stableId" in approvalScenario.steps[0], false);
+  assert.equal("stableId" in approvalLifecycle.states[0], false);
   assert.deepEqual(approvalsContext.aggregateIds, ["approval-request"]);
   assert.deepEqual(approvalsContext.scenarioIds, ["approval-request-flow"]);
   assert.deepEqual(approvalsContext.policyIds, ["notify-requester-after-approval"]);
