@@ -5,47 +5,27 @@
 建议阅读顺序：
 
 1. [品牌宪法](./brand-constitution.md)
-   先看不可轻易变化的战略定义：我们是谁、做什么、不做什么。
+   先看不可轻易变化的战略定义：我们是谁、做什么、不做什么，以及什么不属于 `Spec Toolchain`。
 2. [Spec Family 结构图](./spec-family-map.md)
-   再看产品线结构：`shared kernel`、当前 `spec family`、候选 `spec family`、跨 family 关系。
+   再看产品线结构：`shared kernel`、当前 `spec family`、候选 `spec family` 的结构角色，以及跨 family 关系。
 3. [Spec Family 准入标准](./family-admission-criteria.md)
-   最后看扩张门槛：什么样的 `xxx-spec` 才允许进入产品线。
+   再看扩张门槛：什么样的 `xxx-spec` 才允许进入产品线，必须提供哪些证据。
 4. [新增 Spec Family 评审模板](./new-family-review-template.md)
-   当准备引入新的 family 时，用这份模板组织提案与评审材料。
+   当准备引入新的 family 时，用这份模板组织提案与评审材料，避免自由发挥导致评审口径漂移。
 5. [术语表](./terminology.md)
    用于统一品牌、产品结构、运行时能力与评审文档中的严格术语写法。
-6. [ddd-spec shared kernel candidate baseline](./ddd-spec-shared-kernel-candidate-baseline.md)
-   当需要评审 `ddd-spec -> shared kernel` 拆分时，先看这份能力拆分基线。
-7. [shared kernel directory and ownership plan](./shared-kernel-directory-ownership.md)
-   当需要确定 landing zone、ownership 和 orchestration 边界时，先看这份目录方案。
-8. [shared kernel extraction matrix](./shared-kernel-extraction-matrix.md)
-   当需要确认哪些 shared surfaces 现在可抽、哪些应暂缓、哪些必须继续留在 family-specific 层时，先看这份冻结 matrix。
-9. [shared stable ID contract](./shared-stable-id-contract.md)
-   当需要确认 canonical source object identity 的最小 shared seam，以及它为什么不能覆盖 artifact-local IDs 时，先看这份边界说明。
-10. [shared reference contract](./shared-reference-contract.md)
-   当需要确认 cross-family reference 的最小 shared seam、哪些字段参与解析、哪些字段只用于辅助诊断时，先看这份边界说明。
-11. [shared invalid-reference diagnostics](./shared-invalid-reference-diagnostics.md)
-   当需要确认失效引用 diagnostics 至少要暴露哪些 shared 字段、哪些细节仍留给 family validator 时，先看这份边界说明。
-12. [shared provenance contract](./shared-provenance-contract.md)
-   当需要确认 artifact/analysis output 如何链接回多个 canonical source objects，以及它如何与 `artifact manifest` 分工时，先看这份边界说明。
-13. [shared kernel contract skeleton](./shared-kernel-contract-skeleton.md)
-   当需要评审第一版 shared `contract` skeleton 是否过薄或语义泄漏时，先看这份边界说明。
-14. [ddd-spec shared kernel readiness checklist](./ddd-spec-shared-kernel-readiness-checklist.md)
-   当需要判断当前 `ddd-spec` 是否已经足够成为后续 family 的 shared-kernel 样板时，先看这份 checklist。
-15. [ui-spec shared kernel preflight](./ui-spec-shared-kernel-preflight.md)
-   当需要评审 `ui-spec` 对 `validation`、`analysis`、`generation`、`viewer` 四个 runtime surfaces 的 shared needs 时，先看这份预演结果。
-16. [frontend-spec shared kernel preflight](./frontend-spec-shared-kernel-preflight.md)
-   当需要评审 `frontend-spec` 对 dependency rules、contract consistency 与 impact analysis 的 shared needs 时，先看这份预演结果。
-17. [qa-spec shared kernel preflight](./qa-spec-shared-kernel-preflight.md)
-   当需要评审 `qa-spec` 对 `traceability`、`evidence chain` 与 gate seam 的 shared needs 时，先看这份预演结果。
-18. [shared kernel ralph-loop backlog](./shared-kernel-ralph-loop-backlog.md)
-   当需要把当前产物继续拆成可执行的 extraction / preflight / migration-prep beads 时，先看这份 backlog。
-19. [shared kernel extraction-ready prep](./shared-kernel-extraction-ready-prep.md)
-   当需要确认三份 family preflight 里哪些缺口已经被 shared seam 覆盖、下一轮 extraction 应该按什么顺序推进、以及 `SK-LOOP-03` 完成到哪里时，先看这份收口说明。
+
+五份文档的边界分工：
+
+- `brand-constitution.md` 只回答战略定义与硬约束，不写候选 family 方案或阶段性执行结论。
+- `spec-family-map.md` 只回答产品结构与 family 关系，不单独承担准入评审或实现设计。
+- `family-admission-criteria.md` 只回答准入门槛、所需证据与否决条件，不重复品牌总述。
+- `new-family-review-template.md` 只提供提案与评审结构，不沉淀新的战略定义。
+- `terminology.md` 只定义严格术语，不扩写产品路线或实现细节。
 
 目录原则：
 
-- 这里只放 durable strategy docs，不放路线图、周报、阶段总结。
-- 新增 `spec family` 前，先更新或至少核对这三份文件。
-- 评审新的 `xxx-spec` 时，优先复用模板，而不是自由发挥写 `proposal`。
-- 如果实现与文档冲突，以可执行产物为准；但战略边界冲突必须先修正文档再继续扩张。
+- 这里只放 durable strategy docs，不放 shared-kernel 拆分草稿、阶段性 preflight、readiness checklist、backlog 或状态总结。
+- shared-kernel 的真实边界以 `packages/spec-toolchain-shared-kernel/`、相关测试与当前 family 实现为准，不在这里重复维护一套实现说明。
+- 新增 `spec family` 前，先核对 [品牌宪法](./brand-constitution.md)、[Spec Family 结构图](./spec-family-map.md)、[Spec Family 准入标准](./family-admission-criteria.md)、[新增 Spec Family 评审模板](./new-family-review-template.md) 与 [术语表](./terminology.md)。
+- 如果实现与文档冲突，以可执行产物为准；如果品牌、family 边界或准入标准发生变化，必须先更新本目录中的长期战略文档。

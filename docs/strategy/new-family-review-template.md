@@ -2,9 +2,10 @@
 
 本模板用于评审新的 `xxx-spec` 是否应该进入 `spec-toolchain` 产品线。使用方式：
 
-1. 发起人先完整填写本文件。
+1. 发起人先对齐 [brand-constitution.md](./brand-constitution.md) 与 [terminology.md](./terminology.md)，再完整填写本文件。
 2. 评审人对照 [family-admission-criteria.md](./family-admission-criteria.md) 逐项审查。
-3. 若结论为继续推进，再进入具体 schema、CLI、`viewer`、tests 设计。
+3. 若提案与 [spec-family-map.md](./spec-family-map.md) 的产品结构冲突，应先修正提案或先修订结构图，不得在评审中临时改写战略定义。
+4. 若结论为继续推进，再进入具体 schema、CLI、`viewer`、tests 设计。
 
 ---
 
@@ -83,3 +84,4 @@
 - 主要理由：
 - 必须补齐的缺口：
 - 下一次复审时间：
+- 是否需要先修订战略文档：`no` / `brand-constitution` / `spec-family-map` / `family-admission-criteria` / `terminology`
