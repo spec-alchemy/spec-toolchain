@@ -7,10 +7,23 @@ import {
   SHARED_DIAGNOSTIC_SEVERITIES,
   SHARED_DIAGNOSTIC_VERSION,
   SHARED_KERNEL_EXTENSION_POINT_STATUS,
+  SHARED_STABLE_ID_VERSION,
   type SharedArtifactManifest,
   type SharedDiagnostic,
-  type SharedKernelFamilyContract
+  type SharedKernelFamilyContract,
+  type SharedStableId
 } from "./index.ts";
+
+test("stable ID contract only models canonical source object identity", () => {
+  const stableId: SharedStableId = {
+    family: "qa-spec",
+    kind: "coverage-target",
+    value: "checkout-happy-path"
+  };
+
+  assert.equal(SHARED_STABLE_ID_VERSION, 1);
+  assert.deepEqual(Object.keys(stableId), ["family", "kind", "value"]);
+});
 
 test("shared diagnostics contract stays family-agnostic", () => {
   const diagnostic: SharedDiagnostic = {
@@ -24,7 +37,9 @@ test("shared diagnostics contract stays family-agnostic", () => {
       {
         family: "ui-spec",
         kind: "screen",
-        stableId: "checkout-confirm"
+        value: "checkout-confirm",
+        versionHint: "draft",
+        path: "/views/checkout/confirm"
       }
     ]
   };
@@ -32,6 +47,7 @@ test("shared diagnostics contract stays family-agnostic", () => {
   assert.equal(SHARED_DIAGNOSTIC_VERSION, 1);
   assert.deepEqual(SHARED_DIAGNOSTIC_SEVERITIES, ["error", "warning", "info"]);
   assert.equal(diagnostic.related?.[0]?.family, "ui-spec");
+  assert.equal(diagnostic.related?.[0]?.value, "checkout-confirm");
 });
 
 test("artifact manifest contract tracks generic artifact metadata only", () => {
