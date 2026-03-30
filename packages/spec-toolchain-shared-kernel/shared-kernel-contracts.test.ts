@@ -6,11 +6,13 @@ import {
   SHARED_ARTIFACT_ROLES,
   SHARED_DIAGNOSTIC_SEVERITIES,
   SHARED_DIAGNOSTIC_VERSION,
+  SHARED_INVALID_REFERENCE_DIAGNOSTIC_CODE,
   SHARED_KERNEL_EXTENSION_POINT_STATUS,
   SHARED_REFERENCE_VERSION,
   SHARED_STABLE_ID_VERSION,
   type SharedArtifactManifest,
   type SharedDiagnostic,
+  type SharedInvalidReferenceDiagnostic,
   type SharedKernelFamilyContract,
   type SharedReference,
   type SharedStableId
@@ -73,6 +75,44 @@ test("cross-family reference contract separates resolver identity from hints", (
     "value",
     "versionHint"
   ]);
+});
+
+test("invalid-reference diagnostics expose the broken shared reference", () => {
+  const diagnostic: SharedInvalidReferenceDiagnostic = {
+    severity: "error",
+    code: SHARED_INVALID_REFERENCE_DIAGNOSTIC_CODE,
+    message: "Referenced frontend contract could not be resolved.",
+    location: {
+      path: "/checks/checkout-ready/gates/ui-contracts"
+    },
+    invalidReference: {
+      target: {
+        family: "frontend-spec",
+        kind: "implementation-contract",
+        value: "checkout-shell",
+        versionHint: "draft"
+      },
+      path: "/contracts/checkout/shell"
+    },
+    related: [
+      {
+        target: {
+          family: "qa-spec",
+          kind: "gate",
+          value: "checkout-ready"
+        },
+        path: "/checks/checkout-ready"
+      }
+    ]
+  };
+
+  assert.equal(
+    SHARED_INVALID_REFERENCE_DIAGNOSTIC_CODE,
+    "invalid-reference"
+  );
+  assert.equal(diagnostic.invalidReference.target.family, "frontend-spec");
+  assert.equal(diagnostic.location.path, "/checks/checkout-ready/gates/ui-contracts");
+  assert.equal(diagnostic.related?.[0]?.target.family, "qa-spec");
 });
 
 test("artifact manifest contract tracks generic artifact metadata only", () => {

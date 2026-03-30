@@ -25,3 +25,11 @@ export interface SharedDiagnostic {
   location: SharedDiagnosticLocation;
   related?: readonly SharedDiagnosticRelatedResource[];
 }
+
+export const SHARED_INVALID_REFERENCE_DIAGNOSTIC_CODE =
+  "invalid-reference" as const;
+
+export interface SharedInvalidReferenceDiagnostic extends SharedDiagnostic {
+  code: typeof SHARED_INVALID_REFERENCE_DIAGNOSTIC_CODE;
+  invalidReference: SharedReference;
+}

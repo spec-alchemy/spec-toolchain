@@ -66,7 +66,7 @@
 
 | Shared surface | Current status | Why it helps `frontend-spec` |
 | --- | --- | --- |
-| diagnostics `contract` | available in [`packages/spec-toolchain-shared-kernel/`](../../packages/spec-toolchain-shared-kernel/) | 能表达依赖方向违规、边界穿透、contract mismatch、失效引用等通用 diagnostics shape |
+| diagnostics `contract` | available in [`packages/spec-toolchain-shared-kernel/`](../../packages/spec-toolchain-shared-kernel/) | 能表达依赖方向违规、边界穿透、contract mismatch、失效引用等通用 diagnostics shape，并为 invalid-reference 暴露统一最小字段 |
 | `artifact manifest` skeleton | available in [`packages/spec-toolchain-shared-kernel/`](../../packages/spec-toolchain-shared-kernel/) | 能枚举 dependency graph、impact report、contract index、viewer payload 等前端架构 `artifact` |
 | cross-family reference `contract` | available in [`packages/spec-toolchain-shared-kernel/reference.ts`](../../packages/spec-toolchain-shared-kernel/reference.ts) | 能用同一条 family-agnostic seam 表达前端 canonical objects 对 `ui-spec`、`ddd-spec`、`qa-spec` 的结构化引用 |
 | extension-point placeholder | `reserved` / `candidate` only | 允许先为 dependency/provenance seam、analysis summary 和 viewer primitives 预留挂点，而不承诺 runtime behavior |

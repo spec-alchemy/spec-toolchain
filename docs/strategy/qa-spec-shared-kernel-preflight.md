@@ -55,7 +55,7 @@
 
 | Shared surface | Current status | Why it helps `qa-spec` |
 | --- | --- | --- |
-| diagnostics `contract` | available in [`packages/spec-toolchain-shared-kernel/`](../../packages/spec-toolchain-shared-kernel/) | 能表达 coverage 缺失、失效引用、gate 阻断等通用诊断 shape |
+| diagnostics `contract` | available in [`packages/spec-toolchain-shared-kernel/`](../../packages/spec-toolchain-shared-kernel/) | 能表达 coverage 缺失、失效引用、gate 阻断等通用诊断 shape，并为 invalid-reference 暴露统一最小字段 |
 | `artifact manifest` skeleton | available in [`packages/spec-toolchain-shared-kernel/`](../../packages/spec-toolchain-shared-kernel/) | 能枚举 coverage matrix、gate report、evidence index 之类的 QA `artifact` |
 | cross-family reference `contract` | available in [`packages/spec-toolchain-shared-kernel/reference.ts`](../../packages/spec-toolchain-shared-kernel/reference.ts) | 能用同一条 family-agnostic seam 表达 QA canonical objects 对 `ui-spec`、`frontend-spec`、`ddd-spec` 的结构化引用 |
 | extension-point placeholder | `reserved` / `candidate` only | 允许先为 QA 预留 evidence / gate 相关 `contract` seam，而不承诺 runtime behavior |
