@@ -15,6 +15,10 @@ import {
 import { buildViewerSpec } from "../ddd-spec-projection-viewer/index.js";
 import { cac } from "cac";
 import { removeOutputPath, writeJsonArtifact } from "./artifact-io.js";
+import {
+  buildSharedArtifactManifest,
+  resolveArtifactManifestPath
+} from "./artifact-manifest.js";
 import { formatDiagnostic, logArtifact, logInfo } from "./console.js";
 import { loadDddSpecConfig } from "./config.js";
 import { startDddSpecDevSession, startDddSpecWatchSession } from "./dev.js";
@@ -370,6 +374,9 @@ async function runGenerateBundleCommand(
 
   await writeJsonArtifact(bundlePath, spec);
   logArtifact("bundled domain model", bundlePath);
+  await writeArtifactManifest(config, {
+    includeBundle: true
+  });
 }
 
 async function runGenerateAnalysisCommand(
@@ -380,6 +387,10 @@ async function runGenerateAnalysisCommand(
 
   await writeJsonArtifact(analysisPath, analysis);
   logArtifact("wrote analysis", analysisPath);
+  await writeArtifactManifest(config, {
+    analysis,
+    includeAnalysis: true
+  });
   logInfo(formatAnalysisSuccessMessage(analysis));
   void spec;
 }
@@ -409,6 +420,13 @@ async function runBuildCommand(
   } else {
     await cleanupViewerOutputs(config);
   }
+
+  await writeArtifactManifest(config, {
+    analysis,
+    includeBundle: true,
+    includeAnalysis: true,
+    includeViewer: config.projections.viewer
+  });
 }
 
 async function runGenerateViewerCommand(
@@ -419,6 +437,10 @@ async function runGenerateViewerCommand(
   const { spec, analysis } = await runValidateCommand(config);
 
   await generateViewerSpec(config, spec, analysis);
+  await writeArtifactManifest(config, {
+    analysis,
+    includeViewer: true
+  });
 }
 
 async function runGenerateTypescriptCommand(
@@ -471,6 +493,7 @@ async function runCleanCommand(
     [
       config.outputs.bundlePath,
       config.outputs.analysisPath,
+      resolveArtifactManifestPath(config),
       ...expandOptionalViewerArtifactPaths([
         config.outputs.viewerPath,
         ...config.viewer.syncTargetPaths
@@ -852,6 +875,26 @@ async function writeViewerArtifacts(
     await writeJsonArtifact(localeOutputPath, viewerSpecsByLocale[locale]);
     logArtifact(`${label} (${locale})`, localeOutputPath);
   }
+}
+
+async function writeArtifactManifest(
+  config: Awaited<ReturnType<typeof loadDddSpecConfig>>,
+  options: {
+    analysis?: BusinessSpecAnalysis;
+    includeBundle?: boolean;
+    includeAnalysis?: boolean;
+    includeViewer?: boolean;
+  }
+): Promise<void> {
+  const manifestPath = resolveArtifactManifestPath(config);
+
+  if (!manifestPath) {
+    return;
+  }
+
+  const manifest = buildSharedArtifactManifest(config, options);
+  await writeJsonArtifact(manifestPath, manifest);
+  logArtifact("wrote artifact manifest", manifestPath);
 }
 
 async function cleanupOutputPaths(
