@@ -10,14 +10,15 @@ const packageJsonPath = join(packageRootPath, "package.json");
 const changelogPath = join(packageRootPath, "CHANGELOG.md");
 const changesetDirPath = join(repoRootPath, ".changeset");
 const releaseDistTag = await resolveReleaseDistTag();
+const releaseStatusCommand = ["run", "check:release:status"];
+const releaseVersionCommand = ["run", "ops:release:version"];
 
-await runNpm(["run", "verify"], repoRootPath, "verify");
-await runNpm(["run", "changeset:status"], repoRootPath, "changeset status");
+await runNpm(releaseStatusCommand, repoRootPath, "check:release:status");
 
 const snapshot = await createSnapshot();
 
 try {
-  await runNpm(["run", "changeset:version"], repoRootPath, "changeset version");
+  await runNpm(releaseVersionCommand, repoRootPath, "ops:release:version");
   const publishArgs = ["publish", "--dry-run"];
   const publishLabel =
     releaseDistTag === "latest"
