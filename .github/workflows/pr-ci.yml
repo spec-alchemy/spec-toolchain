@@ -1,0 +1,134 @@
+name: PR CI
+
+on:
+  pull_request:
+
+jobs:
+  policy-branch-name:
+    name: Policy Gate: Branch Name
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Validate branch name
+        env:
+          BRANCH_NAME: ${{ github.head_ref }}
+        run: |
+          if [[ "$BRANCH_NAME" =~ ^(feat|fix|docs|refactor|test|chore|build|ci|perf|revert)/[a-z0-9]+(-[a-z0-9]+)*$ ]]; then
+            exit 0
+          fi
+
+          if [[ "$BRANCH_NAME" =~ ^changeset-release/(main|beta)$ ]]; then
+            exit 0
+          fi
+
+          if [[ "$BRANCH_NAME" =~ ^dependabot/.+$ ]]; then
+            exit 0
+          fi
+
+          echo "Invalid branch name: $BRANCH_NAME"
+          echo "Use one of feat/, fix/, docs/, refactor/, test/, chore/, build/, ci/, perf/, or revert/."
+          echo "Use a lowercase kebab-case topic after the prefix."
+          echo "Examples: feat/viewer-detail-contract, fix/release-dry-run"
+          exit 1
+
+  check-repo-quality:
+    name: Repo Quality
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run repo quality checks
+        run: npm run check:repo:build
+
+  check-package-regressions:
+    name: Package Regressions
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run package regression checks
+        run: npm run check:pkg:test
+
+  check-app-build:
+    name: App Build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run app build checks
+        run: npm run check:app:build
+
+  gate-pr:
+    name: PR Gate
+    runs-on: ubuntu-latest
+    needs:
+      - policy-branch-name
+      - check-repo-quality
+      - check-package-regressions
+      - check-app-build
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [22, 24]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run aggregate PR gate
+        run: npm run gate:pr
