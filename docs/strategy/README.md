@@ -22,17 +22,19 @@
    当需要确认哪些 shared surfaces 现在可抽、哪些应暂缓、哪些必须继续留在 family-specific 层时，先看这份冻结 matrix。
 9. [shared stable ID contract](./shared-stable-id-contract.md)
    当需要确认 canonical source object identity 的最小 shared seam，以及它为什么不能覆盖 artifact-local IDs 时，先看这份边界说明。
-10. [shared kernel contract skeleton](./shared-kernel-contract-skeleton.md)
+10. [shared reference contract](./shared-reference-contract.md)
+   当需要确认 cross-family reference 的最小 shared seam、哪些字段参与解析、哪些字段只用于辅助诊断时，先看这份边界说明。
+11. [shared kernel contract skeleton](./shared-kernel-contract-skeleton.md)
    当需要评审第一版 shared `contract` skeleton 是否过薄或语义泄漏时，先看这份边界说明。
-11. [ddd-spec shared kernel readiness checklist](./ddd-spec-shared-kernel-readiness-checklist.md)
+12. [ddd-spec shared kernel readiness checklist](./ddd-spec-shared-kernel-readiness-checklist.md)
    当需要判断当前 `ddd-spec` 是否已经足够成为后续 family 的 shared-kernel 样板时，先看这份 checklist。
-12. [ui-spec shared kernel preflight](./ui-spec-shared-kernel-preflight.md)
+13. [ui-spec shared kernel preflight](./ui-spec-shared-kernel-preflight.md)
    当需要评审 `ui-spec` 对 `validation`、`analysis`、`generation`、`viewer` 四个 runtime surfaces 的 shared needs 时，先看这份预演结果。
-13. [frontend-spec shared kernel preflight](./frontend-spec-shared-kernel-preflight.md)
+14. [frontend-spec shared kernel preflight](./frontend-spec-shared-kernel-preflight.md)
    当需要评审 `frontend-spec` 对 dependency rules、contract consistency 与 impact analysis 的 shared needs 时，先看这份预演结果。
-14. [qa-spec shared kernel preflight](./qa-spec-shared-kernel-preflight.md)
+15. [qa-spec shared kernel preflight](./qa-spec-shared-kernel-preflight.md)
    当需要评审 `qa-spec` 对 `traceability`、`evidence chain` 与 gate seam 的 shared needs 时，先看这份预演结果。
-15. [shared kernel ralph-loop backlog](./shared-kernel-ralph-loop-backlog.md)
+16. [shared kernel ralph-loop backlog](./shared-kernel-ralph-loop-backlog.md)
    当需要把当前产物继续拆成可执行的 extraction / preflight / migration-prep beads 时，先看这份 backlog。
 
 目录原则：

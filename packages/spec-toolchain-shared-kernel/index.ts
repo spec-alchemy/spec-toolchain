@@ -21,6 +21,10 @@ export {
   type SharedKernelExtensionPointStatus
 } from "./extension-points.ts";
 export {
+  SHARED_REFERENCE_VERSION,
+  type SharedReference
+} from "./reference.ts";
+export {
   SHARED_STABLE_ID_VERSION,
   type SharedStableId
 } from "./stable-identity.ts";

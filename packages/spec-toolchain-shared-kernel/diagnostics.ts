@@ -1,4 +1,4 @@
-import type { SharedStableId } from "./stable-identity.ts";
+import type { SharedReference } from "./reference.ts";
 
 export const SHARED_DIAGNOSTIC_VERSION = 1 as const;
 
@@ -16,9 +16,7 @@ export interface SharedDiagnosticLocation {
   sourceAsset?: string;
 }
 
-export interface SharedDiagnosticRelatedResource extends SharedStableId {
-  path?: string;
-}
+export interface SharedDiagnosticRelatedResource extends SharedReference {}
 
 export interface SharedDiagnostic {
   severity: SharedDiagnosticSeverity;

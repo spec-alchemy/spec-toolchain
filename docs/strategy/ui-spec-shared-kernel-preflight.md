@@ -7,7 +7,7 @@
 ## Preflight outcome
 
 - `ui-spec` 是当前最适合验证 `shared kernel` 的第二个 family 候选，因为它天然覆盖 `validation`、`analysis`、`generation`、`viewer` 四个 runtime surfaces，但其 canonical input 与对象语义又明显不同于 `ddd-spec`。
-- 当前 skeleton 足以承接 `ui-spec` 的第一轮边界评审，尤其是 diagnostics 和 `artifact manifest`；但还不足以支撑正式接入，缺口集中在 `viewer contract` primitives、cross-family `stable ID` 引用语义，以及用于状态/导航分析的 shared provenance seam。
+- 当前 skeleton 足以承接 `ui-spec` 的第一轮边界评审，尤其是 diagnostics、`artifact manifest` 和 shared reference seam；但还不足以支撑正式接入，缺口集中在 `viewer contract` primitives，以及用于状态/导航分析的 shared provenance seam。
 
 ## Minimum canonical input
 
@@ -68,6 +68,7 @@
 | --- | --- | --- |
 | diagnostics `contract` | available in [`packages/spec-toolchain-shared-kernel/`](../../packages/spec-toolchain-shared-kernel/) | 能表达导航断裂、状态未定义、组件 contract 缺失、跨 family 链接失效等通用 diagnostics shape |
 | `artifact manifest` skeleton | available in [`packages/spec-toolchain-shared-kernel/`](../../packages/spec-toolchain-shared-kernel/) | 能枚举 IA graph、flow analysis、state map、viewer payload 等 UI `artifact` |
+| cross-family reference `contract` | available in [`packages/spec-toolchain-shared-kernel/reference.ts`](../../packages/spec-toolchain-shared-kernel/reference.ts) | 能用同一条 family-agnostic seam 表达 UI canonical objects 对 `frontend-spec`、`qa-spec`、`ddd-spec` 的结构化引用 |
 | extension-point placeholder | `reserved` / `candidate` only | 允许先为 `viewer contract` primitives、cross-family reference seam 预留挂点，而不承诺 runtime behavior |
 
 ### Still missing for `ui-spec`
@@ -75,7 +76,6 @@
 | Gap | Why the current skeleton is insufficient | What future extraction should validate |
 | --- | --- | --- |
 | shared `viewer contract` primitives | 当前 skeleton 还没有正式 shared 的 node/edge/detail value 骨架 | 是否能抽出不带 UI/DDD 语义的 inspector primitives，供多个 family 复用 |
-| cross-family `stable ID` reference `contract` | 现在只有 diagnostics related resource shape，没有正式 shared 引用语义 | 是否需要统一引用 family、kind、stable ID、path 和 version hint 的薄 `contract` |
 | provenance / `traceability` seam for analysis outputs | `artifact manifest` 只能枚举 artifact，不能表达“哪个路径/状态由哪些上游对象推导而来” | 是否先抽 source linkage graph skeleton，再决定是否需要更强的 trace model |
 | shared semantic result envelope | diagnostics shape 足够报错，但不足以表达 UI path coverage、state complexity 等分析摘要 | 是否需要一层通用 analysis summary envelope，而不把 UI 专有指标词表提升到 shared |
 
@@ -102,8 +102,7 @@
 原因如下：
 
 1. 还没有 shared `viewer contract` primitives，`ui-spec` 无法稳定承接 IA、flow、state inspection 而不重复造一套 viewer shape。
-2. 还没有 cross-family `stable ID` 引用语义，`ui-spec` 不能可靠链接到 `frontend-spec`、`qa-spec` 与 `ddd-spec` 的 canonical 对象。
-3. 还没有 shared provenance / `traceability` seam，因此 UI analysis 与后续 QA coverage 之间还缺可检查的结构化桥接。
+2. 还没有 shared provenance / `traceability` seam，因此 UI analysis 与后续 QA coverage 之间还缺可检查的结构化桥接。
 
 因此，`ui-spec` 当前适合作为 shared extraction 的下一轮验证对象，但不应直接承诺新的产品实现。
 
