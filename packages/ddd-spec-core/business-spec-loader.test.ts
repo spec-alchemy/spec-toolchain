@@ -591,6 +591,57 @@ test("semantic validation rejects broken scenario step topology", async () => {
   );
 });
 
+test("semantic validation exposes shared invalid-reference diagnostics for missing canonical links", async () => {
+  const spec = cloneBusinessSpec(await loadMinimalFixture());
+  const scenarios = asMutableArray(spec.scenarios);
+  const scenario = scenarios.find((candidate) => candidate.id === "approval-request-flow");
+
+  assert.ok(scenario);
+
+  const steps = asMutableArray(scenario.steps);
+  const reviewStep = steps.find((candidate) => candidate.id === "awaiting-review");
+
+  assert.ok(reviewStep);
+  reviewStep.incomingMessages = ["missing-message"];
+
+  const result = analyzeBusinessSpecSemantics(spec);
+  const diagnostic = result.diagnostics.find(
+    (candidate) =>
+      candidate.code === "unknown-resource-reference" &&
+      candidate.path ===
+        "/scenarios/approval-request-flow/steps/awaiting-review/incomingMessages/missing-message"
+  );
+
+  assert.ok(diagnostic);
+  assert.deepEqual(diagnostic.sharedDiagnostic, {
+    severity: "error",
+    code: "invalid-reference",
+    message:
+      "Scenario approval-request-flow step awaiting-review incoming message missing-message must reference existing message",
+    location: {
+      path: "/scenarios/approval-request-flow/steps/awaiting-review/incomingMessages/missing-message"
+    },
+    invalidReference: {
+      target: {
+        family: "ddd-spec",
+        kind: "message",
+        value: "missing-message"
+      },
+      path: "/scenarios/approval-request-flow/steps/awaiting-review/incomingMessages/missing-message"
+    },
+    related: [
+      {
+        target: {
+          family: "ddd-spec",
+          kind: "scenario",
+          value: "approval-request-flow"
+        },
+        path: "/scenarios/approval-request-flow"
+      }
+    ]
+  });
+});
+
 test("semantic validation rejects broken aggregate lifecycle triggers", async () => {
   const spec = await loadBusinessSpec({
     entryPath: MINIMAL_FIXTURE_ENTRY_PATH,
@@ -623,6 +674,32 @@ test("semantic validation rejects broken aggregate lifecycle triggers", async ()
         diagnostic.path === "/aggregates/approval-request/transitions/submit-request/onMessage"
     )
   );
+
+  const invalidConsumerDiagnostic = result.diagnostics.find(
+    (diagnostic) =>
+      diagnostic.code === "unknown-resource-reference" &&
+      diagnostic.path === "/messages/submit-approval-request/consumers/aggregate:missing-aggregate"
+  );
+
+  assert.ok(invalidConsumerDiagnostic);
+  assert.deepEqual(invalidConsumerDiagnostic.sharedDiagnostic, {
+    severity: "error",
+    code: "invalid-reference",
+    message:
+      "Message submit-approval-request consumer aggregate missing-aggregate must reference existing aggregate",
+    location: {
+      path: "/messages/submit-approval-request/consumers/aggregate:missing-aggregate"
+    },
+    invalidReference: {
+      target: {
+        family: "ddd-spec",
+        kind: "aggregate",
+        value: "missing-aggregate"
+      },
+      path: "/messages/submit-approval-request/consumers/aggregate:missing-aggregate"
+    },
+    related: undefined
+  });
 
   assert.throws(
     () => {

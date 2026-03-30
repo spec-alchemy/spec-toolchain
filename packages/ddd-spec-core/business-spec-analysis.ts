@@ -18,6 +18,11 @@ import type {
   SystemBoundary,
   SystemSpec
 } from "./spec.js";
+import {
+  SHARED_INVALID_REFERENCE_DIAGNOSTIC_CODE,
+  type SharedDiagnosticRelatedResource,
+  type SharedInvalidReferenceDiagnostic
+} from "../spec-toolchain-shared-kernel/diagnostics.js";
 import type { SharedReference } from "../spec-toolchain-shared-kernel/reference.js";
 import type { SharedProvenanceRecord } from "../spec-toolchain-shared-kernel/provenance.js";
 import type { SharedStableId } from "../spec-toolchain-shared-kernel/stable-identity.js";
@@ -66,6 +71,7 @@ export interface AnalysisDiagnostic {
   code: AnalysisDiagnosticCode;
   path: string;
   message: string;
+  sharedDiagnostic?: SharedInvalidReferenceDiagnostic;
 }
 
 interface CanonicalSourceIdentity {
@@ -1130,30 +1136,45 @@ function validateScenarioStep(
   collector: DiagnosticCollector
 ): void {
   if (!maps.contexts.has(step.contextId)) {
-    collector.push({
-      severity: "error",
-      code: "unknown-resource-reference",
-      path: `${step.path}/context`,
-      message: `Scenario ${scenario.id} step ${step.id} context ${step.contextId} must reference existing context`
-    });
+    collector.push(
+      createUnknownResourceReferenceDiagnostic(
+        `${step.path}/context`,
+        `Scenario ${scenario.id} step ${step.id} context ${step.contextId} must reference existing context`,
+        {
+          kind: "context",
+          id: step.contextId
+        },
+        [toRelatedResource(scenario.stableId, scenario.path)]
+      )
+    );
   }
 
   if (step.actorId && !maps.actors.has(step.actorId)) {
-    collector.push({
-      severity: "error",
-      code: "unknown-resource-reference",
-      path: `${step.path}/actor`,
-      message: `Scenario ${scenario.id} step ${step.id} actor ${step.actorId} must reference existing actor`
-    });
+    collector.push(
+      createUnknownResourceReferenceDiagnostic(
+        `${step.path}/actor`,
+        `Scenario ${scenario.id} step ${step.id} actor ${step.actorId} must reference existing actor`,
+        {
+          kind: "actor",
+          id: step.actorId
+        },
+        [toRelatedResource(scenario.stableId, scenario.path)]
+      )
+    );
   }
 
   if (step.systemId && !maps.systems.has(step.systemId)) {
-    collector.push({
-      severity: "error",
-      code: "unknown-resource-reference",
-      path: `${step.path}/system`,
-      message: `Scenario ${scenario.id} step ${step.id} system ${step.systemId} must reference existing system`
-    });
+    collector.push(
+      createUnknownResourceReferenceDiagnostic(
+        `${step.path}/system`,
+        `Scenario ${scenario.id} step ${step.id} system ${step.systemId} must reference existing system`,
+        {
+          kind: "system",
+          id: step.systemId
+        },
+        [toRelatedResource(scenario.stableId, scenario.path)]
+      )
+    );
   }
 
   if (step.final && !step.outcome) {
@@ -1215,12 +1236,17 @@ function validateScenarioStep(
     const message = maps.messages.get(messageId);
 
     if (!message) {
-      collector.push({
-        severity: "error",
-        code: "unknown-resource-reference",
-        path: `${step.path}/incomingMessages/${messageId}`,
-        message: `Scenario ${scenario.id} step ${step.id} incoming message ${messageId} must reference existing message`
-      });
+      collector.push(
+        createUnknownResourceReferenceDiagnostic(
+          `${step.path}/incomingMessages/${messageId}`,
+          `Scenario ${scenario.id} step ${step.id} incoming message ${messageId} must reference existing message`,
+          {
+            kind: "message",
+            id: messageId
+          },
+          [toRelatedResource(scenario.stableId, scenario.path)]
+        )
+      );
       continue;
     }
 
@@ -1238,12 +1264,17 @@ function validateScenarioStep(
     const message = maps.messages.get(messageId);
 
     if (!message) {
-      collector.push({
-        severity: "error",
-        code: "unknown-resource-reference",
-        path: `${step.path}/outgoingMessages/${messageId}`,
-        message: `Scenario ${scenario.id} step ${step.id} outgoing message ${messageId} must reference existing message`
-      });
+      collector.push(
+        createUnknownResourceReferenceDiagnostic(
+          `${step.path}/outgoingMessages/${messageId}`,
+          `Scenario ${scenario.id} step ${step.id} outgoing message ${messageId} must reference existing message`,
+          {
+            kind: "message",
+            id: messageId
+          },
+          [toRelatedResource(scenario.stableId, scenario.path)]
+        )
+      );
       continue;
     }
 
@@ -1326,12 +1357,17 @@ function validateAggregateLifecycle(
   );
 
   if (!maps.contexts.has(aggregate.contextId)) {
-    collector.push({
-      severity: "error",
-      code: "unknown-resource-reference",
-      path: `${aggregate.path}/context`,
-      message: `Aggregate ${aggregate.id} context ${aggregate.contextId} must reference existing context`
-    });
+    collector.push(
+      createUnknownResourceReferenceDiagnostic(
+        `${aggregate.path}/context`,
+        `Aggregate ${aggregate.id} context ${aggregate.contextId} must reference existing context`,
+        {
+          kind: "context",
+          id: aggregate.contextId
+        },
+        [toRelatedResource(aggregate.stableId, aggregate.path)]
+      )
+    );
   }
 
   reportDuplicateStrings(
@@ -1462,12 +1498,17 @@ function validatePolicyCoordination(
   assertKind(policy.kind, "policy", `Policy ${policy.id}`, policy.path, collector);
 
   if (policy.contextId && !maps.contexts.has(policy.contextId)) {
-    collector.push({
-      severity: "error",
-      code: "unknown-resource-reference",
-      path: `${policy.path}/context`,
-      message: `Policy ${policy.id} context ${policy.contextId} must reference existing context`
-    });
+    collector.push(
+      createUnknownResourceReferenceDiagnostic(
+        `${policy.path}/context`,
+        `Policy ${policy.id} context ${policy.contextId} must reference existing context`,
+        {
+          kind: "context",
+          id: policy.contextId
+        },
+        [toRelatedResource(policy.stableId, policy.path)]
+      )
+    );
   }
 
   reportDuplicateStrings(
@@ -1556,12 +1597,17 @@ function validatePolicyCoordination(
 
   for (const systemId of policy.targetSystemIds) {
     if (!maps.systems.has(systemId)) {
-      collector.push({
-        severity: "error",
-        code: "unknown-resource-reference",
-        path: `${policy.path}/targetSystems/${systemId}`,
-        message: `Policy ${policy.id} target system ${systemId} must reference existing system`
-      });
+      collector.push(
+        createUnknownResourceReferenceDiagnostic(
+          `${policy.path}/targetSystems/${systemId}`,
+          `Policy ${policy.id} target system ${systemId} must reference existing system`,
+          {
+            kind: "system",
+            id: systemId
+          },
+          [toRelatedResource(policy.stableId, policy.path)]
+        )
+      );
       continue;
     }
 
@@ -1902,12 +1948,13 @@ function assertKnownResourceRef(
   const resourceRef = toResourceRef(ref);
 
   if (!resourceRegistry.has(toResourceKey(resourceRef.kind, resourceRef.id))) {
-    collector.push({
-      severity: "error",
-      code: "unknown-resource-reference",
-      path,
-      message: `${label} ${resourceRef.kind} ${resourceRef.id} must reference existing ${resourceRef.kind}`
-    });
+    collector.push(
+      createUnknownResourceReferenceDiagnostic(
+        path,
+        `${label} ${resourceRef.kind} ${resourceRef.id} must reference existing ${resourceRef.kind}`,
+        resourceRef
+      )
+    );
   }
 }
 
@@ -2186,9 +2233,43 @@ function toResourceKey(kind: ResourceKind, id: string): string {
   return `${kind}:${id}`;
 }
 
+function createUnknownResourceReferenceDiagnostic(
+  path: string,
+  message: string,
+  ref: ResourceRef,
+  related?: readonly SharedDiagnosticRelatedResource[]
+): AnalysisDiagnostic {
+  return {
+    severity: "error",
+    code: "unknown-resource-reference",
+    path,
+    message,
+    sharedDiagnostic: {
+      severity: "error",
+      code: SHARED_INVALID_REFERENCE_DIAGNOSTIC_CODE,
+      message,
+      location: {
+        path
+      },
+      invalidReference: toSharedReference(ref, path),
+      related
+    }
+  };
+}
+
 function toSharedReference(ref: ResourceRef, path: string): SharedReference {
   return {
     target: toStableId(ref.kind, ref.id),
+    path
+  };
+}
+
+function toRelatedResource(
+  target: SharedReference["target"],
+  path: string
+): SharedDiagnosticRelatedResource {
+  return {
+    target,
     path
   };
 }
