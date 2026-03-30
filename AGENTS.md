@@ -23,6 +23,12 @@
 - Use `gate:pr` as the baseline maintainer gate, `gate:release` for release readiness, and `ops:release:*` for stateful release operations.
 - Do not reintroduce removed legacy root entrypoints such as `verify` or `release:dry-run` as docs, aliases, or CI recommendations.
 
+## Script Boundaries
+- Keep root `package.json` limited to the stable maintainer interface; do not add new root commands just to name internal orchestration steps.
+- Put repo-level orchestration for root `check:*`, `gate:*`, and `ops:*` flows under [`scripts/`](./scripts/).
+- Put `@spec-alchemy/ddd-spec` package-local build and test orchestration under [`packages/ddd-spec-cli/scripts/`](./packages/ddd-spec-cli/scripts/).
+- Keep release operations under [`scripts/`](./scripts/); do not shift release concerns into [`packages/ddd-spec-cli/package.json`](./packages/ddd-spec-cli/package.json).
+
 ## Targeted Commands
 | Task | Command |
 |------|---------|
