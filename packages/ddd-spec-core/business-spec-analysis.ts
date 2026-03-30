@@ -18,6 +18,7 @@ import type {
   SystemBoundary,
   SystemSpec
 } from "./spec.js";
+import type { SharedStableId } from "../spec-toolchain-shared-kernel/stable-identity.js";
 
 export const BUSINESS_SPEC_ANALYSIS_VERSION = 1 as const;
 export const SEMANTIC_VALIDATION_VERSION = 1 as const;
@@ -65,6 +66,10 @@ export interface AnalysisDiagnostic {
   message: string;
 }
 
+interface CanonicalSourceIdentity {
+  stableId: SharedStableId;
+}
+
 export interface ContextBoundaryRelationship {
   id: string;
   kind: string;
@@ -75,7 +80,7 @@ export interface ContextBoundaryRelationship {
   path: string;
 }
 
-export interface ContextBoundary {
+export interface ContextBoundary extends CanonicalSourceIdentity {
   kind: string;
   id: string;
   title: string;
@@ -98,7 +103,7 @@ export interface ActorStepRef {
   path: string;
 }
 
-export interface ActorParticipant {
+export interface ActorParticipant extends CanonicalSourceIdentity {
   kind: string;
   id: string;
   title: string;
@@ -128,7 +133,7 @@ export interface SystemDependencyRef {
   policyId?: string;
 }
 
-export interface SystemParticipant {
+export interface SystemParticipant extends CanonicalSourceIdentity {
   kind: string;
   id: string;
   title: string;
@@ -162,7 +167,7 @@ export interface ScenarioSequenceEdge {
   path: string;
 }
 
-export interface ScenarioSequence {
+export interface ScenarioSequence extends CanonicalSourceIdentity {
   kind: string;
   id: string;
   title: string;
@@ -194,7 +199,7 @@ export interface MessageStepLink {
   path: string;
 }
 
-export interface MessageFlow {
+export interface MessageFlow extends CanonicalSourceIdentity {
   kind: string;
   id: string;
   title: string;
@@ -229,7 +234,7 @@ export interface LifecycleTransition {
   path: string;
 }
 
-export interface AggregateLifecycle {
+export interface AggregateLifecycle extends CanonicalSourceIdentity {
   kind: string;
   id: string;
   title: string;
@@ -246,7 +251,7 @@ export interface AggregateLifecycle {
   path: string;
 }
 
-export interface PolicyCoordination {
+export interface PolicyCoordination extends CanonicalSourceIdentity {
   kind: string;
   id: string;
   title: string;
@@ -547,6 +552,7 @@ function buildContextBoundaries(
 
     return {
       kind: context.kind,
+      stableId: toStableId(context.kind, context.id),
       id: context.id,
       title: context.title,
       summary: context.summary,
@@ -586,6 +592,7 @@ function buildActorParticipants(
 
     return {
       kind: actor.kind,
+      stableId: toStableId(actor.kind, actor.id),
       id: actor.id,
       title: actor.title,
       summary: actor.summary,
@@ -679,6 +686,7 @@ function buildSystemParticipants(
 
     return {
       kind: system.kind,
+      stableId: toStableId(system.kind, system.id),
       id: system.id,
       title: system.title,
       summary: system.summary,
@@ -714,6 +722,7 @@ function buildScenarioSequences(
 
     return {
       kind: scenario.kind,
+      stableId: toStableId(scenario.kind, scenario.id),
       id: scenario.id,
       title: scenario.title,
       summary: scenario.summary,
@@ -761,6 +770,7 @@ function buildMessageFlows(
 
     return {
       kind: message.kind,
+      stableId: toStableId(message.kind, message.id),
       id: message.id,
       title: message.title,
       summary: message.summary,
@@ -818,6 +828,7 @@ function buildAggregateLifecycles(
 
     return {
       kind: aggregate.kind,
+      stableId: toStableId(aggregate.kind, aggregate.id),
       id: aggregate.id,
       title: aggregate.title,
       summary: aggregate.summary,
@@ -867,6 +878,7 @@ function buildPolicyCoordinations(
 
     return {
       kind: policy.kind,
+      stableId: toStableId(policy.kind, policy.id),
       id: policy.id,
       title: policy.title,
       summary: policy.summary,
@@ -908,6 +920,14 @@ function buildResourceRegistry(maps: AnalysisMaps): ReadonlySet<string> {
   registerResourceMap(registry, "policy", maps.policies);
 
   return registry;
+}
+
+function toStableId(kind: ResourceKind, id: string): SharedStableId {
+  return {
+    family: "ddd-spec",
+    kind,
+    value: id
+  };
 }
 
 function validateContextBoundary(

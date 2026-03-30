@@ -5,6 +5,11 @@
     "contextBoundaries": [
       {
         "kind": "context",
+        "stableId": {
+          "family": "ddd-spec",
+          "kind": "context",
+          "value": "orders"
+        },
         "id": "orders",
         "title": "Orders",
         "summary": "Owns order capture, customer confirmation, and the final business outcome.",
@@ -47,6 +52,11 @@
       },
       {
         "kind": "context",
+        "stableId": {
+          "family": "ddd-spec",
+          "kind": "context",
+          "value": "payments"
+        },
         "id": "payments",
         "title": "Payments",
         "summary": "Owns payment authorization and publishes settlement outcomes back to orders.",
@@ -86,6 +96,11 @@
     "actors": [
       {
         "kind": "actor",
+        "stableId": {
+          "family": "ddd-spec",
+          "kind": "actor",
+          "value": "customer"
+        },
         "id": "customer",
         "title": "Customer",
         "summary": "Places the order and expects a confirmed outcome.",
@@ -110,6 +125,11 @@
     "systems": [
       {
         "kind": "system",
+        "stableId": {
+          "family": "ddd-spec",
+          "kind": "system",
+          "value": "ledger-gateway"
+        },
         "id": "ledger-gateway",
         "title": "Ledger Gateway",
         "summary": "External ledger service that answers reconciliation queries for final order confirmation.",
@@ -163,6 +183,11 @@
     "scenarioSequences": [
       {
         "kind": "scenario",
+        "stableId": {
+          "family": "ddd-spec",
+          "kind": "scenario",
+          "value": "order-settlement-flow"
+        },
         "id": "order-settlement-flow",
         "title": "Order Settlement Flow",
         "summary": "Customer submits an order, payments authorizes it, and orders reconciles the final ledger state.",
@@ -278,6 +303,11 @@
     "messageFlows": [
       {
         "kind": "message",
+        "stableId": {
+          "family": "ddd-spec",
+          "kind": "message",
+          "value": "authorize-payment"
+        },
         "id": "authorize-payment",
         "title": "Authorize Payment",
         "summary": "Command asking the payments aggregate to authorize settlement for the submitted order.",
@@ -327,6 +357,11 @@
       },
       {
         "kind": "message",
+        "stableId": {
+          "family": "ddd-spec",
+          "kind": "message",
+          "value": "fetch-ledger-status"
+        },
         "id": "fetch-ledger-status",
         "title": "Fetch Ledger Status",
         "summary": "Query asking the external ledger gateway to confirm the final reconciliation state for the order.",
@@ -373,6 +408,11 @@
       },
       {
         "kind": "message",
+        "stableId": {
+          "family": "ddd-spec",
+          "kind": "message",
+          "value": "ledger-status-fetched"
+        },
         "id": "ledger-status-fetched",
         "title": "Ledger Status Fetched",
         "summary": "Event from the ledger gateway confirming that the order can move into its final confirmed state.",
@@ -431,6 +471,11 @@
       },
       {
         "kind": "message",
+        "stableId": {
+          "family": "ddd-spec",
+          "kind": "message",
+          "value": "order-submitted"
+        },
         "id": "order-submitted",
         "title": "Order Submitted",
         "summary": "Async event telling the payments context that a submitted order is ready for authorization.",
@@ -480,6 +525,11 @@
       },
       {
         "kind": "message",
+        "stableId": {
+          "family": "ddd-spec",
+          "kind": "message",
+          "value": "payment-authorized"
+        },
         "id": "payment-authorized",
         "title": "Payment Authorized",
         "summary": "Async event telling the orders context that payment settlement succeeded in the payments context.",
@@ -529,6 +579,11 @@
       },
       {
         "kind": "message",
+        "stableId": {
+          "family": "ddd-spec",
+          "kind": "message",
+          "value": "submit-order"
+        },
         "id": "submit-order",
         "title": "Submit Order",
         "summary": "Command asking the orders aggregate to persist a new order and publish the submission event.",
@@ -586,6 +641,11 @@
     "aggregateLifecycles": [
       {
         "kind": "aggregate",
+        "stableId": {
+          "family": "ddd-spec",
+          "kind": "aggregate",
+          "value": "order"
+        },
         "id": "order",
         "title": "Order",
         "summary": "Tracks the customer order from draft capture to final confirmation.",
@@ -658,6 +718,11 @@
       },
       {
         "kind": "aggregate",
+        "stableId": {
+          "family": "ddd-spec",
+          "kind": "aggregate",
+          "value": "payment"
+        },
         "id": "payment",
         "title": "Payment",
         "summary": "Tracks payment authorization lifecycle for a submitted order.",
