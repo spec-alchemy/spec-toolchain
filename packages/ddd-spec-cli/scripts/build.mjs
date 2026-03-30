@@ -1,100 +1,30 @@
-import { chmod, cp, mkdir, rm } from "node:fs/promises";
-import { createRequire } from "node:module";
-import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
-import { spawn } from "node:child_process";
+import { createBuildContext } from "./build-pipeline/context.mjs";
+import {
+  buildCliTypescript,
+  cleanDistOutput,
+  copyRuntimeSchemaAssets,
+  finalizeBuildOutput,
+  prepareViewerStaticAssets
+} from "./build-pipeline/steps.mjs";
 
-const require = createRequire(import.meta.url);
-const scriptDirPath = dirname(fileURLToPath(import.meta.url));
-const packageDirPath = dirname(scriptDirPath);
-const distDirPath = join(packageDirPath, "dist");
-const schemaSourceDirPath = join(
-  packageDirPath,
-  "..",
-  "ddd-spec-core",
-  "schema"
+const buildContext = createBuildContext();
+
+await runBuildStep("clean dist output", () => cleanDistOutput(buildContext));
+await runBuildStep("CLI TypeScript build", () => buildCliTypescript(buildContext));
+await runBuildStep("viewer static preparation", () =>
+  prepareViewerStaticAssets(buildContext)
 );
-const schemaOutputDirPath = join(
-  distDirPath,
-  "ddd-spec-core",
-  "schema"
-);
-const cliEntryPath = join(distDirPath, "ddd-spec-cli", "cli.js");
-const viewerAppDirPath = join(packageDirPath, "..", "..", "apps", "ddd-spec-viewer");
-const viewerStaticOutputPath = join(
-  distDirPath,
-  "ddd-spec-cli",
-  "static",
-  "viewer"
-);
-const viewerGeneratedGitkeepPath = join(
-  viewerStaticOutputPath,
-  "generated",
-  ".gitkeep"
+await runBuildStep("runtime schema copy", () => copyRuntimeSchemaAssets(buildContext));
+await runBuildStep("post-build output adjustments", () =>
+  finalizeBuildOutput(buildContext)
 );
 
-await rm(distDirPath, { recursive: true, force: true });
-await runTypescriptBuild();
-await buildViewerStaticAssets();
-await mkdir(join(distDirPath, "ddd-spec-core"), { recursive: true });
-await rm(schemaOutputDirPath, { recursive: true, force: true });
-await cp(schemaSourceDirPath, schemaOutputDirPath, { recursive: true });
-await chmod(cliEntryPath, 0o755);
-
-async function runTypescriptBuild() {
-  const tscCliPath = require.resolve("typescript/bin/tsc");
-
-  await runNodeCli({
-    args: ["-p", "tsconfig.build.json"],
-    cliPath: tscCliPath,
-    cwd: packageDirPath,
-    label: "TypeScript build"
-  });
-}
-
-async function buildViewerStaticAssets() {
-  const tscCliPath = require.resolve("typescript/bin/tsc");
-  const viteCliPath = join(
-    dirname(require.resolve("vite/package.json")),
-    "bin",
-    "vite.js"
-  );
-
-  await runNodeCli({
-    args: ["-p", "tsconfig.json", "--noEmit"],
-    cliPath: tscCliPath,
-    cwd: viewerAppDirPath,
-    label: "viewer typecheck"
-  });
-  await runNodeCli({
-    args: ["build", "--base=./", "--outDir", viewerStaticOutputPath, "--emptyOutDir"],
-    cliPath: viteCliPath,
-    cwd: viewerAppDirPath,
-    label: "viewer static build"
-  });
-  await rm(viewerGeneratedGitkeepPath, { force: true });
-}
-
-async function runNodeCli(options) {
-  await new Promise((resolve, reject) => {
-    const child = spawn(process.execPath, [options.cliPath, ...options.args], {
-      cwd: options.cwd,
-      stdio: "inherit"
-    });
-
-    child.once("error", reject);
-    child.once("exit", (code, signal) => {
-      if (code === 0) {
-        resolve();
-        return;
-      }
-
-      if (signal) {
-        reject(new Error(`${options.label} exited from signal ${signal}`));
-        return;
-      }
-
-      reject(new Error(`${options.label} exited with code ${code ?? "unknown"}`));
-    });
-  });
+async function runBuildStep(label, action) {
+  try {
+    await action();
+  } catch (error) {
+    const causeMessage =
+      error instanceof Error ? error.message : String(error);
+    throw new Error(`[ddd-spec-cli build] ${label} failed: ${causeMessage}`);
+  }
 }
