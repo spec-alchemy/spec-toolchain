@@ -111,7 +111,7 @@ const VIEWER_SYSTEM_COPY: Readonly<Record<ViewerLocale, ViewerSystemCopy>> = {
       preparingExternalMap: (viewTitle, sourceLabel) =>
         `Preparing the ${viewTitle} map from ${sourceLabel}...`,
       regenerateDefaultViewerData: (entryPath) =>
-        `Run \`ddd-spec build\` or \`npm run repo:build\` to regenerate viewer data from ${entryPath}.`,
+        `Run \`ddd-spec build\` or \`npm run check:repo:build\` to regenerate viewer data from ${entryPath}.`,
       checkExternalViewerArtifact: (sourceLabel) =>
         `Check the external viewer artifact: ${sourceLabel}`,
       unknownError: "Unknown error"
@@ -243,7 +243,7 @@ const VIEWER_SYSTEM_COPY: Readonly<Record<ViewerLocale, ViewerSystemCopy>> = {
       preparingExternalMap: (viewTitle, sourceLabel) =>
         `正在从 ${sourceLabel} 准备 ${viewTitle} 视图……`,
       regenerateDefaultViewerData: (entryPath) =>
-        `运行 \`ddd-spec build\` 或 \`npm run repo:build\`，从 ${entryPath} 重新生成 viewer 数据。`,
+        `运行 \`ddd-spec build\` 或 \`npm run check:repo:build\`，从 ${entryPath} 重新生成 viewer 数据。`,
       checkExternalViewerArtifact: (sourceLabel) =>
         `请检查外部 viewer 产物：${sourceLabel}`,
       unknownError: "未知错误"

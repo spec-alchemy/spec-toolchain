@@ -32,12 +32,14 @@ Run these from the repository root:
 
 ```sh
 npm ci
-npm run verify
-npm run release:dry-run
+npm run gate:pr
+npm run gate:release
+npm run ops:release:dry-run
 ```
 
-`npm run verify` is the baseline contribution gate. `npm run release:dry-run` is required for
-changes that affect the public package release surface.
+`npm run gate:pr` is the baseline contribution gate. `npm run gate:release` extends that baseline
+with release-readiness checks, and `npm run ops:release:dry-run` is required for changes that
+affect the public package release surface.
 
 The published `@spec-alchemy/ddd-spec` package keeps its own runtime compatibility floor. The
 maintainer workspace uses a higher Node baseline because the private viewer build toolchain follows
@@ -63,8 +65,9 @@ current Vite support.
 - Add or update tests when behavior changes.
 - Add a Changeset when the change should affect the published `@spec-alchemy/ddd-spec`
   package version or changelog.
-- Make sure the branch passes `npm run verify` and `npm run release:dry-run` before asking for
-  review.
+- Make sure the branch passes `npm run gate:pr` before asking for review.
+- Also run `npm run gate:release` and `npm run ops:release:dry-run` when the change affects the
+  public package release surface.
 - `main` is protected on GitHub. Do not push directly to `main`; use a feature branch and merge
   through a pull request instead.
 - Name feature branches with a Conventional Commit style prefix:
