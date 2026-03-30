@@ -367,6 +367,48 @@
           "payments"
         ],
         "crossesContextBoundary": false,
+        "provenance": {
+          "subject": {
+            "artifactId": "business-spec.analysis",
+            "outputId": "message-flow:authorize-payment",
+            "path": "/ir/messageFlows/authorize-payment"
+          },
+          "upstream": [
+            {
+              "derivationKind": "derived-from",
+              "source": {
+                "target": {
+                  "family": "ddd-spec",
+                  "kind": "message",
+                  "value": "authorize-payment"
+                },
+                "path": "/messages/authorize-payment"
+              }
+            },
+            {
+              "derivationKind": "aggregated-from",
+              "source": {
+                "target": {
+                  "family": "ddd-spec",
+                  "kind": "context",
+                  "value": "payments"
+                },
+                "path": "/messages/authorize-payment/producers/context:payments"
+              }
+            },
+            {
+              "derivationKind": "aggregated-from",
+              "source": {
+                "target": {
+                  "family": "ddd-spec",
+                  "kind": "aggregate",
+                  "value": "payment"
+                },
+                "path": "/messages/authorize-payment/consumers/aggregate:payment"
+              }
+            }
+          ]
+        },
         "path": "/messages/authorize-payment"
       },
       {
@@ -424,6 +466,48 @@
         ],
         "consumerContextIds": [],
         "crossesContextBoundary": false,
+        "provenance": {
+          "subject": {
+            "artifactId": "business-spec.analysis",
+            "outputId": "message-flow:fetch-ledger-status",
+            "path": "/ir/messageFlows/fetch-ledger-status"
+          },
+          "upstream": [
+            {
+              "derivationKind": "derived-from",
+              "source": {
+                "target": {
+                  "family": "ddd-spec",
+                  "kind": "message",
+                  "value": "fetch-ledger-status"
+                },
+                "path": "/messages/fetch-ledger-status"
+              }
+            },
+            {
+              "derivationKind": "aggregated-from",
+              "source": {
+                "target": {
+                  "family": "ddd-spec",
+                  "kind": "context",
+                  "value": "orders"
+                },
+                "path": "/messages/fetch-ledger-status/producers/context:orders"
+              }
+            },
+            {
+              "derivationKind": "aggregated-from",
+              "source": {
+                "target": {
+                  "family": "ddd-spec",
+                  "kind": "system",
+                  "value": "ledger-gateway"
+                },
+                "path": "/messages/fetch-ledger-status/consumers/system:ledger-gateway"
+              }
+            }
+          ]
+        },
         "path": "/messages/fetch-ledger-status"
       },
       {
@@ -496,6 +580,59 @@
           "orders"
         ],
         "crossesContextBoundary": false,
+        "provenance": {
+          "subject": {
+            "artifactId": "business-spec.analysis",
+            "outputId": "message-flow:ledger-status-fetched",
+            "path": "/ir/messageFlows/ledger-status-fetched"
+          },
+          "upstream": [
+            {
+              "derivationKind": "derived-from",
+              "source": {
+                "target": {
+                  "family": "ddd-spec",
+                  "kind": "message",
+                  "value": "ledger-status-fetched"
+                },
+                "path": "/messages/ledger-status-fetched"
+              }
+            },
+            {
+              "derivationKind": "aggregated-from",
+              "source": {
+                "target": {
+                  "family": "ddd-spec",
+                  "kind": "system",
+                  "value": "ledger-gateway"
+                },
+                "path": "/messages/ledger-status-fetched/producers/system:ledger-gateway"
+              }
+            },
+            {
+              "derivationKind": "aggregated-from",
+              "source": {
+                "target": {
+                  "family": "ddd-spec",
+                  "kind": "context",
+                  "value": "orders"
+                },
+                "path": "/messages/ledger-status-fetched/consumers/context:orders"
+              }
+            },
+            {
+              "derivationKind": "aggregated-from",
+              "source": {
+                "target": {
+                  "family": "ddd-spec",
+                  "kind": "aggregate",
+                  "value": "order"
+                },
+                "path": "/messages/ledger-status-fetched/consumers/aggregate:order"
+              }
+            }
+          ]
+        },
         "path": "/messages/ledger-status-fetched"
       },
       {
@@ -556,6 +693,48 @@
           "payments"
         ],
         "crossesContextBoundary": true,
+        "provenance": {
+          "subject": {
+            "artifactId": "business-spec.analysis",
+            "outputId": "message-flow:order-submitted",
+            "path": "/ir/messageFlows/order-submitted"
+          },
+          "upstream": [
+            {
+              "derivationKind": "derived-from",
+              "source": {
+                "target": {
+                  "family": "ddd-spec",
+                  "kind": "message",
+                  "value": "order-submitted"
+                },
+                "path": "/messages/order-submitted"
+              }
+            },
+            {
+              "derivationKind": "aggregated-from",
+              "source": {
+                "target": {
+                  "family": "ddd-spec",
+                  "kind": "aggregate",
+                  "value": "order"
+                },
+                "path": "/messages/order-submitted/producers/aggregate:order"
+              }
+            },
+            {
+              "derivationKind": "aggregated-from",
+              "source": {
+                "target": {
+                  "family": "ddd-spec",
+                  "kind": "context",
+                  "value": "payments"
+                },
+                "path": "/messages/order-submitted/consumers/context:payments"
+              }
+            }
+          ]
+        },
         "path": "/messages/order-submitted"
       },
       {
@@ -616,6 +795,48 @@
           "orders"
         ],
         "crossesContextBoundary": true,
+        "provenance": {
+          "subject": {
+            "artifactId": "business-spec.analysis",
+            "outputId": "message-flow:payment-authorized",
+            "path": "/ir/messageFlows/payment-authorized"
+          },
+          "upstream": [
+            {
+              "derivationKind": "derived-from",
+              "source": {
+                "target": {
+                  "family": "ddd-spec",
+                  "kind": "message",
+                  "value": "payment-authorized"
+                },
+                "path": "/messages/payment-authorized"
+              }
+            },
+            {
+              "derivationKind": "aggregated-from",
+              "source": {
+                "target": {
+                  "family": "ddd-spec",
+                  "kind": "aggregate",
+                  "value": "payment"
+                },
+                "path": "/messages/payment-authorized/producers/aggregate:payment"
+              }
+            },
+            {
+              "derivationKind": "aggregated-from",
+              "source": {
+                "target": {
+                  "family": "ddd-spec",
+                  "kind": "context",
+                  "value": "orders"
+                },
+                "path": "/messages/payment-authorized/consumers/context:orders"
+              }
+            }
+          ]
+        },
         "path": "/messages/payment-authorized"
       },
       {
@@ -682,6 +903,48 @@
           "orders"
         ],
         "crossesContextBoundary": false,
+        "provenance": {
+          "subject": {
+            "artifactId": "business-spec.analysis",
+            "outputId": "message-flow:submit-order",
+            "path": "/ir/messageFlows/submit-order"
+          },
+          "upstream": [
+            {
+              "derivationKind": "derived-from",
+              "source": {
+                "target": {
+                  "family": "ddd-spec",
+                  "kind": "message",
+                  "value": "submit-order"
+                },
+                "path": "/messages/submit-order"
+              }
+            },
+            {
+              "derivationKind": "aggregated-from",
+              "source": {
+                "target": {
+                  "family": "ddd-spec",
+                  "kind": "context",
+                  "value": "orders"
+                },
+                "path": "/messages/submit-order/producers/context:orders"
+              }
+            },
+            {
+              "derivationKind": "aggregated-from",
+              "source": {
+                "target": {
+                  "family": "ddd-spec",
+                  "kind": "aggregate",
+                  "value": "order"
+                },
+                "path": "/messages/submit-order/consumers/aggregate:order"
+              }
+            }
+          ]
+        },
         "path": "/messages/submit-order"
       }
     ],
