@@ -8,12 +8,15 @@ import {
   SHARED_DIAGNOSTIC_VERSION,
   SHARED_INVALID_REFERENCE_DIAGNOSTIC_CODE,
   SHARED_KERNEL_EXTENSION_POINT_STATUS,
+  SHARED_PROVENANCE_DERIVATION_KINDS,
+  SHARED_PROVENANCE_VERSION,
   SHARED_REFERENCE_VERSION,
   SHARED_STABLE_ID_VERSION,
   type SharedArtifactManifest,
   type SharedDiagnostic,
   type SharedInvalidReferenceDiagnostic,
   type SharedKernelFamilyContract,
+  type SharedProvenanceRecord,
   type SharedReference,
   type SharedStableId
 } from "./index.ts";
@@ -75,6 +78,51 @@ test("cross-family reference contract separates resolver identity from hints", (
     "value",
     "versionHint"
   ]);
+});
+
+test("provenance contract links one output subject to multiple upstream sources", () => {
+  const record: SharedProvenanceRecord = {
+    subject: {
+      artifactId: "coverage-matrix",
+      outputId: "checkout-happy-path",
+      path: "/coverage/happy-path"
+    },
+    upstream: [
+      {
+        derivationKind: "derived-from",
+        source: {
+          target: {
+            family: "ui-spec",
+            kind: "interaction-flow",
+            value: "checkout-happy-path"
+          },
+          path: "/flows/checkout/happy-path"
+        }
+      },
+      {
+        derivationKind: "aggregated-from",
+        source: {
+          target: {
+            family: "frontend-spec",
+            kind: "impact-slice",
+            value: "checkout-surface"
+          },
+          path: "/impact/checkout-surface"
+        }
+      }
+    ]
+  };
+
+  assert.equal(SHARED_PROVENANCE_VERSION, 1);
+  assert.deepEqual(SHARED_PROVENANCE_DERIVATION_KINDS, [
+    "associated-with",
+    "derived-from",
+    "aggregated-from"
+  ]);
+  assert.deepEqual(Object.keys(record.subject), ["artifactId", "outputId", "path"]);
+  assert.equal(record.upstream.length, 2);
+  assert.equal(record.upstream[0]?.source.target.family, "ui-spec");
+  assert.equal(record.upstream[1]?.derivationKind, "aggregated-from");
 });
 
 test("invalid-reference diagnostics expose the broken shared reference", () => {

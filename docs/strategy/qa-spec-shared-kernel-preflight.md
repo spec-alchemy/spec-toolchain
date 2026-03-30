@@ -7,7 +7,7 @@
 ## Preflight outcome
 
 - `qa-spec` 可以作为 `shared kernel candidate` 的压力测试对象，因为它同时依赖 `traceability`、`evidence chain`、diagnostics 和可选 `execution`，比单一建模 family 更容易暴露 shared surface 的不足。
-- 当前 skeleton 足以支撑 `qa-spec` 的第一轮边界讨论，但还不足以支撑其成为正式 `spec family` 的前置条件；缺口主要在 `traceability` `contract`、evidence attachment 和 gate result envelope。
+- 当前 skeleton 足以支撑 `qa-spec` 的第一轮边界讨论，但还不足以支撑其成为正式 `spec family` 的前置条件；缺口主要在 evidence attachment、gate result envelope 和 execution handoff seam。
 
 ## Minimum canonical input
 
@@ -58,13 +58,14 @@
 | diagnostics `contract` | available in [`packages/spec-toolchain-shared-kernel/`](../../packages/spec-toolchain-shared-kernel/) | 能表达 coverage 缺失、失效引用、gate 阻断等通用诊断 shape，并为 invalid-reference 暴露统一最小字段 |
 | `artifact manifest` skeleton | available in [`packages/spec-toolchain-shared-kernel/`](../../packages/spec-toolchain-shared-kernel/) | 能枚举 coverage matrix、gate report、evidence index 之类的 QA `artifact` |
 | cross-family reference `contract` | available in [`packages/spec-toolchain-shared-kernel/reference.ts`](../../packages/spec-toolchain-shared-kernel/reference.ts) | 能用同一条 family-agnostic seam 表达 QA canonical objects 对 `ui-spec`、`frontend-spec`、`ddd-spec` 的结构化引用 |
+| provenance / `traceability` `contract` | available in [`packages/spec-toolchain-shared-kernel/provenance.ts`](../../packages/spec-toolchain-shared-kernel/provenance.ts) | 能把 coverage matrix、gate report 或 evidence index output 结构化链接回多个 upstream canonical objects，为 QA 闭环提供最薄 traceability seam |
 | extension-point placeholder | `reserved` / `candidate` only | 允许先为 QA 预留 evidence / gate 相关 `contract` seam，而不承诺 runtime behavior |
 
 ### Still missing for `qa-spec`
 
 | Gap | Why the current skeleton is insufficient | What future extraction should validate |
 | --- | --- | --- |
-| `traceability` / `evidence chain` envelope | `artifact manifest` 只能列出产物，不能表达“这条 assertion 由哪些上游对象和哪些执行证据支撑” | 是否先抽 provenance graph skeleton，再决定是否需要更强的 evidence schema |
+| evidence attachment envelope | provenance 现在能表达 output 到 upstream canonical source 的连接，但还不能表达执行证据、附件或 observation payload | 是否需要独立 evidence schema，同时继续避免把 execution semantics 上提到 shared |
 | gate result envelope | 目前没有共享方式表达 gate pass/fail、blocking reason、waiver 或 severity aggregation | 是否可以先抽薄 result shape，而把 gate strategy 留在 `qa-spec` |
 | execution handoff seam | skeleton 明确未覆盖 `execution` | 是否只需要 artifact-level handoff，还是需要独立 execution `contract` |
 
@@ -90,8 +91,8 @@
 
 原因如下：
 
-1. 还没有 shared `traceability` / `evidence chain` `contract`，因此无法稳定承载 QA 最关键的 cross-family 闭环。
-2. `execution` 仍然故意留空，这是正确的范围控制，但意味着 QA 目前还不能证明第二个 runtime surface 的可落地接缝。
+1. provenance seam 已覆盖最薄 cross-family `traceability`，但 evidence attachment 和 gate result 仍没有共享承载层，因此 QA 闭环还不完整。
+2. `execution` 仍然故意留空，这是正确的范围控制，但也意味着 QA 目前还不能证明执行接入的可落地接缝。
 
 因此，`qa-spec` 当前更适合作为下一轮 shared extraction 的验证对象，而不是直接进入实现。
 
