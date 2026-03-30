@@ -65,6 +65,16 @@ current Vite support.
   package version or changelog.
 - Make sure the branch passes `npm run verify` and `npm run release:dry-run` before asking for
   review.
+- `main` is protected on GitHub. Do not push directly to `main`; use a feature branch and merge
+  through a pull request instead.
+- Name feature branches with a Conventional Commit style prefix:
+  `feat/`, `fix/`, `docs/`, `refactor/`, `test/`, `chore/`, `build/`, `ci/`, `perf/`, or
+  `revert/`.
+- Use lowercase, kebab-case topic names after the prefix, for example
+  `feat/viewer-detail-contract` or `fix/release-dry-run`. Do not use `_`, `.`, or additional `/`
+  segments in contributor branch names.
+- Treat local verification as the contributor baseline and GitHub-required checks as the merge gate
+  for `main`.
 
 ## Release Notes
 
