@@ -51,6 +51,6 @@ jobs:
             else
               cd packages/ddd-spec-cli && npm publish --provenance --access public
             fi
-          title: chore(release): version packages
+          title: "chore(release): version packages"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

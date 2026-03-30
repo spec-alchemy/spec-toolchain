@@ -5,7 +5,7 @@ on:
 
 jobs:
   policy-branch-name:
-    name: Policy Gate: Branch Name
+    name: "Policy Gate: Branch Name"
     runs-on: ubuntu-latest
     permissions:
       contents: read

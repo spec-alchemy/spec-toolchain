@@ -107,7 +107,7 @@ jobs:
         run: npm run gate:pr
 
   smoke-repo-example-flow:
-    name: Repo Smoke: Example Validate
+    name: "Repo Smoke: Example Validate"
     runs-on: ubuntu-latest
     needs:
       - gate-pr
