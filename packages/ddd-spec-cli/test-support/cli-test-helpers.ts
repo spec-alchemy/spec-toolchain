@@ -87,6 +87,61 @@ export async function packPublishedCliTarball(): Promise<PackedCliTarball> {
   }
 }
 
+let cliPackageBuildPromise: Promise<void> | undefined;
+
+export async function ensureCliPackageBuild(): Promise<void> {
+  const requiredPaths = [
+    join(CLI_PACKAGE_ROOT_PATH, "dist", "ddd-spec-cli", "cli.js"),
+    join(CLI_PACKAGE_ROOT_PATH, "dist", "ddd-spec-cli", "static", "viewer", "index.html"),
+    join(CLI_PACKAGE_ROOT_PATH, "dist", "ddd-spec-viewer-contract", "index.js"),
+    join(
+      CLI_PACKAGE_ROOT_PATH,
+      "dist",
+      "ddd-spec-core",
+      "schema",
+      "domain-model",
+      "index.schema.json"
+    )
+  ] as const;
+
+  const missingRequiredPath = await findMissingPath(requiredPaths);
+
+  if (!missingRequiredPath) {
+    return;
+  }
+
+  cliPackageBuildPromise ??= runCommand(
+    process.execPath,
+    ["./scripts/build.mjs"],
+    {
+      cwd: CLI_PACKAGE_ROOT_PATH
+    }
+  ).then(() => {});
+
+  await cliPackageBuildPromise;
+}
+
+async function findMissingPath(paths: readonly string[]): Promise<string | undefined> {
+  for (const path of paths) {
+    try {
+      await access(path);
+    } catch (error: unknown) {
+      if (
+        error &&
+        typeof error === "object" &&
+        "code" in error &&
+        (error as NodeJS.ErrnoException).code === "ENOENT"
+      ) {
+        return path;
+      }
+
+      throw error;
+    }
+  }
+
+  return undefined;
+}
+
 export async function installPublishedCliTarball(consumerRootPath: string): Promise<string> {
   const packedCliTarball = await packPublishedCliTarball();
   const installedPackagePath = join(

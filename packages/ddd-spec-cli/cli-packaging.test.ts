@@ -19,9 +19,14 @@ import {
 import {
   assertSchemaAssetsMatchCore,
   assertGeneratedVsCodeWorkspaceConfig,
+  ensureCliPackageBuild,
   packPublishedCliTarball,
   runCommand
 } from "./test-support/cli-test-helpers.js";
+
+test.before(async () => {
+  await ensureCliPackageBuild();
+});
 
 test("CLI package build emits executable dist output and runtime schema assets", async () => {
   await access(CLI_DIST_ENTRY_PATH);
