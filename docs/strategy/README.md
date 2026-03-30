@@ -40,6 +40,8 @@
    当需要评审 `qa-spec` 对 `traceability`、`evidence chain` 与 gate seam 的 shared needs 时，先看这份预演结果。
 18. [shared kernel ralph-loop backlog](./shared-kernel-ralph-loop-backlog.md)
    当需要把当前产物继续拆成可执行的 extraction / preflight / migration-prep beads 时，先看这份 backlog。
+19. [shared kernel extraction-ready prep](./shared-kernel-extraction-ready-prep.md)
+   当需要确认三份 family preflight 里哪些缺口已经被 shared seam 覆盖、下一轮 extraction 应该按什么顺序推进、以及 `SK-LOOP-03` 完成到哪里时，先看这份收口说明。
 
 目录原则：
 
