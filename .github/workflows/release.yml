@@ -30,8 +30,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Verify repository
-        run: npm run verify
+      - name: Run release gate
+        run: npm run gate:release
 
   release:
     name: Release Or Version Packages

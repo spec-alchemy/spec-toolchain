@@ -36,8 +36,8 @@ jobs:
           echo "Examples: feat/viewer-detail-contract, fix/release-dry-run"
           exit 1
 
-  verify:
-    name: Verify (Node ${{ matrix.node-version }})
+  pr-gate:
+    name: PR Gate (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -60,5 +60,5 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Verify repository
-        run: npm run verify
+      - name: Run PR gate
+        run: npm run gate:pr
