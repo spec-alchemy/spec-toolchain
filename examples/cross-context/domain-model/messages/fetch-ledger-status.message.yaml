@@ -5,8 +5,8 @@ summary: Query asking the external ledger gateway to confirm the final reconcili
 messageKind: query
 channel: sync
 producers:
-  - kind: context
-    id: orders
+  - kind: policy
+    id: reconcile-ledger-after-payment
 consumers:
   - kind: system
     id: ledger-gateway

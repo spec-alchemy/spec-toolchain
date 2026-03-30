@@ -165,7 +165,8 @@ test("npm pack smoke test installs the tarball and runs build with --config on t
       "context-map",
       "scenario-story",
       "message-flow",
-      "lifecycle"
+      "lifecycle",
+      "policy-saga"
     ]);
   } finally {
     await rm(tempDir, { recursive: true, force: true });

@@ -85,7 +85,7 @@
           "kind": "context",
           "label": "Orders",
           "subtitle": "orders",
-          "summary": "1 个聚合, 1 个场景, 0 个策略",
+          "summary": "1 个聚合, 1 个场景, 1 个策略",
           "width": 360,
           "height": 240,
           "headerHeight": 120,
@@ -444,6 +444,107 @@
                   {
                     "kind": "text",
                     "text": "order-confirmed"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "context-map:policy:reconcile-ledger-after-payment",
+          "kind": "policy",
+          "label": "Reconcile Ledger After Payment",
+          "subtitle": "reconcile-ledger-after-payment",
+          "summary": "1 个触发消息, 1 个发出消息",
+          "parentId": "context-map:context:orders",
+          "width": 220,
+          "height": 158,
+          "details": [
+            {
+              "semanticKey": "policy.id",
+              "label": "策略",
+              "value": {
+                "kind": "text",
+                "text": "reconcile-ledger-after-payment"
+              }
+            },
+            {
+              "semanticKey": "policy.context",
+              "label": "上下文",
+              "value": {
+                "kind": "text",
+                "text": "orders"
+              }
+            },
+            {
+              "semanticKey": "policy.trigger_messages",
+              "label": "触发消息",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "payment-authorized"
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "policy.emitted_messages",
+              "label": "发出的消息",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "fetch-ledger-status"
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "policy.target_systems",
+              "label": "目标系统",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "ledger-gateway"
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "policy.related_contexts",
+              "label": "相关上下文",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "orders"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "payments"
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "policy.coordinates",
+              "label": "协调对象",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "aggregate:order"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "system:ledger-gateway"
                   }
                 ]
               }
@@ -947,6 +1048,37 @@
                         }
                       }
                     ]
+                  },
+                  {
+                    "kind": "record",
+                    "entries": [
+                      {
+                        "label": "类型",
+                        "value": {
+                          "kind": "text",
+                          "text": "策略目标"
+                        }
+                      },
+                      {
+                        "label": "上下文",
+                        "value": {
+                          "kind": "list",
+                          "items": [
+                            {
+                              "kind": "text",
+                              "text": "orders"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "label": "策略",
+                        "value": {
+                          "kind": "text",
+                          "text": "reconcile-ledger-after-payment"
+                        }
+                      }
+                    ]
                   }
                 ]
               }
@@ -1001,6 +1133,31 @@
               "value": {
                 "kind": "text",
                 "text": "order-settlement-flow"
+              }
+            }
+          ]
+        },
+        {
+          "id": "context-map:ownership:context:orders:policy:reconcile-ledger-after-payment",
+          "kind": "ownership",
+          "source": "context-map:context:orders",
+          "target": "context-map:policy:reconcile-ledger-after-payment",
+          "label": "拥有",
+          "details": [
+            {
+              "semanticKey": "context.id",
+              "label": "上下文",
+              "value": {
+                "kind": "text",
+                "text": "orders"
+              }
+            },
+            {
+              "semanticKey": "policy.id",
+              "label": "策略",
+              "value": {
+                "kind": "text",
+                "text": "reconcile-ledger-after-payment"
               }
             }
           ]
@@ -1825,7 +1982,7 @@
           "kind": "context",
           "label": "Orders",
           "subtitle": "orders",
-          "summary": "3 个步骤, 1 个端点",
+          "summary": "3 个步骤, 2 个端点",
           "width": 360,
           "height": 240,
           "headerHeight": 120,
@@ -2516,6 +2673,37 @@
                         }
                       }
                     ]
+                  },
+                  {
+                    "kind": "record",
+                    "entries": [
+                      {
+                        "label": "类型",
+                        "value": {
+                          "kind": "text",
+                          "text": "策略目标"
+                        }
+                      },
+                      {
+                        "label": "上下文",
+                        "value": {
+                          "kind": "list",
+                          "items": [
+                            {
+                              "kind": "text",
+                              "text": "orders"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "label": "策略",
+                        "value": {
+                          "kind": "text",
+                          "text": "reconcile-ledger-after-payment"
+                        }
+                      }
+                    ]
                   }
                 ]
               }
@@ -2743,6 +2931,107 @@
           ]
         },
         {
+          "id": "message-flow:policy:reconcile-ledger-after-payment",
+          "kind": "policy",
+          "label": "Reconcile Ledger After Payment",
+          "subtitle": "reconcile-ledger-after-payment",
+          "summary": "1 个触发消息, 1 个发出消息",
+          "parentId": "message-flow:context:orders",
+          "width": 220,
+          "height": 158,
+          "details": [
+            {
+              "semanticKey": "policy.id",
+              "label": "策略",
+              "value": {
+                "kind": "text",
+                "text": "reconcile-ledger-after-payment"
+              }
+            },
+            {
+              "semanticKey": "policy.context",
+              "label": "上下文",
+              "value": {
+                "kind": "text",
+                "text": "orders"
+              }
+            },
+            {
+              "semanticKey": "policy.trigger_messages",
+              "label": "触发消息",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "payment-authorized"
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "policy.emitted_messages",
+              "label": "发出的消息",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "fetch-ledger-status"
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "policy.target_systems",
+              "label": "目标系统",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "ledger-gateway"
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "policy.related_contexts",
+              "label": "相关上下文",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "orders"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "payments"
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "policy.coordinates",
+              "label": "协调对象",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "aggregate:order"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "system:ledger-gateway"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
           "id": "message-flow:message:authorize-payment",
           "kind": "message",
           "label": "Authorize Payment",
@@ -2948,7 +3237,7 @@
                       "items": [
                         {
                           "kind": "text",
-                          "text": "context:orders"
+                          "text": "policy:reconcile-ledger-after-payment"
                         }
                       ]
                     }
@@ -3437,6 +3726,10 @@
                         {
                           "kind": "text",
                           "text": "context:orders"
+                        },
+                        {
+                          "kind": "text",
+                          "text": "policy:reconcile-ledger-after-payment"
                         }
                       ]
                     }
@@ -3804,9 +4097,9 @@
           ]
         },
         {
-          "id": "message-flow:source:fetch-ledger-status:context:orders",
+          "id": "message-flow:source:fetch-ledger-status:policy:reconcile-ledger-after-payment",
           "kind": "message-flow",
-          "source": "message-flow:context:orders",
+          "source": "message-flow:policy:reconcile-ledger-after-payment",
           "target": "message-flow:message:fetch-ledger-status",
           "label": "来源",
           "details": [
@@ -3823,7 +4116,7 @@
               "label": "起点",
               "value": {
                 "kind": "text",
-                "text": "context:orders"
+                "text": "policy:reconcile-ledger-after-payment"
               }
             },
             {
@@ -4195,6 +4488,39 @@
               "value": {
                 "kind": "text",
                 "text": "context:orders"
+              }
+            }
+          ]
+        },
+        {
+          "id": "message-flow:target:payment-authorized:policy:reconcile-ledger-after-payment",
+          "kind": "message-flow",
+          "source": "message-flow:message:payment-authorized",
+          "target": "message-flow:policy:reconcile-ledger-after-payment",
+          "label": "目标",
+          "details": [
+            {
+              "semanticKey": "message.type",
+              "label": "消息",
+              "value": {
+                "kind": "text",
+                "text": "payment-authorized"
+              }
+            },
+            {
+              "semanticKey": "relation.from",
+              "label": "起点",
+              "value": {
+                "kind": "text",
+                "text": "payment-authorized"
+              }
+            },
+            {
+              "semanticKey": "relation.to",
+              "label": "终点",
+              "value": {
+                "kind": "text",
+                "text": "policy:reconcile-ledger-after-payment"
               }
             }
           ]
@@ -4836,6 +5162,485 @@
               "value": {
                 "kind": "text",
                 "text": "无"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "policy-saga",
+      "kind": "policy-saga",
+      "navigation": {
+        "tier": "secondary",
+        "order": 50
+      },
+      "title": "策略 / Saga",
+      "description": "展示哪些消息会触发每个协调策略，以及该策略会发出哪些后续消息。",
+      "nodes": [
+        {
+          "id": "policy-saga:policy:reconcile-ledger-after-payment",
+          "kind": "policy",
+          "label": "Reconcile Ledger After Payment",
+          "subtitle": "reconcile-ledger-after-payment",
+          "summary": "1 个触发消息, 1 个发出消息",
+          "width": 220,
+          "height": 158,
+          "details": [
+            {
+              "semanticKey": "policy.id",
+              "label": "策略",
+              "value": {
+                "kind": "text",
+                "text": "reconcile-ledger-after-payment"
+              }
+            },
+            {
+              "semanticKey": "policy.context",
+              "label": "上下文",
+              "value": {
+                "kind": "text",
+                "text": "orders"
+              }
+            },
+            {
+              "semanticKey": "policy.trigger_messages",
+              "label": "触发消息",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "payment-authorized"
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "policy.emitted_messages",
+              "label": "发出的消息",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "fetch-ledger-status"
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "policy.target_systems",
+              "label": "目标系统",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "ledger-gateway"
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "policy.related_contexts",
+              "label": "相关上下文",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "orders"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "payments"
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "policy.coordinates",
+              "label": "协调对象",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "aggregate:order"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "system:ledger-gateway"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "policy-saga:message:payment-authorized",
+          "kind": "message",
+          "label": "Payment Authorized",
+          "subtitle": "payment-authorized | event",
+          "summary": "payments -> orders",
+          "width": 228,
+          "height": 139,
+          "details": [
+            {
+              "semanticKey": "message.kind",
+              "label": "消息类型",
+              "value": {
+                "kind": "text",
+                "text": "事件"
+              }
+            },
+            {
+              "semanticKey": "message.type",
+              "label": "消息",
+              "value": {
+                "kind": "text",
+                "text": "payment-authorized"
+              }
+            },
+            {
+              "semanticKey": "message.channel",
+              "label": "通道",
+              "value": {
+                "kind": "text",
+                "text": "异步"
+              }
+            },
+            {
+              "semanticKey": "message.endpoints",
+              "label": "端点",
+              "value": {
+                "kind": "record",
+                "entries": [
+                  {
+                    "label": "来源",
+                    "value": {
+                      "kind": "list",
+                      "items": [
+                        {
+                          "kind": "text",
+                          "text": "aggregate:payment"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "label": "目标",
+                    "value": {
+                      "kind": "list",
+                      "items": [
+                        {
+                          "kind": "text",
+                          "text": "context:orders"
+                        },
+                        {
+                          "kind": "text",
+                          "text": "policy:reconcile-ledger-after-payment"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "label": "来源上下文",
+                    "value": {
+                      "kind": "list",
+                      "items": [
+                        {
+                          "kind": "text",
+                          "text": "payments"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "label": "目标上下文",
+                    "value": {
+                      "kind": "list",
+                      "items": [
+                        {
+                          "kind": "text",
+                          "text": "orders"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "message.crosses_context_boundary",
+              "label": "跨上下文边界",
+              "value": {
+                "kind": "text",
+                "text": "是"
+              }
+            },
+            {
+              "semanticKey": "message.step_links",
+              "label": "场景关联",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "record",
+                    "entries": [
+                      {
+                        "label": "方向",
+                        "value": {
+                          "kind": "text",
+                          "text": "流入"
+                        }
+                      },
+                      {
+                        "label": "场景",
+                        "value": {
+                          "kind": "text",
+                          "text": "order-settlement-flow"
+                        }
+                      },
+                      {
+                        "label": "步骤",
+                        "value": {
+                          "kind": "text",
+                          "text": "reconcile-order"
+                        }
+                      },
+                      {
+                        "label": "上下文",
+                        "value": {
+                          "kind": "text",
+                          "text": "orders"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "message.payload_fields",
+              "label": "负载字段",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "field",
+                    "name": "order-id",
+                    "fieldType": "uuid",
+                    "required": true,
+                    "description": "Correlates the authorization outcome back to the order context."
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "policy-saga:message:fetch-ledger-status",
+          "kind": "message",
+          "label": "Fetch Ledger Status",
+          "subtitle": "fetch-ledger-status | query",
+          "summary": "orders -> 外部",
+          "width": 228,
+          "height": 139,
+          "details": [
+            {
+              "semanticKey": "message.kind",
+              "label": "消息类型",
+              "value": {
+                "kind": "text",
+                "text": "查询"
+              }
+            },
+            {
+              "semanticKey": "message.type",
+              "label": "消息",
+              "value": {
+                "kind": "text",
+                "text": "fetch-ledger-status"
+              }
+            },
+            {
+              "semanticKey": "message.channel",
+              "label": "通道",
+              "value": {
+                "kind": "text",
+                "text": "同步"
+              }
+            },
+            {
+              "semanticKey": "message.endpoints",
+              "label": "端点",
+              "value": {
+                "kind": "record",
+                "entries": [
+                  {
+                    "label": "来源",
+                    "value": {
+                      "kind": "list",
+                      "items": [
+                        {
+                          "kind": "text",
+                          "text": "policy:reconcile-ledger-after-payment"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "label": "目标",
+                    "value": {
+                      "kind": "list",
+                      "items": [
+                        {
+                          "kind": "text",
+                          "text": "system:ledger-gateway"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "label": "来源上下文",
+                    "value": {
+                      "kind": "list",
+                      "items": [
+                        {
+                          "kind": "text",
+                          "text": "orders"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "label": "目标上下文",
+                    "value": {
+                      "kind": "text",
+                      "text": "无"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "message.crosses_context_boundary",
+              "label": "跨上下文边界",
+              "value": {
+                "kind": "text",
+                "text": "否"
+              }
+            },
+            {
+              "semanticKey": "message.step_links",
+              "label": "场景关联",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "record",
+                    "entries": [
+                      {
+                        "label": "方向",
+                        "value": {
+                          "kind": "text",
+                          "text": "流出"
+                        }
+                      },
+                      {
+                        "label": "场景",
+                        "value": {
+                          "kind": "text",
+                          "text": "order-settlement-flow"
+                        }
+                      },
+                      {
+                        "label": "步骤",
+                        "value": {
+                          "kind": "text",
+                          "text": "reconcile-order"
+                        }
+                      },
+                      {
+                        "label": "上下文",
+                        "value": {
+                          "kind": "text",
+                          "text": "orders"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "message.payload_fields",
+              "label": "负载字段",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "field",
+                    "name": "order-id",
+                    "fieldType": "uuid",
+                    "required": true,
+                    "description": "Identifies which order should be reconciled in the ledger."
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "edges": [
+        {
+          "id": "policy-saga:trigger:reconcile-ledger-after-payment:payment-authorized",
+          "kind": "coordination",
+          "source": "policy-saga:message:payment-authorized",
+          "target": "policy-saga:policy:reconcile-ledger-after-payment",
+          "label": "触发",
+          "details": [
+            {
+              "semanticKey": "policy.id",
+              "label": "策略",
+              "value": {
+                "kind": "text",
+                "text": "reconcile-ledger-after-payment"
+              }
+            },
+            {
+              "semanticKey": "message.type",
+              "label": "消息",
+              "value": {
+                "kind": "text",
+                "text": "payment-authorized"
+              }
+            }
+          ]
+        },
+        {
+          "id": "policy-saga:emit:reconcile-ledger-after-payment:fetch-ledger-status",
+          "kind": "coordination",
+          "source": "policy-saga:policy:reconcile-ledger-after-payment",
+          "target": "policy-saga:message:fetch-ledger-status",
+          "label": "发出",
+          "details": [
+            {
+              "semanticKey": "policy.id",
+              "label": "策略",
+              "value": {
+                "kind": "text",
+                "text": "reconcile-ledger-after-payment"
+              }
+            },
+            {
+              "semanticKey": "message.type",
+              "label": "消息",
+              "value": {
+                "kind": "text",
+                "text": "fetch-ledger-status"
               }
             }
           ]

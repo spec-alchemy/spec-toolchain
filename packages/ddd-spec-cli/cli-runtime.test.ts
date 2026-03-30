@@ -370,7 +370,8 @@ test("CLI serve launches the packaged static server from an existing explicit-co
       "context-map",
       "scenario-story",
       "message-flow",
-      "lifecycle"
+      "lifecycle",
+      "policy-saga"
     ]);
   } finally {
     await rm(tempDir, { recursive: true, force: true });
@@ -551,7 +552,8 @@ test("CLI build supports version 1 domain models when viewer projection is enabl
       "context-map",
       "scenario-story",
       "message-flow",
-      "lifecycle"
+      "lifecycle",
+      "policy-saga"
     ]);
     assert.equal(JSON.stringify(viewer).includes("\"fetch-ledger-status\""), true);
     await assert.rejects(
