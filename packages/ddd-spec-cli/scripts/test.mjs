@@ -7,30 +7,63 @@ const packageDirPath = join(scriptDirPath, "..");
 const repoRootPath = join(packageDirPath, "..", "..");
 const viewerTsconfigPath = join(repoRootPath, "apps", "ddd-spec-viewer", "tsconfig.json");
 
-await runNpm(["run", "build"], packageDirPath, "package build preparation");
-await runNodeTest(
-  [
-    "../ddd-spec-core/*.test.ts",
-    "./viewer-dev-session.test.ts",
-    "./cli-config.test.ts",
-    "./cli-init.test.ts",
-    "./cli-packaging.test.ts",
-    "./cli-installed-smoke.test.ts",
-    "./cli-link.test.ts",
-    "./cli-runtime.test.ts",
-    "../ddd-spec-projection-viewer/index.test.ts"
-  ],
-  packageDirPath,
-  "core and CLI regressions"
-);
-await runNodeTest(
-  ["../../apps/ddd-spec-viewer/test/*.test.ts", "../../apps/ddd-spec-viewer/test/*.test.tsx"],
-  packageDirPath,
-  "viewer regressions",
+const testSteps = [
   {
-    TSX_TSCONFIG_PATH: viewerTsconfigPath
+    label: "package build preparation",
+    run: () => runNpm(["run", "build"], packageDirPath, "package build preparation")
+  },
+  {
+    label: "core-facing regressions",
+    run: () =>
+      runNodeTest(
+        ["../ddd-spec-core/*.test.ts", "../ddd-spec-projection-viewer/index.test.ts"],
+        packageDirPath,
+        "core-facing regressions"
+      )
+  },
+  {
+    label: "CLI-facing regressions",
+    run: () =>
+      runNodeTest(
+        [
+          "./viewer-dev-session.test.ts",
+          "./cli-config.test.ts",
+          "./cli-init.test.ts",
+          "./cli-packaging.test.ts",
+          "./cli-installed-smoke.test.ts",
+          "./cli-link.test.ts",
+          "./cli-runtime.test.ts"
+        ],
+        packageDirPath,
+        "CLI-facing regressions"
+      )
+  },
+  {
+    label: "viewer-facing regressions",
+    run: () =>
+      runNodeTest(
+        ["../../apps/ddd-spec-viewer/test/*.test.ts", "../../apps/ddd-spec-viewer/test/*.test.tsx"],
+        packageDirPath,
+        "viewer-facing regressions",
+        {
+          TSX_TSCONFIG_PATH: viewerTsconfigPath
+        }
+      )
   }
-);
+];
+
+for (const step of testSteps) {
+  await runTestStep(step.label, step.run);
+}
+
+async function runTestStep(label, action) {
+  try {
+    await action();
+  } catch (error) {
+    const causeMessage = error instanceof Error ? error.message : String(error);
+    throw new Error(`[ddd-spec-cli test] ${label} failed: ${causeMessage}`);
+  }
+}
 
 async function runNpm(args, cwd, label) {
   const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
