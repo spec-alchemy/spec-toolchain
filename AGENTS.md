@@ -39,10 +39,14 @@
 - Keep any surviving Markdown short and limited to durable interfaces, execution constraints, or architecture boundaries that materially affect implementation.
 
 ## Strategy Guardrails
-- [`docs/strategy/`](./docs/strategy/) is the canonical strategy source for brand positioning, `spec family` expansion rules, and terminology; do not duplicate the full strategy elsewhere.
+- [`docs/strategy/`](./docs/strategy/) is the canonical strategy source for brand positioning, `spec family` structure, admission rules, review entry, and terminology; do not duplicate the full strategy elsewhere.
+- [`docs/strategy/`](./docs/strategy/) is intentionally limited to five durable docs: [`brand-constitution.md`](./docs/strategy/brand-constitution.md), [`spec-family-map.md`](./docs/strategy/spec-family-map.md), [`family-admission-criteria.md`](./docs/strategy/family-admission-criteria.md), [`new-family-review-template.md`](./docs/strategy/new-family-review-template.md), and [`terminology.md`](./docs/strategy/terminology.md).
+- Treat edits under [`docs/strategy/`](./docs/strategy/) as high-caution changes: modify only when the brand definition, product-line structure, admission bar, review process, or canonical terminology truly needs to change.
+- Do not add shared-kernel extraction notes, readiness checklists, preflight docs, backlogs, or status/history writeups under [`docs/strategy/`](./docs/strategy/); keep executable truth in code/tests and task execution material under task-scoped docs only when truly necessary.
+- Do not casually rewrite, expand, or “polish” [`docs/strategy/`](./docs/strategy/) for style; preserve durable meaning and prefer the smallest possible change set when a strategy edit is necessary.
 - Treat `Spec Toolchain` as `AI-native spec tooling`; treat `ddd-spec` as the first `spec family` and current `wedge product`, not as the brand itself.
 - Put family-specific maturity, compatibility, and consumer-facing `contract` statements at the corresponding public package boundary; for `ddd-spec`, prefer [`packages/ddd-spec-cli/`](./packages/ddd-spec-cli/).
-- Before adding or expanding any `xxx-spec`, check [`docs/strategy/family-admission-criteria.md`](./docs/strategy/family-admission-criteria.md) and [`docs/strategy/new-family-review-template.md`](./docs/strategy/new-family-review-template.md).
+- Before adding or expanding any `xxx-spec`, align with [`docs/strategy/brand-constitution.md`](./docs/strategy/brand-constitution.md), [`docs/strategy/spec-family-map.md`](./docs/strategy/spec-family-map.md), [`docs/strategy/family-admission-criteria.md`](./docs/strategy/family-admission-criteria.md), [`docs/strategy/new-family-review-template.md`](./docs/strategy/new-family-review-template.md), and [`docs/strategy/terminology.md`](./docs/strategy/terminology.md).
 - Follow [`docs/strategy/terminology.md`](./docs/strategy/terminology.md) for brand, product-line, and proposal wording; do not freely rename terms such as `spec family`, `shared kernel`, or `wedge product`.
 
 ## Key Conventions

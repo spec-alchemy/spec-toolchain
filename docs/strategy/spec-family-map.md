@@ -35,6 +35,7 @@
   - `analysis`：推导出的结构化分析结果一致
 - 生成表面：`bundle / analysis / viewer / typescript`，以配置为准
 - Viewer 表面：主路径是 `Context Map -> Scenario Story -> Message Flow/Trace -> Lifecycle`
+- 定位约束：它是当前 `wedge product`，不是品牌本体，也不自动代表其他 `spec family` 的 canonical input 或实现方式
 
 ## 候选 Families（下一批 Family 的结构约束，不代表实现承诺）
 
@@ -100,12 +101,8 @@
 - 漂移控制：
   - 当上游实体变更导致下游引用失效时，`semantic validation` 必须阻断并给出可执行诊断，例如缺失对象、失效位置与修复建议
 
-## Family 接入 Shared Kernel 的最小一致性要求
+## 使用边界
 
-一个 `xxx-spec` 想成为 `spec-toolchain` 的正式 `spec family`，至少需要满足：
-
-- 有明确的 `source asset` 边界（用户自有、可 versioned）
-- 有单一入口(可配置)与可枚举产物目录
-- 至少提供 `schema validation` 与 `semantic validation`
-- 至少提供 `analysis` 或 `viewer` 之一（否则难以自检或自省）
-- 产物与源 spec 可追溯（可解释、可定位、可 diff）
+- 本文定义的是产品结构，不是准入审批结果。
+- 上述候选 family 只是结构占位符，不构成实现承诺、发布时间承诺或 public package 承诺。
+- 新 family 是否允许进入产品线，必须单独通过 [`family-admission-criteria.md`](./family-admission-criteria.md) 与 [`new-family-review-template.md`](./new-family-review-template.md) 的评审。
