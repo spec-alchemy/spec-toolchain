@@ -41,6 +41,9 @@ npm run ops:release:dry-run
 with release-readiness checks, and `npm run ops:release:dry-run` is required for changes that
 affect the public package release surface.
 
+This command surface is target-state only. Do not use or document removed legacy root entrypoints
+such as `verify` or `release:dry-run`, and do not add compatibility aliases for them.
+
 The published `@spec-alchemy/ddd-spec` package keeps its own runtime compatibility floor. The
 maintainer workspace uses a higher Node baseline because the private viewer build toolchain follows
 current Vite support.
@@ -78,6 +81,8 @@ current Vite support.
   segments in contributor branch names.
 - Treat local verification as the contributor baseline and GitHub-required checks as the merge gate
   for `main`.
+- Keep contributor-facing validation guidance on the target-state `check:*`, `gate:*`, and `ops:*`
+  names only; do not restore removed legacy command names for compatibility.
 
 ## Release Notes
 

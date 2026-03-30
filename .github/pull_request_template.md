@@ -10,6 +10,7 @@ Describe the change and the reason for it.
 
 ## Validation
 
+- [ ] Validation references use only `check:*`, `gate:*`, or `ops:*` target-state entrypoints; no legacy aliases added
 - [ ] Branch name follows the documented convention
 - [ ] `npm run gate:pr`
 - [ ] `npm run gate:release` when release-readiness is affected
