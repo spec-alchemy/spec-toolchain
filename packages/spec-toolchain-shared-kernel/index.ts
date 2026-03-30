@@ -23,6 +23,14 @@ export {
   type SharedKernelExtensionPointStatus
 } from "./extension-points.ts";
 export {
+  SHARED_PROVENANCE_DERIVATION_KINDS,
+  SHARED_PROVENANCE_VERSION,
+  type SharedProvenanceDerivationKind,
+  type SharedProvenanceRecord,
+  type SharedProvenanceSourceLink,
+  type SharedProvenanceSubject
+} from "./provenance.ts";
+export {
   SHARED_REFERENCE_VERSION,
   type SharedReference
 } from "./reference.ts";
