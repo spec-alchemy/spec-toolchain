@@ -10,6 +10,7 @@ Describe the change and the reason for it.
 
 ## Validation
 
+- [ ] Branch name follows the documented convention
 - [ ] `npm run verify`
 - [ ] `npm run release:dry-run`
 - [ ] Additional targeted checks documented below when needed
