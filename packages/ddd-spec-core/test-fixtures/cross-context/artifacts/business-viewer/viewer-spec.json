@@ -85,7 +85,7 @@
           "kind": "context",
           "label": "Orders",
           "subtitle": "orders",
-          "summary": "1 aggregate(s), 1 scenario(s), 0 policy(s)",
+          "summary": "1 aggregate(s), 1 scenario(s), 1 policy(s)",
           "width": 360,
           "height": 240,
           "headerHeight": 123,
@@ -444,6 +444,107 @@
                   {
                     "kind": "text",
                     "text": "order-confirmed"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "context-map:policy:reconcile-ledger-after-payment",
+          "kind": "policy",
+          "label": "Reconcile Ledger After Payment",
+          "subtitle": "reconcile-ledger-after-payment",
+          "summary": "1 trigger(s), 1 emitted",
+          "parentId": "context-map:context:orders",
+          "width": 220,
+          "height": 174,
+          "details": [
+            {
+              "semanticKey": "policy.id",
+              "label": "Policy",
+              "value": {
+                "kind": "text",
+                "text": "reconcile-ledger-after-payment"
+              }
+            },
+            {
+              "semanticKey": "policy.context",
+              "label": "Context",
+              "value": {
+                "kind": "text",
+                "text": "orders"
+              }
+            },
+            {
+              "semanticKey": "policy.trigger_messages",
+              "label": "Trigger messages",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "payment-authorized"
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "policy.emitted_messages",
+              "label": "Emitted messages",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "fetch-ledger-status"
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "policy.target_systems",
+              "label": "Target systems",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "ledger-gateway"
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "policy.related_contexts",
+              "label": "Related contexts",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "orders"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "payments"
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "policy.coordinates",
+              "label": "Coordinates",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "aggregate:order"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "system:ledger-gateway"
                   }
                 ]
               }
@@ -947,6 +1048,37 @@
                         }
                       }
                     ]
+                  },
+                  {
+                    "kind": "record",
+                    "entries": [
+                      {
+                        "label": "Kind",
+                        "value": {
+                          "kind": "text",
+                          "text": "policy-target"
+                        }
+                      },
+                      {
+                        "label": "Contexts",
+                        "value": {
+                          "kind": "list",
+                          "items": [
+                            {
+                              "kind": "text",
+                              "text": "orders"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "label": "Policy",
+                        "value": {
+                          "kind": "text",
+                          "text": "reconcile-ledger-after-payment"
+                        }
+                      }
+                    ]
                   }
                 ]
               }
@@ -1001,6 +1133,31 @@
               "value": {
                 "kind": "text",
                 "text": "order-settlement-flow"
+              }
+            }
+          ]
+        },
+        {
+          "id": "context-map:ownership:context:orders:policy:reconcile-ledger-after-payment",
+          "kind": "ownership",
+          "source": "context-map:context:orders",
+          "target": "context-map:policy:reconcile-ledger-after-payment",
+          "label": "owns",
+          "details": [
+            {
+              "semanticKey": "context.id",
+              "label": "Context",
+              "value": {
+                "kind": "text",
+                "text": "orders"
+              }
+            },
+            {
+              "semanticKey": "policy.id",
+              "label": "Policy",
+              "value": {
+                "kind": "text",
+                "text": "reconcile-ledger-after-payment"
               }
             }
           ]
@@ -1825,7 +1982,7 @@
           "kind": "context",
           "label": "Orders",
           "subtitle": "orders",
-          "summary": "3 step(s), 1 endpoint(s)",
+          "summary": "3 step(s), 2 endpoint(s)",
           "width": 360,
           "height": 240,
           "headerHeight": 120,
@@ -2516,6 +2673,37 @@
                         }
                       }
                     ]
+                  },
+                  {
+                    "kind": "record",
+                    "entries": [
+                      {
+                        "label": "Kind",
+                        "value": {
+                          "kind": "text",
+                          "text": "policy-target"
+                        }
+                      },
+                      {
+                        "label": "Contexts",
+                        "value": {
+                          "kind": "list",
+                          "items": [
+                            {
+                              "kind": "text",
+                              "text": "orders"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "label": "Policy",
+                        "value": {
+                          "kind": "text",
+                          "text": "reconcile-ledger-after-payment"
+                        }
+                      }
+                    ]
                   }
                 ]
               }
@@ -2743,6 +2931,107 @@
           ]
         },
         {
+          "id": "message-flow:policy:reconcile-ledger-after-payment",
+          "kind": "policy",
+          "label": "Reconcile Ledger After Payment",
+          "subtitle": "reconcile-ledger-after-payment",
+          "summary": "1 trigger(s), 1 emitted",
+          "parentId": "message-flow:context:orders",
+          "width": 220,
+          "height": 174,
+          "details": [
+            {
+              "semanticKey": "policy.id",
+              "label": "Policy",
+              "value": {
+                "kind": "text",
+                "text": "reconcile-ledger-after-payment"
+              }
+            },
+            {
+              "semanticKey": "policy.context",
+              "label": "Context",
+              "value": {
+                "kind": "text",
+                "text": "orders"
+              }
+            },
+            {
+              "semanticKey": "policy.trigger_messages",
+              "label": "Trigger messages",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "payment-authorized"
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "policy.emitted_messages",
+              "label": "Emitted messages",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "fetch-ledger-status"
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "policy.target_systems",
+              "label": "Target systems",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "ledger-gateway"
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "policy.related_contexts",
+              "label": "Related contexts",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "orders"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "payments"
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "policy.coordinates",
+              "label": "Coordinates",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "aggregate:order"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "system:ledger-gateway"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
           "id": "message-flow:message:authorize-payment",
           "kind": "message",
           "label": "Authorize Payment",
@@ -2948,7 +3237,7 @@
                       "items": [
                         {
                           "kind": "text",
-                          "text": "context:orders"
+                          "text": "policy:reconcile-ledger-after-payment"
                         }
                       ]
                     }
@@ -3437,6 +3726,10 @@
                         {
                           "kind": "text",
                           "text": "context:orders"
+                        },
+                        {
+                          "kind": "text",
+                          "text": "policy:reconcile-ledger-after-payment"
                         }
                       ]
                     }
@@ -3804,9 +4097,9 @@
           ]
         },
         {
-          "id": "message-flow:source:fetch-ledger-status:context:orders",
+          "id": "message-flow:source:fetch-ledger-status:policy:reconcile-ledger-after-payment",
           "kind": "message-flow",
-          "source": "message-flow:context:orders",
+          "source": "message-flow:policy:reconcile-ledger-after-payment",
           "target": "message-flow:message:fetch-ledger-status",
           "label": "source",
           "details": [
@@ -3823,7 +4116,7 @@
               "label": "From",
               "value": {
                 "kind": "text",
-                "text": "context:orders"
+                "text": "policy:reconcile-ledger-after-payment"
               }
             },
             {
@@ -4195,6 +4488,39 @@
               "value": {
                 "kind": "text",
                 "text": "context:orders"
+              }
+            }
+          ]
+        },
+        {
+          "id": "message-flow:target:payment-authorized:policy:reconcile-ledger-after-payment",
+          "kind": "message-flow",
+          "source": "message-flow:message:payment-authorized",
+          "target": "message-flow:policy:reconcile-ledger-after-payment",
+          "label": "target",
+          "details": [
+            {
+              "semanticKey": "message.type",
+              "label": "Message",
+              "value": {
+                "kind": "text",
+                "text": "payment-authorized"
+              }
+            },
+            {
+              "semanticKey": "relation.from",
+              "label": "From",
+              "value": {
+                "kind": "text",
+                "text": "payment-authorized"
+              }
+            },
+            {
+              "semanticKey": "relation.to",
+              "label": "To",
+              "value": {
+                "kind": "text",
+                "text": "policy:reconcile-ledger-after-payment"
               }
             }
           ]
@@ -4836,6 +5162,485 @@
               "value": {
                 "kind": "text",
                 "text": "none"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "policy-saga",
+      "kind": "policy-saga",
+      "navigation": {
+        "tier": "secondary",
+        "order": 50
+      },
+      "title": "Policy / Saga",
+      "description": "Shows which messages trigger each coordination policy and which follow-up messages that policy emits.",
+      "nodes": [
+        {
+          "id": "policy-saga:policy:reconcile-ledger-after-payment",
+          "kind": "policy",
+          "label": "Reconcile Ledger After Payment",
+          "subtitle": "reconcile-ledger-after-payment",
+          "summary": "1 trigger(s), 1 emitted",
+          "width": 220,
+          "height": 174,
+          "details": [
+            {
+              "semanticKey": "policy.id",
+              "label": "Policy",
+              "value": {
+                "kind": "text",
+                "text": "reconcile-ledger-after-payment"
+              }
+            },
+            {
+              "semanticKey": "policy.context",
+              "label": "Context",
+              "value": {
+                "kind": "text",
+                "text": "orders"
+              }
+            },
+            {
+              "semanticKey": "policy.trigger_messages",
+              "label": "Trigger messages",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "payment-authorized"
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "policy.emitted_messages",
+              "label": "Emitted messages",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "fetch-ledger-status"
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "policy.target_systems",
+              "label": "Target systems",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "ledger-gateway"
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "policy.related_contexts",
+              "label": "Related contexts",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "orders"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "payments"
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "policy.coordinates",
+              "label": "Coordinates",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "text",
+                    "text": "aggregate:order"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "system:ledger-gateway"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "policy-saga:message:payment-authorized",
+          "kind": "message",
+          "label": "Payment Authorized",
+          "subtitle": "payment-authorized | event",
+          "summary": "payments -> orders",
+          "width": 228,
+          "height": 139,
+          "details": [
+            {
+              "semanticKey": "message.kind",
+              "label": "Message kind",
+              "value": {
+                "kind": "text",
+                "text": "event"
+              }
+            },
+            {
+              "semanticKey": "message.type",
+              "label": "Message",
+              "value": {
+                "kind": "text",
+                "text": "payment-authorized"
+              }
+            },
+            {
+              "semanticKey": "message.channel",
+              "label": "Channel",
+              "value": {
+                "kind": "text",
+                "text": "async"
+              }
+            },
+            {
+              "semanticKey": "message.endpoints",
+              "label": "Endpoints",
+              "value": {
+                "kind": "record",
+                "entries": [
+                  {
+                    "label": "Sources",
+                    "value": {
+                      "kind": "list",
+                      "items": [
+                        {
+                          "kind": "text",
+                          "text": "aggregate:payment"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "label": "Targets",
+                    "value": {
+                      "kind": "list",
+                      "items": [
+                        {
+                          "kind": "text",
+                          "text": "context:orders"
+                        },
+                        {
+                          "kind": "text",
+                          "text": "policy:reconcile-ledger-after-payment"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "label": "Source contexts",
+                    "value": {
+                      "kind": "list",
+                      "items": [
+                        {
+                          "kind": "text",
+                          "text": "payments"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "label": "Target contexts",
+                    "value": {
+                      "kind": "list",
+                      "items": [
+                        {
+                          "kind": "text",
+                          "text": "orders"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "message.crosses_context_boundary",
+              "label": "Crosses context boundary",
+              "value": {
+                "kind": "text",
+                "text": "yes"
+              }
+            },
+            {
+              "semanticKey": "message.step_links",
+              "label": "Scenario links",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "record",
+                    "entries": [
+                      {
+                        "label": "Direction",
+                        "value": {
+                          "kind": "text",
+                          "text": "incoming"
+                        }
+                      },
+                      {
+                        "label": "Scenario",
+                        "value": {
+                          "kind": "text",
+                          "text": "order-settlement-flow"
+                        }
+                      },
+                      {
+                        "label": "Step",
+                        "value": {
+                          "kind": "text",
+                          "text": "reconcile-order"
+                        }
+                      },
+                      {
+                        "label": "Context",
+                        "value": {
+                          "kind": "text",
+                          "text": "orders"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "message.payload_fields",
+              "label": "Payload fields",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "field",
+                    "name": "order-id",
+                    "fieldType": "uuid",
+                    "required": true,
+                    "description": "Correlates the authorization outcome back to the order context."
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "policy-saga:message:fetch-ledger-status",
+          "kind": "message",
+          "label": "Fetch Ledger Status",
+          "subtitle": "fetch-ledger-status | query",
+          "summary": "orders -> external",
+          "width": 228,
+          "height": 139,
+          "details": [
+            {
+              "semanticKey": "message.kind",
+              "label": "Message kind",
+              "value": {
+                "kind": "text",
+                "text": "query"
+              }
+            },
+            {
+              "semanticKey": "message.type",
+              "label": "Message",
+              "value": {
+                "kind": "text",
+                "text": "fetch-ledger-status"
+              }
+            },
+            {
+              "semanticKey": "message.channel",
+              "label": "Channel",
+              "value": {
+                "kind": "text",
+                "text": "sync"
+              }
+            },
+            {
+              "semanticKey": "message.endpoints",
+              "label": "Endpoints",
+              "value": {
+                "kind": "record",
+                "entries": [
+                  {
+                    "label": "Sources",
+                    "value": {
+                      "kind": "list",
+                      "items": [
+                        {
+                          "kind": "text",
+                          "text": "policy:reconcile-ledger-after-payment"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "label": "Targets",
+                    "value": {
+                      "kind": "list",
+                      "items": [
+                        {
+                          "kind": "text",
+                          "text": "system:ledger-gateway"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "label": "Source contexts",
+                    "value": {
+                      "kind": "list",
+                      "items": [
+                        {
+                          "kind": "text",
+                          "text": "orders"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "label": "Target contexts",
+                    "value": {
+                      "kind": "text",
+                      "text": "none"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "message.crosses_context_boundary",
+              "label": "Crosses context boundary",
+              "value": {
+                "kind": "text",
+                "text": "no"
+              }
+            },
+            {
+              "semanticKey": "message.step_links",
+              "label": "Scenario links",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "record",
+                    "entries": [
+                      {
+                        "label": "Direction",
+                        "value": {
+                          "kind": "text",
+                          "text": "outgoing"
+                        }
+                      },
+                      {
+                        "label": "Scenario",
+                        "value": {
+                          "kind": "text",
+                          "text": "order-settlement-flow"
+                        }
+                      },
+                      {
+                        "label": "Step",
+                        "value": {
+                          "kind": "text",
+                          "text": "reconcile-order"
+                        }
+                      },
+                      {
+                        "label": "Context",
+                        "value": {
+                          "kind": "text",
+                          "text": "orders"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "semanticKey": "message.payload_fields",
+              "label": "Payload fields",
+              "value": {
+                "kind": "list",
+                "items": [
+                  {
+                    "kind": "field",
+                    "name": "order-id",
+                    "fieldType": "uuid",
+                    "required": true,
+                    "description": "Identifies which order should be reconciled in the ledger."
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "edges": [
+        {
+          "id": "policy-saga:trigger:reconcile-ledger-after-payment:payment-authorized",
+          "kind": "coordination",
+          "source": "policy-saga:message:payment-authorized",
+          "target": "policy-saga:policy:reconcile-ledger-after-payment",
+          "label": "triggers",
+          "details": [
+            {
+              "semanticKey": "policy.id",
+              "label": "Policy",
+              "value": {
+                "kind": "text",
+                "text": "reconcile-ledger-after-payment"
+              }
+            },
+            {
+              "semanticKey": "message.type",
+              "label": "Message",
+              "value": {
+                "kind": "text",
+                "text": "payment-authorized"
+              }
+            }
+          ]
+        },
+        {
+          "id": "policy-saga:emit:reconcile-ledger-after-payment:fetch-ledger-status",
+          "kind": "coordination",
+          "source": "policy-saga:policy:reconcile-ledger-after-payment",
+          "target": "policy-saga:message:fetch-ledger-status",
+          "label": "emits",
+          "details": [
+            {
+              "semanticKey": "policy.id",
+              "label": "Policy",
+              "value": {
+                "kind": "text",
+                "text": "reconcile-ledger-after-payment"
+              }
+            },
+            {
+              "semanticKey": "message.type",
+              "label": "Message",
+              "value": {
+                "kind": "text",
+                "text": "fetch-ledger-status"
               }
             }
           ]

@@ -10,6 +10,8 @@ producers:
 consumers:
   - kind: context
     id: orders
+  - kind: policy
+    id: reconcile-ledger-after-payment
 payload:
   - id: order-id
     type: uuid

@@ -181,8 +181,8 @@
       "channel": "sync",
       "producers": [
         {
-          "kind": "context",
-          "id": "orders"
+          "kind": "policy",
+          "id": "reconcile-ledger-after-payment"
         }
       ],
       "consumers": [
@@ -283,6 +283,10 @@
         {
           "kind": "context",
           "id": "orders"
+        },
+        {
+          "kind": "policy",
+          "id": "reconcile-ledger-after-payment"
         }
       ],
       "payload": [
@@ -385,5 +389,32 @@
       ]
     }
   ],
-  "policies": []
+  "policies": [
+    {
+      "kind": "policy",
+      "id": "reconcile-ledger-after-payment",
+      "title": "Reconcile Ledger After Payment",
+      "summary": "Triggers final ledger reconciliation after payment authorization succeeds.",
+      "context": "orders",
+      "triggerMessages": [
+        "payment-authorized"
+      ],
+      "emittedMessages": [
+        "fetch-ledger-status"
+      ],
+      "targetSystems": [
+        "ledger-gateway"
+      ],
+      "coordinates": [
+        {
+          "kind": "aggregate",
+          "id": "order"
+        },
+        {
+          "kind": "system",
+          "id": "ledger-gateway"
+        }
+      ]
+    }
+  ]
 }

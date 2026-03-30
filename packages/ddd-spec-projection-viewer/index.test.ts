@@ -73,6 +73,7 @@ test("viewer projection renders cross-context message flow and query details", a
   const messageFlowView = mustFind(viewerSpec.views, (view) => view.id === "message-flow");
   const scenarioStoryView = mustFind(viewerSpec.views, (view) => view.id === "scenario-story");
   const lifecycleView = mustFind(viewerSpec.views, (view) => view.id === "lifecycle");
+  const policySagaView = mustFind(viewerSpec.views, (view) => view.id === "policy-saga");
   const ordersContextNode = mustFind(
     contextMapView.nodes,
     (node) =>
@@ -152,12 +153,9 @@ test("viewer projection renders cross-context message flow and query details", a
 
   assert.deepEqual(
     viewerSpec.views.map((view) => view.id),
-    ["context-map", "scenario-story", "message-flow", "lifecycle"]
+    ["context-map", "scenario-story", "message-flow", "lifecycle", "policy-saga"]
   );
-  assert.equal(
-    viewerSpec.views.some((view) => view.kind === "policy-saga"),
-    false
-  );
+  assert.equal(policySagaView.kind, "policy-saga");
   assert.equal(
     viewerSpec.views.some((view) => view.id === "domain-structure"),
     false
@@ -217,6 +215,7 @@ test("viewer projection renders cross-context message flow and query details", a
     ),
     false
   );
+  assert.equal(policySagaView.navigation.tier, "secondary");
 });
 
 test("viewer projection localizes enum-backed values in zh-CN artifacts", async () => {
@@ -270,6 +269,11 @@ test("viewer projection localizes enum-backed values in zh-CN artifacts", async 
         类型: "消息生产方",
         上下文: ["orders"],
         消息: "ledger-status-fetched"
+      },
+      {
+        类型: "策略目标",
+        上下文: ["orders"],
+        策略: "reconcile-ledger-after-payment"
       }
     ]
   );

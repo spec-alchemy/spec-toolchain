@@ -27,7 +27,9 @@
         "scenarioIds": [
           "order-settlement-flow"
         ],
-        "policyIds": [],
+        "policyIds": [
+          "reconcile-ledger-after-payment"
+        ],
         "actorIds": [
           "customer"
         ],
@@ -183,6 +185,14 @@
             ],
             "path": "/messages/ledger-status-fetched/producers/system:ledger-gateway",
             "messageId": "ledger-status-fetched"
+          },
+          {
+            "kind": "policy-target",
+            "contextIds": [
+              "orders"
+            ],
+            "path": "/policies/reconcile-ledger-after-payment/targetSystems/ledger-gateway",
+            "policyId": "reconcile-ledger-after-payment"
           }
         ],
         "path": "/systems/ledger-gateway"
@@ -427,11 +437,11 @@
           {
             "target": {
               "family": "ddd-spec",
-              "kind": "context",
-              "value": "orders"
+              "kind": "policy",
+              "value": "reconcile-ledger-after-payment"
             },
             "contextId": "orders",
-            "path": "/messages/fetch-ledger-status/producers/context:orders"
+            "path": "/messages/fetch-ledger-status/producers/policy:reconcile-ledger-after-payment"
           }
         ],
         "consumers": [
@@ -489,10 +499,10 @@
               "source": {
                 "target": {
                   "family": "ddd-spec",
-                  "kind": "context",
-                  "value": "orders"
+                  "kind": "policy",
+                  "value": "reconcile-ledger-after-payment"
                 },
-                "path": "/messages/fetch-ledger-status/producers/context:orders"
+                "path": "/messages/fetch-ledger-status/producers/policy:reconcile-ledger-after-payment"
               }
             },
             {
@@ -769,6 +779,15 @@
             },
             "contextId": "orders",
             "path": "/messages/payment-authorized/consumers/context:orders"
+          },
+          {
+            "target": {
+              "family": "ddd-spec",
+              "kind": "policy",
+              "value": "reconcile-ledger-after-payment"
+            },
+            "contextId": "orders",
+            "path": "/messages/payment-authorized/consumers/policy:reconcile-ledger-after-payment"
           }
         ],
         "payload": [
@@ -833,6 +852,17 @@
                   "value": "orders"
                 },
                 "path": "/messages/payment-authorized/consumers/context:orders"
+              }
+            },
+            {
+              "derivationKind": "aggregated-from",
+              "source": {
+                "target": {
+                  "family": "ddd-spec",
+                  "kind": "policy",
+                  "value": "reconcile-ledger-after-payment"
+                },
+                "path": "/messages/payment-authorized/consumers/policy:reconcile-ledger-after-payment"
               }
             }
           ]
@@ -1084,7 +1114,52 @@
         "path": "/aggregates/payment"
       }
     ],
-    "policyCoordinations": []
+    "policyCoordinations": [
+      {
+        "kind": "policy",
+        "stableId": {
+          "family": "ddd-spec",
+          "kind": "policy",
+          "value": "reconcile-ledger-after-payment"
+        },
+        "id": "reconcile-ledger-after-payment",
+        "title": "Reconcile Ledger After Payment",
+        "summary": "Triggers final ledger reconciliation after payment authorization succeeds.",
+        "contextId": "orders",
+        "triggerMessageIds": [
+          "payment-authorized"
+        ],
+        "emittedMessageIds": [
+          "fetch-ledger-status"
+        ],
+        "targetSystemIds": [
+          "ledger-gateway"
+        ],
+        "coordinates": [
+          {
+            "target": {
+              "family": "ddd-spec",
+              "kind": "aggregate",
+              "value": "order"
+            },
+            "path": "/policies/reconcile-ledger-after-payment/coordinates/aggregate:order"
+          },
+          {
+            "target": {
+              "family": "ddd-spec",
+              "kind": "system",
+              "value": "ledger-gateway"
+            },
+            "path": "/policies/reconcile-ledger-after-payment/coordinates/system:ledger-gateway"
+          }
+        ],
+        "relatedContextIds": [
+          "orders",
+          "payments"
+        ],
+        "path": "/policies/reconcile-ledger-after-payment"
+      }
+    ]
   },
   "diagnostics": [],
   "summary": {
