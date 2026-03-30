@@ -1,11 +1,11 @@
+import type { AnalysisDiagnostic } from "../ddd-spec-core/index.js";
+
 const PREFIX = "[ddd-spec]";
 
-interface CliDiagnostic {
-  severity: string;
-  code: string;
-  path: string;
-  message: string;
-}
+type CliDiagnostic = Pick<
+  AnalysisDiagnostic,
+  "severity" | "code" | "path" | "message"
+>;
 
 export function logInfo(message: string): void {
   console.log(prefixMessageLines(message));
