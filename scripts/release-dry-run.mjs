@@ -9,9 +9,10 @@ const packageRootPath = join(repoRootPath, "packages", "ddd-spec-cli");
 const packageJsonPath = join(packageRootPath, "package.json");
 const changelogPath = join(packageRootPath, "CHANGELOG.md");
 const changesetDirPath = join(repoRootPath, ".changeset");
-const releaseDistTag = await resolveReleaseDistTag();
 const releaseStatusCommand = ["run", "check:release:status"];
+const releasePackCommand = ["run", "check:release:pack"];
 const releaseVersionCommand = ["run", "ops:release:version"];
+const publishDryRunCommand = ["run", "ops:release:publish-dry-run"];
 
 const releaseStatusOutput = await runNpm(releaseStatusCommand, repoRootPath, "check:release:status", {
   captureOutput: true
@@ -28,49 +29,10 @@ const snapshot = await createSnapshot();
 
 try {
   await runNpm(releaseVersionCommand, repoRootPath, "ops:release:version");
-  const publishArgs = ["publish", "--dry-run"];
-  const publishLabel =
-    releaseDistTag === "latest"
-      ? "npm publish --dry-run"
-      : `npm publish --dry-run --tag ${releaseDistTag}`;
-
-  if (releaseDistTag !== "latest") {
-    publishArgs.push("--tag", releaseDistTag);
-  }
-
-  await runNpm(publishArgs, packageRootPath, publishLabel);
+  await runNpm(releasePackCommand, repoRootPath, "check:release:pack");
+  await runNpm(publishDryRunCommand, repoRootPath, "ops:release:publish-dry-run");
 } finally {
   await restoreSnapshot(snapshot);
-}
-
-async function resolveReleaseDistTag() {
-  const branchName = await readGitBranchName();
-  return branchName === "beta" ? "beta" : "latest";
-}
-
-async function readGitBranchName() {
-  return new Promise((resolve) => {
-    const child = spawn("git", ["rev-parse", "--abbrev-ref", "HEAD"], {
-      cwd: repoRootPath,
-      stdio: ["ignore", "pipe", "ignore"]
-    });
-
-    let stdout = "";
-
-    child.stdout.on("data", (chunk) => {
-      stdout += String(chunk);
-    });
-
-    child.once("error", () => resolve("HEAD"));
-    child.once("exit", (code) => {
-      if (code === 0) {
-        resolve(stdout.trim() || "HEAD");
-        return;
-      }
-
-      resolve("HEAD");
-    });
-  });
 }
 
 async function createSnapshot() {
