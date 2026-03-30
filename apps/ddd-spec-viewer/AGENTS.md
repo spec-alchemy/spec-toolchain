@@ -11,7 +11,7 @@
 ## Commands
 | Task | Command |
 |------|---------|
-| Dev from repo root | `npm run repo:viewer` |
+| Dev from repo root | `npm run ops:repo:viewer` |
 | Dev from repo root without rebuild pipeline | `npm run dev --workspace=apps/ddd-spec-viewer` |
 | Build viewer | `npm run build --workspace=apps/ddd-spec-viewer` |
 | Preview build | `npm run preview --workspace=apps/ddd-spec-viewer` |
@@ -20,7 +20,7 @@
 - AI commits MUST include `Co-Authored-By: Codex <codex@openai.com>`
 
 ## Key Conventions
-- Treat `public/generated/viewer-spec.json` as generated input; regenerate it from the root repo-local example pipeline (`npm run repo:build`) instead of hand editing it.
+- Treat `public/generated/viewer-spec.json` as generated input; regenerate it from the root repo-local example pipeline (`npm run check:repo:build`) instead of hand editing it.
 - The root maintainer scripts read [`ddd-spec.config.yaml`](./ddd-spec.config.yaml), not a repo-root maintainer modeling tree.
 - [`ddd-spec.config.yaml`](./ddd-spec.config.yaml) is the tracked repo-local cross-context example path; if the default maintainer demo changes, update this config, the root docs, and config tests together.
 - Keep repeated viewer display tokens in shared constants under `src/lib/`.

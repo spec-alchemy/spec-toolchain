@@ -19,16 +19,19 @@ This repository is launching under a fresh public identity. The public package l
 
 1. Run `npm run changeset` and select `@spec-alchemy/ddd-spec`.
 2. Commit the generated `.changeset/*.md` file with the feature or fix.
-3. Review the pending release plan with `npm run changeset:status`.
-4. Run `npm run release:dry-run` locally or via
+3. Review the pending release plan with `npm run check:release:status`.
+4. Run `npm run gate:release` locally to confirm release readiness without publish side effects.
+5. Run `npm run ops:release:dry-run` locally or via
    [`../.github/workflows/release-dry-run.yml`](../.github/workflows/release-dry-run.yml)
-   to re-run `npm run verify`, apply `changeset version`, and execute
-   `npm publish --dry-run` from the package boundary without mutating the checkout.
-5. Merge the changeset-bearing PR to `main`.
-6. Let [`../.github/workflows/release.yml`](../.github/workflows/release.yml) run on `main`:
-   it verifies the repo, then either opens or updates the release PR, or publishes an already
-   versioned release and creates GitHub Releases notes from the resulting Changesets changelog.
-7. Merge the release PR when the version/changelog diff is correct. The next `main` push triggers
+   to apply `changeset version` and execute `npm publish --dry-run` from the package boundary
+   without mutating the checkout. If Changesets reports no pending package releases, the dry run
+   exits successfully after the release-status check.
+6. Merge the changeset-bearing PR to `main`.
+7. Let [`../.github/workflows/release.yml`](../.github/workflows/release.yml) run on `main`:
+   it runs `npm run gate:release`, then either opens or updates the release PR, or publishes an
+   already versioned release and creates GitHub Releases notes from the resulting Changesets
+   changelog.
+8. Merge the release PR when the version/changelog diff is correct. The next `main` push triggers
    the publish path automatically.
 
 ## Beta Prerelease Flow
@@ -36,10 +39,10 @@ This repository is launching under a fresh public identity. The public package l
 1. Branch from the current stable line onto `beta` when you need a prerelease train.
 2. Enter Changesets prerelease mode on `beta` with `npm exec changeset pre enter beta`.
 3. Merge prerelease-ready changes into `beta`, keeping their Changesets files in place.
-4. Run `npm run release:dry-run` on `beta` to verify the prerelease version plan and npm publish
-   dry run against dist-tag `beta`.
+4. Run `npm run gate:release` and `npm run ops:release:dry-run` on `beta` to verify the
+   prerelease version plan and npm publish simulation against dist-tag `beta`.
 5. Let [`../.github/workflows/release.yml`](../.github/workflows/release.yml) run on `beta`:
-   it verifies the repo and publishes prerelease packages with npm dist-tag `beta`.
+   it runs `npm run gate:release` and publishes prerelease packages with npm dist-tag `beta`.
 6. When the prerelease train is ready to promote, exit prerelease mode on `beta` with
    `npm exec changeset pre exit`, then merge the finalized release back to `main` for the stable
    `latest` publish path.
@@ -53,7 +56,7 @@ workflow filename exactly, so renaming the workflow file requires updating npm p
 The release workflow is intentionally split:
 
 - `release-dry-run.yml` is verification-only and never publishes.
-- `release.yml` runs `npm run verify` first, then performs version-PR or publish actions.
+- `release.yml` runs `npm run gate:release` first, then performs version-PR or publish actions.
 - `main` publishes stable releases to npm dist-tag `latest`.
 - `beta` publishes prereleases to npm dist-tag `beta`.
 

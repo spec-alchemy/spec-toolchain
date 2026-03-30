@@ -2,16 +2,19 @@
 
 ## Package Manager
 - Use `npm`: `npm install`
-- Preferred maintainer viewer entry: `npm run repo:viewer`
+- Preferred maintainer viewer entry: `npm run ops:repo:viewer`
 
 ## Commands
 | Task | Command |
 |------|---------|
-| Validate repo example flow | `npm run repo:validate` |
-| Build repo example outputs | `npm run repo:build` |
-| Run package regressions | `npm run pkg:test` |
-| Verify packaged CLI + viewer workspace | `npm run verify` |
-| Launch packaged viewer example flow | `npm run repo:viewer` |
+| Validate repo example flow | `npm run check:repo:validate` |
+| Build repo example outputs | `npm run check:repo:build` |
+| Run package regressions | `npm run check:pkg:test` |
+| Build viewer workspace gate surface | `npm run check:app:build` |
+| Run the baseline PR gate | `npm run gate:pr` |
+| Run the release-readiness gate | `npm run gate:release` |
+| Simulate the release operation path | `npm run ops:release:dry-run` |
+| Launch packaged viewer example flow | `npm run ops:repo:viewer` |
 | Run viewer Vite dev server | `npm run dev --workspace=apps/ddd-spec-viewer` |
 | Build viewer workspace | `npm run build --workspace=apps/ddd-spec-viewer` |
 

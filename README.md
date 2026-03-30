@@ -71,11 +71,14 @@ Maintainer workspace Node.js: `22` or `24`
 
 | Task | Command |
 |------|---------|
-| Validate repo example flow | `npm run repo:validate` |
-| Build repo example outputs | `npm run repo:build` |
-| Launch packaged viewer example flow | `npm run repo:viewer` |
-| Run package regressions | `npm run pkg:test` |
-| Verify packaged CLI + viewer workspace | `npm run verify` |
+| Validate repo example flow | `npm run check:repo:validate` |
+| Build repo example outputs | `npm run check:repo:build` |
+| Launch packaged viewer example flow | `npm run ops:repo:viewer` |
+| Run package regressions | `npm run check:pkg:test` |
+| Build viewer gate surface | `npm run check:app:build` |
+| Run the baseline PR gate | `npm run gate:pr` |
+| Run the release-readiness gate | `npm run gate:release` |
+| Simulate the release operation path | `npm run ops:release:dry-run` |
 | Run viewer Vite dev server | `npm run dev --workspace=apps/ddd-spec-viewer` |
 | Build viewer workspace | `npm run build --workspace=apps/ddd-spec-viewer` |
 

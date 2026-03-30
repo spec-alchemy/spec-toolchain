@@ -11,8 +11,9 @@ Describe the change and the reason for it.
 ## Validation
 
 - [ ] Branch name follows the documented convention
-- [ ] `npm run verify`
-- [ ] `npm run release:dry-run`
+- [ ] `npm run gate:pr`
+- [ ] `npm run gate:release` when release-readiness is affected
+- [ ] `npm run ops:release:dry-run` when the release operation path is affected
 - [ ] Additional targeted checks documented below when needed
 
 ## Release Surface

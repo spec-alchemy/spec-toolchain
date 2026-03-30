@@ -13,7 +13,16 @@ const releaseDistTag = await resolveReleaseDistTag();
 const releaseStatusCommand = ["run", "check:release:status"];
 const releaseVersionCommand = ["run", "ops:release:version"];
 
-await runNpm(releaseStatusCommand, repoRootPath, "check:release:status");
+const releaseStatusOutput = await runNpm(releaseStatusCommand, repoRootPath, "check:release:status", {
+  captureOutput: true
+});
+
+if (!hasPendingReleasePlan(releaseStatusOutput)) {
+  console.log(
+    "[release-dry-run] Changeset status reports no pending package releases; skipping version mutation and publish simulation."
+  );
+  process.exit(0);
+}
 
 const snapshot = await createSnapshot();
 
@@ -66,7 +75,7 @@ async function readGitBranchName() {
 
 async function createSnapshot() {
   const changesetFileNames = (await readdir(changesetDirPath))
-    .filter((fileName) => fileName.endsWith(".md"))
+    .filter((fileName) => isReleaseChangesetFile(fileName))
     .sort();
 
   return {
@@ -81,9 +90,17 @@ async function createSnapshot() {
   };
 }
 
+function isReleaseChangesetFile(fileName) {
+  return fileName.endsWith(".md") && fileName !== "README.md";
+}
+
+function hasPendingReleasePlan(output) {
+  return !output.includes("would release NO packages");
+}
+
 async function restoreSnapshot(snapshot) {
   const currentChangesetFileNames = (await readdir(changesetDirPath))
-    .filter((fileName) => fileName.endsWith(".md"))
+    .filter((fileName) => isReleaseChangesetFile(fileName))
     .sort();
   const expectedFileNames = new Set(snapshot.changesets.map((entry) => entry.fileName));
 
@@ -102,19 +119,36 @@ async function restoreSnapshot(snapshot) {
   ]);
 }
 
-async function runNpm(args, cwd, label) {
+async function runNpm(args, cwd, label, options = {}) {
   const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
+  const { captureOutput = false } = options;
 
-  await new Promise((resolve, reject) => {
+  return await new Promise((resolve, reject) => {
     const child = spawn(npmCommand, args, {
       cwd,
-      stdio: "inherit"
+      stdio: captureOutput ? ["ignore", "pipe", "pipe"] : "inherit"
     });
+    let stdout = "";
+    let stderr = "";
+
+    if (captureOutput) {
+      child.stdout.on("data", (chunk) => {
+        const text = String(chunk);
+        stdout += text;
+        process.stdout.write(text);
+      });
+
+      child.stderr.on("data", (chunk) => {
+        const text = String(chunk);
+        stderr += text;
+        process.stderr.write(text);
+      });
+    }
 
     child.once("error", reject);
     child.once("exit", (code, signal) => {
       if (code === 0) {
-        resolve();
+        resolve(`${stdout}${stderr}`);
         return;
       }
 
