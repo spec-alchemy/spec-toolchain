@@ -7,10 +7,12 @@ import {
   SHARED_DIAGNOSTIC_SEVERITIES,
   SHARED_DIAGNOSTIC_VERSION,
   SHARED_KERNEL_EXTENSION_POINT_STATUS,
+  SHARED_REFERENCE_VERSION,
   SHARED_STABLE_ID_VERSION,
   type SharedArtifactManifest,
   type SharedDiagnostic,
   type SharedKernelFamilyContract,
+  type SharedReference,
   type SharedStableId
 } from "./index.ts";
 
@@ -35,10 +37,12 @@ test("shared diagnostics contract stays family-agnostic", () => {
     },
     related: [
       {
-        family: "ui-spec",
-        kind: "screen",
-        value: "checkout-confirm",
-        versionHint: "draft",
+        target: {
+          family: "ui-spec",
+          kind: "screen",
+          value: "checkout-confirm",
+          versionHint: "draft"
+        },
         path: "/views/checkout/confirm"
       }
     ]
@@ -46,8 +50,29 @@ test("shared diagnostics contract stays family-agnostic", () => {
 
   assert.equal(SHARED_DIAGNOSTIC_VERSION, 1);
   assert.deepEqual(SHARED_DIAGNOSTIC_SEVERITIES, ["error", "warning", "info"]);
-  assert.equal(diagnostic.related?.[0]?.family, "ui-spec");
-  assert.equal(diagnostic.related?.[0]?.value, "checkout-confirm");
+  assert.equal(diagnostic.related?.[0]?.target.family, "ui-spec");
+  assert.equal(diagnostic.related?.[0]?.target.value, "checkout-confirm");
+});
+
+test("cross-family reference contract separates resolver identity from hints", () => {
+  const reference: SharedReference = {
+    target: {
+      family: "frontend-spec",
+      kind: "module-contract",
+      value: "checkout-cart-shell",
+      versionHint: "draft"
+    },
+    path: "/modules/cart/shell"
+  };
+
+  assert.equal(SHARED_REFERENCE_VERSION, 1);
+  assert.deepEqual(Object.keys(reference), ["target", "path"]);
+  assert.deepEqual(Object.keys(reference.target), [
+    "family",
+    "kind",
+    "value",
+    "versionHint"
+  ]);
 });
 
 test("artifact manifest contract tracks generic artifact metadata only", () => {

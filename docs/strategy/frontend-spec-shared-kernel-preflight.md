@@ -7,7 +7,7 @@
 ## Preflight outcome
 
 - `frontend-spec` 是检验 `shared kernel` 是否真正支持“实现边界与依赖治理”这一设计域的关键候选，因为它天然要求 dependency rules、contract consistency 和 impact analysis 三类能力同时成立。
-- 当前 skeleton 足以支撑 `frontend-spec` 的第一轮边界评审，尤其是 diagnostics 和 `artifact manifest`；但还不足以支撑正式接入，缺口集中在 cross-family `stable ID` 引用、共享 dependency/provenance seam，以及可复用的 analysis summary envelope。
+- 当前 skeleton 足以支撑 `frontend-spec` 的第一轮边界评审，尤其是 diagnostics、`artifact manifest` 和 shared reference seam；但还不足以支撑正式接入，缺口集中在共享 dependency/provenance seam，以及可复用的 analysis summary envelope。
 
 ## Minimum canonical input
 
@@ -68,13 +68,13 @@
 | --- | --- | --- |
 | diagnostics `contract` | available in [`packages/spec-toolchain-shared-kernel/`](../../packages/spec-toolchain-shared-kernel/) | 能表达依赖方向违规、边界穿透、contract mismatch、失效引用等通用 diagnostics shape |
 | `artifact manifest` skeleton | available in [`packages/spec-toolchain-shared-kernel/`](../../packages/spec-toolchain-shared-kernel/) | 能枚举 dependency graph、impact report、contract index、viewer payload 等前端架构 `artifact` |
+| cross-family reference `contract` | available in [`packages/spec-toolchain-shared-kernel/reference.ts`](../../packages/spec-toolchain-shared-kernel/reference.ts) | 能用同一条 family-agnostic seam 表达前端 canonical objects 对 `ui-spec`、`ddd-spec`、`qa-spec` 的结构化引用 |
 | extension-point placeholder | `reserved` / `candidate` only | 允许先为 dependency/provenance seam、analysis summary 和 viewer primitives 预留挂点，而不承诺 runtime behavior |
 
 ### Still missing for `frontend-spec`
 
 | Gap | Why the current skeleton is insufficient | What future extraction should validate |
 | --- | --- | --- |
-| cross-family `stable ID` reference `contract` | 现在只有 diagnostics related resource shape，没有正式 shared 引用语义 | 是否需要统一 family、kind、stable ID、path 和 version hint 的薄 `contract` |
 | shared provenance seam for dependency and impact analysis | `artifact manifest` 只能枚举 artifact，不能表达“哪个模块依赖规则或 impact slice 由哪些 upstream 对象推导” | 是否先抽 source linkage graph skeleton，再决定是否需要更强的 `traceability` model |
 | shared analysis summary envelope | diagnostics shape 足够报错，但不足以表达 dependency risk、contract drift、impact summary 等结构化摘要 | 是否需要一层通用 analysis result envelope，而不把前端风险词表提升到 shared |
 | shared `viewer contract` primitives | 当前 skeleton 还没有正式 shared 的 node/edge/detail value 骨架 | 是否能抽出不带前端或 DDD 语义的 inspector primitives，供多个 family 复用 |
@@ -112,9 +112,8 @@
 
 原因如下：
 
-1. 还没有 cross-family `stable ID` 引用语义，`frontend-spec` 无法稳定链接到 `ui-spec`、`ddd-spec` 和 `qa-spec` 的 canonical 对象。
-2. 还没有 shared provenance seam，因此 dependency rules、contract consistency 和 impact analysis 之间缺少统一、可检查的推导桥接。
-3. 还没有 shared `viewer contract` primitives 或 analysis summary envelope，`frontend-spec` 只能各自定义拓扑 inspection shape，复用边界还不够稳。
+1. 还没有 shared provenance seam，因此 dependency rules、contract consistency 和 impact analysis 之间缺少统一、可检查的推导桥接。
+2. 还没有 shared `viewer contract` primitives 或 analysis summary envelope，`frontend-spec` 只能各自定义拓扑 inspection shape，复用边界还不够稳。
 
 因此，`frontend-spec` 当前适合作为 shared extraction 的验证对象，但不应直接承诺新产品实现。
 
