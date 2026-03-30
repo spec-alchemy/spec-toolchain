@@ -244,6 +244,14 @@ test("analysis IR exposes unified primary-view projections and policy coordinati
     approvalsContext.relationships.map((relationship) => relationship.id),
     ["notify-requester"]
   );
+  assert.deepEqual(approvalsContext.relationships[0]?.target, {
+    target: {
+      family: "ddd-spec",
+      kind: "system",
+      value: "notification-hub"
+    },
+    path: "/contexts/approvals/relationships/notify-requester/target"
+  });
   assert.deepEqual(requesterActor.contextIds, ["approvals"]);
   assert.deepEqual(requesterActor.scenarioIds, ["approval-request-flow"]);
   assert.deepEqual(
@@ -268,11 +276,15 @@ test("analysis IR exposes unified primary-view projections and policy coordinati
     ["approve-request"]
   );
   assert.deepEqual(
-    approvalMessage.producers.map((producer) => `${producer.kind}:${producer.id}`),
+    approvalMessage.producers.map(
+      (producer) => `${producer.target.kind}:${producer.target.value}`
+    ),
     ["aggregate:approval-request"]
   );
   assert.deepEqual(
-    approvalMessage.consumers.map((consumer) => `${consumer.kind}:${consumer.id}`),
+    approvalMessage.consumers.map(
+      (consumer) => `${consumer.target.kind}:${consumer.target.value}`
+    ),
     ["scenario:approval-request-flow", "policy:notify-requester-after-approval"]
   );
   assert.deepEqual(
@@ -280,11 +292,15 @@ test("analysis IR exposes unified primary-view projections and policy coordinati
     ["incoming:approval-request-flow.request-approved"]
   );
   assert.deepEqual(
-    notificationMessage.producers.map((producer) => `${producer.kind}:${producer.id}`),
+    notificationMessage.producers.map(
+      (producer) => `${producer.target.kind}:${producer.target.value}`
+    ),
     ["policy:notify-requester-after-approval"]
   );
   assert.deepEqual(
-    notificationMessage.consumers.map((consumer) => `${consumer.kind}:${consumer.id}`),
+    notificationMessage.consumers.map(
+      (consumer) => `${consumer.target.kind}:${consumer.target.value}`
+    ),
     ["system:notification-hub"]
   );
   assert.equal(notificationMessage.crossesContextBoundary, false);
@@ -382,7 +398,8 @@ test("cross-context example exposes command, event, and query message flow acros
       kind: relationship.kind,
       direction: relationship.direction,
       integration: relationship.integration,
-      target: `${relationship.target.kind}:${relationship.target.id}`
+      target: `${relationship.target.target.kind}:${relationship.target.target.value}`,
+      hint: relationship.target.path
     })),
     [
       {
@@ -390,7 +407,8 @@ test("cross-context example exposes command, event, and query message flow acros
         kind: "depends-on",
         direction: "downstream",
         integration: "customer-supplier",
-        target: "context:payments"
+        target: "context:payments",
+        hint: "/contexts/orders/relationships/requests-payment-authorization/target"
       }
     ]
   );
@@ -400,7 +418,8 @@ test("cross-context example exposes command, event, and query message flow acros
       kind: relationship.kind,
       direction: relationship.direction,
       integration: relationship.integration,
-      target: `${relationship.target.kind}:${relationship.target.id}`
+      target: `${relationship.target.target.kind}:${relationship.target.target.value}`,
+      hint: relationship.target.path
     })),
     [
       {
@@ -408,7 +427,8 @@ test("cross-context example exposes command, event, and query message flow acros
         kind: "queries",
         direction: "downstream",
         integration: "synchronous-query",
-        target: "system:ledger-gateway"
+        target: "system:ledger-gateway",
+        hint: "/contexts/payments/relationships/queries-ledger/target"
       }
     ]
   );
@@ -436,7 +456,9 @@ test("cross-context example exposes command, event, and query message flow acros
   assert.equal(fetchLedgerStatus.channel, "sync");
   assert.equal(fetchLedgerStatus.crossesContextBoundary, false);
   assert.deepEqual(
-    fetchLedgerStatus.consumers.map((consumer) => `${consumer.kind}:${consumer.id}`),
+    fetchLedgerStatus.consumers.map(
+      (consumer) => `${consumer.target.kind}:${consumer.target.value}`
+    ),
     ["system:ledger-gateway"]
   );
   assert.deepEqual(

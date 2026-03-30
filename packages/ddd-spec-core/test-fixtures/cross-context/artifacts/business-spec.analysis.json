@@ -39,8 +39,12 @@
             "id": "requests-payment-authorization",
             "kind": "depends-on",
             "target": {
-              "kind": "context",
-              "id": "payments"
+              "target": {
+                "family": "ddd-spec",
+                "kind": "context",
+                "value": "payments"
+              },
+              "path": "/contexts/orders/relationships/requests-payment-authorization/target"
             },
             "direction": "downstream",
             "integration": "customer-supplier",
@@ -81,8 +85,12 @@
             "id": "queries-ledger",
             "kind": "queries",
             "target": {
-              "kind": "system",
-              "id": "ledger-gateway"
+              "target": {
+                "family": "ddd-spec",
+                "kind": "system",
+                "value": "ledger-gateway"
+              },
+              "path": "/contexts/payments/relationships/queries-ledger/target"
             },
             "direction": "downstream",
             "integration": "synchronous-query",
@@ -315,16 +323,22 @@
         "channel": "sync",
         "producers": [
           {
-            "kind": "context",
-            "id": "payments",
+            "target": {
+              "family": "ddd-spec",
+              "kind": "context",
+              "value": "payments"
+            },
             "contextId": "payments",
             "path": "/messages/authorize-payment/producers/context:payments"
           }
         ],
         "consumers": [
           {
-            "kind": "aggregate",
-            "id": "payment",
+            "target": {
+              "family": "ddd-spec",
+              "kind": "aggregate",
+              "value": "payment"
+            },
             "contextId": "payments",
             "path": "/messages/authorize-payment/consumers/aggregate:payment"
           }
@@ -369,16 +383,22 @@
         "channel": "sync",
         "producers": [
           {
-            "kind": "context",
-            "id": "orders",
+            "target": {
+              "family": "ddd-spec",
+              "kind": "context",
+              "value": "orders"
+            },
             "contextId": "orders",
             "path": "/messages/fetch-ledger-status/producers/context:orders"
           }
         ],
         "consumers": [
           {
-            "kind": "system",
-            "id": "ledger-gateway",
+            "target": {
+              "family": "ddd-spec",
+              "kind": "system",
+              "value": "ledger-gateway"
+            },
             "path": "/messages/fetch-ledger-status/consumers/system:ledger-gateway"
           }
         ],
@@ -420,21 +440,30 @@
         "channel": "async",
         "producers": [
           {
-            "kind": "system",
-            "id": "ledger-gateway",
+            "target": {
+              "family": "ddd-spec",
+              "kind": "system",
+              "value": "ledger-gateway"
+            },
             "path": "/messages/ledger-status-fetched/producers/system:ledger-gateway"
           }
         ],
         "consumers": [
           {
-            "kind": "context",
-            "id": "orders",
+            "target": {
+              "family": "ddd-spec",
+              "kind": "context",
+              "value": "orders"
+            },
             "contextId": "orders",
             "path": "/messages/ledger-status-fetched/consumers/context:orders"
           },
           {
-            "kind": "aggregate",
-            "id": "order",
+            "target": {
+              "family": "ddd-spec",
+              "kind": "aggregate",
+              "value": "order"
+            },
             "contextId": "orders",
             "path": "/messages/ledger-status-fetched/consumers/aggregate:order"
           }
@@ -483,16 +512,22 @@
         "channel": "async",
         "producers": [
           {
-            "kind": "aggregate",
-            "id": "order",
+            "target": {
+              "family": "ddd-spec",
+              "kind": "aggregate",
+              "value": "order"
+            },
             "contextId": "orders",
             "path": "/messages/order-submitted/producers/aggregate:order"
           }
         ],
         "consumers": [
           {
-            "kind": "context",
-            "id": "payments",
+            "target": {
+              "family": "ddd-spec",
+              "kind": "context",
+              "value": "payments"
+            },
             "contextId": "payments",
             "path": "/messages/order-submitted/consumers/context:payments"
           }
@@ -537,16 +572,22 @@
         "channel": "async",
         "producers": [
           {
-            "kind": "aggregate",
-            "id": "payment",
+            "target": {
+              "family": "ddd-spec",
+              "kind": "aggregate",
+              "value": "payment"
+            },
             "contextId": "payments",
             "path": "/messages/payment-authorized/producers/aggregate:payment"
           }
         ],
         "consumers": [
           {
-            "kind": "context",
-            "id": "orders",
+            "target": {
+              "family": "ddd-spec",
+              "kind": "context",
+              "value": "orders"
+            },
             "contextId": "orders",
             "path": "/messages/payment-authorized/consumers/context:orders"
           }
@@ -591,16 +632,22 @@
         "channel": "sync",
         "producers": [
           {
-            "kind": "context",
-            "id": "orders",
+            "target": {
+              "family": "ddd-spec",
+              "kind": "context",
+              "value": "orders"
+            },
             "contextId": "orders",
             "path": "/messages/submit-order/producers/context:orders"
           }
         ],
         "consumers": [
           {
-            "kind": "aggregate",
-            "id": "order",
+            "target": {
+              "family": "ddd-spec",
+              "kind": "aggregate",
+              "value": "order"
+            },
             "contextId": "orders",
             "path": "/messages/submit-order/consumers/aggregate:order"
           }
