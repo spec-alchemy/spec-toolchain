@@ -66,7 +66,7 @@
 
 | Shared surface | Current status | Why it helps `ui-spec` |
 | --- | --- | --- |
-| diagnostics `contract` | available in [`packages/spec-toolchain-shared-kernel/`](../../packages/spec-toolchain-shared-kernel/) | 能表达导航断裂、状态未定义、组件 contract 缺失、跨 family 链接失效等通用 diagnostics shape |
+| diagnostics `contract` | available in [`packages/spec-toolchain-shared-kernel/`](../../packages/spec-toolchain-shared-kernel/) | 能表达导航断裂、状态未定义、组件 contract 缺失、跨 family 链接失效等通用 diagnostics shape，并为 invalid-reference 暴露统一最小字段 |
 | `artifact manifest` skeleton | available in [`packages/spec-toolchain-shared-kernel/`](../../packages/spec-toolchain-shared-kernel/) | 能枚举 IA graph、flow analysis、state map、viewer payload 等 UI `artifact` |
 | cross-family reference `contract` | available in [`packages/spec-toolchain-shared-kernel/reference.ts`](../../packages/spec-toolchain-shared-kernel/reference.ts) | 能用同一条 family-agnostic seam 表达 UI canonical objects 对 `frontend-spec`、`qa-spec`、`ddd-spec` 的结构化引用 |
 | extension-point placeholder | `reserved` / `candidate` only | 允许先为 `viewer contract` primitives、cross-family reference seam 预留挂点，而不承诺 runtime behavior |

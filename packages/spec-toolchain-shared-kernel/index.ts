@@ -9,9 +9,11 @@ export {
 export {
   SHARED_DIAGNOSTIC_SEVERITIES,
   SHARED_DIAGNOSTIC_VERSION,
+  SHARED_INVALID_REFERENCE_DIAGNOSTIC_CODE,
   type SharedDiagnostic,
   type SharedDiagnosticLocation,
   type SharedDiagnosticRelatedResource,
+  type SharedInvalidReferenceDiagnostic,
   type SharedDiagnosticSeverity
 } from "./diagnostics.ts";
 export {
