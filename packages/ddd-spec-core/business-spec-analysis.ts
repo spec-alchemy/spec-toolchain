@@ -19,6 +19,7 @@ import type {
   SystemSpec
 } from "./spec.js";
 import type { SharedReference } from "../spec-toolchain-shared-kernel/reference.js";
+import type { SharedProvenanceRecord } from "../spec-toolchain-shared-kernel/provenance.js";
 import type { SharedStableId } from "../spec-toolchain-shared-kernel/stable-identity.js";
 
 export const BUSINESS_SPEC_ANALYSIS_VERSION = 1 as const;
@@ -213,6 +214,7 @@ export interface MessageFlow extends CanonicalSourceIdentity {
   producerContextIds: readonly string[];
   consumerContextIds: readonly string[];
   crossesContextBoundary: boolean;
+  provenance: SharedProvenanceRecord;
   path: string;
 }
 
@@ -786,6 +788,7 @@ function buildMessageFlows(
         producerContextIds,
         consumerContextIds
       ),
+      provenance: toMessageFlowProvenance(message),
       path: messagePath(message.id)
     };
   });
@@ -2062,6 +2065,39 @@ function collectMessageStepLinks(
   );
 }
 
+function toMessageFlowProvenance(message: MessageSpec): SharedProvenanceRecord {
+  return {
+    subject: {
+      artifactId: "business-spec.analysis",
+      outputId: `message-flow:${message.id}`,
+      path: analysisMessageFlowPath(message.id)
+    },
+    upstream: [
+      {
+        derivationKind: "derived-from",
+        source: {
+          target: toStableId(message.kind, message.id),
+          path: messagePath(message.id)
+        }
+      },
+      ...message.producers.map((producer) => ({
+        derivationKind: "aggregated-from" as const,
+        source: toSharedReference(
+          producer,
+          messagePath(message.id, `/producers/${producer.kind}:${producer.id}`)
+        )
+      })),
+      ...message.consumers.map((consumer) => ({
+        derivationKind: "aggregated-from" as const,
+        source: toSharedReference(
+          consumer,
+          messagePath(message.id, `/consumers/${consumer.kind}:${consumer.id}`)
+        )
+      }))
+    ]
+  };
+}
+
 function collectSystemIdsForContext(
   message: MessageFlow,
   contextId: string
@@ -2197,6 +2233,10 @@ function scenarioStepPath(scenarioId: string, stepId: string, suffix = ""): stri
 
 function messagePath(messageId: string, suffix = ""): string {
   return `/messages/${messageId}${suffix}`;
+}
+
+function analysisMessageFlowPath(messageId: string): string {
+  return `/ir/messageFlows/${messageId}`;
 }
 
 function aggregatePath(aggregateId: string, suffix = ""): string {

@@ -291,6 +291,23 @@ test("analysis IR exposes unified primary-view projections and policy coordinati
     approvalMessage.stepLinks.map((link) => `${link.direction}:${link.scenarioId}.${link.stepId}`),
     ["incoming:approval-request-flow.request-approved"]
   );
+  assert.deepEqual(approvalMessage.provenance.subject, {
+    artifactId: "business-spec.analysis",
+    outputId: "message-flow:approval-request-approved",
+    path: "/ir/messageFlows/approval-request-approved"
+  });
+  assert.deepEqual(
+    approvalMessage.provenance.upstream.map(
+      (link) =>
+        `${link.derivationKind}:${link.source.target.kind}:${link.source.target.value}:${link.source.path}`
+    ),
+    [
+      "derived-from:message:approval-request-approved:/messages/approval-request-approved",
+      "aggregated-from:aggregate:approval-request:/messages/approval-request-approved/producers/aggregate:approval-request",
+      "aggregated-from:scenario:approval-request-flow:/messages/approval-request-approved/consumers/scenario:approval-request-flow",
+      "aggregated-from:policy:notify-requester-after-approval:/messages/approval-request-approved/consumers/policy:notify-requester-after-approval"
+    ]
+  );
   assert.deepEqual(
     notificationMessage.producers.map(
       (producer) => `${producer.target.kind}:${producer.target.value}`
@@ -448,6 +465,22 @@ test("cross-context example exposes command, event, and query message flow acros
   assert.equal(orderSubmitted.crossesContextBoundary, true);
   assert.deepEqual(orderSubmitted.producerContextIds, ["orders"]);
   assert.deepEqual(orderSubmitted.consumerContextIds, ["payments"]);
+  assert.deepEqual(orderSubmitted.provenance.subject, {
+    artifactId: "business-spec.analysis",
+    outputId: "message-flow:order-submitted",
+    path: "/ir/messageFlows/order-submitted"
+  });
+  assert.equal(orderSubmitted.provenance.upstream.length, 3);
+  assert.deepEqual(
+    orderSubmitted.provenance.upstream.map(
+      (link) => `${link.derivationKind}:${link.source.target.kind}:${link.source.target.value}`
+    ),
+    [
+      "derived-from:message:order-submitted",
+      "aggregated-from:aggregate:order",
+      "aggregated-from:context:payments"
+    ]
+  );
   assert.equal(paymentAuthorized.messageKind, "event");
   assert.equal(paymentAuthorized.crossesContextBoundary, true);
   assert.deepEqual(paymentAuthorized.producerContextIds, ["payments"]);
