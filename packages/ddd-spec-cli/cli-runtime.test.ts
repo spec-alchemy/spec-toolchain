@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 import test from "node:test";
 import type { BusinessSpecAnalysis } from "../ddd-spec-core/index.js";
+import type { SharedArtifactManifest } from "../spec-toolchain-shared-kernel/artifact-manifest.js";
 import type { BusinessViewerSpec } from "../ddd-spec-viewer-contract/index.js";
 import { runCliCommand } from "./commands.js";
 import {
@@ -110,16 +111,41 @@ test("CLI generate commands write only the requested artifacts", async () => {
 
     await runCliCommand(["generate", "bundle"], { cwd: tempDir });
     await access(join(tempDir, ".ddd-spec", "artifacts", "business-spec.json"));
+    const bundleManifest = JSON.parse(
+      await readFile(join(tempDir, ".ddd-spec", "artifacts", "artifact-manifest.json"), "utf8")
+    ) as SharedArtifactManifest;
     await assert.rejects(
       access(join(tempDir, ".ddd-spec", "artifacts", "business-spec.analysis.json")),
       /ENOENT/
     );
+    assert.deepEqual(
+      bundleManifest.artifacts.map((artifact) => artifact.id),
+      ["business-spec.bundle"]
+    );
 
     await runCliCommand(["generate", "analysis"], { cwd: tempDir });
     await access(join(tempDir, ".ddd-spec", "artifacts", "business-spec.analysis.json"));
+    const analysisManifest = JSON.parse(
+      await readFile(join(tempDir, ".ddd-spec", "artifacts", "artifact-manifest.json"), "utf8")
+    ) as SharedArtifactManifest;
+    assert.deepEqual(
+      analysisManifest.artifacts.map((artifact) => artifact.id),
+      ["business-spec.analysis"]
+    );
+    assert.equal(
+      analysisManifest.artifacts[0]?.sourceIds?.includes("approval-request-submitted"),
+      true
+    );
 
     await runCliCommand(["generate", "viewer"], { cwd: tempDir });
     await access(join(tempDir, ".ddd-spec", "artifacts", "viewer-spec.json"));
+    const viewerManifest = JSON.parse(
+      await readFile(join(tempDir, ".ddd-spec", "artifacts", "artifact-manifest.json"), "utf8")
+    ) as SharedArtifactManifest;
+    assert.deepEqual(
+      viewerManifest.artifacts.map((artifact) => artifact.id),
+      ["viewer-spec", "viewer-spec.en", "viewer-spec.zh-CN"]
+    );
   } finally {
     await rm(tempDir, { recursive: true, force: true });
   }
@@ -195,6 +221,9 @@ test("CLI validate and build succeed in zero-config mode with the reset domain m
         "utf8"
       )
     ) as BusinessSpecAnalysis;
+    const manifest = JSON.parse(
+      await readFile(join(tempDir, ".ddd-spec", "artifacts", "artifact-manifest.json"), "utf8")
+    ) as SharedArtifactManifest;
     const viewer = JSON.parse(
       await readFile(join(tempDir, ".ddd-spec", "artifacts", "viewer-spec.json"), "utf8")
     ) as BusinessViewerSpec;
@@ -210,6 +239,29 @@ test("CLI validate and build succeed in zero-config mode with the reset domain m
     assert.equal(chineseViewer.viewerVersion, 1);
     assert.equal(bundle.id, "approval-flow");
     assert.equal(analysis.summary.errorCount, 0);
+    assert.deepEqual(
+      manifest.artifacts.map((artifact) => artifact.id),
+      [
+        "business-spec.bundle",
+        "business-spec.analysis",
+        "viewer-spec",
+        "viewer-spec.en",
+        "viewer-spec.zh-CN"
+      ]
+    );
+    assert.equal(manifest.artifacts[1]?.locator.relativePath, "business-spec.analysis.json");
+    assert.equal(
+      manifest.artifacts[1]?.sourceIds?.includes(
+        analysis.ir.messageFlows[0]?.stableId.value ?? ""
+      ),
+      true
+    );
+    assert.equal(
+      manifest.artifacts[1]?.sourceIds?.includes(
+        analysis.ir.messageFlows[0]?.provenance.upstream[0]?.source.target.value ?? ""
+      ),
+      true
+    );
     assert.deepEqual(viewer, englishViewer);
     assert.equal(chineseViewer.title, viewer.title);
     assert.notEqual(chineseViewer.views[0]?.title, viewer.views[0]?.title);
@@ -401,6 +453,10 @@ test("CLI clean removes generated artifacts", async () => {
     );
     await assert.rejects(
       access(join(tempDir, ".ddd-spec", "artifacts", "viewer-spec.json")),
+      /ENOENT/
+    );
+    await assert.rejects(
+      access(join(tempDir, ".ddd-spec", "artifacts", "artifact-manifest.json")),
       /ENOENT/
     );
   } finally {
