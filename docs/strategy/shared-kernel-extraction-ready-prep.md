@@ -18,6 +18,20 @@
 
 这意味着 `SK-LOOP-03` 的最小完成定义已经成立：shared package 中已有 reference / provenance skeleton、相关 identity seam、invalid-reference diagnostics expectation 和 focused tests。
 
+## `ddd-spec` reference sample now proven
+
+当前 `ddd-spec` 已经把下列 shared seam 接到真实代码与产物里，可作为后续 family-adoption PRD 的参考样板：
+
+| Adopted seam | `ddd-spec` proof point | Why it matters for later families |
+| --- | --- | --- |
+| `stable ID` | `analysis` artifact 中的 canonical source objects 直接携带 shared stable identity | 证明 shared identity 已经能落到真实 family output，而不是只停留在 type 层 |
+| reference | `analysis` IR 中的关系、message flow endpoint、policy coordinate 已改为 shared reference-backed shape | 证明 resolver identity 与 family-local hints 可以分层，而不把 DDD 解析语义抬升到 shared |
+| provenance / `traceability` | `messageFlows` 输出携带 shared provenance record，并链接多个 upstream canonical source objects | 证明一对多 source linkage 已经能在真实 artifact 中成立 |
+| invalid-reference diagnostics | canonical missing-resource diagnostics 附带 shared invalid-reference payload | 证明 family-specific diagnostic taxonomy 可以保留，同时暴露统一 shared inspection seam |
+| `artifact manifest` | `ddd-spec` generate/build 输出写入 shared artifact manifest | 证明 family-agnostic artifact enumeration 已经有真实 consumer，而不需要修改既有 artifact layout |
+
+这份样板的停止线同样已经验证通过：[`packages/ddd-spec-cli/`](../../packages/ddd-spec-cli/) 仍是唯一 public package boundary，viewer external `contract` 没有被本轮接入反向改变。
+
 ## How each candidate family would consume the seam
 
 | Candidate family | Shared seam it can consume now | Immediate use | Remaining blocker |
@@ -43,6 +57,8 @@
 - QA-specific gate result envelope
 - any shared `execution` abstraction or handoff runtime
 - any `ddd-spec` migration into the shared package
+
+这些 deferred 项同时构成后续 family-adoption PRD 的验证清单：`ui-spec` / `frontend-spec` 仍需继续证明 viewer primitives 与 analysis/result seam，`qa-spec` 仍需继续证明 evidence、gate 和 execution 相关边界。
 
 ## Extraction-ready order for the next `ralph-loop`
 
