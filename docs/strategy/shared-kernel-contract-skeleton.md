@@ -40,3 +40,23 @@
 - 战略一致性：本 skeleton 只上提 [`spec-family-map.md`](./spec-family-map.md) 已定义的 cross-family reference、`diagnostics` 与 `artifact` envelope，不把 DDD 对象语义伪装成 cross-family surface。
 - package boundary 一致性：shared types 落在新的 private maintainer package；所有 public promise 仍留在 [`packages/ddd-spec-cli/`](../../packages/ddd-spec-cli/)。
 - Markdown 与术语一致性：只使用仓库内相对 Markdown 路径，并遵循 [`terminology.md`](./terminology.md) 中的 `shared kernel`、`spec family`、`contract`、`artifact` 等规定写法。
+
+## Viewer compatibility review
+
+本节记录 `ddd-spec` minimal shared-kernel adoption 对 viewer surface 的兼容性复查结果；它只沉淀 review 结论，不改变 [`packages/ddd-spec-viewer-contract/`](../../packages/ddd-spec-viewer-contract/) 或 viewer artifact 的外部 `contract`。
+
+### Current compatibility result
+
+- 当前 [`packages/ddd-spec-viewer-contract/index.ts`](../../packages/ddd-spec-viewer-contract/index.ts) 的 `ViewerDetailValue`、node/edge/view 包装结构、locale artifact naming 仍可继续作为 shared-kernel review seam；本轮不需要改 viewer payload shape 才能完成 shared `stable ID`、reference、provenance、diagnostics、`artifact manifest` 的接入。
+- 当前 [`packages/ddd-spec-projection-viewer/viewer-spec.ts`](../../packages/ddd-spec-projection-viewer/viewer-spec.ts) 已经可以消费 shared-backed analysis IR，同时保持 viewer artifact 输出 shape 不变；这说明 shared seams 目前没有反向挤压 viewer external `contract`。
+
+### Conflicts recorded as follow-up input
+
+- `ViewerViewKind`、`ViewerNodeKind`、`ViewerEdgeKind` 仍直接编码了 DDD family 词表，因此它们现在属于 family extension space，而不是 shared skeleton 本体。
+- `ViewerViewNavigationSpec` 里的 `tier`、`order`、`default` 仍表达当前 `ddd-spec` viewer 的导航语义；在第二个 family 出现前，不应把这组导航约束提升成 shared `contract`。
+- `BusinessViewerSpec` 仍是 `ddd-spec` family artifact envelope，而不是 generic shared viewer envelope；后续 family 若要复用 viewer skeleton，应先验证是否需要 shared outer wrapper，还是只共享内部 detail/node/edge/view primitives。
+
+### Boundary for later extraction
+
+- 后续若推进 shared viewer skeleton，优先顺序应是保留当前结构化 `detail` primitives 与 node/edge/view 容器，给 family-specific kinds 和导航语义预留 extension slot。
+- 任何后续抽取都不得改变本轮已经验证通过的 viewer artifact 外部行为，除非进入新的 shared-kernel extraction story 单独评审。
