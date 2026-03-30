@@ -311,7 +311,10 @@ function buildContextMapView(
 
   for (const context of analysis.ir.contextBoundaries) {
     for (const relationship of context.relationships) {
-      const targetId = toContextMapTargetId(relationship.target.kind, relationship.target.id);
+      const targetId = toContextMapTargetId(
+        relationship.target.target.kind,
+        relationship.target.target.value
+      );
 
       if (!targetId) {
         continue;
@@ -327,7 +330,11 @@ function buildContextMapView(
         details: [
           detail(locale, "context.id", context.id),
           detail(locale, "relation.from", context.id),
-          detail(locale, "relation.to", `${relationship.target.kind}:${relationship.target.id}`),
+          detail(
+            locale,
+            "relation.to",
+            `${relationship.target.target.kind}:${relationship.target.target.value}`
+          ),
           detail(locale, "context.relationships", formatContextRelationship(locale, relationship))
         ]
       });
@@ -673,35 +680,41 @@ function buildMessageFlowView(
     });
 
     for (const producer of message.producers) {
-      const sourceNodeId = resolveMessageFlowEndpointNodeId(producer.kind, producer.id);
+      const sourceNodeId = resolveMessageFlowEndpointNodeId(
+        producer.target.kind,
+        producer.target.value
+      );
 
       if (!sourceNodeId) {
         continue;
       }
 
       edges.push({
-        id: `message-flow:source:${message.id}:${producer.kind}:${producer.id}`,
+        id: `message-flow:source:${message.id}:${producer.target.kind}:${producer.target.value}`,
         kind: "message-flow",
         source: sourceNodeId,
         target: toMessageFlowMessageId(message.id),
         label: copy.edgeLabels.source,
         details: [
           detail(locale, "message.type", message.id),
-          detail(locale, "relation.from", `${producer.kind}:${producer.id}`),
+          detail(locale, "relation.from", `${producer.target.kind}:${producer.target.value}`),
           detail(locale, "relation.to", message.id)
         ]
       });
     }
 
     for (const consumer of message.consumers) {
-      const targetNodeId = resolveMessageFlowEndpointNodeId(consumer.kind, consumer.id);
+      const targetNodeId = resolveMessageFlowEndpointNodeId(
+        consumer.target.kind,
+        consumer.target.value
+      );
 
       if (!targetNodeId) {
         continue;
       }
 
       edges.push({
-        id: `message-flow:target:${message.id}:${consumer.kind}:${consumer.id}`,
+        id: `message-flow:target:${message.id}:${consumer.target.kind}:${consumer.target.value}`,
         kind: "message-flow",
         source: toMessageFlowMessageId(message.id),
         target: targetNodeId,
@@ -709,7 +722,7 @@ function buildMessageFlowView(
         details: [
           detail(locale, "message.type", message.id),
           detail(locale, "relation.from", message.id),
-          detail(locale, "relation.to", `${consumer.kind}:${consumer.id}`)
+          detail(locale, "relation.to", `${consumer.target.kind}:${consumer.target.value}`)
         ]
       });
     }
@@ -1185,7 +1198,9 @@ function formatContextRelationship(
       : []),
     recordDetailEntry(
       copy.recordLabels.target,
-      textDetailValue(`${relationship.target.kind}:${relationship.target.id}`)
+      textDetailValue(
+        `${relationship.target.target.kind}:${relationship.target.target.value}`
+      )
     ),
     ...(relationship.description
       ? [recordDetailEntry(copy.recordLabels.description, textDetailValue(relationship.description))]
@@ -1240,11 +1255,21 @@ function formatMessageEndpoints(
   return recordDetailValue([
     recordDetailEntry(
       copy.recordLabels.sources,
-      formatTextList(locale, message.producers.map((producer) => formatEndpointRef(producer.kind, producer.id)))
+      formatTextList(
+        locale,
+        message.producers.map((producer) =>
+          formatEndpointRef(producer.target.kind, producer.target.value)
+        )
+      )
     ),
     recordDetailEntry(
       copy.recordLabels.targets,
-      formatTextList(locale, message.consumers.map((consumer) => formatEndpointRef(consumer.kind, consumer.id)))
+      formatTextList(
+        locale,
+        message.consumers.map((consumer) =>
+          formatEndpointRef(consumer.target.kind, consumer.target.value)
+        )
+      )
     ),
     recordDetailEntry(copy.recordLabels.sourceContexts, formatTextList(locale, message.producerContextIds)),
     recordDetailEntry(copy.recordLabels.targetContexts, formatTextList(locale, message.consumerContextIds))
@@ -1288,7 +1313,9 @@ function formatPolicyCoordinates(
 
   return formatTextList(
     locale,
-    policy.coordinates.map((coordinate) => formatEndpointRef(coordinate.kind, coordinate.id))
+    policy.coordinates.map((coordinate) =>
+      formatEndpointRef(coordinate.target.kind, coordinate.target.value)
+    )
   );
 }
 
@@ -1356,7 +1383,7 @@ function hasEndpoint(
   id: string
 ): boolean {
   return [...message.producers, ...message.consumers].some(
-    (endpoint) => endpoint.kind === kind && endpoint.id === id
+    (endpoint) => endpoint.target.kind === kind && endpoint.target.value === id
   );
 }
 

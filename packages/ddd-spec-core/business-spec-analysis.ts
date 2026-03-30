@@ -18,6 +18,7 @@ import type {
   SystemBoundary,
   SystemSpec
 } from "./spec.js";
+import type { SharedReference } from "../spec-toolchain-shared-kernel/reference.js";
 import type { SharedStableId } from "../spec-toolchain-shared-kernel/stable-identity.js";
 
 export const BUSINESS_SPEC_ANALYSIS_VERSION = 1 as const;
@@ -73,7 +74,7 @@ interface CanonicalSourceIdentity {
 export interface ContextBoundaryRelationship {
   id: string;
   kind: string;
-  target: ResourceRef;
+  target: SharedReference;
   direction?: ContextRelationshipDirection;
   integration?: string;
   description?: string;
@@ -185,8 +186,7 @@ export interface ScenarioSequence extends CanonicalSourceIdentity {
 }
 
 export interface MessageEndpoint {
-  kind: ResourceKind;
-  id: string;
+  target: SharedReference["target"];
   contextId?: string;
   path: string;
 }
@@ -260,7 +260,7 @@ export interface PolicyCoordination extends CanonicalSourceIdentity {
   triggerMessageIds: readonly string[];
   emittedMessageIds: readonly string[];
   targetSystemIds: readonly string[];
-  coordinates: readonly ResourceRef[];
+  coordinates: readonly SharedReference[];
   relatedContextIds: readonly string[];
   path: string;
 }
@@ -645,7 +645,7 @@ function buildSystemParticipants(
 
     for (const message of messages) {
       for (const producer of message.producers) {
-        if (producer.kind !== "system" || producer.id !== system.id) {
+        if (producer.target.kind !== "system" || producer.target.value !== system.id) {
           continue;
         }
 
@@ -658,7 +658,7 @@ function buildSystemParticipants(
       }
 
       for (const consumer of message.consumers) {
-        if (consumer.kind !== "system" || consumer.id !== system.id) {
+        if (consumer.target.kind !== "system" || consumer.target.value !== system.id) {
           continue;
         }
 
@@ -886,7 +886,12 @@ function buildPolicyCoordinations(
       triggerMessageIds: [...policy.triggerMessages],
       emittedMessageIds: [...(policy.emittedMessages ?? [])],
       targetSystemIds: [...(policy.targetSystems ?? [])],
-      coordinates: (policy.coordinates ?? []).map((coordinate) => ({ ...coordinate })),
+      coordinates: (policy.coordinates ?? []).map((coordinate) =>
+        toSharedReference(
+          coordinate,
+          `${policyPath(policy.id)}/coordinates/${coordinate.kind}:${coordinate.id}`
+        )
+      ),
       relatedContextIds,
       path: policyPath(policy.id)
     };
@@ -1533,8 +1538,8 @@ function validatePolicyCoordination(
     }
 
     for (const consumer of emittedMessage.consumers) {
-      if (consumer.kind === "system") {
-        emittedMessageConsumerIds.add(consumer.id);
+      if (consumer.target.kind === "system") {
+        emittedMessageConsumerIds.add(consumer.target.value);
       }
     }
   }
@@ -1572,14 +1577,14 @@ function validatePolicyCoordination(
       ALLOWED_POLICY_COORDINATE_KINDS,
       coordinate,
       `Policy ${policy.id} coordinate`,
-      `${policy.path}/coordinates/${coordinate.kind}:${coordinate.id}`,
+      `${policy.path}/coordinates/${coordinate.target.kind}:${coordinate.target.value}`,
       collector
     );
     assertKnownResourceRef(
       resourceRegistry,
       coordinate,
       `Policy ${policy.id} coordinate`,
-      `${policy.path}/coordinates/${coordinate.kind}:${coordinate.id}`,
+      `${policy.path}/coordinates/${coordinate.target.kind}:${coordinate.target.value}`,
       collector
     );
   }
@@ -1595,14 +1600,14 @@ function validateMessageRefs(
   const seenRefs = new Set<string>();
 
   for (const ref of refs) {
-    const key = toResourceKey(ref.kind, ref.id);
+    const key = toResourceKey(ref.target.kind as ResourceKind, ref.target.value);
 
     if (seenRefs.has(key)) {
       collector.push({
         severity: "error",
         code: "duplicate-array-value",
         path: ref.path,
-        message: `Duplicate ${label} ${ref.kind} ${ref.id}`
+        message: `Duplicate ${label} ${ref.target.kind} ${ref.target.value}`
       });
       continue;
     }
@@ -1642,11 +1647,11 @@ function validateScenarioBacklinks(
   collector: DiagnosticCollector
 ): void {
   for (const producer of message.producers) {
-    if (producer.kind !== "scenario") {
+    if (producer.target.kind !== "scenario") {
       continue;
     }
 
-    const scenario = maps.scenarios.get(producer.id);
+    const scenario = maps.scenarios.get(producer.target.value);
 
     if (!scenario) {
       continue;
@@ -1665,11 +1670,11 @@ function validateScenarioBacklinks(
   }
 
   for (const consumer of message.consumers) {
-    if (consumer.kind !== "scenario") {
+    if (consumer.target.kind !== "scenario") {
       continue;
     }
 
-    const scenario = maps.scenarios.get(consumer.id);
+    const scenario = maps.scenarios.get(consumer.target.value);
 
     if (!scenario) {
       continue;
@@ -1767,56 +1772,60 @@ function stepCanProduceMessage(
 }
 
 function isStepCompatibleRef(
-  ref: ResourceRef,
+  ref: ResourceRef | MessageEndpoint,
   scenario: ScenarioSequence,
   step: ScenarioStep,
   maps: AnalysisMaps
 ): boolean {
-  if (ref.kind === "scenario") {
-    return ref.id === scenario.id;
+  const resourceRef = toResourceRef(ref);
+
+  if (resourceRef.kind === "scenario") {
+    return resourceRef.id === scenario.id;
   }
 
-  if (ref.kind === "context") {
-    return ref.id === step.contextId;
+  if (resourceRef.kind === "context") {
+    return resourceRef.id === step.contextId;
   }
 
-  if (ref.kind === "actor") {
-    return step.actorId === ref.id;
+  if (resourceRef.kind === "actor") {
+    return step.actorId === resourceRef.id;
   }
 
-  if (ref.kind === "system") {
-    return step.systemId === ref.id;
+  if (resourceRef.kind === "system") {
+    return step.systemId === resourceRef.id;
   }
 
-  if (ref.kind === "aggregate") {
-    return maps.aggregates.get(ref.id)?.contextId === step.contextId;
+  if (resourceRef.kind === "aggregate") {
+    return maps.aggregates.get(resourceRef.id)?.contextId === step.contextId;
   }
 
-  if (ref.kind === "policy") {
-    return maps.policies.get(ref.id)?.contextId === step.contextId;
+  if (resourceRef.kind === "policy") {
+    return maps.policies.get(resourceRef.id)?.contextId === step.contextId;
   }
 
   return false;
 }
 
 function resolveRawResourceContext(
-  ref: ResourceRef,
+  ref: ResourceRef | SharedReference | MessageEndpoint,
   rawMaps: RawResourceMaps
 ): string | undefined {
-  if (ref.kind === "context") {
-    return ref.id;
+  const resourceRef = toResourceRef(ref);
+
+  if (resourceRef.kind === "context") {
+    return resourceRef.id;
   }
 
-  if (ref.kind === "scenario") {
-    return rawMaps.scenarios.get(ref.id)?.ownerContext;
+  if (resourceRef.kind === "scenario") {
+    return rawMaps.scenarios.get(resourceRef.id)?.ownerContext;
   }
 
-  if (ref.kind === "aggregate") {
-    return rawMaps.aggregates.get(ref.id)?.context;
+  if (resourceRef.kind === "aggregate") {
+    return rawMaps.aggregates.get(resourceRef.id)?.context;
   }
 
-  if (ref.kind === "policy") {
-    return rawMaps.policies.get(ref.id)?.context;
+  if (resourceRef.kind === "policy") {
+    return rawMaps.policies.get(resourceRef.id)?.context;
   }
 
   return undefined;
@@ -1875,45 +1884,51 @@ function hasResourceEndpoint(
   kind: ResourceKind,
   id: string
 ): boolean {
-  return refs.some((ref) => ref.kind === kind && ref.id === id);
+  return refs.some(
+    (ref) => ref.target.kind === kind && ref.target.value === id
+  );
 }
 
 function assertKnownResourceRef(
   resourceRegistry: ReadonlySet<string>,
-  ref: ResourceRef,
+  ref: ResourceRef | SharedReference,
   label: string,
   path: string,
   collector: DiagnosticCollector
 ): void {
-  if (!resourceRegistry.has(toResourceKey(ref.kind, ref.id))) {
+  const resourceRef = toResourceRef(ref);
+
+  if (!resourceRegistry.has(toResourceKey(resourceRef.kind, resourceRef.id))) {
     collector.push({
       severity: "error",
       code: "unknown-resource-reference",
       path,
-      message: `${label} ${ref.kind} ${ref.id} must reference existing ${ref.kind}`
+      message: `${label} ${resourceRef.kind} ${resourceRef.id} must reference existing ${resourceRef.kind}`
     });
   }
 }
 
 function assertAllowedResourceRefKind(
   allowedKinds: ReadonlySet<ResourceKind>,
-  ref: ResourceRef,
+  ref: ResourceRef | SharedReference,
   label: string,
   path: string,
   collector: DiagnosticCollector
 ): void {
-  if (allowedKinds.has(ref.kind)) {
+  const resourceRef = toResourceRef(ref);
+
+  if (allowedKinds.has(resourceRef.kind)) {
     return;
   }
 
   collector.push({
-    severity: "error",
-    code: "unsupported-resource-kind-reference",
-    path,
-    message: `${label} kind ${ref.kind} is not allowed here; expected one of ${[
-      ...allowedKinds
-    ].join(", ")}`
-  });
+      severity: "error",
+      code: "unsupported-resource-kind-reference",
+      path,
+      message: `${label} kind ${resourceRef.kind} is not allowed here; expected one of ${[
+        ...allowedKinds
+      ].join(", ")}`
+    });
 }
 
 function assertKind(
@@ -1990,7 +2005,10 @@ function toContextBoundaryRelationship(
   return {
     id: relationship.id,
     kind: relationship.kind,
-    target: { ...relationship.target },
+    target: toSharedReference(
+      relationship.target,
+      `${contextPath(contextId, `/relationships/${relationship.id}`)}/target`
+    ),
     direction: relationship.direction,
     integration: relationship.integration,
     description: relationship.description,
@@ -2005,8 +2023,7 @@ function toMessageEndpoint(
   rawMaps: RawResourceMaps
 ): MessageEndpoint {
   return {
-    kind: ref.kind,
-    id: ref.id,
+    target: toStableId(ref.kind, ref.id),
     contextId: resolveRawResourceContext(ref, rawMaps),
     path: messagePath(messageId, `/${side}/${ref.kind}:${ref.id}`)
   };
@@ -2053,16 +2070,16 @@ function collectSystemIdsForContext(
 
   if (message.producerContextIds.includes(contextId)) {
     for (const consumer of message.consumers) {
-      if (consumer.kind === "system") {
-        systemIds.push(consumer.id);
+      if (consumer.target.kind === "system") {
+        systemIds.push(consumer.target.value);
       }
     }
   }
 
   if (message.consumerContextIds.includes(contextId)) {
     for (const producer of message.producers) {
-      if (producer.kind === "system") {
-        systemIds.push(producer.id);
+      if (producer.target.kind === "system") {
+        systemIds.push(producer.target.value);
       }
     }
   }
@@ -2131,6 +2148,24 @@ function uniqueDefined(
 
 function toResourceKey(kind: ResourceKind, id: string): string {
   return `${kind}:${id}`;
+}
+
+function toSharedReference(ref: ResourceRef, path: string): SharedReference {
+  return {
+    target: toStableId(ref.kind, ref.id),
+    path
+  };
+}
+
+function toResourceRef(ref: ResourceRef | SharedReference): ResourceRef {
+  if ("target" in ref) {
+    return {
+      kind: ref.target.kind as ResourceKind,
+      id: ref.target.value
+    };
+  }
+
+  return ref;
 }
 
 function formatDiagnostics(diagnostics: readonly AnalysisDiagnostic[]): string {
