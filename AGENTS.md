@@ -18,6 +18,11 @@
 | Run viewer Vite dev server | `npm run dev --workspace=apps/ddd-spec-viewer` |
 | Build viewer workspace | `npm run build --workspace=apps/ddd-spec-viewer` |
 
+## Gate Taxonomy
+- Treat `check:*`, `gate:*`, and `ops:*` as the only top-level maintainer command prefixes.
+- Use `gate:pr` as the baseline maintainer gate, `gate:release` for release readiness, and `ops:release:*` for stateful release operations.
+- Do not reintroduce removed legacy root entrypoints such as `verify` or `release:dry-run` as docs, aliases, or CI recommendations.
+
 ## Targeted Commands
 | Task | Command |
 |------|---------|
@@ -62,7 +67,7 @@
 - Any change to the public consumer workflow, CLI command surface, domain-model authoring rules, diagnostics, or examples that affect AI guidance MUST include a check whether [`skills/ddd-spec/`](./skills/ddd-spec/) needs to be updated in the same change.
 - Do not treat schema validation as sufficient for domain-model changes; cross-file references, ownership rules, and topology constraints belong in semantic validation.
 - Keep business-product-specific assets out of this repo; they belong in sibling consumer repos rather than this monorepo
-- Root `repo:*` scripts always target [`apps/ddd-spec-viewer/ddd-spec.config.yaml`](./apps/ddd-spec-viewer/ddd-spec.config.yaml); do not add a repo-root maintainer modeling tree outside [`examples/`](./examples/)
+- Root `check:repo:*` scripts and `ops:repo:viewer` always target [`apps/ddd-spec-viewer/ddd-spec.config.yaml`](./apps/ddd-spec-viewer/ddd-spec.config.yaml); do not add a repo-root maintainer modeling tree outside [`examples/`](./examples/)
 - The root viewer config now targets the tracked [`examples/cross-context/`](./examples/cross-context/) `domain-model/` input; keep repo-local maintainer docs and tests aligned with that default path
 - [`examples/`](./examples/) are the only maintained repo-local dogfood inputs; prefer `domain-model/` examples when adding or updating maintainer coverage
 - No legacy compatibility requirement: remove retired `objects/commands/events/processes`-era tests and goldens instead of preserving them
